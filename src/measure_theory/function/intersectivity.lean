@@ -40,9 +40,14 @@ measure at least `r` has an infinite subset whose finite intersections all have 
 lemma bergelson (hs : ∀ n, measurable_set (s n)) (hr₀ : r ≠ 0) (hr : ∀ n, r ≤ μ (s n)) :
   ∃ t : set ℕ, t.infinite ∧ ∀ ⦃u⦄, u ⊆ t → u.finite → 0 < μ (⋂ n ∈ u, s n) :=
 begin
+  -- We let `M f` be the set on which the norm of `f` exceeds its essential supremum, and `N` be the
+  -- union of `M` of the finite products of the indicators of the `s n`.
   let M : (α → ℝ) → set α := λ f, {x | snorm_ess_sup f μ < ‖f x‖₊},
   let N : set α := ⋃ u : finset ℕ, M (set.indicator (⋂ n ∈ u, s n) 1),
+  -- `N` is a null set since `M f` is a null set for each `f`.
   have hN₀ : μ N = 0 := measure_Union_null (λ u, meas_snorm_ess_sup_lt),
+  -- The important thing about `N` is that if we remove `N` from our space, then finite unions of
+  -- the `s n` are null iff they are empty.
   have hN₁ : ∀ u : finset ℕ, ((⋂ n ∈ u, s n) \ N).nonempty → 0 < μ (⋂ n ∈ u, s n),
   { simp_rw pos_iff_ne_zero,
     rintro u ⟨x, hx⟩ hu,
@@ -50,18 +55,17 @@ begin
     rw [indicator_of_mem hx.1, snorm_ess_sup_eq_zero_iff.2],
     simp,
     { rwa [indicator_ae_eq_zero, function.support_one, inter_univ] } },
+  -- Define `f n` to be the average of the first `n + 1` indicators of the `s k`.
   let f : ℕ → α → ℝ≥0∞ := λ n, (↑(n + 1) : ℝ≥0∞)⁻¹ • ∑ k in finset.range (n + 1), (s k).indicator 1,
+  -- We gather a few simple properties of `f`.
   have hfapply : ∀ n a, f n a = (↑(n + 1))⁻¹ * ∑ k in finset.range (n + 1), (s k).indicator 1 a,
   { simp only [f, pi.coe_nat, pi.smul_apply, pi.inv_apply, finset.sum_apply, eq_self_iff_true,
     forall_const, implies_true_iff, smul_eq_mul] },
   have hf₀ : 0 ≤ f,
   { exact zero_le _ },
-  have hf' : ∀ n, measurable (∑ k in finset.range n, (s k).indicator 1 : α → ℝ≥0∞),
-  { exact λ n, (finset.measurable_sum' _ $ λ i _, measurable_one.indicator $ hs i) },
   have hf : ∀ n, measurable (f n),
-  { refine λ n, measurable.mul' _
-      (finset.measurable_sum' _ $ λ i _, measurable_one.indicator $ hs i),
-    exact @measurable_const ℝ≥0∞ _ _ _ (↑(n + 1))⁻¹ },
+  { exact λ n, measurable.mul' (@measurable_const ℝ≥0∞ _ _ _ (↑(n + 1))⁻¹)
+      (finset.measurable_sum' _ $ λ i _, measurable_one.indicator $ hs i) },
   have hf₁ : ∀ n, f n ≤ 1,
   { rintro n a,
     rw [hfapply, ←ennreal.div_eq_inv_mul],
@@ -69,6 +73,7 @@ begin
       or.inr one_ne_zero).2 _,
     rw [mul_comm, ←nsmul_eq_mul, ←finset.card_range n.succ],
     exact finset.sum_le_card_nsmul _ _ _ (λ _ _, indicator_le (λ _ _, le_rfl) _) },
+  -- By assumption, `f n` has integral at least `r`.
   have hf₂ : ∀ n, r ≤ ∫⁻ a, f n a ∂μ,
   { rintro n,
     simp_rw hfapply,
@@ -84,12 +89,14 @@ begin
   have hμ : μ ≠ 0,
   { unfreezingI { rintro rfl },
     exact hr₀ (le_bot_iff.1 $ hr 0) },
+  -- By the first moment method, there exists some `x ∉ N` such that `limsup f n x` is at least `r`.
   obtain ⟨x, hxN, hx⟩ := exists_not_mem_null_laverage_le hμ
     (ne_top_of_le_ne_top (measure_ne_top μ univ) _) hN₀,
   rw laverage_eq at hx,
   replace hx := (ennreal.div_le_div_right ((le_limsup_of_le ⟨μ univ, eventually_map.2 _⟩ $ λ b hb,
     _).trans $ limsup_lintegral_le hf (λ n, ae_of_all μ $ hf₁ n) $
     ne_of_eq_of_ne lintegral_one is_finite_measure.measure_univ_lt_top.ne) _).trans hx,
+  -- This exactly means that the `s n` containing `x` have all their finite intersection non-null.
   refine ⟨{n | x ∈ s n}, λ hxs, _, λ u hux hu, _⟩,
   -- This next block proves that a set of strictly positive natural density is infinite, mixed with
   -- the fact that `{n | x ∈ s n}` has strictly positive natural density.

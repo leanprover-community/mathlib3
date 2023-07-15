@@ -13,6 +13,9 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Differentiation of measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 On a second countable metric space with a measure `μ`, consider a Vitali family (i.e., for each `x`
 one has a family of sets shrinking to `x`, with a good behavior with respect to covering theorems).
 Consider also another measure `ρ`. Then, for almost every `x`, the ratio `ρ a / μ a` converges when

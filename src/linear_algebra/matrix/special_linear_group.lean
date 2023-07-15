@@ -10,6 +10,9 @@ import linear_algebra.matrix.to_lin
 /-!
 # The Special Linear group $SL(n, R)$
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the elements of the Special Linear group `special_linear_group n R`, consisting
 of all square `R`-matrices with determinant `1` on the fintype `n` by `n`.  In addition, we define
 the group structure on `special_linear_group n R` and the embedding into the general linear group

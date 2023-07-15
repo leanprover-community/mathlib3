@@ -10,6 +10,9 @@ import topology.instances.nnreal
 /-!
 # Topological simplices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the natural functor from `simplex_category` to `Top` sending `[n]` to the
 topological `n`-simplex.
 This is used to define `Top.to_sSet` in `algebraic_topology.simpliciaL_set`.

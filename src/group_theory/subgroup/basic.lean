@@ -1604,8 +1604,14 @@ set_like.ext' (set.centralizer_univ G)
 @[to_additive] lemma le_centralizer_iff : H ≤ K.centralizer ↔ K ≤ H.centralizer :=
 ⟨λ h x hx y hy, (h hy x hx).symm, λ h x hx y hy, (h hy x hx).symm⟩
 
+@[to_additive] lemma center_le_centralizer (s) : center G ≤ centralizer s :=
+set.center_subset_centralizer s
+
 @[to_additive] lemma centralizer_le (h : H ≤ K) : centralizer K ≤ centralizer H :=
 submonoid.centralizer_le h
+
+@[simp, to_additive] lemma centralizer_eq_top_iff_subset {s} : centralizer s = ⊤ ↔ s ≤ center G :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
   H.centralizer.characteristic :=
@@ -2669,6 +2675,16 @@ begin
     monoid_hom.restrict_apply, mem_comap],
   exact subset_normal_closure (set.mem_singleton _),
 end
+
+variables {M : Type*} [monoid M]
+
+lemma eq_of_left_mem_center {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
+  g = h :=
+by { rcases H with ⟨u, hu⟩, rwa [← u.mul_left_inj, ← Hg u], }
+
+lemma eq_of_right_mem_center {g h : M} (H : is_conj g h) (Hh : h ∈ set.center M) :
+  g = h :=
+(H.symm.eq_of_left_mem_center Hh).symm
 
 end is_conj
 

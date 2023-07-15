@@ -8,6 +8,9 @@ import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 A smooth monoid is a monoid that is also a smooth manifold, in which multiplication is a smooth map
 of the product manifold `G` × `G` into `G`.
 
@@ -370,3 +373,14 @@ lemma smooth_finprod_cond (hc : ∀ i, p i → smooth I' I (f i))
 cont_mdiff_finprod_cond hc hf
 
 end comm_monoid
+
+section
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+instance has_smooth_add_self : has_smooth_add 𝓘(𝕜, E) E :=
+⟨by { convert cont_diff_add.cont_mdiff, exact model_with_corners_self_prod.symm,
+  exact charted_space_self_prod }⟩
+
+end

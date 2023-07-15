@@ -9,6 +9,9 @@ import linear_algebra.dimension
 /-!
 # Linear recurrence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Informally, a "linear recurrence" is an assertion of the form
 `∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
 where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`
@@ -174,10 +177,10 @@ section strong_rank_condition
 variables {α : Type*} [comm_ring α] [strong_rank_condition α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim : module.rank α E.sol_space = E.order :=
+lemma sol_space_rank : module.rank α E.sol_space = E.order :=
 begin
   letI := nontrivial_of_invariant_basis_number α,
-  exact @dim_fin_fun α _ _ E.order ▸ E.to_init.dim_eq
+  exact @rank_fin_fun α _ _ E.order ▸ E.to_init.rank_eq
 end
 
 end strong_rank_condition

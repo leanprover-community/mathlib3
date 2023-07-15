@@ -14,6 +14,9 @@ import data.fintype.sort
 /-!
 # Multilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define multilinear maps as maps from `Π(i : ι), M₁ i` to `M₂` which are linear in each
 coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type
 (although some statements will require it to be a fintype). This space, denoted by
@@ -203,7 +206,7 @@ coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
   map_smul' := λc x, by simp }
 
 /-- The cartesian product of two multilinear maps, as a multilinear map. -/
-def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
+@[simps] def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   multilinear_map R M₁ (M₂ × M₃) :=
 { to_fun    := λ m, (f m, g m),
   map_add'  := λ _ m i x y, by simp,

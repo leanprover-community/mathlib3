@@ -7,6 +7,9 @@ import analysis.normed_space.basic
 
 /-! # Constructions of continuous linear maps between (semi-)normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A fundamental fact about (semi-)linear maps between normed spaces over sensible fields is that
 continuity and boundedness are equivalent conditions.  That is, for normed spaces `E`, `F`, a
 `linear_map` `f : E →ₛₗ[σ] F` is the coercion of some `continuous_linear_map` `f' : E →SL[σ] F`, if
@@ -102,7 +105,7 @@ add_monoid_hom_class.antilipschitz_of_bound _ h
 
 lemma bound_of_antilipschitz (f : E →SL[σ] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
   ‖x‖ ≤ K * ‖f x‖ :=
-add_monoid_hom_class.bound_of_antilipschitz _ h x
+zero_hom_class.bound_of_antilipschitz _ h x
 
 end continuous_linear_map
 
@@ -188,27 +191,6 @@ variable (𝕜)
 lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
   ‖linear_map.to_span_singleton 𝕜 E x c‖ = ‖x‖ * ‖c‖ :=
 by {rw mul_comm, exact norm_smul _ _}
-
-/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
-    linear map from `𝕜` to `E` by taking multiples of `x`.-/
-def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
-of_homothety (linear_map.to_span_singleton 𝕜 E x) ‖x‖ (to_span_singleton_homothety 𝕜 x)
-
-lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
-by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
-
-lemma to_span_singleton_add (x y : E) :
-  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
-by { ext1, simp [to_span_singleton_apply], }
-
-lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
-  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
-
-lemma to_span_singleton_smul (c : 𝕜) (x : E) :
-  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
-to_span_singleton_smul' 𝕜 𝕜 c x
 
 end continuous_linear_map
 

@@ -9,6 +9,9 @@ import testing.slim_check.sampleable
 /-!
 # `testable` Class
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Testable propositions have a procedure that can generate counter-examples
 together with a proof that they invalidate the proposition.
 

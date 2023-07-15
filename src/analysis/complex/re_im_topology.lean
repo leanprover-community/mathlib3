@@ -9,6 +9,9 @@ import topology.fiber_bundle.is_homeomorphic_trivial_bundle
 /-!
 # Closure, interior, and frontier of preimages under `re` and `im`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this fact we use the fact that `ℂ` is naturally homeomorphic to `ℝ × ℝ` to deduce some
 topological properties of `complex.re` and `complex.im`.
 

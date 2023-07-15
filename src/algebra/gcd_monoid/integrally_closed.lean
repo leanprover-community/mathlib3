@@ -11,6 +11,9 @@ import ring_theory.polynomial.eisenstein.basic
 
 # GCD domains are integrally closed
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open_locale big_operators polynomial

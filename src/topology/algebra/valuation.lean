@@ -11,6 +11,9 @@ import ring_theory.valuation.basic
 /-!
 # The topology on a valued ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the non archimedean topology induced by a valuation on a ring.
 The main definition is a `valued` type class which equips a ring with a valuation taking
 values in a group with zero. Other instances are then deduced from this.

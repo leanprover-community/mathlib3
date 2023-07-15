@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.order.chebyshev
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 import order.partition.equipartition
 
 /-!
 # Numerical bounds for Szemerédi Regularity Lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file gathers the numerical facts required by the proof of Szemerédi's regularity lemma.
 
@@ -21,6 +24,10 @@ This entire file is internal to the proof of Szemerédi Regularity Lemma.
 * `szemeredi_regularity.initial_bound`: The size of the partition we start the induction with.
 * `szemeredi_regularity.bound`: The upper bound on the size of the partition produced by our version
   of Szemerédi's regularity lemma.
+
+## References
+
+[Yaël Dillies, Bhavik Mehta, *Formalising Szemerédi’s Regularity Lemma in Lean*][srl_itp]
 -/
 
 open finset fintype function real

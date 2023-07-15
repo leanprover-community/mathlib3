@@ -9,6 +9,9 @@ import model_theory.substructures
 /-!
 # Elementary Maps Between First-Order Structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.

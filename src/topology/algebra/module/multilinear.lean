@@ -9,6 +9,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Continuous multilinear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define continuous multilinear maps as maps from `Π(i : ι), M₁ i` to `M₂` which are multilinear
 and continuous, by extending the space of multilinear maps with a continuity assumption.
 Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type, and all these
@@ -63,8 +66,19 @@ variables [semiring R]
   [topological_space M₂] [topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
+theorem to_multilinear_map_injective :
+  function.injective (continuous_multilinear_map.to_multilinear_map :
+    continuous_multilinear_map R M₁ M₂ → multilinear_map R M₁ M₂)
+| ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
+
+instance continuous_map_class :
+  continuous_map_class (continuous_multilinear_map R M₁ M₂) (Π i, M₁ i) M₂ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, to_multilinear_map_injective $ multilinear_map.coe_injective h,
+  map_continuous := continuous_multilinear_map.cont }
+
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) (λ _, (Π i, M₁ i) → M₂) :=
-⟨λ f, f.to_fun⟩
+⟨λ f, f⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
@@ -77,16 +91,11 @@ initialize_simps_projections continuous_multilinear_map
 
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 
-theorem to_multilinear_map_inj :
-  function.injective (continuous_multilinear_map.to_multilinear_map :
-    continuous_multilinear_map R M₁ M₂ → multilinear_map R M₁ M₂)
-| ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
-
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
-to_multilinear_map_inj $ multilinear_map.ext H
+fun_like.ext _ _ H
 
 theorem ext_iff {f f' : continuous_multilinear_map R M₁ M₂} : f = f' ↔ ∀ x, f x = f' x :=
-by rw [← to_multilinear_map_inj.eq_iff, multilinear_map.ext_iff]; refl
+by rw [← to_multilinear_map_injective.eq_iff, multilinear_map.ext_iff]; refl
 
 @[simp] lemma map_add [decidable_eq ι] (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
@@ -142,7 +151,7 @@ instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
 ⟨λ c₁ f, ext $ λ x, op_smul_eq_smul _ _⟩
 
 instance : mul_action R' (continuous_multilinear_map A M₁ M₂) :=
-function.injective.mul_action to_multilinear_map to_multilinear_map_inj (λ _ _, rfl)
+function.injective.mul_action to_multilinear_map to_multilinear_map_injective (λ _ _, rfl)
 
 end has_smul
 
@@ -159,7 +168,7 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 rfl
 
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+to_multilinear_map_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Evaluation of a `continuous_multilinear_map` at a vector as an `add_monoid_hom`. -/
 def apply_add_hom (m : Π i, M₁ i) : continuous_multilinear_map R M₁ M₂ →+ M₂ :=
@@ -207,6 +216,12 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   (f : Π i, continuous_multilinear_map R M₁ (M' i)) (m : Π i, M₁ i) (j : ι') :
   pi f m j = f j m :=
 rfl
+
+/-- Restrict the codomain of a continuous multilinear map to a submodule. -/
+@[simps to_multilinear_map apply_coe]
+def cod_restrict (f : continuous_multilinear_map R M₁ M₂) (p : submodule R M₂) (h : ∀ v, f v ∈ p) :
+  continuous_multilinear_map R M₁ p :=
+⟨f.1.cod_restrict p h, f.cont.subtype_mk _⟩
 
 section
 variables (R M₂)
@@ -266,6 +281,25 @@ def pi_equiv {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   inv_fun := λ f i, (continuous_linear_map.proj i : _ →L[R] M' i).comp_continuous_multilinear_map f,
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
+
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. This is the forward map of this equivalence. -/
+@[simps to_multilinear_map apply]
+def dom_dom_congr {ι' : Type*} (e : ι ≃ ι') (f : continuous_multilinear_map R (λ _ : ι, M₂) M₃) :
+  continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_multilinear_map := f.dom_dom_congr e,
+  cont := f.cont.comp $ continuous_pi $ λ _, continuous_apply _ }
+
+/-- An equivalence of the index set defines an equivalence between the spaces of continuous
+multilinear maps. In case of normed spaces, this is a linear isometric equivalence, see
+`continuous.multilinear_map.dom_dom_congrₗᵢ`. -/
+@[simps]
+def dom_dom_congr_equiv {ι' : Type*} (e : ι ≃ ι') :
+  continuous_multilinear_map R (λ _ : ι, M₂) M₃ ≃ continuous_multilinear_map R (λ _ : ι', M₂) M₃ :=
+{ to_fun := dom_dom_congr e,
+  inv_fun := dom_dom_congr e.symm,
+  left_inv := λ _, ext $ λ _, by simp,
+  right_inv := λ _, ext $ λ _, by simp }
 
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
@@ -359,7 +393,7 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_group _
+to_multilinear_map_injective.add_comm_group _
   rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end topological_add_group
@@ -398,7 +432,7 @@ variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
 instance [has_continuous_add M₂] : distrib_mul_action R' (continuous_multilinear_map A M₁ M₂) :=
 function.injective.distrib_mul_action
   ⟨to_multilinear_map, to_multilinear_map_zero, to_multilinear_map_add⟩
-  to_multilinear_map_inj (λ _ _, rfl)
+  to_multilinear_map_injective (λ _ _, rfl)
 
 end distrib_mul_action
 
@@ -414,7 +448,7 @@ variables {R' A : Type*} [semiring R'] [semiring A]
 pointwise addition and scalar multiplication. -/
 instance : module R' (continuous_multilinear_map A M₁ M₂) :=
 function.injective.module _ ⟨to_multilinear_map, to_multilinear_map_zero, to_multilinear_map_add⟩
-  to_multilinear_map_inj (λ _ _, rfl)
+  to_multilinear_map_injective (λ _ _, rfl)
 
 /-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
 the corresponding multilinear map. -/

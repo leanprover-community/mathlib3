@@ -30,7 +30,7 @@ The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to
 on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
 -/
 
-open set function
+open function order set
 
 variables {α β γ ι ι' : Type*} {r p q : α → α → Prop}
 
@@ -296,6 +296,8 @@ end semilattice_inf_bot
 
 /-! ### Pairwise disjoint set of sets -/
 
+variables {s : set ι} {t : set ι'}
+
 lemma pairwise_disjoint_range_singleton :
   (set.range (singleton : ι → set ι)).pairwise_disjoint id :=
 begin
@@ -310,6 +312,18 @@ lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint
 lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwise_disjoint f) {i j : ι}
   (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i) (haj : a ∈ f j) : i = j :=
 hs.elim hi hj $ not_disjoint_iff.2 ⟨a, hai, haj⟩
+
+lemma pairwise_disjoint.prod {f : ι → set α} {g : ι' → set β} (hs : s.pairwise_disjoint f)
+  (ht : t.pairwise_disjoint g) :
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint (λ i, f i.1 ×ˢ g i.2) :=
+λ ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij, disjoint_left.2 $ λ ⟨a, b⟩ ⟨hai, hbi⟩ ⟨haj, hbj⟩,
+  hij $ prod.ext (hs.elim_set hi hj _ hai haj) $ ht.elim_set hi' hj' _ hbi hbj
+
+lemma pairwise_disjoint_pi {ι' α : ι → Type*} {s : Π i, set (ι' i)} {f : Π i, ι' i → set (α i)}
+  (hs : ∀ i, (s i).pairwise_disjoint (f i)) :
+  ((univ : set ι).pi s).pairwise_disjoint (λ I, (univ : set ι).pi (λ i, f _ (I i))) :=
+λ I hI J hJ hIJ, disjoint_left.2 $ λ a haI haJ, hIJ $ funext $ λ i,
+  (hs i).elim_set (hI i trivial) (hJ i trivial) (a i) (haI i trivial) (haJ i trivial)
 
 /-- The partial images of a binary function `f` whose partial evaluations are injective are pairwise
 disjoint iff `f` is injective . -/

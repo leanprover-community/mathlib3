@@ -10,6 +10,9 @@ import category_theory.subobject.mono_over
 /-!
 # Subterminal objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Subterminal objects are the objects which can be thought of as subobjects of the terminal object.
 In fact, the definition can be constructed to not require a terminal object, by defining `A` to be
 subterminal iff for any `Z`, there is at most one morphism `Z ⟶ A`.

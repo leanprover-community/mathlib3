@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
 import analysis.inner_product_space.two_dim
-import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.unoriented.basic
 
 /-!
 # Oriented angles.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines oriented angles in real inner product spaces.
 

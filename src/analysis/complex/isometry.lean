@@ -10,6 +10,9 @@ import linear_algebra.matrix.general_linear_group
 /-!
 # Isometries of the Complex Plane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The lemma `linear_isometry_complex` states the classification of isometries in the complex plane.
 Specifically, isometries with rotations but without translation.
 The proof involves:

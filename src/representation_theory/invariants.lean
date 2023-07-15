@@ -9,6 +9,9 @@ import representation_theory.fdRep
 /-!
 # Subspace of invariants a group representation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the subspace of invariants of a group representation
 and proves basic results about it.
 The main tool used is the average of all elements of the group, seen as an element of

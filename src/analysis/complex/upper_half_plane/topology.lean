@@ -9,11 +9,12 @@ import analysis.convex.normed
 import analysis.convex.complex
 import analysis.complex.re_im_topology
 import topology.homotopy.contractible
-import geometry.manifold.mfderiv
-import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Topology on the upper half plane
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we introduce a `topological_space` structure on the upper half plane and provide
 various instances.
@@ -21,7 +22,7 @@ various instances.
 
 noncomputable theory
 open set filter function topological_space complex
-open_locale filter topology upper_half_plane manifold
+open_locale filter topology upper_half_plane
 
 namespace upper_half_plane
 
@@ -58,19 +59,5 @@ begin
 end
 
 instance : locally_compact_space ℍ := open_embedding_coe.locally_compact_space
-
-instance upper_half_plane.charted_space : charted_space ℂ ℍ :=
-upper_half_plane.open_embedding_coe.singleton_charted_space
-
-instance upper_half_plane.smooth_manifold_with_corners : smooth_manifold_with_corners 𝓘(ℂ) ℍ :=
-upper_half_plane.open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(ℂ)
-
-/-- The inclusion map `ℍ → ℂ` is a smooth map of manifolds. -/
-lemma smooth_coe : smooth 𝓘(ℂ) 𝓘(ℂ) (coe : ℍ → ℂ) :=
-λ x, cont_mdiff_at_ext_chart_at
-
-/-- The inclusion map `ℍ → ℂ` is a differentiable map of manifolds. -/
-lemma mdifferentiable_coe : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (coe : ℍ → ℂ) :=
-smooth_coe.mdifferentiable
 
 end upper_half_plane

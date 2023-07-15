@@ -3,12 +3,17 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Bhavik Mehta
 -/
-import measure_theory.integral.interval_integral
+import analysis.special_functions.pow.deriv
+import measure_theory.integral.fund_thm_calculus
 import order.filter.at_top_bot
 import measure_theory.function.jacobian
+import measure_theory.measure.haar.normed_space
 
 /-!
 # Links between an integral and its "improper" version
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In its current state, mathlib only knows how to talk about definite ("proper") integrals,
 in the sense that it treats integrals over `[x, +∞)` the same as it treats integrals over
@@ -50,7 +55,15 @@ as an `ae_cover` w.r.t. `μ.restrict (Iic b)`, instead of using `(λ x, Ioc x b)
   then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
 
 We then specialize these lemmas to various use cases involving intervals, which are frequent
-in analysis.
+in analysis. In particular,
+- `measure_theory.integral_Ioi_of_has_deriv_at_of_tendsto` is a version of FTC-2 on the interval
+  `(a, +∞)`, giving the formula `∫ x in (a, +∞), g' x = l - g a` if `g'` is integrable and
+  `g` tends to `l` at `+∞`.
+- `measure_theory.integral_Ioi_of_has_deriv_at_of_nonneg` gives the same result assuming that
+  `g'` is nonnegative instead of integrable. Its automatic integrability in this context is proved
+  in `measure_theory.integrable_on_Ioi_deriv_of_nonneg`.
+- `measure_theory.integral_comp_smul_deriv_Ioi` is a version of the change of variables formula
+  on semi-infinite intervals.
 -/
 
 open measure_theory filter set topological_space
@@ -604,7 +617,7 @@ end
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ‖f x‖ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ‖f x‖) ≤ I) : integrable_on f (Ioc a₀ b) :=
 integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
@@ -660,12 +673,170 @@ end
 
 end integral_of_interval_integral
 
+open real
+open_locale interval
+
+section Ioi_FTC
+
+variables {E : Type*} {f f' : ℝ → E} {g g' : ℝ → ℝ} {a b l : ℝ} {m : E}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- **Fundamental theorem of calculus-2**, on semi-infinite intervals `(a, +∞)`.
+When a function has a limit at infinity `m`, and its derivative is integrable, then the
+integral of the derivative on `(a, +∞)` is `m - f a`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`.-/
+lemma integral_Ioi_of_has_deriv_at_of_tendsto (hcont : continuous_on f (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at f (f' x) x)
+  (f'int : integrable_on f' (Ioi a)) (hf : tendsto f at_top (𝓝 m)) :
+  ∫ x in Ioi a, f' x = m - f a :=
+begin
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi a f'int tendsto_id) _,
+  apply tendsto.congr' _ (hf.sub_const _),
+  filter_upwards [Ioi_mem_at_top a] with x hx,
+  have h'x : a ≤ id x := le_of_lt hx,
+  symmetry,
+  apply interval_integral.integral_eq_sub_of_has_deriv_at_of_le h'x
+    (hcont.mono Icc_subset_Ici_self) (λ y hy, hderiv y hy.1),
+  rw interval_integrable_iff_integrable_Ioc_of_le h'x,
+  exact f'int.mono (λ y hy, hy.1) le_rfl,
+end
+
+/-- **Fundamental theorem of calculus-2**, on semi-infinite intervals `(a, +∞)`.
+When a function has a limit at infinity `m`, and its derivative is integrable, then the
+integral of the derivative on `(a, +∞)` is `m - f a`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_tendsto'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at f (f' x) x)
+  (f'int : integrable_on f' (Ioi a)) (hf : tendsto f at_top (𝓝 m)) :
+  ∫ x in Ioi a, f' x = m - f a :=
+begin
+  apply integral_Ioi_of_has_deriv_at_of_tendsto _ (λ x hx, hderiv x (le_of_lt hx)) f'int hf,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonnegative, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonneg (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_of_interval_integral_norm_tendsto (l - g a) a (λ x, _) tendsto_id, swap,
+  { exact interval_integral.integrable_on_deriv_of_nonneg (hcont.mono Icc_subset_Ici_self)
+      (λ y hy, hderiv y hy.1) (λ y hy, g'pos y hy.1) },
+  apply tendsto.congr' _ (hg.sub_const _),
+  filter_upwards [Ioi_mem_at_top a] with x hx,
+  have h'x : a ≤ id x := le_of_lt hx,
+  calc g x - g a = ∫ y in a..id x, g' y :
+    begin
+      symmetry,
+      apply interval_integral.integral_eq_sub_of_has_deriv_at_of_le h'x
+        (hcont.mono Icc_subset_Ici_self) (λ y hy, hderiv y hy.1),
+      rw interval_integrable_iff_integrable_Ioc_of_le h'x,
+      exact interval_integral.integrable_on_deriv_of_nonneg (hcont.mono Icc_subset_Ici_self)
+        (λ y hy, hderiv y hy.1) (λ y hy, g'pos y hy.1)
+    end
+  ... = ∫ y in a..id x, ‖g' y‖ :
+    begin
+      simp_rw interval_integral.integral_of_le h'x,
+      refine set_integral_congr (measurable_set_Ioc) (λ y hy, _),
+      dsimp,
+      rw abs_of_nonneg,
+      exact g'pos _ hy.1,
+    end
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonnegative, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonneg'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_deriv_of_nonneg _ (λ x hx, hderiv x (le_of_lt hx)) g'pos hg,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonnegative, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg`). Version assuming differentiability on `(a, +∞)` and
+continuity on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonneg (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto hcont hderiv
+  (integrable_on_Ioi_deriv_of_nonneg hcont hderiv g'pos hg) hg
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonnegative, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg'`). Version assuming differentiability on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonneg'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioi a, 0 ≤ g' x) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto' hderiv
+  (integrable_on_Ioi_deriv_of_nonneg' hderiv g'pos hg) hg
+
+/-- When a function has a limit at infinity, and its derivative is nonpositive, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `(a, +∞)` and continuity on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonpos (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_neg_iff.1,
+  exact integrable_on_Ioi_deriv_of_nonneg hcont.neg (λ x hx, (hderiv x hx).neg)
+    (λ x hx, neg_nonneg_of_nonpos (g'neg x hx)) hg.neg,
+end
+
+/-- When a function has a limit at infinity, and its derivative is nonpositive, then the derivative
+is automatically integrable on `(a, +∞)`. Version assuming differentiability
+on `[a, +∞)`. -/
+lemma integrable_on_Ioi_deriv_of_nonpos'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  integrable_on g' (Ioi a) :=
+begin
+  apply integrable_on_Ioi_deriv_of_nonpos _ (λ x hx, hderiv x (le_of_lt hx)) g'neg hg,
+  assume x hx,
+  exact (hderiv x hx).continuous_at.continuous_within_at,
+end
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonpositive, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg`). Version assuming differentiability on `(a, +∞)` and
+continuity on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonpos (hcont : continuous_on g (Ici a))
+  (hderiv : ∀ x ∈ Ioi a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto hcont hderiv
+  (integrable_on_Ioi_deriv_of_nonpos hcont hderiv g'neg hg) hg
+
+/-- When a function has a limit at infinity `l`, and its derivative is nonpositive, then the
+integral of the derivative on `(a, +∞)` is `l - g a` (and the derivative is integrable, see
+`integrable_on_Ioi_deriv_of_nonneg'`). Version assuming differentiability on `[a, +∞)`. -/
+lemma integral_Ioi_of_has_deriv_at_of_nonpos'
+  (hderiv : ∀ x ∈ Ici a, has_deriv_at g (g' x) x)
+  (g'neg : ∀ x ∈ Ioi a, g' x ≤ 0) (hg : tendsto g at_top (𝓝 l)) :
+  ∫ x in Ioi a, g' x = l - g a :=
+integral_Ioi_of_has_deriv_at_of_tendsto' hderiv
+  (integrable_on_Ioi_deriv_of_nonpos' hderiv g'neg hg) hg
+
+end Ioi_FTC
+
 section Ioi_change_variables
 
 open real
 open_locale interval
 
-variables {E : Type*} {μ : measure ℝ} {f : ℝ → E}
+variables {E : Type*} {f : ℝ → E}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- Change-of-variables formula for `Ioi` integrals of vector-valued functions, proved by taking
@@ -747,6 +918,77 @@ begin
   funext, congr, rw abs_of_nonneg hp.le,
 end
 
+lemma integral_comp_mul_left_Ioi (g : ℝ → E) (a : ℝ) {b : ℝ} (hb : 0 < b) :
+  ∫ x in Ioi a, g (b * x) = |b⁻¹| • ∫ x in Ioi (b * a), g x :=
+begin
+  have : ∀ c : ℝ, measurable_set (Ioi c) := λ c, measurable_set_Ioi,
+  rw [←integral_indicator (this a), ←integral_indicator (this $ b * a)],
+  convert measure.integral_comp_mul_left _ b,
+  ext1 x,
+  rw [←indicator_comp_right, preimage_const_mul_Ioi _ hb, mul_div_cancel_left _ hb.ne'],
+end
+
+lemma integral_comp_mul_right_Ioi (g : ℝ → E) (a : ℝ) {b : ℝ} (hb : 0 < b) :
+  ∫ x in Ioi a, g (x * b) = |b⁻¹| • ∫ x in Ioi (a * b), g x :=
+by simpa only [mul_comm] using integral_comp_mul_left_Ioi g a hb
+
 end Ioi_change_variables
+
+section Ioi_integrability
+
+open real
+open_locale interval
+
+variables {E : Type*} [normed_add_comm_group E]
+
+/-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability. -/
+lemma integrable_on_Ioi_comp_rpow_iff [normed_space ℝ E] (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, (|p| * x ^ (p - 1)) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
+begin
+  let S := Ioi (0 : ℝ),
+  have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
+    λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  have a2 : inj_on (λ x:ℝ, x ^ p) S,
+  { rcases lt_or_gt_of_ne hp,
+    { apply strict_anti_on.inj_on,
+      intros x hx y hy hxy,
+      rw [←inv_lt_inv (rpow_pos_of_pos hx p) (rpow_pos_of_pos hy p),
+      ←rpow_neg (le_of_lt hx), ←rpow_neg (le_of_lt hy)],
+      exact rpow_lt_rpow (le_of_lt hx) hxy (neg_pos.mpr h), },
+    exact strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy h) },
+  have a3 : (λ (t : ℝ), t ^ p) '' S = S,
+  { ext1, rw mem_image, split,
+    { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
+    { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
+      rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
+  have := integrable_on_image_iff_integrable_on_abs_deriv_smul measurable_set_Ioi a1 a2 f,
+  rw a3 at this,
+  rw this,
+  refine integrable_on_congr_fun (λ x hx, _) measurable_set_Ioi,
+  simp_rw [abs_mul, abs_of_nonneg (rpow_nonneg_of_nonneg (le_of_lt hx) _)],
+end
+
+/-- The substitution `y = x ^ p` in integrals over `Ioi 0` preserves integrability (version
+without `|p|` factor) -/
+lemma integrable_on_Ioi_comp_rpow_iff' [normed_space ℝ E] (f : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  integrable_on (λ x, x ^ (p - 1) • f (x ^ p)) (Ioi 0) ↔ integrable_on f (Ioi 0) :=
+by simpa only [←integrable_on_Ioi_comp_rpow_iff f hp, mul_smul]
+  using (integrable_smul_iff (abs_pos.mpr hp).ne' _).symm
+
+lemma integrable_on_Ioi_comp_mul_left_iff (f : ℝ → E) (c : ℝ) {a : ℝ} (ha : 0 < a) :
+  integrable_on (λ x, f (a * x)) (Ioi c) ↔ integrable_on f (Ioi $ a * c) :=
+begin
+  rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi c)],
+  rw [←integrable_indicator_iff (measurable_set_Ioi : measurable_set $ Ioi $ a * c)],
+  convert integrable_comp_mul_left_iff ((Ioi (a * c)).indicator f) ha.ne' using 2,
+  ext1 x,
+  rw [←indicator_comp_right, preimage_const_mul_Ioi _ ha, mul_comm a c, mul_div_cancel _ ha.ne'],
+end
+
+lemma integrable_on_Ioi_comp_mul_right_iff (f : ℝ → E) (c : ℝ) {a : ℝ} (ha : 0 < a) :
+  integrable_on (λ x, f (x * a)) (Ioi c) ↔ integrable_on f (Ioi $ c * a) :=
+by simpa only [mul_comm, mul_zero] using integrable_on_Ioi_comp_mul_left_iff f c ha
+
+end Ioi_integrability
 
 end measure_theory

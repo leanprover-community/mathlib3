@@ -2279,7 +2279,7 @@ list. -/
 def pairwise (r : α → α → Prop) (m : multiset α) : Prop :=
 ∃l:list α, m = l ∧ l.pairwise r
 
-@[simp] lemma pairwise_nil (r : α → α → Prop) :
+@[simp] lemma pairwise_zero (r : α → α → Prop) :
   multiset.pairwise r 0 := ⟨[], rfl, list.pairwise.nil⟩
 
 lemma pairwise_coe_iff {r : α → α → Prop} {l : list α} :

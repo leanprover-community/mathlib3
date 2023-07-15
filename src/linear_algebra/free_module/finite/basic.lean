@@ -11,6 +11,9 @@ import ring_theory.finiteness
 /-!
 # Finite and free modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide some instances for finite and free modules.
 
 ## Main results

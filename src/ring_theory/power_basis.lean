@@ -8,6 +8,9 @@ import field_theory.minpoly.field
 /-!
 # Power basis
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a structure `power_basis R S`, giving a basis of the
 `R`-algebra `S` as a finite list of powers `1, x, ..., x^n`.
 For example, if `x` is algebraic over a ring/field, adjoining `x`

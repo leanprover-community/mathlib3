@@ -9,6 +9,9 @@ import algebra.quaternion
 /-!
 # Dual quaternions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Similar to the way that rotations in 3D space can be represented by quaternions of unit length,
 rigid motions in 3D space can be represented by dual quaternions of unit length.
 

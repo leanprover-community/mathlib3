@@ -9,6 +9,9 @@ import ring_theory.noetherian
 /-!
 # Lie submodules of a Lie algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Lie submodules and Lie ideals, we construct the lattice structure on Lie
 submodules and we use it to define various important operations, notably the Lie span of a subset
 of a Lie module.

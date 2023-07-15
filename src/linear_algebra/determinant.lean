@@ -554,12 +554,12 @@ begin
   rw [basis.to_matrix_apply, linear_map.to_matrix_apply]
 end
 
-lemma basis.det_reindex_apply {ι' : Type*} [fintype ι'] [decidable_eq ι']
+lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).det v = b.det (v ∘ e) :=
 by rw [basis.det_apply, basis.to_matrix_reindex', det_reindex_alg_equiv, basis.det_apply]
 
-lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
+lemma basis.det_reindex' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (e : ι ≃ ι') :
   (b.reindex e).det = b.det.dom_dom_congr e :=
 alternating_map.ext $ λ _, basis.det_reindex_apply _ _ _
@@ -567,7 +567,7 @@ alternating_map.ext $ λ _, basis.det_reindex_apply _ _ _
 lemma basis.det_reindex_symm_apply {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :
   (b.reindex e.symm).det (v ∘ e) = b.det v :=
-by rw [basis.det_reindex_apply, function.comp.assoc, e.self_comp_symm, function.comp.right_id]
+by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.right_id]
 
 @[simp]
 lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :

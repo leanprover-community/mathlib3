@@ -87,7 +87,7 @@ module.ray.map $ alternating_map.dom_dom_lcongr R e
 
 @[simp] lemma orientation.reindex_refl :
   (orientation.reindex R M $ equiv.refl ι) = equiv.refl _ :=
-by rw [orientation.reindex, alternating_map.dom_dom_congr_refl, module.ray.map_refl]
+by rw [orientation.reindex, alternating_map.dom_dom_lcongr_refl, module.ray.map_refl]
 
 @[simp] lemma orientation.reindex_symm (e : ι ≃ ι') :
   (orientation.reindex R M e).symm = orientation.reindex R M e.symm := rfl
@@ -128,9 +128,14 @@ variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [modu
   orientation.map ι f (-x) = - orientation.map ι f x :=
 module.ray.map_neg _ x
 
+@[simp] protected lemma orientation.reindex_neg {ι ι' : Type*} (e : ι ≃ ι')
+  (x : orientation R M ι) :
+  orientation.reindex R M e (-x) = - orientation.reindex R M e x :=
+module.ray.map_neg _ x
+
 namespace basis
 
-variables {ι : Type*}
+variables {ι ι' : Type*}
 
 /-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
 of `f.det`. -/
@@ -146,7 +151,7 @@ begin
       basis.det_self, mul_one, smul_eq_mul, mul_comm, mul_smul, linear_equiv.coe_inv_det],
 end
 
-variables [fintype ι] [decidable_eq ι]
+variables [fintype ι] [decidable_eq ι] [fintype ι'] [decidable_eq ι']
 
 /-- The orientation given by a basis. -/
 protected def orientation [nontrivial R] (e : basis ι R M) : orientation R M ι :=
@@ -155,6 +160,10 @@ ray_of_ne_zero R _ e.det_ne_zero
 lemma orientation_map [nontrivial R] (e : basis ι R M)
   (f : M ≃ₗ[R] N) : (e.map f).orientation = orientation.map ι f e.orientation :=
 by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
+
+lemma orientation_reindex [nontrivial R] (e : basis ι R M)
+  (eι : ι ≃ ι') : (e.reindex eι).orientation = orientation.reindex R M eι e.orientation :=
+by simp_rw [basis.orientation, orientation.reindex_apply, basis.det_reindex']
 
 /-- The orientation given by a basis derived using `units_smul`, in terms of the product of those
 units. -/

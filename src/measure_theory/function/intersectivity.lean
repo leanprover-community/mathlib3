@@ -14,7 +14,7 @@ This file proves the Bergelson intersectivity lemma: In a finite measure space, 
 that have measure at least `r` has an infinite subset whose finite intersections all have positive
 volume.
 
-This is in some sort a finitary version of the second Borel-Cantelli lemma.
+This is in some sense a finitary version of the second Borel-Cantelli lemma.
 
 ## References
 
@@ -23,21 +23,24 @@ This is in some sort a finitary version of the second Borel-Cantelli lemma.
 
 ## TODO
 
-Restate the theorem using the upper density of a set of naturals, once we have it.
+Restate the theorem using the upper density of a set of naturals, once we have it. This will make
+`strong_bergelson` be actually strong.
 
 Use the ergodic theorem to deduce the refinement of the Poincaré recurrence theorem proved by
 Bergelson.
 -/
 
-open filter measure_theory set
+open filter function measure_theory set
 open_locale big_operators ennreal nnreal
 
-variables {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] {s : ℕ → set α}
-  {r : ℝ≥0∞}
+variables {ι α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] {r : ℝ≥0∞}
 
 /-- **Bergelson Intersectivity Lemma**: In a finite measure space, a sequence of events that have
-measure at least `r` has an infinite subset whose finite intersections all have positive volume. -/
-lemma bergelson (hs : ∀ n, measurable_set (s n)) (hr₀ : r ≠ 0) (hr : ∀ n, r ≤ μ (s n)) :
+measure at least `r` has an infinite subset whose finite intersections all have positive volume.
+
+TODO: The infinity of `t` should be strengthened to `t` having positive natural density. -/
+lemma strong_bergelson {s : ℕ → set α} (hs : ∀ n, measurable_set (s n)) (hr₀ : r ≠ 0)
+  (hr : ∀ n, r ≤ μ (s n)) :
   ∃ t : set ℕ, t.infinite ∧ ∀ ⦃u⦄, u ⊆ t → u.finite → 0 < μ (⋂ n ∈ u, s n) :=
 begin
   -- We let `M f` be the set on which the norm of `f` exceeds its essential supremum, and `N` be the
@@ -126,4 +129,18 @@ begin
       eventually_of_forall $ λ n, hf₁ _ _),
     obtain ⟨r', hr'⟩ := (eventually_map.1 hR).exists,
     exact (hf₀ _ _).trans hr' }
+end
+
+/-- **Bergelson Intersectivity Lemma**: In a finite measure space, a sequence of events that have
+measure at least `r` has an infinite subset whose finite intersections all have positive volume. -/
+lemma weak_bergelson [infinite ι] {s : ι → set α} (hs : ∀ i, measurable_set (s i)) (hr₀ : r ≠ 0)
+  (hr : ∀ i, r ≤ μ (s i)) :
+  ∃ t : set ι, t.infinite ∧ ∀ ⦃u⦄, u ⊆ t → u.finite → 0 < μ (⋂ i ∈ u, s i) :=
+begin
+  obtain ⟨t, ht, h⟩ := strong_bergelson (λ n, hs $ infinite.nat_embedding _ n) hr₀ (λ n, hr _),
+  refine ⟨_, ht.image $ (infinite.nat_embedding _).injective.inj_on _, λ u hut hu,
+    (h (preimage_subset_of_subset_image (infinite.nat_embedding _).injective hut) $ hu.preimage $
+    (embedding.injective _).inj_on _).trans_le $ measure_mono $ subset_Inter₂ $ λ i hi, _⟩,
+  obtain ⟨n, hn, rfl⟩ := hut hi,
+  exact Inter₂_subset _ hi,
 end

@@ -160,6 +160,10 @@ theorem _root_.function.injective.mem_set_image {f : α → β} (hf : injective 
   f a ∈ f '' s ↔ a ∈ s :=
 ⟨λ ⟨b, hb, eq⟩, (hf eq) ▸ hb, mem_image_of_mem f⟩
 
+lemma preimage_subset_of_subset_image {t : set β} (hf : injective f) (h : t ⊆ f '' s) :
+  f ⁻¹' t ⊆ s :=
+λ x hx, hf.mem_set_image.1 $ h hx
+
 theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 by simp

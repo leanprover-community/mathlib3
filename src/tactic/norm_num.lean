@@ -1360,9 +1360,12 @@ use `get_step` to get the default `norm_num` set and `derive.step` for the basic
 simplifications. -/
 meta def tactic.norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
-repeat1 $ orelse' (tactic.norm_num1 step l) $
-interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
-  ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
+do
+  -- Build and discard the simp lemma set, to validate it.
+  mk_simp_set_core ff [] (simp_arg_type.except ``one_div :: hs) tt,
+  repeat1 $ orelse' (tactic.norm_num1 step l) $
+  interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+    ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
 /-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
 Given an expression `e`, returns `(e', ⊢ e = e')`.

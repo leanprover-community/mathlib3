@@ -336,7 +336,7 @@ begin
   replace hf := nat_card_dvd_of_surjective f hf,
   rw nat.card_pi at hf,
   refine hf.trans (finset.prod_dvd_prod_of_dvd _ _ (λ g hg, _)),
-  rw ← order_eq_card_zpowers',
+  rw nat.card_zpowers,
   exact monoid.order_dvd_exponent (g : G),
 end
 

@@ -58,6 +58,9 @@ measure_pos_of_nonempty_interior _ ⟨x, mem_interior_iff_mem_nhds.2 h⟩
 lemma is_open_pos_measure_smul {c : ℝ≥0∞} (h : c ≠ 0) : is_open_pos_measure (c • μ) :=
 ⟨λ U Uo Une, mul_ne_zero h (Uo.measure_ne_zero μ Une)⟩
 
+instance is_open_pos_measure.to_ae_ne_bot [nonempty X] : μ.ae.ne_bot :=
+ae_ne_bot.2 $ λ h, is_open_univ.measure_ne_zero μ univ_nonempty $ by rw [h, coe_zero, pi.zero_apply]
+
 variables {μ ν}
 
 protected lemma absolutely_continuous.is_open_pos_measure (h : μ ≪ ν) :

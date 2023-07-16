@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
 import analysis.normed_space.pointwise
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 
 /-!
 # Cauchy's Functional Equation
@@ -16,22 +16,13 @@ intermediate well-known variants.
 -/
 
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {ι : Type*} [fintype ι] {s : set ℝ} {a : ℝ}
 
 local notation `ℝⁿ` := ι → ℝ
 
-/-- **Cauchy's functional equation**. An additive monoid homomorphism automatically preserves `ℚ`.
-See also `add_monoid_hom.to_rat_linear_map`. -/
-lemma add_monoid_hom.is_linear_map_rat (f : ℝ →+ ℝ) : is_linear_map ℚ f :=
-⟨map_add f, map_rat_cast_smul f ℝ ℝ⟩
-
-lemma measure_theory.measure.ne_zero {X : Type*} [nonempty X] [topological_space X]
-  {m : measurable_space X} (μ : measure X) [μ.is_open_pos_measure] : μ ≠ 0 :=
-λ h, is_open_univ.measure_ne_zero μ univ_nonempty $ by rw [h, coe_zero, pi.zero_apply]
-
-lemma exists_zero_nhds_bounded (f : ℝ →+ ℝ) (h : measurable f) :
+lemma measurable.exists_zero_nhds_bounded (f : ℝ →+ ℝ) (h : measurable f) :
   ∃ s, s ∈ 𝓝 (0 : ℝ) ∧ bounded (f '' s) :=
 begin
   obtain ⟨r, hr⟩ := exists_pos_preimage_ball f (0 : ℝ) volume.ne_zero,
@@ -62,7 +53,7 @@ begin
   have h2 : f (n • x) = n • f x := map_nsmul f n x,
   simp_rw [nsmul_eq_mul, mul_comm (n : ℝ), ←div_eq_iff hnpos.ne'] at h2,
   rw ←h2,
-  replace hxδ : ∥ x * n ∥ < δ,
+  replace hxδ : ‖x * n‖ < δ,
   { simpa only [norm_mul, real.norm_coe_nat, ←lt_div_iff hnpos] using hxδ },
   norm_num,
   rw [div_lt_iff' hnpos, ←mem_ball_zero_iff],
@@ -88,13 +79,11 @@ begin
   { rw [smul_eq_mul, smul_eq_mul, h (c * x), h x, ←mul_assoc, mul_comm _ c, mul_assoc] }
 end
 
-lemma is_linear_rat (f : ℝ →+ ℝ) : ∀ (q : ℚ), f q = f 1 * q :=
+lemma is_linear_rat (f : ℝ →+ ℝ) (q : ℚ) : f q = f 1 * q :=
 begin
   intro q,
-  have h1 : f ((q : ℝ) • 1) = (q : ℝ) • f 1 := map_rat_cast_smul f _ _ _ _,
-  convert h1 using 1,
-  { simp only [algebra.id.smul_eq_mul, mul_one], },
-  { simp only [mul_comm, algebra.id.smul_eq_mul] }
+  have := map_rat_cast_smul f _ _ q 1,
+  simpa [mul_comm] using this,
 end
 
 lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a)
@@ -102,9 +91,9 @@ lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) (hs : s ∈ 
 begin
   rcases metric.mem_nhds_iff.mp hs with ⟨δ, hδ, hδa⟩,
   refine ⟨ball 0 δ, ball_mem_nhds 0 hδ, _⟩,
-  rw bounded_iff_exists_norm_le,
+  rw bounded_iff_forall_norm_le,
   simp only [mem_image, mem_ball_zero_iff, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
-  rcases (bounded_iff_exists_norm_le.mp h) with ⟨M, hM⟩,
+  obtain ⟨M, hM⟩ := bounded_iff_forall_norm_le.1 h,
   simp only [mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂] at hM,
   refine ⟨M + M, λ x hxδ, (norm_le_add_norm_add _ $ f a).trans $ add_le_add _ $ hM _ $ hδa _⟩,
   { rw ←map_add f,

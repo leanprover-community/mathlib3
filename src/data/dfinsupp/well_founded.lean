@@ -171,9 +171,9 @@ begin
   obtain h | ⟨⟨x⟩⟩ := is_empty_or_nonempty (Π i, α i),
   { convert empty_wf, ext1 x, exact (h.1 x).elim },
   letI : Π i, has_zero (α i) := λ i, ⟨(hs i).min ⊤ ⟨x i, trivial⟩⟩,
-  haveI := is_trans.swap r, haveI := is_irrefl.swap r, haveI := fintype.of_finite ι,
+  haveI := is_strict_order.swap r, haveI := fintype.of_finite ι,
   refine inv_image.wf equiv_fun_on_fintype.symm (lex.well_founded' (λ i a, _) hs _),
-  exacts [(hs i).not_lt_min ⊤ _ trivial, finite.well_founded_of_trans_of_irrefl r.swap],
+  exacts [(hs i).not_lt_min ⊤ _ trivial, (finite.is_well_founded_of_strict_order r.swap).wf],
 end
 
 instance pi.lex.well_founded_lt [linear_order ι] [finite ι] [Π i, has_lt (α i)]

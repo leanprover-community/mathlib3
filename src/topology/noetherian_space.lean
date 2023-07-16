@@ -174,7 +174,7 @@ end
 
 @[priority 100]
 instance finite.to_noetherian_space [finite α] : noetherian_space α :=
-⟨finite.well_founded_of_trans_of_irrefl _⟩
+⟨is_well_founded.wf⟩
 
 lemma noetherian_space.exists_finset_irreducible [noetherian_space α] (s : closeds α) :
   ∃ S : finset (closeds α), (∀ k : S, is_irreducible (k : set α)) ∧ s = S.sup id :=

@@ -59,7 +59,7 @@ lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := by simp [totient]
-| (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
+| (n+2) := λ h, finset.card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   ((Ico n (n+a)).filter (coprime a)).card = totient a :=

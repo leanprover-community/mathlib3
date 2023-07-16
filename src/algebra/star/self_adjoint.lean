@@ -196,13 +196,13 @@ star_rat_cast _
 
 end division_ring
 
-section field
-variables [field R] [star_ring R]
+section semifield
+variables [semifield R] [star_ring R]
 
 lemma div {x y : R} (hx : is_self_adjoint x) (hy : is_self_adjoint y) : is_self_adjoint (x / y) :=
 by simp only [is_self_adjoint_iff, star_div', hx.star_eq, hy.star_eq]
 
-end field
+end semifield
 
 section has_smul
 variables [has_star R] [add_monoid A] [star_add_monoid A] [has_smul R A] [star_module R A]

@@ -80,6 +80,8 @@ instance (M : Mon) : monoid M := M.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
 
+@[to_additive] instance {G : Type*} [group G] : group (Mon.of G) := by assumption
+
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/

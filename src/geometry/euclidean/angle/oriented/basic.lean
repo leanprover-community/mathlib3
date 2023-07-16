@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
 import analysis.inner_product_space.two_dim
-import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.unoriented.basic
 
 /-!
 # Oriented angles.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines oriented angles in real inner product spaces.
 
@@ -39,7 +41,9 @@ namespace orientation
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 local attribute [instance] complex.finrank_real_complex_fact
 
-variables {V V' : Type*} [inner_product_space ℝ V] [inner_product_space ℝ V']
+variables {V V' : Type*}
+variables [normed_add_comm_group V] [normed_add_comm_group V']
+variables [inner_product_space ℝ V] [inner_product_space ℝ V']
 variables [fact (finrank ℝ V = 2)] [fact (finrank ℝ V' = 2)] (o : orientation ℝ V (fin 2))
 
 local notation `ω` := o.area_form

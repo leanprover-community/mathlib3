@@ -170,7 +170,7 @@ begin
   { simp only [right_inv_coeff_one] },
   simp only [right_inv, neg_inj],
   rw remove_zero_comp_of_pos _ _ (add_pos_of_nonneg_of_pos (n.zero_le) zero_lt_two),
-  congrm i.symm.to_continuous_linear_map.comp_continuous_multilinear_map (p.comp (λ k, _) _),
+  congr' 2 with k,
   by_cases hk : k < n+2; simp [hk, IH]
 end
 
@@ -393,7 +393,7 @@ begin
     (λ (k : ℕ), (fintype.pi_finset (λ (i : fin k), Ico 1 n) : finset (fin k → ℕ)))
     (λ n e, ∏ (j : fin n), r * (a ^ e j * p (e j)))],
   apply sum_congr rfl (λ j hj, _),
-  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ _ ℝ],
+  simp only [← @multilinear_map.mk_pi_algebra_apply ℝ (fin j) _ ℝ],
   simp only [← multilinear_map.map_sum_finset (multilinear_map.mk_pi_algebra ℝ (fin j) ℝ)
     (λ k (m : ℕ), r * (a ^ m * p m))],
   simp only [multilinear_map.mk_pi_algebra_apply],

@@ -144,10 +144,11 @@ instance [non_unital_ring α] : non_unital_ring αᵃᵒᵖ :=
   .. add_opposite.distrib α}
 
 instance [non_assoc_ring α] : non_assoc_ring αᵃᵒᵖ :=
-{ .. add_opposite.add_comm_group α, .. add_opposite.mul_zero_one_class α, .. add_opposite.distrib α}
+{ .. add_opposite.add_comm_group_with_one α, .. add_opposite.mul_zero_one_class α,
+  .. add_opposite.distrib α}
 
 instance [ring α] : ring αᵃᵒᵖ :=
-{ .. add_opposite.add_comm_group α, .. add_opposite.monoid α, .. add_opposite.semiring α }
+{ .. add_opposite.non_assoc_ring α, .. add_opposite.semiring α }
 
 instance [non_unital_comm_ring α] : non_unital_comm_ring αᵃᵒᵖ :=
 { .. add_opposite.non_unital_ring α, .. add_opposite.non_unital_comm_semiring α }

@@ -8,6 +8,9 @@ import category_theory.monoidal.coherence
 /-!
 # Lemmas which are consequences of monoidal coherence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These lemmas are all proved `by coherence`.
 
 ## Future work

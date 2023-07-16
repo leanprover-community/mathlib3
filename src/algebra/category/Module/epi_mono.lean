@@ -9,6 +9,9 @@ import algebra.category.Module.basic
 /-!
 # Monomorphisms in `Module R`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that an `R`-linear map is a monomorphism in the category of `R`-modules
 if and only if it is injective, and similarly an epimorphism if and only if it is surjective.
 -/

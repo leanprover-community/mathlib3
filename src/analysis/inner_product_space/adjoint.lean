@@ -10,6 +10,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Adjoint of operators on Hilbert spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an operator `A : E →L[𝕜] F`, where `E` and `F` are Hilbert spaces, its adjoint
 `adjoint A : F →L[𝕜] E` is the unique operator such that `⟪x, A y⟫ = ⟪adjoint A x, y⟫` for all
 `x` and `y`.
@@ -44,6 +47,7 @@ open is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -206,7 +210,9 @@ end⟩
 
 section real
 
-variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables {E' : Type*} {F' : Type*}
+variables [normed_add_comm_group E'] [normed_add_comm_group F']
+variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [complete_space E'] [complete_space F']
 
 -- Todo: Generalize this to `is_R_or_C`.
@@ -402,7 +408,9 @@ by { rw [is_self_adjoint_iff', is_symmetric, ← linear_map.eq_adjoint_iff], exa
 
 section real
 
-variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
+variables {E' : Type*} {F' : Type*}
+variables [normed_add_comm_group E'] [normed_add_comm_group F']
+variables [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 
 -- Todo: Generalize this to `is_R_or_C`.

@@ -8,6 +8,9 @@ import analysis.convex.hull
 /-!
 # Extreme sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines extreme sets and extreme points for sets in a module.
 
 An extreme set of `A` is a subset of `A` that is as far as it can get in any outward direction: If

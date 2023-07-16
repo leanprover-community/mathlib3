@@ -5,10 +5,13 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.hom.ring
 import algebra.order.pointwise
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # Conditionally complete linear ordered fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows that the reals are unique, or, more formally, given a type satisfying the common
 axioms of the reals (field, conditionally complete, linearly ordered) that there is an isomorphism

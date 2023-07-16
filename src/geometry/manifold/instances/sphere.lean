@@ -3,12 +3,14 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.complex.circle
+import analysis.calculus.deriv.inv
 import analysis.normed_space.ball_action
+import analysis.special_functions.exp_deriv
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
 import geometry.manifold.instances.real
+import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Manifold structure on the sphere
@@ -55,7 +57,7 @@ naive expression `euclidean_space ℝ (fin (finrank ℝ E - 1))` for the model s
 `euclidean_space ℝ (fin 1)`.
 -/
 
-variables {E : Type*} [inner_product_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space ℝ E]
 
 noncomputable theory
 
@@ -95,7 +97,7 @@ end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
   continuous_on (stereo_to_fun v) {x : E | innerSL _ v x ≠ (1:ℝ)} :=
-(@cont_diff_on_stereo_to_fun E _ v _).continuous_on
+(@cont_diff_on_stereo_to_fun E _ _ v _).continuous_on
 
 variables (v)
 
@@ -162,7 +164,7 @@ end
 
 lemma cont_diff_stereo_inv_fun_aux : cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq,
+  have h₀ : cont_diff ℝ ⊤ (λ w : E, ‖w‖ ^ 2) := cont_diff_norm_sq ℝ,
   have h₁ : cont_diff ℝ ⊤ (λ w : E, (‖w‖ ^ 2 + 4)⁻¹),
   { refine (h₀.add cont_diff_const).inv _,
     intros x,
@@ -283,7 +285,7 @@ def stereographic (hv : ‖v‖ = 1) : local_homeomorph (sphere (0:E) 1) (ℝ �
   open_source := is_open_compl_singleton,
   open_target := is_open_univ,
   continuous_to_fun := continuous_on_stereo_to_fun.comp continuous_subtype_coe.continuous_on
-    (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_norm_mul_iff_of_norm_one hv (by simp)).mp),
+    (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_one_iff_of_norm_one hv (by simp)).mp),
   continuous_inv_fun := (continuous_stereo_inv_fun hv).continuous_on }
 
 lemma stereographic_apply (hv : ‖v‖ = 1) (x : sphere (0 : E) 1) :
@@ -363,7 +365,7 @@ section smooth_manifold
 
 lemma sphere_ext_iff (u v : sphere (0:E) 1) :
   u = v ↔ ⟪(u:E), v⟫_ℝ = 1 :=
-by simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one]
+by simp [subtype.ext_iff, inner_eq_one_iff_of_norm_one]
 
 lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
     (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
@@ -417,7 +419,7 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U := -- Again, removing type ascription...
+    let U : _ ≃ₗᵢ[ℝ] _ := -- Again, partially removing type ascription...
       (orthonormal_basis.from_orthogonal_span_singleton n
         (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
@@ -438,7 +440,7 @@ begin
   rw cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
-  let U := -- Again, removing type ascription... Weird that this helps!
+  let U : _ ≃ₗᵢ[ℝ] _ := -- Again, partially removing type ascription... Weird that this helps!
     (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
   have h : cont_diff_on ℝ ⊤ _ set.univ :=
     U.cont_diff.cont_diff_on,
@@ -448,7 +450,7 @@ begin
   ext x,
   have hfxv : f x = -↑v ↔ ⟪f x, -↑v⟫_ℝ = 1,
   { have hfx : ‖f x‖ = 1 := by simpa using hf' x,
-    rw inner_eq_norm_mul_iff_of_norm_one hfx,
+    rw inner_eq_one_iff_of_norm_one hfx,
     exact norm_eq_of_mem_sphere (-v) },
   dsimp [chart_at],
   simp [not_iff_not, subtype.ext_iff, hfxv, real_inner_comm]

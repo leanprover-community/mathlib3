@@ -11,6 +11,9 @@ import analysis.normed_space.spectrum
 /-!
 # Normed algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains basic facts about normed algebras.
 
 ## Main results

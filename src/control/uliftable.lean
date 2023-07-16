@@ -12,6 +12,9 @@ import tactic.interactive
 /-!
 # Universe lifting for type families
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some functors such as `option` and `list` are universe polymorphic. Unlike
 type polymorphism where `option α` is a function application and reasoning and
 generalizations that apply to functions can be used, `option.{u}` and `option.{v}`

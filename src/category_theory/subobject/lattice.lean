@@ -9,6 +9,9 @@ import category_theory.subobject.well_powered
 /-!
 # The lattice of subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the `semilattice_inf` with `order_top (subobject X)` instance when `[has_pullback C]`,
 and the `semilattice_sup (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
 -/

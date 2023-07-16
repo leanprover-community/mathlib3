@@ -8,6 +8,9 @@ import measure_theory.measure.measure_space
 /-!
 # Conditional Probability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines conditional probability and includes basic results relating to it.
 
 Given some measure `μ` defined on a measure space on some type `Ω` and some `s : set Ω`,

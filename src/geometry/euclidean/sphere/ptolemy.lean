@@ -9,6 +9,9 @@ import geometry.euclidean.triangle
 /-!
 # Ptolemy's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Ptolemy's theorem on the lengths of the diagonals and sides of a cyclic
 quadrilateral.
 
@@ -42,7 +45,7 @@ open_locale euclidean_geometry real_inner_product_space real
 
 namespace euclidean_geometry
 
-variables {V : Type*} [inner_product_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space ℝ V]
 variables {P : Type*} [metric_space P] [normed_add_torsor V P]
 include V
 

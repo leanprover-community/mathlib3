@@ -11,6 +11,9 @@ import category_theory.preadditive.additive_functor
 /-!
 # Preadditive structure on algebras over a monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` is a preadditive categories and `T` is an additive monad on `C` then `algebra T` is also
 preadditive. Dually, if `U` is an additive comonad on `C` then `coalgebra U` is preadditive as well.
 

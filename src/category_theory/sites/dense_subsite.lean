@@ -10,6 +10,9 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Dense subsites
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `cover_dense` functors into sites as functors such that there exists a covering sieve
 that factors through images of the functor for each object in `D`.
 
@@ -141,7 +144,6 @@ lemma sheaf_eq_amalgamation (ℱ : Sheaf K A) {X : A} {U : D} {T : sieve U} (hT)
   t = (ℱ.cond X T hT).amalgamate x hx :=
 (ℱ.cond X T hT).is_separated_for x t _ h ((ℱ.cond X T hT).is_amalgamation hx)
 
-include H
 variable [full G]
 namespace types
 variables {ℱ : Dᵒᵖ ⥤ Type v} {ℱ' : SheafOfTypes.{v} K} (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val)
@@ -154,9 +156,11 @@ def pushforward_family {X} (x : ℱ.obj (op X)) :
   family_of_elements ℱ'.val (cover_by_image G X) := λ Y f hf,
 ℱ'.val.map hf.some.lift.op $ α.app (op _) (ℱ.map hf.some.map.op x : _)
 
+include H
+
 /-- (Implementation). The `pushforward_family` defined is compatible. -/
 lemma pushforward_family_compatible {X} (x : ℱ.obj (op X)) :
-  (pushforward_family H α x).compatible :=
+  (pushforward_family α x).compatible :=
 begin
   intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ e,
   apply H.ext,
@@ -175,15 +179,17 @@ begin
   simp [e]
 end
 
+omit H
+
 /-- (Implementation). The morphism `ℱ(X) ⟶ ℱ'(X)` given by gluing the `pushforward_family`. -/
 noncomputable
 def app_hom (X : D) : ℱ.obj (op X) ⟶ ℱ'.val.obj (op X) := λ x,
   (ℱ'.cond _ (H.is_cover X)).amalgamate
-    (pushforward_family H α x)
+    (pushforward_family α x)
     (pushforward_family_compatible H α x)
 
 @[simp] lemma pushforward_family_apply {X} (x : ℱ.obj (op X)) {Y : C} (f : G.obj Y ⟶ X) :
-  pushforward_family H α x f (presieve.in_cover_by_image G f) = α.app (op Y) (ℱ.map f.op x) :=
+  pushforward_family α x f (presieve.in_cover_by_image G f) = α.app (op Y) (ℱ.map f.op x) :=
 begin
   unfold pushforward_family,
   refine congr_fun _ x,
@@ -283,6 +289,7 @@ def sheaf_coyoneda_hom (α : G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) :
     simp
   end }
 
+include H
 /--
 (Implementation). `sheaf_coyoneda_hom` but the order of the arguments of the functor are swapped.
 -/
@@ -300,6 +307,8 @@ begin
     exact congr_fun ((α.app X).naturality i) x },
 end
 
+omit H
+
 /--
 Given an natural transformation `G ⋙ ℱ ⟶ G ⋙ ℱ'` between presheaves of arbitrary category,
 where `G` is full and cover-dense, and `ℱ'` is a sheaf, we may obtain a natural transformation
@@ -312,6 +321,7 @@ let α' := sheaf_yoneda_hom H α in
   { app := λ X, yoneda.preimage (α'.app X),
     naturality' := λ X Y f, yoneda.map_injective (by simpa using α'.naturality f) }
 
+include H
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
 where `G` is full and cover-dense, and `ℱ', ℱ` are sheaves,
@@ -335,6 +345,7 @@ begin
   apply as_iso (sheaf_hom H i.hom),
 end
 
+omit H
 /--
 Given an natural isomorphism `G ⋙ ℱ ≅ G ⋙ ℱ'` between presheaves of arbitrary category,
 where `G` is full and cover-dense, and `ℱ', ℱ` are sheaves,
@@ -404,6 +415,7 @@ def restrict_hom_equiv_hom : (G.op ⋙ ℱ ⟶ G.op ⋙ ℱ'.val) ≃ (ℱ ⟶ �
   left_inv := sheaf_hom_restrict_eq H,
   right_inv := sheaf_hom_eq H }
 
+include H
 /--
 Given a full and cover-dense functor `G` and a natural transformation of sheaves `α : ℱ ⟶ ℱ'`,
 if the pullback of `α` along `G` is iso, then `α` is also iso.
@@ -430,6 +442,8 @@ begin
   apply G.map_injective,
   simp [eq]
 end
+
+omit H
 
 noncomputable
 instance sites.pullback.full [faithful G] (Hp : cover_preserving J K G) :

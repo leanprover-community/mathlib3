@@ -12,6 +12,9 @@ import topology.algebra.module.strong_topology
 /-!
 # Operator norm on the space of continuous linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define the operator norm on the space of continuous (semi)linear maps between normed spaces, and
 prove its basic properties. In particular, show that this space is itself a normed space.
 
@@ -922,6 +925,9 @@ def mul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (linear_map.mul 𝕜 𝕜')
 @[simp] lemma op_norm_mul_apply_le (x : 𝕜') : ‖mul 𝕜 𝕜' x‖ ≤ ‖x‖ :=
 (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
 
+lemma op_norm_mul_le : ‖mul 𝕜 𝕜'‖ ≤ 1 :=
+linear_map.mk_continuous₂_norm_le _ zero_le_one _
+
 /-- Simultaneous left- and right-multiplication in a non-unital normed algebra, considered as a
 continuous trilinear map. This is akin to its non-continuous version `linear_map.mul_left_right`,
 but there is a minor difference: `linear_map.mul_left_right` is uncurried. -/
@@ -976,7 +982,7 @@ variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
 ((algebra.lsmul 𝕜 E).to_linear_map : 𝕜' →ₗ[𝕜] E →ₗ[𝕜] E).mk_continuous₂ 1 $
-  λ c x, by simpa only [one_mul] using (norm_smul c x).le
+  λ c x, by simpa only [one_mul] using norm_smul_le c x
 
 @[simp] lemma lsmul_apply (c : 𝕜') (x : E) : lsmul 𝕜 𝕜' c x = c • x := rfl
 
@@ -994,7 +1000,7 @@ end
 variables {𝕜}
 
 lemma op_norm_lsmul_apply_le (x : 𝕜') : ‖(lsmul 𝕜 𝕜' x : E →L[𝕜] E)‖ ≤ ‖x‖ :=
-continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, (norm_smul x y).le
+continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, norm_smul_le x y
 
 /-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
 lemma op_norm_lsmul_le : ‖(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)‖ ≤ 1 :=
@@ -1708,46 +1714,6 @@ begin
   exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
-
-variables {𝕜} {𝕜₄ : Type*} [nontrivially_normed_field 𝕜₄]
-variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
-variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
-variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
-variables [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
-variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
-variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
-variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
-variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
-variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
-variables [ring_hom_isometric σ₃₄]
-
-include σ₂₁ σ₃₄ σ₁₃ σ₂₄
-
-/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
-between the spaces of continuous (semi)linear maps. -/
-@[simps apply symm_apply]
-def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
-  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
-{ -- given explicitly to help `simps`
-  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
-  -- given explicitly to help `simps`
-  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
-  map_add' := λ f g, by rw [add_comp, comp_add],
-  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
-  continuous_to_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
-  continuous_inv_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
-  .. e₁₂.arrow_congr_equiv e₄₃, }
-
-omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
-
-/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
-the spaces of continuous linear maps. -/
-def arrow_congr {F H : Type*} [normed_add_comm_group F] [normed_add_comm_group H]
-  [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
-  (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
-  (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
-arrow_congrSL e₁ e₂
 
 end
 

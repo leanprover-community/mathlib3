@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Mario Carneiro, Sean Leather
 -/
 import data.finset.card
-import order.hom.basic
 
 /-!
 # Finite sets in `option α`

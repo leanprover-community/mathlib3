@@ -13,6 +13,9 @@ import topology.homotopy.contractible
 /-!
 # Topology on the upper half plane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we introduce a `topological_space` structure on the upper half plane and provide
 various instances.
 -/

@@ -10,6 +10,9 @@ import category_theory.limits.shapes.terminal
 /-!
 # Limits and colimits in the category of algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows that the forgetful functor `forget T : algebra T ⥤ C` for a monad `T : C ⥤ C`
 creates limits and creates any colimits which `T` preserves.
 This is used to show that `algebra T` has any limits which `C` has, and any colimits which `C` has

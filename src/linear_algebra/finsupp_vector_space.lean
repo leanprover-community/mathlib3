@@ -4,22 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import linear_algebra.dimension
-import linear_algebra.finite_dimensional
 import linear_algebra.std_basis
 
 /-!
 # Linear structures on function with finite support `ι →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results on the `R`-module structure on functions of finite support from a type
 `ι` to an `R`-module `M`, in particular in the case that `R` is a field.
 
-Furthermore, it contains some facts about isomorphisms of vector spaces from equality of dimension
-as well as the cardinality of finite dimensional vector spaces.
-
-## TODO
-
-Move the second half of this file to more appropriate other files.
 -/
 
 noncomputable theory
@@ -56,6 +51,12 @@ begin
       rw [span_le, range_coe],
       apply range_comp_subset_range } }
 end
+
+end ring
+
+section semiring
+variables {R : Type*} {M : Type*} {ι : Type*}
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 open linear_map submodule
 
@@ -102,7 +103,7 @@ begin
   by_cases h : i = j,
   { cases h,
     simp only [basis_repr, single_eq_same, basis.repr_self,
-               basis.finsupp.single_apply_left sigma_mk_injective] },
+               finsupp.single_apply_left sigma_mk_injective] },
   simp only [basis_repr, single_apply, h, false_and, if_false, linear_equiv.map_zero, zero_apply]
 end
 
@@ -116,90 +117,44 @@ basis.of_repr (linear_equiv.refl _ _)
   (finsupp.basis_single_one : ι → (ι →₀ R)) = λ i, finsupp.single i 1 :=
 funext $ λ i, basis.apply_eq_iff.mpr rfl
 
-end ring
-
-section dim
-variables {K : Type u} {V : Type v} {ι : Type v}
-variables [field K] [add_comm_group V] [module K V]
-
-lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
-begin
-  let bs := basis.of_vector_space K V,
-  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
-    cardinal.mk_sigma, cardinal.sum_const']
-end
-
-end dim
+end semiring
 
 end finsupp
 
-section module
-variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
-variables [field K]
-variables [add_comm_group V] [module K V]
-variables [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V₂] [module K V₂]
-variables [add_comm_group V'] [module K V']
+/-! TODO: move this section to an earlier file. -/
 
-open module
+namespace basis
 
-lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
-  nonempty (V ≃ₗ[K] V') :=
+variables {R M n : Type*}
+variables [decidable_eq n] [fintype n]
+variables [semiring R] [add_comm_monoid M] [module R M]
+
+lemma _root_.finset.sum_single_ite (a : R) (i : n) :
+  finset.univ.sum (λ (x : n), finsupp.single x (ite (i = x) a 0)) = finsupp.single i a :=
 begin
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq V',
-  let m := basis.of_vector_space K V,
-  let m' := basis.of_vector_space K V',
-  rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
-  rcases quotient.exact h with ⟨e⟩,
-  let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨(m.repr ≪≫ₗ (finsupp.dom_lcongr e)) ≪≫ₗ m'.repr.symm⟩
+  rw finset.sum_congr_set {i} (λ (x : n), finsupp.single x (ite (i = x) a 0))
+    (λ _, finsupp.single i a),
+  { simp },
+  { intros x hx,
+    rw set.mem_singleton_iff at hx,
+    simp [hx] },
+  intros x hx,
+  have hx' : ¬i = x :=
+  begin
+    refine ne_comm.mp _,
+    rwa mem_singleton_iff at hx,
+  end,
+  simp [hx'],
 end
 
-/-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
+@[simp] lemma equiv_fun_symm_std_basis (b : basis n R M) (i : n) :
+  b.equiv_fun.symm (linear_map.std_basis R (λ _, R) i 1) = b i :=
 begin
-  classical,
-  exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
+  have := equiv_like.injective b.repr,
+  apply_fun b.repr,
+  simp only [equiv_fun_symm_apply, std_basis_apply', linear_equiv.map_sum,
+    linear_equiv.map_smulₛₗ, ring_hom.id_apply, repr_self, finsupp.smul_single', boole_mul],
+  exact finset.sum_single_ite 1 i,
 end
 
-/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
-def fin_dim_vectorspace_equiv (n : ℕ)
-  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
-begin
-  have : cardinal.lift.{u} (n : cardinal.{v}) = cardinal.lift.{v} (n : cardinal.{u}),
-    by simp,
-  have hn := cardinal.lift_inj.{v u}.2 hn,
-  rw this at hn,
-  rw ←@dim_fin_fun K _ n at hn,
-  exact classical.choice (equiv_of_dim_eq_lift_dim hn),
-end
-
-end module
-
-section module
-
-open module
-
-variables (K V : Type u) [field K] [add_comm_group V] [module K V]
-
-lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
-  #V = #K ^ module.rank K V :=
-begin
-  let s := basis.of_vector_space_index K V,
-  let hs := basis.of_vector_space K V,
-  calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
-    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
-    ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
-end
-
-lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional K V] : #V < ℵ₀ :=
-begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_fintype K)
-    (is_noetherian.dim_lt_aleph_0 K V),
-end
-
-end module
+end basis

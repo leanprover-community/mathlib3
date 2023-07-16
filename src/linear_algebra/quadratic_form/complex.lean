@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 import linear_algebra.quadratic_form.isometry
-import analysis.special_functions.pow
+import analysis.special_functions.pow.complex
 
 /-!
 # Quadratic forms over the complex numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `equivalent_sum_squares`: A nondegenerate quadratic form over the complex numbers is equivalent to
 a sum of squares.
@@ -56,7 +59,7 @@ begin
   change v j * v j = ↑(w j) * ((v j * ↑(w j) ^ -(1 / 2 : ℂ)) * (v j * ↑(w j) ^ -(1 / 2 : ℂ))),
   suffices : v j * v j = w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { rw [this], ring },
-  rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
+  rw [← complex.cpow_add _ _ (w j).ne_zero, show -(1 / 2 : ℂ) + -(1 / 2) = -1, by simp [← two_mul],
       complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero, one_mul],
 end
 

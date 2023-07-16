@@ -8,6 +8,9 @@ import data.buffer.parser.basic
 /-!
 # Numeral parsers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file expands on the existing `nat : parser ℕ` to provide parsers into any type `α` that
 can be represented by a numeral, which relies on `α` having a 0, 1, and addition operation.
 There are also convenience parsers that ensure that the numeral parsed in is not larger than
@@ -115,5 +118,23 @@ do
     { (char.of_nat (fromc.to_nat + fintype.card α - 1)).to_string}' inclusively>")
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
+
+/-! ## Specific numeral types -/
+
+/--
+Matches an integer, like `43` or `-2`.
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+def int : parser int :=
+(coe <$> nat) <|> (ch '-' >> has_neg.neg <$> coe <$> nat)
+
+/--
+Matches an rational number, like `43/1` or `-2/3`.
+Requires that the negation is in the numerator,
+and that both a numerator and denominator are provided (e.g. will not match `43`).
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+def rat : parser rat :=
+(λ x y, ↑x / ↑y) <$> int <*> (ch '/' >> nat)
 
 end parser

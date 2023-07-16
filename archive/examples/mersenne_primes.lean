@@ -8,6 +8,9 @@ import number_theory.lucas_lehmer
 /-!
 # Explicit Mersenne primes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We run some Lucas-Lehmer tests to prove some Mersenne primes are prime.
 
 See the discussion at the end of [src/number_theory/lucas_lehmer.lean]

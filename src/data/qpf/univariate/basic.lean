@@ -9,6 +9,9 @@ import data.pfunctor.univariate.M
 
 # Quotients of Polynomial Functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We assume the following:
 
 `P`   : a polynomial functor
@@ -213,7 +216,7 @@ def W_setoid : setoid q.P.W :=
 local attribute [instance] W_setoid
 
 /-- inductive type defined as initial algebra of a Quotient of Polynomial Functor -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def fix (F : Type u → Type u) [functor F] [q : qpf F] := quotient (W_setoid : setoid q.P.W)
 
 /-- recursor of a type defined by a qpf -/

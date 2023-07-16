@@ -9,6 +9,9 @@ import linear_algebra.quadratic_form.basic
 /-!
 # Isometries with respect to quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `quadratic_form.isometry`: `linear_equiv`s which map between two different quadratic forms
@@ -24,13 +27,13 @@ variables {ι R K M M₁ M₂ M₃ V : Type*}
 
 namespace quadratic_form
 
-variables [ring R]
-variables [add_comm_group M] [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₁] [module R M₂] [module R M₃]
 
 /-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
 is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
-@[nolint has_inhabited_instance] structure isometry
+@[nolint has_nonempty_instance] structure isometry
   (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
 (map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
 

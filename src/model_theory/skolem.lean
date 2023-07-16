@@ -8,6 +8,9 @@ import model_theory.elementary_maps
 /-!
 # Skolem Functions and Downward Löwenheim–Skolem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `first_order.language.skolem₁` is a language consisting of Skolem functions for another language.
 
@@ -82,7 +85,7 @@ end
 /-- Any `L.sum L.skolem₁`-substructure is an elementary `L`-substructure. -/
 noncomputable def elementary_skolem₁_reduct (S : (L.sum L.skolem₁).substructure M) :
   L.elementary_substructure M :=
-⟨Lhom.sum_inl.substructure_reduct S, λ _, S.skolem₁_reduct_is_elementary⟩
+⟨Lhom.sum_inl.substructure_reduct S, S.skolem₁_reduct_is_elementary⟩
 
 lemma coe_sort_elementary_skolem₁_reduct
   (S : (L.sum L.skolem₁).substructure M) :
@@ -134,7 +137,7 @@ begin
   refine ⟨h1, (mk_union_le _ _).trans _, (lift_le.2 card_functions_sum_skolem₁_le).trans _⟩,
   { rw [← lift_le, lift_add, h, add_comm, add_eq_max h1],
     exact max_le le_rfl h2 },
-  { rw [lift_max', lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
+  { rw [lift_max, lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
       ← lift_le.{_ w'}, lift_lift, lift_lift, ← aleph_0_le_lift, h],
     refine ⟨_, h1⟩,
     simp only [← lift_lift, lift_umax, lift_umax'],

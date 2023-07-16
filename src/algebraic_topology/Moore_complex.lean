@@ -10,6 +10,9 @@ import category_theory.abelian.basic
 /-!
 ## Moore complex
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the normalized Moore complex, as a functor
 `simplicial_object C ⥤ chain_complex C ℕ`,
 for any abelian category `C`.
@@ -91,12 +94,12 @@ begin
   -- after the first simp the proofs are almost identical
   cases n; dsimp,
   { simp only [subobject.factor_thru_arrow_assoc],
-    slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le 0), },
+    slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le (0 : fin (0 + 2))), },
     rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin 2) (by simp)),
     slice_lhs 2 3 { rw [kernel_subobject_arrow_comp], },
     simp, },
   { simp [factor_thru_right],
-    slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le 0), },
+    slice_lhs 2 3 { erw ←X.δ_comp_δ (fin.zero_le (0 : fin (n.succ + 2))) },
     rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ (0 : fin (n+3)) (by simp)),
     slice_lhs 2 3 { rw [kernel_subobject_arrow_comp], },
     simp, },
@@ -131,8 +134,8 @@ chain_complex.of_hom _ _ _ _ _ _
   end)
   (λ n, begin
     cases n; dsimp,
-    { ext, simp, erw f.naturality, refl, },
-    { ext, simp, erw f.naturality, refl, },
+    { ext, simp, },
+    { ext, simp, },
   end)
 
 end normalized_Moore_complex
@@ -156,5 +159,12 @@ def normalized_Moore_complex : simplicial_object C ⥤ chain_complex C ℕ :=
   map := λ X Y f, map f,
   map_id' := λ X, by { ext n, cases n; { dsimp, simp, }, },
   map_comp' := λ X Y Z f g, by { ext n, cases n; simp, }, }
+
+variable {C}
+
+@[simp]
+lemma normalized_Moore_complex_obj_d (X : simplicial_object C) (n : ℕ) :
+  ((normalized_Moore_complex C).obj X).d (n+1) n = normalized_Moore_complex.obj_d X n :=
+by apply chain_complex.of_d
 
 end algebraic_topology

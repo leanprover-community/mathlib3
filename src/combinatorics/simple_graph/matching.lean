@@ -9,6 +9,9 @@ import combinatorics.simple_graph.subgraph
 /-!
 # Matchings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A *matching* for a simple graph is a set of disjoint pairs of adjacent vertices, and the set of all
 the vertices in a matching is called its *support* (and sometimes the vertices in the support are
 said to be *saturated* by the matching). A *perfect matching* is a matching whose support contains

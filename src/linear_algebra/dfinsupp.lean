@@ -9,6 +9,9 @@ import linear_algebra.basis
 /-!
 # Properties of the module `Π₀ i, M i`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an indexed collection of `R`-modules `M i`, the `R`-module structure on `Π₀ i, M i`
 is defined in `data.dfinsupp`.
 
@@ -205,6 +208,25 @@ lemma map_range.linear_equiv_symm (e : Π i, β₁ i ≃ₗ[R] β₂ i) :
   (map_range.linear_equiv e).symm = map_range.linear_equiv (λ i, (e i).symm) := rfl
 
 end map_range
+
+section coprod_map
+
+variables [decidable_eq ι] [Π (x : N), decidable (x ≠ 0)]
+
+/-- Given a family of linear maps `f i : M i  →ₗ[R] N`, we can form a linear map
+`(Π₀ i, M i) →ₗ[R] N` which sends `x : Π₀ i, M i` to the sum over `i` of `f i` applied to `x i`.
+This is the map coming from the universal property of `Π₀ i, M i` as the coproduct of the `M i`.
+See also `linear_map.coprod` for the binary product version. -/
+noncomputable def coprod_map (f : Π (i : ι), M i  →ₗ[R] N) : (Π₀ i, M i) →ₗ[R] N :=
+finsupp.lsum ℕ (λ i : ι, linear_map.id) ∘ₗ
+(@finsupp_lequiv_dfinsupp ι R N _ _ _ _ _).symm.to_linear_map ∘ₗ
+(dfinsupp.map_range.linear_map f)
+
+lemma coprod_map_apply (f : Π (i : ι), M i  →ₗ[R] N) (x : Π₀ i, M i) :
+  coprod_map f x =
+  finsupp.sum (map_range (λ i, f i) (λ i, linear_map.map_zero _) x).to_finsupp (λ i, id) := rfl
+
+end coprod_map
 
 section basis
 
@@ -443,10 +465,13 @@ lemma independent_iff_dfinsupp_sum_add_hom_injective (p : ι → add_subgroup N)
 ⟨independent.dfinsupp_sum_add_hom_injective, independent_of_dfinsupp_sum_add_hom_injective' p⟩
 
 omit dec_ι
+
 /-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule
-forms a linearly independent family. -/
+forms a linearly independent family.
+
+See also `complete_lattice.independent.linear_independent'`. -/
 lemma independent.linear_independent [no_zero_smul_divisors R N] (p : ι → submodule R N)
-  (hp : complete_lattice.independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
+  (hp : independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
   linear_independent R v :=
 begin
   classical,
@@ -462,6 +487,12 @@ begin
   have : l i • v i = a i := rfl,
   simp [this, ha],
 end
+
+lemma independent_iff_linear_independent_of_ne_zero [no_zero_smul_divisors R N] {v : ι → N}
+  (h_ne_zero : ∀ i, v i ≠ 0) :
+  independent (λ i, R ∙ v i) ↔ linear_independent R v :=
+⟨λ hv, hv.linear_independent _ (λ i, submodule.mem_span_singleton_self $ v i) h_ne_zero,
+ λ hv, hv.independent_span_singleton⟩
 
 end ring
 

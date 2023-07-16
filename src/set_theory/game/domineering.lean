@@ -8,6 +8,9 @@ import set_theory.game.state
 /-!
 # Domineering as a combinatorial game.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the game of Domineering, played on a chessboard of arbitrary shape
 (possibly even disconnected).
 Left moves by placing a domino vertically, while Right moves by placing a domino horizontally.
@@ -137,7 +140,7 @@ instance state : state board :=
 end domineering
 
 /-- Construct a pre-game from a Domineering board. -/
-def domineering (b : domineering.board) : pgame := pgame.of b
+def domineering (b : domineering.board) : pgame := pgame.of_state b
 
 /-- All games of Domineering are short, because each move removes two squares. -/
 instance short_domineering (b : domineering.board) : short (domineering b) :=

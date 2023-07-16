@@ -7,6 +7,9 @@ import topology.instances.int
 /-!
 # Topology on the natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The structure of a metric space on `ℕ` is introduced in this file, induced from `ℝ`.
 -/
 noncomputable theory

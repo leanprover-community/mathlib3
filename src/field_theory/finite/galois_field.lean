@@ -5,11 +5,16 @@ Authors: Aaron Anderson, Alex J. Best, Johan Commelin, Eric Rodriguez, Ruben Van
 -/
 
 import algebra.char_p.algebra
+import data.zmod.algebra
 import field_theory.finite.basic
 import field_theory.galois
+import field_theory.splitting_field.is_splitting_field
 
 /-!
 # Galois fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If `p` is a prime number, and `n` a natural number,
 then `galois_field p n` is defined as the splitting field of `X^(p^n) - X` over `zmod p`.
@@ -29,15 +34,32 @@ It is a finite field with `p ^ n` elements.
 
 noncomputable theory
 
-open polynomial
+open polynomial finset
 open_locale polynomial
+
+instance finite_field.has_sub.sub.polynomial.is_splitting_field (K F : Type*) [field K] [fintype K]
+  [field F] [algebra F K] : is_splitting_field F K (X ^ (fintype.card K) - X) :=
+{ splits :=
+  begin
+    have h : (X ^ (fintype.card K) - X : K[X]).nat_degree = fintype.card K :=
+      finite_field.X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
+    rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
+      map_X, h, finite_field.roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
+  end,
+  adjoin_root_set :=
+  begin
+    classical,
+    transitivity algebra.adjoin F ((roots (X ^ (fintype.card K) - X : K[X])).to_finset : set K),
+    { simp only [root_set, polynomial.map_pow, map_X, polynomial.map_sub], },
+    { rw [finite_field.roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
+  end }
 
 lemma galois_poly_separable {K : Type*} [field K] (p q : ℕ) [char_p K p] (h : p ∣ q) :
   separable (X ^ q - X : K[X]) :=
 begin
   use [1, (X ^ q - X - 1)],
   rw [← char_p.cast_eq_zero_iff K[X] p] at h,
-  rw [derivative_sub, derivative_pow, derivative_X, h],
+  rw [derivative_sub, derivative_X_pow, derivative_X, C_eq_nat_cast, h],
   ring,
 end
 
@@ -90,15 +112,15 @@ begin
   intros x hx,
   -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
   unfreezingI { cases p, cases hp, },
-  apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set aux,
+  apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set_of_ne aux,
   { rintros x (⟨r, rfl⟩ | hx),
     { simp only [aeval_X_pow, aeval_X, alg_hom.map_sub],
       rw [← map_pow, zmod.pow_card_pow, sub_self], },
     { dsimp only [galois_field] at hx,
-      rwa mem_root_set aux at hx, }, },
+      rwa mem_root_set_of_ne aux at hx, apply_instance }, },
   { dsimp only [g_poly],
     rw [← coeff_zero_eq_aeval_zero'],
-    simp only [coeff_X_pow, coeff_X_zero, sub_zero, ring_hom.map_eq_zero, ite_eq_right_iff,
+    simp only [coeff_X_pow, coeff_X_zero, sub_zero, _root_.map_eq_zero, ite_eq_right_iff,
       one_ne_zero, coeff_sub],
     intro hn,
     exact nat.not_lt_zero 1 (pow_eq_zero hn.symm ▸ hp), },
@@ -135,11 +157,11 @@ end
 
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
-have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
-  by rw [pow_one, zmod.card p],
-have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
-  by { rw h, apply_instance },
-by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])).symm
+let h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)) :=
+  by rw [pow_one, zmod.card p] in
+let inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X) :=
+  by { rw h, apply_instance } in
+(@is_splitting_field.alg_equiv _ (zmod p) _ _ _ (X ^ (p ^ 1) - X : (zmod p)[X]) inst).symm
 
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
@@ -151,8 +173,9 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
 h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
 @[priority 100]
-instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
+instance {K K' : Type*} [field K] [field K'] [finite K'] [algebra K K'] : is_galois K K' :=
 begin
+  casesI nonempty_fintype K',
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
   haveI : char_p K' p := char_p_of_injective_algebra_map' K K' p,
@@ -207,6 +230,8 @@ begin
     all_goals {apply_instance}, },
   rw ← hpp' at *,
   haveI := fact_iff.2 hp,
+  letI : algebra (zmod p) K := zmod.algebra _ _,
+  letI : algebra (zmod p) K' := zmod.algebra _ _,
   exact alg_equiv_of_card_eq p hKK',
 end
 

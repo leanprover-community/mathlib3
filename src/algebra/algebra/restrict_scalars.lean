@@ -9,6 +9,9 @@ import algebra.algebra.tower
 
 # The `restrict_scalars` type alias
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See the documentation attached to the `restrict_scalars` definition for advice on how and when to
 use this type alias. As described there, it is often a better choice to use the `is_scalar_tower`
 typeclass instead.
@@ -143,17 +146,34 @@ end
 variables [add_comm_monoid M]
 
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-@[simps] def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
+def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
 add_equiv.refl M
 
 variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
 
-lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
-  c • x = ((algebra_map R S c) • x : M) := rfl
+@[simp] lemma restrict_scalars.add_equiv_map_smul (c : R) (x : restrict_scalars R S M) :
+  restrict_scalars.add_equiv R S M (c • x)
+  = (algebra_map R S c) • restrict_scalars.add_equiv R S M x :=
+rfl
 
-@[simp] lemma restrict_scalars.add_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
-  restrict_scalars.add_equiv R S M (t • x)
-  = (algebra_map R S t) • restrict_scalars.add_equiv R S M x :=
+lemma restrict_scalars.smul_def (c : R) (x : restrict_scalars R S M) :
+  c • x = (restrict_scalars.add_equiv R S M).symm
+    (algebra_map R S c • restrict_scalars.add_equiv R S M x) :=
+rfl
+
+lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :
+  (restrict_scalars.add_equiv R S M).symm (algebra_map R S r • x)
+  = r • (restrict_scalars.add_equiv R S M).symm x :=
+rfl
+
+lemma restrict_scalars.add_equiv_symm_map_smul_smul (r : R) (s : S) (x : M) :
+  (restrict_scalars.add_equiv R S M).symm ((r • s) • x)
+  = r • (restrict_scalars.add_equiv R S M ).symm (s • x) :=
+by { rw [algebra.smul_def, mul_smul], refl, }
+
+lemma restrict_scalars.lsmul_apply_apply (s : S) (x : restrict_scalars R S M) :
+  restrict_scalars.lsmul R S M s x =
+    (restrict_scalars.add_equiv R S M).symm (s • (restrict_scalars.add_equiv R S M x)) :=
 rfl
 
 end module

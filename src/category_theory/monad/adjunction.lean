@@ -9,6 +9,9 @@ import category_theory.monad.algebra
 /-!
 # Adjunctions and monads
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop the basic relationship between adjunctions and monads.
 
 Given an adjunction `h : L ⊣ R`, we have `h.to_monad : monad C` and `h.to_comonad : comonad D`.

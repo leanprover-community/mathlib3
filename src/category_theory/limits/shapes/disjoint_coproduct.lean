@@ -9,6 +9,9 @@ import category_theory.limits.shapes.pullbacks
 /-!
 # Disjoint coproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines disjoint coproducts: coproducts where the intersection is initial and the coprojections
 are monic.
 Shows that a category with disjoint coproducts is `initial_mono_class`.

@@ -6,10 +6,12 @@ Authors: Yakov Pechersky
 
 import data.polynomial.taylor
 import field_theory.ratfunc
-import ring_theory.laurent_series
 
 /-!
 # Laurent expansions of rational functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main declarations
 

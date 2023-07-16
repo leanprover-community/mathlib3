@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # Finite products of types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the product of types over a list. For `l : list ι` and `α : ι → Type*` we define
 `list.tprod α l = l.foldr (λ i β, α i × β) punit`.
 This type should not be used if `Π i, α i` or `Π i ∈ l, α i` can be used instead
@@ -57,7 +60,7 @@ protected def mk : ∀ (l : list ι) (f : Π i, α i), tprod α l
 | (i :: is) := λ f, (f i, mk is f)
 
 instance [∀ i, inhabited (α i)] : inhabited (tprod α l) :=
-⟨tprod.mk l (λ _, default)⟩
+⟨tprod.mk l default⟩
 
 @[simp] lemma fst_mk (i : ι) (l : list ι) (f : Π i, α i) : (tprod.mk (i::l) f).1 = f i := rfl
 
@@ -141,7 +144,7 @@ end
 lemma elim_preimage_pi [decidable_eq ι] {l : list ι} (hnd : l.nodup) (h : ∀ i, i ∈ l)
   (t : Π i, set (α i)) : tprod.elim' h ⁻¹' pi univ t = set.tprod l t :=
 begin
-  have : { i | i ∈ l} = univ, { ext i, simp [h] },
+  have : { i | i ∈ l } = univ, { ext i, simp [h] },
   rw [← this, ← mk_preimage_tprod, preimage_preimage],
   convert preimage_id, simp [tprod.mk_elim hnd h, id_def]
 end

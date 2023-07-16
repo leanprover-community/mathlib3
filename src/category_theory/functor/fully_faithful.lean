@@ -4,20 +4,28 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Full and faithful functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define typeclasses `full` and `faithful`, decorating functors.
 
-Use `F.map_injective` to retrieve the fact that `F.map` is injective when `[faithful F]`,
-and `F.preimage` to obtain preimages of morphisms when `[full F]`.
+## Main definitions and results
+* Use `F.map_injective` to retrieve the fact that `F.map` is injective when `[faithful F]`.
+* Similarly, `F.map_surjective` states that `F.map` is surjective when `[full F]`.
+* Use `F.preimage` to obtain preimages of morphisms when `[full F]`.
+* We prove some basic "cancellation" lemmas for full and/or faithful functors, as well as a
+  construction for "dividing" a functor by a faithful functor, see `faithful.div`.
+* `full F` carries data, so definitional properties of the preimage can be used when using
+  `F.preimage`. To obtain an instance of `full F` non-constructively, you can use `full_of_exists`
+  and `full_of_surjective`.
 
-We prove some basic "cancellation" lemmas for full and/or faithful functors.
-
-See `category_theory.equivalence` for the fact that a functor is an equivalence if and only if
-it is fully faithful and essentially surjective.
+See `category_theory.equivalence.of_fully_faithful_ess_surj` for the fact that a functor is an
+equivalence if and only if it is fully faithful and essentially surjective.
 
 -/
 
@@ -55,8 +63,7 @@ restate_axiom faithful.map_injective'
 namespace functor
 variables {X Y : C}
 
-lemma map_injective (F : C ⥤ D) [faithful F] :
-  function.injective $ @functor.map _ _ _ _ F X Y :=
+lemma map_injective (F : C ⥤ D) [faithful F] : function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
 lemma map_iso_injective (F : C ⥤ D) [faithful F] :
@@ -69,6 +76,19 @@ full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
   F.map (preimage F f) = f :=
 by unfold preimage; obviously
+
+lemma map_surjective (F : C ⥤ D) [full F] : function.surjective (@functor.map _ _ _ _ F X Y) :=
+λ f, ⟨F.preimage f, F.image_preimage f⟩
+
+/-- Deduce that `F` is full from the existence of preimages, using choice. -/
+noncomputable def full_of_exists (F : C ⥤ D)
+  (h : ∀ (X Y : C) (f : F.obj X ⟶ F.obj Y), ∃ p, F.map p = f) : full F :=
+by { choose p hp using h, exact ⟨p, hp⟩ }
+
+/-- Deduce that `F` is full from surjectivity of `F.map`, using choice. -/
+noncomputable def full_of_surjective (F : C ⥤ D)
+  (h : ∀ (X Y : C), function.surjective (@functor.map _ _ _ _ F X Y)) : full F :=
+full_of_exists _ h
 
 end functor
 
@@ -154,6 +174,24 @@ lemma nat_iso_of_comp_fully_faithful_inv (i : F ⋙ H ≅ G ⋙ H) :
   (nat_iso_of_comp_fully_faithful H i).inv = nat_trans_of_comp_fully_faithful H i.inv :=
 by { ext, simp [←preimage_comp], dsimp, simp, }
 
+/-- Horizontal composition with a fully faithful functor induces a bijection on
+natural transformations. -/
+@[simps]
+def nat_trans.equiv_of_comp_fully_faithful : (F ⟶ G) ≃ (F ⋙ H ⟶ G ⋙ H) :=
+{ to_fun := λ α, α ◫ 𝟙 H,
+  inv_fun := nat_trans_of_comp_fully_faithful H,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- Horizontal composition with a fully faithful functor induces a bijection on
+natural isomorphisms. -/
+@[simps]
+def nat_iso.equiv_of_comp_fully_faithful : (F ≅ G) ≃ (F ⋙ H ≅ G ⋙ H) :=
+{ to_fun := λ e, nat_iso.hcomp e (iso.refl H),
+  inv_fun := nat_iso_of_comp_fully_faithful H,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
 end
 
 end category_theory
@@ -194,14 +232,14 @@ variables {F G}
 lemma faithful.of_comp_iso {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G ≅ H) : faithful F :=
 @faithful.of_comp _ _ _ _ _ _ F G (faithful.of_iso h.symm)
 
-alias faithful.of_comp_iso ← category_theory.iso.faithful_of_comp
+alias faithful.of_comp_iso ← _root_.category_theory.iso.faithful_of_comp
 
 -- We could prove this from `faithful.of_comp_iso` using `eq_to_iso`,
 -- but that would introduce a cyclic import.
 lemma faithful.of_comp_eq {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G = H) : faithful F :=
 @faithful.of_comp _ _ _ _ _ _ F G (h.symm ▸ ℋ)
 
-alias faithful.of_comp_eq ← eq.faithful_of_comp
+alias faithful.of_comp_eq ← _root_.eq.faithful_of_comp
 
 variables (F G)
 

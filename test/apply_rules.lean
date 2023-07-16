@@ -1,5 +1,5 @@
-
-import data.nat.basic
+import data.int.order.basic
+import data.nat.pow
 
 open nat
 
@@ -49,3 +49,12 @@ axiom p_rules : P 0
 
 example : P 0 := by success_if_fail {apply_rules with p_rules}; apply_rules [p_rules]
 example : P 10 := by apply_rules with p_rules 60
+
+attribute [p_rules] pow_lt_pow_of_lt_left
+
+open nat
+
+-- This tests for the following bug:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/namespace.20affects.20behaviour.20of.20.60apply_list_expr.60
+example {x y : ℤ} (n : ℕ) (h1 : x < y) (h2 : 0 ≤ x) (h3 : 0 < n) : x ^ n < y ^ n :=
+by apply_rules with p_rules

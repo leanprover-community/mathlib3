@@ -8,6 +8,9 @@ import linear_algebra.span
 
 /-! # Pointwise instances on `submodule`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides:
 
 * `submodule.has_pointwise_neg`
@@ -136,19 +139,13 @@ instance pointwise_add_comm_monoid : add_comm_monoid (submodule R M) :=
 @[simp] lemma add_eq_sup (p q : submodule R M) : p + q = p ⊔ q := rfl
 @[simp] lemma zero_eq_bot : (0 : submodule R M) = ⊥ := rfl
 
-/-- This is not an instance, as it would form a simp loop between `bot_eq_zero` and
-`submodule.zero_eq_bot`. It can be safely enabled with
-```lean
-local attribute [-simp] submodule.zero_eq_bot
-local attribute [instance] canonically_ordered_add_monoid
-```
--/
-def canonically_ordered_add_monoid : canonically_ordered_add_monoid (submodule R M) :=
+instance : canonically_ordered_add_monoid (submodule R M) :=
 { zero := 0,
   bot := ⊥,
   add := (+),
   add_le_add_left := λ a b, sup_le_sup_left,
-  le_iff_exists_add := λ a b, le_iff_exists_sup,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.complete_lattice }
 
@@ -159,11 +156,12 @@ variables [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R M) :=
-{ smul := λ a S, S.map (distrib_mul_action.to_linear_map _ _ a),
+{ smul := λ a S, S.map (distrib_mul_action.to_linear_map R M a : M →ₗ[R] M),
   one_smul := λ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
+    (congr_arg (λ f : module.End R M, S.map f) (linear_map.ext $ by exact one_smul α)).trans
+      S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
+    (congr_arg (λ f : module.End R M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
       (S.map_comp _ _),
   smul_zero := λ a, map_bot _,
   smul_add := λ a S₁ S₂, map_sup _ _ _ }
@@ -184,10 +182,17 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
+/-- See also `submodule.smul_bot`. -/
+@[simp] lemma smul_bot' (a : α) : a • (⊥ : submodule R M) = ⊥ := map_bot _
+/-- See also `submodule.smul_sup`. -/
+lemma smul_sup' (a : α) (S T : submodule R M) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+lemma smul_span (a : α) (s : set M) : a • span R s = span R (a • s) := map_span _ _
+lemma span_smul (a : α) (s : set M) : span R (a • s) = a • span R s := eq.symm (span_image _).symm
+
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_class αᵐᵒᵖ R M]
   [is_central_scalar α M] :
   is_central_scalar α (submodule R M) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : module.End R M, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
 
 @[simp] lemma smul_le_self_of_tower {α : Type*}
   [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]

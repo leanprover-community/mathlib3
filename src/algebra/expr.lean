@@ -7,6 +7,9 @@ import tactic.core
 
 /-! ### Helpers to invoke functions involving algebra at tactic time
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 It's not clear whether using `instance_cache` is a sensible choice here.
 In particular, we need to use these tactics below when the algebraic instances are local variables
 that aren't in the "real" instance cache (the one used by `tactic.reset_instance_cache`).

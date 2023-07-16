@@ -9,6 +9,9 @@ import data.real.basic
 /-!
 # Sum of the Reciprocals of the Triangular Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 42 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 We interpret “triangular numbers” as naturals of the form $\frac{k(k+1)}{2}$ for natural `k`.

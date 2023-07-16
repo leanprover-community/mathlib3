@@ -8,6 +8,9 @@ import data.pnat.basic
 /-!
 # IMO 1977 Q6
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Suppose `f : ℕ+ → ℕ+` satisfies `f(f(n)) < f(n + 1)` for all `n`.
 Prove that `f(n) = n` for all `n`.
 

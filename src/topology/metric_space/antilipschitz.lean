@@ -233,7 +233,7 @@ begin
     rw set.image2_singleton_right at h,
     replace h := (hf b).bounded_preimage h,
     refine h.mono (subset_preimage_image _ _) },
-  exact mt (bounded.mono (image2_subset (subset.refl _) (singleton_subset_iff.mpr hb))) this,
+  exact mt (bounded.mono (image2_subset subset.rfl (singleton_subset_iff.mpr hb))) this,
 end
 
 lemma bounded_of_image2_right {f : α → β → γ} {K₂ : ℝ≥0}

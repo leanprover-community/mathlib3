@@ -12,6 +12,9 @@ import ring_theory.eisenstein_criterion
 /-!
 # Construction of an algebraic number that is not solvable by radicals.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main ingredients are:
  * `solvable_by_rad.is_solvable'` in `field_theory/abel_ruffini` :
   an irreducible polynomial with an `is_solvable_by_rad` root has solvable Galois group

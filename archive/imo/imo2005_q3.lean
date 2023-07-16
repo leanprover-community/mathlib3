@@ -8,6 +8,9 @@ import tactic.positivity
 
 /-!
 # IMO 2005 Q3
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Let `x`, `y` and `z` be positive real numbers such that `xyz ≥ 1`. Prove that:
 `(x^5 - x^2)/(x^5 + y^2 + z^2) + (y^5 - y^2)/(y^5 + z^2 + x^2) + (z^5 - z^2)/(z^5 + x^2 + y^2) ≥ 0`
 

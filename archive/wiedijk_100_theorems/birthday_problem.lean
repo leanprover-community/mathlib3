@@ -10,6 +10,9 @@ import probability.notation
 /-!
 # Birthday Problem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 As opposed to the standard probabilistic statement, we instead state the birthday problem

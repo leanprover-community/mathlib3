@@ -12,6 +12,9 @@ import tactic.interval_cases
 /-!
 # The Friendship Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Definitions and Statement
 - A `friendship` graph is one in which any two distinct vertices have exactly one neighbor in common
 - A `politician`, at least in the context of this problem, is a vertex in a graph which is adjacent

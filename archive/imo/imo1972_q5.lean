@@ -10,6 +10,9 @@ import analysis.normed_space.basic
 /-!
 # IMO 1972 Q5
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
 `f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
 Prove that `|g(x)| ≤ 1` for all `x`.

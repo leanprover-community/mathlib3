@@ -10,6 +10,9 @@ import tactic.derive_fintype
 /-!
 # A homogeneous prime that is homogeneously prime but not prime
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is indexed
 by a `linear_ordered_cancel_add_comm_monoid` to prove that a homogeneous ideal is prime if and only
 if it is homogeneously prime. This file is aimed to show that even if this assumption isn't strictly

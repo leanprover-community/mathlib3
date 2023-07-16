@@ -312,7 +312,7 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 @[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
   (of_element r a).top = a := rfl
 
-/-- Any principal segment of a well order is order-isomorphic to a `subrel` -/
+/-- For any principal segment `r ≺i s`, there is a `subrel` of `s` order isomorphic to `r`. -/
 @[simps symm_apply]
 noncomputable def subrel_iso (f : r ≺i s) : subrel s {b | s b f.top} ≃r r :=
 rel_iso.symm

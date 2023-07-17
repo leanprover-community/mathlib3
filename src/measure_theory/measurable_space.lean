@@ -135,29 +135,6 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
 lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
-lemma comap_of_involutive {m' : measurable_space β} {g : β → β} (hg : involutive g)
-  (hg' : measurable g) (f : α → β) :
-  measurable_space.comap (λ a, g (f a)) infer_instance = measurable_space.comap f infer_instance :=
-begin
-  ext,
-  set e : set β ≃ set β :=
-  { to_fun := preimage g,
-    inv_fun := preimage g,
-    left_inv := hg.preimage,
-    right_inv := hg.preimage },
-  refine e.exists_congr_left.trans (exists_congr $ λ t, _),
-  simp only [preimage_preimage, compl_compl, equiv.coe_fn_symm_mk, and.congr_left_iff, hg _],
-  rintro rfl,
-  refine ⟨λ ht, _, λ ht, hg' ht⟩,
-  convert hg' ht,
-  simp_rw [preimage_preimage, hg _, preimage_id'],
-end
-
-lemma comap_compl {m' : measurable_space β} [boolean_algebra β] (h : measurable (compl : β → β))
-  (f : α → β) :
-  measurable_space.comap (λ a, (f a)ᶜ) infer_instance = measurable_space.comap f infer_instance :=
-comap_of_involutive compl_involutive h _
-
 end functors
 
 @[simp] lemma map_const {m} (b : β) : measurable_space.map (λ a : α, b) m = ⊤ :=
@@ -897,10 +874,6 @@ instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurabl
 section prop
 variables {p : α → Prop}
 
-@[simp] lemma measurable_space.comap_not :
-  measurable_space.comap (λ a, ¬ p a) infer_instance = measurable_space.comap p infer_instance :=
-measurable_space.comap_compl (λ _ _, trivial) _
-
 variables [measurable_space α]
 
 @[simp] lemma measurable_set_set_of : measurable_set {a | p a} ↔ measurable p :=
@@ -1133,6 +1106,9 @@ e.to_equiv.image_eq_preimage s
   measurable_set (e '' s) ↔ measurable_set s :=
 by rw [image_eq_preimage, measurable_set_preimage]
 
+@[simp] lemma map_eq (e : α ≃ᵐ β) : measurable_space.map e ‹_› = ‹_› :=
+e.measurable.le_map.antisymm' $ λ s, e.measurable_set_preimage.1
+
 /-- A measurable equivalence is a measurable embedding. -/
 protected lemma measurable_embedding (e : α ≃ᵐ β) : measurable_embedding e :=
 { injective := e.injective,
@@ -1358,11 +1334,40 @@ def sum_compl {s : set α} [decidable_pred s] (hs : measurable_set s) : s ⊕ (s
   measurable_to_fun := by {apply measurable.sum_elim; exact measurable_subtype_coe},
   measurable_inv_fun :=  measurable.dite measurable_inl measurable_inr hs }
 
+/-- Convert a measurable involutive function `f` to a measurable permutation with
+`to_fun = inv_fun = f`. See also `function.involutive.to_perm`. -/
+@[simps to_equiv] def of_involutive (f : α → α) (hf : involutive f) (hf' : measurable f) : α ≃ᵐ α :=
+{ measurable_to_fun := hf',
+  measurable_inv_fun := hf',
+  ..hf.to_perm _ }
+
+@[simp] lemma of_involutive_apply (f : α → α) (hf : involutive f) (hf' : measurable f) (a : α) :
+  of_involutive f hf hf' a = f a := rfl
+
+@[simp] lemma of_involutive_symm (f : α → α) (hf : involutive f) (hf' : measurable f) :
+  (of_involutive f hf hf').symm = of_involutive f hf hf' := rfl
+
 end measurable_equiv
 
 namespace measurable_embedding
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → α}
+
+@[simp] lemma comap_eq (hf : measurable_embedding f) : measurable_space.comap f ‹_› = ‹_› :=
+hf.measurable.comap_le.antisymm $ λ s h,
+  ⟨_, hf.measurable_set_image' h, hf.injective.preimage_image _⟩
+
+lemma iff_comap_eq :
+  measurable_embedding f ↔
+    injective f ∧ measurable_space.comap f ‹_› = ‹_› ∧ measurable_set (range f) :=
+⟨λ hf, ⟨hf.injective, hf.comap_eq, hf.measurable_set_range⟩, λ hf,
+  { injective := hf.1,
+    measurable := by { rw ←hf.2.1, exact comap_measurable f },
+    measurable_set_image' := begin
+      rw ←hf.2.1,
+      rintro _ ⟨s, hs, rfl⟩,
+      simpa only [image_preimage_eq_inter_range] using hs.inter hf.2.2,
+    end }⟩
 
 /-- A set is equivalent to its image under a function `f` as measurable spaces,
   if `f` is a measurable embedding -/
@@ -1457,6 +1462,19 @@ begin
 end
 
 end measurable_embedding
+
+lemma measurable_space.comap_compl {m' : measurable_space β} [boolean_algebra β]
+  (h : measurable (compl : β → β)) (f : α → β) :
+  measurable_space.comap (λ a, (f a)ᶜ) infer_instance = measurable_space.comap f infer_instance :=
+begin
+  rw ←measurable_space.comap_comp,
+  congr',
+  exact (measurable_equiv.of_involutive _ compl_involutive h).measurable_embedding.comap_eq,
+end
+
+@[simp] lemma measurable_space.comap_not (p : α → Prop) :
+  measurable_space.comap (λ a, ¬ p a) infer_instance = measurable_space.comap p infer_instance :=
+measurable_space.comap_compl (λ _ _, trivial) _
 
 section countably_generated
 

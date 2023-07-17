@@ -629,10 +629,10 @@ lemma Indep_sets.meas_Inter [fintype ι] (h : Indep_sets π μ) (hf : ∀ i, f i
   μ (⋂ i, f i) = ∏ i, μ (f i) :=
 by simp [← h _ (λ i _, hf _)]
 
-lemma Indep_comap_iff : Indep (λ i, measurable_space.comap (∈ f i) ⊤) μ ↔ Indep_set f μ :=
+lemma Indep_comap_mem_iff : Indep (λ i, measurable_space.comap (∈ f i) ⊤) μ ↔ Indep_set f μ :=
 by { simp_rw ←generate_from_singleton, refl }
 
-alias Indep_comap_iff ↔ _ Indep_set.Indep_comap
+alias Indep_comap_mem_iff ↔ _ Indep_set.Indep_comap_mem
 
 lemma Indep_sets_singleton_iff :
   Indep_sets (λ i, {f i}) μ ↔ ∀ t, μ (⋂ i ∈ t, f i) = ∏ i in t, μ (f i) :=

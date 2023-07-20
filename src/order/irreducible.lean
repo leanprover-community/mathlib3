@@ -9,6 +9,9 @@ import data.fintype.card
 /-!
 # Irreducible and prime elements in an order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines irreducible and prime elements in an order and shows that in a well-founded
 lattice every element decomposes as a supremum of irreducible elements.
 

@@ -305,7 +305,7 @@ begin
   induction d using nat.strong_rec' with d IH,
   rcases decidable.eq_or_ne d 0 with rfl | hd0,
   { cases fintype.card_ne_zero (eq_zero_of_zero_dvd hd) },
-  rcases card_pos.1 hpos with ⟨a, ha'⟩,
+  rcases finset.card_pos.1 hpos with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
@@ -328,7 +328,7 @@ begin
   have hc0 : 0 < c := fintype.card_pos_iff.2 ⟨1⟩,
   apply card_order_of_eq_totient_aux₁ hn hd,
   by_contradiction h0,
-  simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
+  simp only [not_lt, _root_.le_zero_iff, finset.card_eq_zero] at h0,
   apply lt_irrefl c,
   calc
     c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
@@ -352,7 +352,7 @@ end
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
-from (card_pos.1 $
+from (finset.card_pos.1 $
   by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in

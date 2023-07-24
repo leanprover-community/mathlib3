@@ -100,7 +100,7 @@ let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow
 /-- If `gcd(p,n) = 1`, then the `n`th power map is a bijection. -/
 noncomputable def pow_equiv {n : ℕ} (hn : p.coprime n) : G ≃ G :=
 let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
-  λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
+  λ g, (nat.card_zpowers g).symm ▸ hG.order_of_coprime hn g in
 { to_fun := (^ n),
   inv_fun := λ g, (pow_coprime (h g)).symm ⟨g, subgroup.mem_zpowers g⟩,
   left_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h (g ^ n))).left_inv
@@ -112,7 +112,7 @@ rfl
 
 @[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
   (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
-by rw order_eq_card_zpowers'; refl
+by rw ←nat.card_zpowers; refl
 
 variables [hp : fact p.prime]
 

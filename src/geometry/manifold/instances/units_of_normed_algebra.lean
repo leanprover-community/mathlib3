@@ -10,6 +10,9 @@ import analysis.normed_space.units
 /-!
 # Units of a normed algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is a stub, containing a construction of the charted space structure on the group of units
 of a complete normed ring `R`, and of the smooth manifold structure on the group of units of a
 complete normed `𝕜`-algebra `R`.
@@ -57,7 +60,7 @@ instance : charted_space R Rˣ := open_embedding_coe.singleton_charted_space
 lemma chart_at_apply {a : Rˣ} {b : Rˣ} : chart_at R a b = b := rfl
 lemma chart_at_source {a : Rˣ} : (chart_at R a).source = set.univ := rfl
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 R]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R]
 
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)

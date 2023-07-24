@@ -9,6 +9,9 @@ import control.functor
 /-!
 # `applicative` instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `applicative` instances for concrete functors:
 * `id`
 * `functor.comp`

@@ -9,6 +9,9 @@ import order.filter.pi
 /-!
 # The cofinite filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 `cofinite`: the filter of sets with finite complement
@@ -23,23 +26,23 @@ Define filters for other cardinalities of the complement.
 open set function
 open_locale classical
 
-variables {ι α β : Type*}
+variables {ι α β : Type*} {l : filter α}
 
 namespace filter
 
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
-{ sets             := {s | finite sᶜ},
+{ sets             := {s | sᶜ.finite},
   univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
-  sets_of_superset := assume s t (hs : finite sᶜ) (st: s ⊆ t),
+  sets_of_superset := assume s t (hs : sᶜ.finite) (st: s ⊆ t),
     hs.subset $ compl_subset_compl.2 st,
-  inter_sets       := assume s t (hs : finite sᶜ) (ht : finite (tᶜ)),
+  inter_sets       := assume s t (hs : sᶜ.finite) (ht : tᶜ.finite),
     by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
 
-@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite sᶜ := iff.rfl
+@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ sᶜ.finite := iff.rfl
 
 @[simp] lemma eventually_cofinite {p : α → Prop} :
-  (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
+  (∀ᶠ x in cofinite, p x) ↔ {x | ¬p x}.finite := iff.rfl
 
 lemma has_basis_cofinite : has_basis cofinite (λ s : set α, s.finite) compl :=
 ⟨λ s, ⟨λ h, ⟨sᶜ, h, (compl_compl s).subset⟩, λ ⟨t, htf, hts⟩, htf.subset $ compl_subset_comm.2 hts⟩⟩
@@ -69,16 +72,14 @@ frequently_cofinite_iff_infinite.symm
 lemma eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
-lemma le_cofinite_iff_compl_singleton_mem {l : filter α} :
-  l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
+lemma le_cofinite_iff_compl_singleton_mem : l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
 begin
   refine ⟨λ h x, h (finite_singleton x).compl_mem_cofinite, λ h s (hs : sᶜ.finite), _⟩,
   rw [← compl_compl s, ← bUnion_of_singleton sᶜ, compl_Union₂,filter.bInter_mem hs],
   exact λ x _, h x
 end
 
-lemma le_cofinite_iff_eventually_ne {l : filter α} :
-  l ≤ cofinite ↔ ∀ x, ∀ᶠ y in l, y ≠ x :=
+lemma le_cofinite_iff_eventually_ne : l ≤ cofinite ↔ ∀ x, ∀ᶠ y in l, y ≠ x :=
 le_cofinite_iff_compl_singleton_mem
 
 /-- If `α` is a preorder with no maximal element, then `at_top ≤ cofinite`. -/
@@ -95,10 +96,19 @@ filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
   finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
-lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
+lemma Coprod_cofinite {α : ι → Type*} [finite ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
 filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
   forall_finite_image_eval_iff]
+
+@[simp] lemma disjoint_cofinite_left : disjoint cofinite l ↔ ∃ s ∈ l, set.finite s :=
+begin
+  simp only [has_basis_cofinite.disjoint_iff l.basis_sets, id, disjoint_compl_left_iff_subset],
+  exact ⟨λ ⟨s, hs, t, ht, hts⟩, ⟨t, ht, hs.subset hts⟩, λ ⟨s, hs, hsf⟩, ⟨s, hsf, s, hs, subset.rfl⟩⟩
+end
+
+@[simp] lemma disjoint_cofinite_right : disjoint l cofinite ↔ ∃ s ∈ l, set.finite s :=
+disjoint.comm.trans disjoint_cofinite_left
 
 end filter
 
@@ -123,7 +133,7 @@ lemma filter.tendsto.exists_within_forall_le {α β : Type*} [linear_order β] {
 begin
   rcases em (∃ y ∈ s, ∃ x, f y < x) with ⟨y, hys, x, hx⟩|not_all_top,
   { -- the set of points `{y | f y < x}` is nonempty and finite, so we take `min` over this set
-    have : finite {y | ¬x ≤ f y} := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
+    have : {y | ¬x ≤ f y}.finite := (filter.eventually_cofinite.mp (tendsto_at_top.1 hf x)),
     simp only [not_le] at this,
     obtain ⟨a₀, ⟨ha₀ : f a₀ < x, ha₀s⟩, others_bigger⟩ :=
       exists_min_image _ f (this.inter_of_left s) ⟨y, hx, hys⟩,

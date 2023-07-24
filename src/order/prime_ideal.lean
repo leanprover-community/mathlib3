@@ -9,6 +9,9 @@ import order.pfilter
 /-!
 # Prime ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 Throughout this file, `P` is at least a preorder, but some sections require more
@@ -40,7 +43,7 @@ namespace ideal
 
 /-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure prime_pair (P : Type*) [preorder P] :=
 (I            : ideal P)
 (F            : pfilter P)

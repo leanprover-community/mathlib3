@@ -3,13 +3,15 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.basic
-import algebra.char_zero
+import algebra.char_zero.lemmas
 import order.locally_finite
 import data.finset.locally_finite
 
 /-!
 # Finite intervals of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves that `ℤ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
@@ -28,7 +30,7 @@ instance : locally_finite_order ℤ :=
     nat.cast_embedding.trans $ add_left_embedding (a + 1),
   finset_mem_Icc := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [lt_sub_iff_add_lt, int.lt_add_one_iff, add_comm] at h,
@@ -41,7 +43,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ico := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
@@ -52,7 +54,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ioc := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [←add_one_le_iff, le_sub_iff_add_le', add_comm _ (1 : ℤ), ←add_assoc] at h,
@@ -64,7 +66,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ioo := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [sub_sub, lt_sub_iff_add_lt'] at h,
@@ -90,18 +92,18 @@ lemma Ioc_eq_finset_map :
 lemma Ioo_eq_finset_map :
   Ioo a b = (finset.range (b - a - 1).to_nat).map
     (nat.cast_embedding.trans $ add_left_embedding (a + 1)) := rfl
+lemma uIcc_eq_finset_map : uIcc a b = (range (max a b + 1 - min a b).to_nat).map
+    (nat.cast_embedding.trans $ add_left_embedding $ min a b) := rfl
 
-@[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat :=
-by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
+@[simp] lemma card_Icc : (Icc a b).card = (b + 1 - a).to_nat := (card_map _).trans $ card_range _
+@[simp] lemma card_Ico : (Ico a b).card = (b - a).to_nat := (card_map _).trans $ card_range _
+@[simp] lemma card_Ioc : (Ioc a b).card = (b - a).to_nat := (card_map _).trans $ card_range _
+@[simp] lemma card_Ioo : (Ioo a b).card = (b - a - 1).to_nat := (card_map _).trans $ card_range _
 
-@[simp] lemma card_Ico : (Ico a b).card = (b - a).to_nat :=
-by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
-
-@[simp] lemma card_Ioc : (Ioc a b).card = (b - a).to_nat :=
-by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
-
-@[simp] lemma card_Ioo : (Ioo a b).card = (b - a - 1).to_nat :=
-by { change (finset.map _ _).card = _, rw [finset.card_map, finset.card_range] }
+@[simp] lemma card_uIcc : (uIcc a b).card = (b - a).nat_abs + 1 :=
+(card_map _).trans $ int.coe_nat_inj $ by rw [card_range, sup_eq_max, inf_eq_min,
+  int.to_nat_of_nonneg (sub_nonneg_of_le $ le_add_one min_le_max), int.coe_nat_add, int.coe_nat_abs,
+  add_comm, add_sub_assoc, max_sub_min_eq_abs, add_comm, int.coe_nat_one]
 
 lemma card_Icc_of_le (h : a ≤ b + 1) : ((Icc a b).card : ℤ) = b + 1 - a :=
 by rw [card_Icc, to_nat_sub_of_le h]
@@ -126,6 +128,9 @@ by rw [←card_Ioc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = (b - a - 1).to_nat :=
 by rw [←card_Ioo, fintype.card_of_finset]
+
+@[simp] lemma card_fintype_uIcc : fintype.card (set.uIcc a b) = (b - a).nat_abs + 1 :=
+by rw [←card_uIcc, fintype.card_of_finset]
 
 lemma card_fintype_Icc_of_le (h : a ≤ b + 1) : (fintype.card (set.Icc a b) : ℤ) = b + 1 - a :=
 by rw [card_fintype_Icc, to_nat_sub_of_le h]

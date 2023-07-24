@@ -9,6 +9,9 @@ import order.galois_connection
 /-!
 # Equivalence relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the complete lattice of equivalence relations on a type, results about the
 inductively defined equivalence closure of a binary relation, and the analogues of some isomorphism
 theorems for quotients of arbitrary types.

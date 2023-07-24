@@ -6,12 +6,14 @@ Authors: Scott Morrison
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
 import category_theory.over
-import category_theory.limits.concrete_category
-import category_theory.limits.shapes.concrete_category
 import group_theory.subgroup.basic
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of (commutative) (additive) groups has all limits
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
@@ -66,7 +68,8 @@ the existing limit. -/
 
 All we need to do is notice that the limit point has an `add_group` instance available, and then
 reuse the existing limit."]
-instance (F : J ⥤ Group.{max v u}) : creates_limit F (forget₂ Group.{max v u} Mon.{max v u}) :=
+instance forget₂.creates_limit (F : J ⥤ Group.{max v u}) :
+  creates_limit F (forget₂ Group.{max v u} Mon.{max v u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := Group.of (types.limit_cone (F ⋙ forget Group)).X,
@@ -159,8 +162,12 @@ We show that the forgetful functor `CommGroup ⥤ Group` creates limits.
 All we need to do is notice that the limit point has a `comm_group` instance available,
 and then reuse the existing limit.
 -/
-@[to_additive]
-instance (F : J ⥤ CommGroup.{max v u}) : creates_limit F (forget₂ CommGroup Group.{max v u}) :=
+@[to_additive "We show that the forgetful functor `AddCommGroup ⥤ AddGroup` creates limits.
+
+All we need to do is notice that the limit point has an `add_comm_group` instance available, and
+then reuse the existing limit."]
+instance forget₂.creates_limit (F : J ⥤ CommGroup.{max v u}) :
+  creates_limit F (forget₂ CommGroup Group.{max v u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommGroup.of (types.limit_cone (F ⋙ forget CommGroup)).X,

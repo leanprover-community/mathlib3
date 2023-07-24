@@ -4,7 +4,8 @@ All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa, Kevin Buzzard
 -/
-import algebra.order.monoid
+import algebra.order.monoid.defs
+import algebra.order.monoid.with_zero.defs
 
 /-!
 An example of a `linear_ordered_comm_monoid_with_zero` in which the product of two positive
@@ -15,7 +16,12 @@ The order is `0 < ε < 1`.  Since `ε ^ 2 = 0`, the product of strictly positive
 
 Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
+
+namespace counterexample
 
 /--  The three element monoid. -/
 @[derive [decidable_eq]]
@@ -31,7 +37,7 @@ instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
-notation `ε` := eps
+local notation `ε` := eps
 
 /-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ
@@ -47,7 +53,7 @@ lemma aux1_inj : function.injective aux1 :=
 by boom
 
 instance : linear_order foo :=
-linear_order.lift aux1 $ aux1_inj
+linear_order.lift' aux1 aux1_inj
 
 /-- Multiplication on `foo`: the only external input is that `ε ^ 2 = 0`. -/
 def mul : foo → foo → foo
@@ -84,3 +90,5 @@ end
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo
+
+end counterexample

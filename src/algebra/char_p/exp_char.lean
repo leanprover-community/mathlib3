@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
 import algebra.char_p.basic
-import algebra.char_zero
 import data.nat.prime
 
 /-!
 # Exponential characteristic
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the exponential characteristic and establishes a few basic results relating
 it to the (ordinary characteristic).

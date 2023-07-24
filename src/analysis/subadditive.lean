@@ -9,6 +9,9 @@ import order.filter.archimedean
 /-!
 # Convergence of subadditive sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A subadditive sequence `u : ℕ → ℝ` is a sequence satisfying `u (m + n) ≤ u m + u n` for all `m, n`.
 We define this notion as `subadditive u`, and prove in `subadditive.tendsto_lim` that, if `u n / n`
 is bounded below, then it converges to a limit (that we denote by `subadditive.lim` for
@@ -17,7 +20,7 @@ convenience). This result is known as Fekete's lemma in the literature.
 
 noncomputable theory
 open set filter
-open_locale topological_space
+open_locale topology
 
 /-- A real-valued sequence is subadditive if it satisfies the inequality `u (m + n) ≤ u m + u n`
 for all `m, n`. -/
@@ -53,7 +56,7 @@ begin
       = u (n + (k * n + r)) : by { congr' 1, ring }
   ... ≤ u n + u (k * n + r) : h _ _
   ... ≤ u n + (k * u n + u r) : add_le_add_left IH _
-  ... = (k+1) * u n + u r : by ring
+  ... = (k+1 : ℕ) * u n + u r : by simp; ring
 end
 
 lemma eventually_div_lt_of_div_lt {L : ℝ} {n : ℕ} (hn : n ≠ 0) (hL : u n / n < L) :

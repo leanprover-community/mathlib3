@@ -9,6 +9,9 @@ import topology.continuous_on
 /-!
 # Local extrema of functions on topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 This file defines special versions of `is_*_filter f a l`, `*=min/max/extr`,
@@ -36,7 +39,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} [topological_space α]
 
 open set filter
-open_locale topological_space filter
+open_locale topology filter
 
 section preorder
 

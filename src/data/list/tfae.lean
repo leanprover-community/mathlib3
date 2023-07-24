@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # The Following Are Equivalent
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to state that all propositions in a list are equivalent. It is used by
 `tactic.tfae`.
 `tfae l` means `∀ x ∈ l, ∀ y ∈ l, x ↔ y`. This is equivalent to `pairwise (↔) l`.

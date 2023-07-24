@@ -8,6 +8,9 @@ import linear_algebra.matrix.nonsingular_inverse
 /-!
 # Integer powers of square matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define integer power of matrices, relying on
 the nonsingular inverse definition for negative powers.
 
@@ -123,12 +126,11 @@ lemma is_unit_det_zpow_iff {A : M} {z : ℤ} :
 begin
   induction z using int.induction_on with z IH z IH,
   { simp },
-  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pos_pow_iff (z.zero_lt_succ),
-        ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
-    simp },
-  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff,
-        det_pow, is_unit_pos_pow_iff (z.zero_lt_succ), neg_eq_zero, ←int.coe_nat_zero,
+  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pow_succ_iff, ←int.coe_nat_zero,
         int.coe_nat_eq_coe_nat_iff],
+    simp },
+  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff, det_pow,
+        is_unit_pow_succ_iff, neg_eq_zero, ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
     simp }
 end
 
@@ -144,7 +146,7 @@ lemma inv_zpow' {A : M} (h : is_unit A.det) (n : ℤ) :
 by rw [zpow_neg h, inv_zpow]
 
 lemma zpow_add_one {A : M} (h : is_unit A.det) : ∀ n : ℤ, A ^ (n + 1) = A ^ n * A
-| (n : ℕ)        := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ)        := by simp only [← nat.cast_succ, pow_succ', zpow_coe_nat]
 | -((n : ℕ) + 1) :=
 calc  A ^ (-(n + 1) + 1 : ℤ)
     = (A ^ n)⁻¹ : by rw [neg_add, neg_add_cancel_right, zpow_neg h, zpow_coe_nat]
@@ -239,7 +241,7 @@ begin
 end
 
 lemma zpow_add_one_of_ne_neg_one {A : M} : ∀ (n : ℤ), n ≠ -1 → A ^ (n + 1) = A ^ n * A
-| (n : ℕ) _ := by simp [← int.coe_nat_succ, pow_succ']
+| (n : ℕ) _ := by simp only [pow_succ', ← nat.cast_succ, zpow_coe_nat]
 | (-1) h := absurd rfl h
 | (-((n : ℕ) + 2)) _ := begin
   rcases nonsing_inv_cancel_or_zero A with ⟨h, h'⟩ | h,

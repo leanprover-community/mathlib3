@@ -10,6 +10,9 @@ import ring_theory.unique_factorization_domain
 /-!
 # Numerator and denominator in a localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Implementation notes
 
 See `src/ring_theory/localization/basic.lean` for a design overview.
@@ -54,8 +57,7 @@ classical.some (exists_reduced_fraction A x)
 noncomputable def denom (x : K) : non_zero_divisors A :=
 classical.some (classical.some_spec (exists_reduced_fraction A x))
 
-lemma num_denom_reduced (x : K) :
-  ∀ {d}, d ∣ num A x → d ∣ denom A x → is_unit d :=
+lemma num_denom_reduced (x : K) {d} : d ∣ num A x → d ∣ denom A x → is_unit d :=
 (classical.some_spec (classical.some_spec (exists_reduced_fraction A x))).1
 
 @[simp] lemma mk'_num_denom (x : K) : mk' K (num A x) (denom A x) = x :=
@@ -75,7 +77,7 @@ lemma num_mul_denom_eq_num_iff_eq' {x y : K} :
 
 lemma num_mul_denom_eq_num_mul_denom_iff_eq {x y : K} :
   num A y * denom A x = num A x * denom A y ↔ x = y :=
-⟨λ h, by simpa only [mk'_num_denom] using mk'_eq_of_eq h,
+⟨λ h, by simpa only [mk'_num_denom] using mk'_eq_of_eq' h,
  λ h, by rw h⟩
 
 lemma eq_zero_of_num_eq_zero {x : K} (h : num A x = 0) : x = 0 :=
@@ -88,7 +90,7 @@ begin
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors (denom A x).2,
   use ↑d⁻¹ * num A x,
   refine trans _ (mk'_num_denom A x),
-  rw [ring_hom.map_mul, ring_hom.map_units_inv, hd],
+  rw [map_mul, map_units_inv, hd],
   apply mul_left_cancel₀ d_ne_zero,
   rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, mk'_spec']
 end

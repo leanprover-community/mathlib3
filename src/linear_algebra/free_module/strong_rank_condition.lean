@@ -11,6 +11,9 @@ import linear_algebra.invariant_basis_number
 
 # Strong rank condition for commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that any nontrivial commutative ring satisfies `strong_rank_condition`, meaning that
 if there is an injective linear map `(fin n → R) →ₗ[R] fin m → R`, then `n ≤ m`. This implies that
 any commutative ring satisfies `invariant_basis_number`: the rank of a finitely generated free
@@ -43,9 +46,10 @@ begin
   { rwa strong_rank_condition_iff_succ R },
   intros n f, by_contradiction hf,
 
-  -- Lean is unable to find this instance without help, either via this `letI`, or via a duplicate
-  -- instance with unecessarily strong typeclasses on `R` and `M`.
+  -- Lean is unable to find these instances without help, either via this `letI`, or via duplicate
+  -- instances with unecessarily strong typeclasses on `R` and `M`.
   letI : module.finite R (fin n.succ → R) := module.finite.pi,
+  letI : module.free R (fin n.succ → R) := module.free.pi _ _,
 
   let g : (fin (n + 1) → R) →ₗ[R] fin (n + 1) → R :=
     (extend_by_zero.linear_map R cast_succ).comp f,

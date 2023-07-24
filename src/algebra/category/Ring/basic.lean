@@ -5,10 +5,14 @@ Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.category.Group.basic
 import category_theory.concrete_category.reflects_isomorphisms
+import category_theory.elementwise
 import algebra.ring.equiv
 
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the bundled categories:
 * `SemiRing`
@@ -260,6 +264,13 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
     exact ⟨(is_iso.of_iso e.to_CommRing_iso).1⟩,
   end }
+
+lemma CommRing.comp_eq_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  f ≫ g = g.comp f := rfl
+
+lemma CommRing.ring_hom_comp_eq_comp {R S T : Type*} [comm_ring R] [comm_ring S]
+  [comm_ring T] (f : R →+* S) (g : S →+* T) :
+  g.comp f = CommRing.of_hom f ≫ CommRing.of_hom g := rfl
 
 -- It would be nice if we could have the following,
 -- but it requires making `reflects_isomorphisms_forget₂` an instance,

@@ -86,19 +86,19 @@ meta def mk_lt_zero_pf : list (expr × ℕ) → tactic expr
 
 /-- If `prf` is a proof of `t R s`, `term_of_ineq_prf prf` returns `t`. -/
 meta def term_of_ineq_prf (prf : expr) : tactic expr :=
-prod.fst <$> (infer_type prf >>= get_rel_sides)
+prod.fst <$> (infer_type prf >>= instantiate_mvars >>= get_rel_sides)
 
 /-- If `prf` is a proof of `t R s`, `ineq_prf_tp prf` returns the type of `t`. -/
 meta def ineq_prf_tp (prf : expr) : tactic expr :=
-term_of_ineq_prf prf >>= infer_type
+term_of_ineq_prf prf >>= infer_type >>= instantiate_mvars
 
 /--
 `mk_neg_one_lt_zero_pf tp` returns a proof of `-1 < 0`,
 where the numerals are natively of type `tp`.
 -/
 meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
-do zero_lt_one ← mk_mapp `zero_lt_one [tp, none, none],
-   mk_app `neg_neg_of_pos [zero_lt_one]
+do h ← mk_mapp `linarith.zero_lt_one [tp, none, none],
+   mk_app `neg_neg_of_pos [h]
 
 /--
 If `e` is a proof that `t = 0`, `mk_neg_eq_zero_pf e` returns a proof that `-t = 0`.
@@ -120,7 +120,7 @@ proof, it adds a proof of `-t = 0` to the list.
 meta def add_neg_eq_pfs : list expr → tactic (list expr)
 | [] := return []
 | (h::t) :=
-  do some (iq, tp) ← parse_into_comp_and_expr <$> infer_type h,
+  do some (iq, tp) ← parse_into_comp_and_expr <$> (infer_type h >>= instantiate_mvars),
   match iq with
   | ineq.eq := do nep ← mk_neg_eq_zero_pf h, tl ← add_neg_eq_pfs t, return $ h::nep::tl
   | _ := list.cons h <$> add_neg_eq_pfs t

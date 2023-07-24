@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Alistair Tucker
 -/
 import order.complete_lattice_intervals
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Intermediate Value Theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the Intermediate Value Theorem: if `f : α → β` is a function defined on a
 connected set `s` that takes both values `≤ a` and values `≥ a` on `s`, then it is equal to `a` at
@@ -37,7 +40,7 @@ intermediate value theorem, connected space, connected set
 -/
 
 open filter order_dual topological_space function set
-open_locale topological_space filter
+open_locale topology filter
 
 universes u v w
 
@@ -386,12 +389,10 @@ begin
   exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
 
-/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
-lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
-is_preconnected_closed_iff.2
+lemma is_preconnected_Icc_aux (x y : α) (s t : set α) (hxy : x ≤ y)
+  (hs : is_closed s) (ht : is_closed t) (hab : Icc a b ⊆ s ∪ t)
+  (hx : x ∈ Icc a b ∩ s) (hy : y ∈ Icc a b ∩ t) : (Icc a b ∩ (s ∩ t)).nonempty :=
 begin
-  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
-  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
@@ -407,12 +408,25 @@ begin
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
 end
 
-lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
+/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
+lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
+is_preconnected_closed_iff.2
+begin
+  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
+  -- This used to use `wlog`, but it was causing timeouts.
+  cases le_total x y,
+  { exact is_preconnected_Icc_aux x y s t h hs ht hab hx hy, },
+  { rw inter_comm s t,
+    rw union_comm s t at hab,
+    exact is_preconnected_Icc_aux y x t s h ht hs hab hy hx, },
+end
+
+lemma is_preconnected_uIcc : is_preconnected (uIcc a b) := is_preconnected_Icc
 
 lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
   is_preconnected s :=
-is_preconnected_of_forall_pair $ λ x hx y hy, ⟨interval x y, h.interval_subset hx hy,
-  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+is_preconnected_of_forall_pair $ λ x hx y hy, ⟨uIcc x y, h.uIcc_subset hx hy,
+  left_mem_uIcc, right_mem_uIcc, is_preconnected_uIcc⟩
 
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
@@ -425,6 +439,28 @@ lemma is_preconnected_Ioi : is_preconnected (Ioi a) := ord_connected_Ioi.is_prec
 lemma is_preconnected_Ioo : is_preconnected (Ioo a b) := ord_connected_Ioo.is_preconnected
 lemma is_preconnected_Ioc : is_preconnected (Ioc a b) := ord_connected_Ioc.is_preconnected
 lemma is_preconnected_Ico : is_preconnected (Ico a b) := ord_connected_Ico.is_preconnected
+
+lemma is_connected_Ici : is_connected (Ici a) := ⟨nonempty_Ici, is_preconnected_Ici⟩
+
+lemma is_connected_Iic : is_connected (Iic a) := ⟨nonempty_Iic, is_preconnected_Iic⟩
+
+lemma is_connected_Ioi [no_max_order α] : is_connected (Ioi a) :=
+⟨nonempty_Ioi, is_preconnected_Ioi⟩
+
+lemma is_connected_Iio [no_min_order α] : is_connected (Iio a) :=
+⟨nonempty_Iio, is_preconnected_Iio⟩
+
+lemma is_connected_Icc (h : a ≤ b) : is_connected (Icc a b) :=
+⟨nonempty_Icc.2 h, is_preconnected_Icc⟩
+
+lemma is_connected_Ioo (h : a < b) : is_connected (Ioo a b) :=
+⟨nonempty_Ioo.2 h, is_preconnected_Ioo⟩
+
+lemma is_connected_Ioc (h : a < b) : is_connected (Ioc a b) :=
+⟨nonempty_Ioc.2 h, is_preconnected_Ioc⟩
+
+lemma is_connected_Ico (h : a < b) : is_connected (Ico a b) :=
+⟨nonempty_Ico.2 h, is_preconnected_Ico⟩
 
 @[priority 100]
 instance ordered_connected_space : preconnected_space α :=
@@ -471,9 +507,9 @@ lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : c
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
-lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
-  interval (f a) (f b) ⊆ f '' interval a b :=
-by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
+lemma intermediate_value_uIcc {a b : α} {f : α → δ} (hf : continuous_on f (uIcc a b)) :
+  uIcc (f a) (f b) ⊆ f '' uIcc a b :=
+by cases le_total (f a) (f b); simp [*, is_preconnected_uIcc.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Ico (f a) (f b) ⊆ f '' (Ico a b) :=
@@ -530,9 +566,9 @@ hs.is_preconnected.intermediate_value ha hb hf
 
 /-- **Intermediate value theorem**: if `f` is continuous on an order-connected set `s` and `a`,
 `b` are two points of this set, then `f` sends `s` to a superset of `[f x, f y]`. -/
-lemma continuous_on.surj_on_interval {s : set α} [hs : ord_connected s] {f : α → δ}
+lemma continuous_on.surj_on_uIcc {s : set α} [hs : ord_connected s] {f : α → δ}
   (hf : continuous_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  surj_on f s (interval (f a) (f b)) :=
+  surj_on f s (uIcc (f a) (f b)) :=
 by cases le_total (f a) (f b) with hab hab; simp [hf.surj_on_Icc, *]
 
 /-- A continuous function which tendsto `at_top` `at_top` and to `at_bot` `at_bot` is surjective. -/

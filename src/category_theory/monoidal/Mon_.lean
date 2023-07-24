@@ -12,6 +12,9 @@ import algebra.punit_instances
 /-!
 # The category of monoids in a monoidal category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define monoids in a monoidal category `C` and show that the category of monoids is equivalent to
 the category of lax monoidal functors from the unit monoidal category to `C`.  We also show that if
 `C` is braided, then the category of monoids is naturally monoidal.
@@ -266,6 +269,9 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1})
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
 
+local attribute [tidy] tactic.discrete_cases
+local attribute [simp] eq_to_iso_map
+
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def unit_iso :
@@ -286,6 +292,8 @@ nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _
 end equiv_lax_monoidal_functor_punit
 
 open equiv_lax_monoidal_functor_punit
+
+local attribute [simp] eq_to_iso_map
 
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.

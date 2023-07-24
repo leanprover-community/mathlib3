@@ -3,10 +3,13 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import analysis.convex.basic
+import analysis.convex.segment
 
 /-!
 # Star-convex sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This files defines star-convex sets (aka star domains, star-shaped set, radially convex set).
 
@@ -44,7 +47,7 @@ A nonempty open star-convex set in `ℝ^n` is diffeomorphic to the entire space.
 open set
 open_locale convex pointwise
 
-variables {𝕜 E F β : Type*}
+variables {𝕜 E F : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -52,8 +55,8 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (x : E) (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (x : E) (s : set E)
 
 /-- Star-convexity of sets. `s` is star-convex at `x` if every segment from `x` to a point in `s` is
 contained in `s`. -/
@@ -61,12 +64,6 @@ def star_convex : Prop :=
 ∀ ⦃y : E⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • x + b • y ∈ s
 
 variables {𝕜 x s} {t : set E}
-
-lemma convex_iff_forall_star_convex : convex 𝕜 s ↔ ∀ x ∈ s, star_convex 𝕜 x s :=
-forall_congr $ λ x, forall_swap
-
-lemma convex.star_convex (h : convex 𝕜 s) (hx : x ∈ s) : star_convex 𝕜 x s :=
-convex_iff_forall_star_convex.1 h _ hx
 
 lemma star_convex_iff_segment_subset : star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → [x -[𝕜] y] ⊆ s :=
 begin
@@ -140,12 +137,12 @@ lemma star_convex.prod {y : F} {s : set E} {t : set F} (hs : star_convex 𝕜 x 
 λ y hy a b ha hb hab, ⟨hs hy.1 ha hb hab, ht hy.2 ha hb hab⟩
 
 lemma star_convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {x : Π i, E i} {s : set ι} {t : Π i, set (E i)}
-  (ht : ∀ i, star_convex 𝕜 (x i) (t i)) :
+  [Π i, has_smul 𝕜 (E i)] {x : Π i, E i} {s : set ι} {t : Π i, set (E i)}
+  (ht : ∀ ⦃i⦄, i ∈ s → star_convex 𝕜 (x i) (t i)) :
   star_convex 𝕜 x (s.pi t) :=
-λ y hy a b ha hb hab i hi, ht i (hy i hi) ha hb hab
+λ y hy a b ha hb hab i hi, ht hi (hy i hi) ha hb hab
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {x y z : E} {s : set E}
@@ -156,9 +153,6 @@ begin
   convert hs hy zero_le_one le_rfl (add_zero 1),
   rw [one_smul, zero_smul, add_zero],
 end
-
-lemma convex.star_convex_iff (hs : convex 𝕜 s) (h : s.nonempty) : star_convex 𝕜 x s ↔ x ∈ s :=
-⟨λ hxs, hxs.mem h, hs.star_convex⟩
 
 lemma star_convex_iff_forall_pos (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ s :=
@@ -310,9 +304,9 @@ lemma star_convex_zero_iff :
   star_convex 𝕜 0 s ↔ ∀ ⦃x : E⦄, x ∈ s → ∀ ⦃a : 𝕜⦄, 0 ≤ a → a ≤ 1 → a • x ∈ s :=
 begin
   refine forall_congr (λ x, forall_congr $ λ hx, ⟨λ h a ha₀ ha₁, _, λ h a b ha hb hab, _⟩),
-  { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero'] using
+  { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero] using
       h (sub_nonneg_of_le ha₁) ha₀ },
-  { rw [smul_zero', zero_add],
+  { rw [smul_zero, zero_add],
     exact h hb (by { rw ←hab, exact le_add_of_nonneg_left ha }) }
 end
 
@@ -443,26 +437,8 @@ end
 
 lemma star_convex_iff_ord_connected [linear_ordered_field 𝕜] {x : 𝕜} {s : set 𝕜} (hx : x ∈ s) :
   star_convex 𝕜 x s ↔ s.ord_connected :=
-by simp_rw [ord_connected_iff_interval_subset_left hx, star_convex_iff_segment_subset,
-  segment_eq_interval]
+by simp_rw [ord_connected_iff_uIcc_subset_left hx, star_convex_iff_segment_subset, segment_eq_uIcc]
 
 alias star_convex_iff_ord_connected ↔ star_convex.ord_connected _
 
 end ord_connected
-
-/-! #### Star-convexity of submodules/subspaces -/
-
-section submodule
-open submodule
-
-lemma submodule.star_convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-  (K : submodule 𝕜 E) :
-  star_convex 𝕜 (0 : E) K :=
-K.convex.star_convex K.zero_mem
-
-lemma subspace.star_convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E]
-  (K : subspace 𝕜 E) :
-  star_convex 𝕜 (0 : E) K :=
-K.convex.star_convex K.zero_mem
-
-end submodule

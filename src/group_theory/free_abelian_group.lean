@@ -7,10 +7,13 @@ Authors: Kenny Lau
 import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
-import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
+import algebra.module.basic
 
 /-!
 # Free abelian groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The free abelian group on a type `α`, defined as the abelianisation of
 the free group on `α`.
@@ -164,7 +167,7 @@ begin
   { assume x,
     simp only [lift.of, pi.add_apply] },
   { assume x h,
-    simp only [(lift _).map_neg, lift.of, pi.add_apply, neg_add] },
+    simp only [map_neg, lift.of, pi.add_apply, neg_add] },
   { assume x y hx hy,
     simp only [(lift _).map_add, hx, hy, add_add_add_comm] }
 end
@@ -208,11 +211,11 @@ rfl
 (lift _).map_add _ _
 
 @[simp] protected lemma map_neg (f : α → β) (x : free_abelian_group α) : f <$> (-x) = -(f <$> x) :=
-(lift _).map_neg _
+map_neg (lift $ of ∘ f) _
 
 @[simp] protected lemma map_sub (f : α → β) (x y : free_abelian_group α) :
   f <$> (x - y) = f <$> x - f <$> y :=
-(lift _).map_sub _ _
+map_sub (lift $ of ∘ f) _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
@@ -228,11 +231,11 @@ lift.of _ _
 
 @[simp] lemma neg_bind (f : α → free_abelian_group β) (x : free_abelian_group α) :
   -x >>= f = -(x >>= f) :=
-(lift _).map_neg _
+map_neg (lift f) _
 
 @[simp] lemma sub_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) :
   x - y >>= f = (x >>= f) - (y >>= f) :=
-(lift _).map_sub _ _
+map_sub (lift f) _ _
 
 @[simp] lemma pure_seq (f : α → β) (x : free_abelian_group α) : pure f <*> x = f <$> x :=
 pure_bind _ _
@@ -423,19 +426,17 @@ def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
     map_one' := (lift.of f _).trans f.map_one,
     map_mul' := λ x y,
     begin
-      refine free_abelian_group.induction_on y (mul_zero _).symm (λ L2, _) _ _,
+      refine free_abelian_group.induction_on y (mul_zero _).symm (λ L2, _) (λ L2 ih, _) _,
       { refine free_abelian_group.induction_on x (zero_mul _).symm (λ L1, _) (λ L1 ih, _) _,
         { simp_rw [of_mul_of, lift.of],
           exact f.map_mul _ _ },
-        { simp_rw [neg_mul, (lift f).map_neg, neg_mul],
+        { simp_rw [neg_mul, map_neg, neg_mul],
           exact congr_arg has_neg.neg ih },
         { intros x1 x2 ih1 ih2,
           simp only [add_mul, map_add, ih1, ih2] } },
-      { intros L2 ih,
-        rw [mul_neg, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
-          mul_neg, ih] },
+      { rw [mul_neg, map_neg, map_neg, mul_neg, ih] },
       { intros y1 y2 ih1 ih2,
-        rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
+        rw [mul_add, map_add, map_add, mul_add, ih1, ih2] },
     end,
     .. lift f },
   inv_fun := λ F, monoid_hom.comp ↑F of_mul_hom,

@@ -5,9 +5,14 @@ Authors: Simon Hudon
 -/
 import control.random
 import control.uliftable
+import data.list.big_operators.lemmas
+import data.list.perm
 
 /-!
 # `gen` Monad
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This monad is used to formulate randomized computations with a parameter
 to specify the desired size of the result.
@@ -66,7 +71,7 @@ def choose [bounded_random α] (x y : α) (p : x ≤ y) : gen (x .. y) :=
 
 end rand
 
-open nat (hiding choose)
+open nat
 
 /-- Generate a `nat` example between `x` and `y`. -/
 def choose_nat (x y : ℕ) (p : x ≤ y) : gen (x .. y) :=

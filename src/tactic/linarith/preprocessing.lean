@@ -3,11 +3,10 @@ Copyright (c) 2020 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-
+import data.prod.lex
+import tactic.cancel_denoms
 import tactic.linarith.datatypes
 import tactic.zify
-import tactic.cancel_denoms
-import order.lexicographic
 
 /-!
 # Linarith preprocessing
@@ -71,7 +70,7 @@ private meta def rearr_comp_aux : expr → expr → tactic expr
 and turns it into a proof of a comparison `_ R 0`, where `R ∈ {=, ≤, <}`.
  -/
 meta def rearr_comp (e : expr) : tactic expr :=
-infer_type e >>= rearr_comp_aux e
+infer_type e >>= instantiate_mvars >>= rearr_comp_aux e
 
 /-- If `e` is of the form `((n : ℕ) : ℤ)`, `is_nat_int_coe e` returns `n : ℕ`. -/
 meta def is_nat_int_coe : expr → option expr
@@ -97,7 +96,7 @@ If `pf` is a proof of a strict inequality `(a : ℤ) < b`,
 and similarly if `pf` proves a negated weak inequality.
 -/
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
-do tp ← infer_type pf,
+do tp ← infer_type pf >>= instantiate_mvars,
 match tp with
 | `(%%a < %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
 | `(%%a > %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
@@ -140,7 +139,7 @@ Removes any expressions that are not proofs of inequalities, equalities, or nega
 meta def filter_comparisons : preprocessor :=
 { name := "filter terms that are not proofs of comparisons",
   transform := λ h,
-(do tp ← infer_type h,
+(do tp ← infer_type h >>= instantiate_mvars,
    is_prop tp >>= guardb,
    guardb (filter_comparisons_aux tp),
    return [h])
@@ -153,7 +152,7 @@ For example, a proof of `¬ a < b` will become a proof of `a ≥ b`.
 meta def remove_negations : preprocessor :=
 { name := "replace negations of comparisons",
   transform := λ h,
-do tp ← infer_type h,
+do tp ← infer_type h >>= instantiate_mvars,
 match tp with
 | `(¬ %%p) := singleton <$> rem_neg h p
 | _ := return [h]
@@ -172,9 +171,9 @@ meta def nat_to_int : global_preprocessor :=
 -- we lock the tactic state here because a `simplify` call inside of
 -- `zify_proof` corrupts the tactic state when run under `io.run_tactic`.
 do l ← lock_tactic_state $ l.mmap $ λ h,
-         infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h,
+      infer_type h >>= instantiate_mvars >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h,
    nonnegs ← l.mfoldl (λ (es : expr_set) h, do
-     (a, b) ← infer_type h >>= get_rel_sides,
+     (a, b) ← infer_type h >>= instantiate_mvars >>= get_rel_sides,
      return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,
    (++) l <$> nonnegs.to_list.mmap mk_coe_nat_nonneg_prf }
 
@@ -184,7 +183,7 @@ into a proof of `t1 ≤ t2 + 1`. -/
 meta def strengthen_strict_int : preprocessor :=
 { name := "strengthen strict inequalities over int",
   transform := λ h,
-do tp ← infer_type h,
+do tp ← infer_type h >>= instantiate_mvars,
    guardb (is_strict_int_prop tp) >> singleton <$> mk_non_strict_int_pf_of_strict_int_pf h
      <|> return [h] }
 
@@ -214,7 +213,7 @@ it tries to scale `t` to cancel out division by numerals.
 meta def cancel_denoms : preprocessor :=
 { name := "cancel denominators",
   transform := λ pf,
-(do some (_, lhs) ← parse_into_comp_and_expr <$> infer_type pf,
+(do some (_, lhs) ← parse_into_comp_and_expr <$> (infer_type pf >>= instantiate_mvars),
    guardb $ lhs.contains_constant (= `has_div.div),
    singleton <$> normalize_denominators_in_lhs pf lhs)
 <|> return [pf] }
@@ -273,7 +272,7 @@ This produces `2^n` branches when there are `n` such hypotheses in the input.
 -/
 meta def remove_ne_aux : list expr → tactic (list branch) :=
 λ hs,
-(do e ← hs.mfind (λ e : expr, do e ← infer_type e, guard $ e.is_ne.is_some),
+(do e ← hs.mfind (λ e : expr, do e ← infer_type e >>= instantiate_mvars, guard $ e.is_ne.is_some),
     [(_, ng1), (_, ng2)] ← to_expr ``(or.elim (lt_or_gt_of_ne %%e)) >>= apply,
     let do_goal : expr → tactic (list branch) := λ g,
       do set_goals [g],

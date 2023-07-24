@@ -9,6 +9,9 @@ import analysis.mean_inequalities
 /-!
 # IMO 2020 Q2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The real numbers `a`, `b`, `c`, `d` are such that `a ≥ b ≥ c ≥ d > 0` and `a + b + c + d = 1`.
 Prove that `(a + 2b + 3c + 4d) a^a b^b c^c d^d < 1`.
 

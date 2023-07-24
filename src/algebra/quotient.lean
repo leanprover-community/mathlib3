@@ -3,11 +3,13 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-
-import data.set_like.basic
+import tactic.basic
 
 /-!
 # Algebraic quotients
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines notation for algebraic quotients, e.g. quotient groups `G ⧸ H`,
 quotient modules `M ⧸ N` and ideal quotients `R ⧸ I`.
@@ -21,7 +23,7 @@ The actual quotient structures are defined in the following files:
 
 The following notation is introduced:
 
-* `G ⧸ H` stands for the quotient of the type `G` by some term `H` 
+* `G ⧸ H` stands for the quotient of the type `G` by some term `H`
   (for example, `H` can be a normal subgroup of `G`).
   To implement this notation for other quotients, you should provide a `has_quotient` instance.
   Note that since `G` can usually be inferred from `H`, `_ ⧸ H` can also be used,
@@ -49,7 +51,7 @@ class has_quotient (A : out_param $ Type u) (B : Type v) :=
 This differs from `has_quotient.quotient'` in that the `A` argument is explicit, which is necessary
 to make Lean show the notation in the goal state.
 -/
-@[reducible, nolint has_inhabited_instance] -- Will be provided by e.g. `ideal.quotient.inhabited`
+@[reducible, nolint has_nonempty_instance] -- Will be provided by e.g. `ideal.quotient.inhabited`
 def has_quotient.quotient (A : out_param $ Type u) {B : Type v} [has_quotient A B] (b : B) :
   Type (max u v) :=
 has_quotient.quotient' b

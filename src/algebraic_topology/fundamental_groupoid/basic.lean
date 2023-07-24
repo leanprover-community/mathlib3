@@ -11,6 +11,9 @@ import topology.homotopy.path
 /-!
 # Fundamental groupoid of a space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a topological space `X`, we can define the fundamental groupoid of `X` to be the category with
 objects being points of `X`, and morphisms `x ⟶ y` being paths from `x` to `y`, quotiented by
 homotopy equivalence. With this, the fundamental group of `X` based at `x` is just the automorphism
@@ -323,12 +326,12 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
-localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor"
-  in fundamental_groupoid
-localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj"
-  in fundamental_groupoid
-localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map"
-  in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor)
+  `π` := fundamental_groupoid.fundamental_groupoid_functor" in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor.obj)
+  `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj" in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor.map)
+  `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map" in fundamental_groupoid
 
 lemma map_eq {X Y : Top} {x₀ x₁ : X} (f : C(X, Y)) (p : path.homotopic.quotient x₀ x₁) :
   (πₘ f).map p = p.map_fn f := rfl

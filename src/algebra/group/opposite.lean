@@ -5,11 +5,15 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.opposites
+import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 variables (α : Type u)
@@ -19,6 +23,9 @@ namespace mul_opposite
 /-!
 ### Additive structures on `αᵐᵒᵖ`
 -/
+
+@[to_additive] instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
+@[to_additive] instance [has_int_cast α] : has_int_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 
 instance [add_semigroup α] : add_semigroup (αᵐᵒᵖ) :=
 unop_injective.add_semigroup _ (λ x y, rfl)
@@ -41,6 +48,14 @@ unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
 unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
+{ nat_cast_zero := show op ((0 : ℕ) : α) = 0, by rw [nat.cast_zero, op_zero],
+  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
+  .. mul_opposite.add_monoid α, .. mul_opposite.has_one α, ..mul_opposite.has_nat_cast _ }
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵐᵒᵖ :=
+{ .. mul_opposite.add_monoid_with_one α, ..mul_opposite.add_comm_monoid α }
+
 instance [sub_neg_monoid α] : sub_neg_monoid αᵐᵒᵖ :=
 unop_injective.sub_neg_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
@@ -49,6 +64,16 @@ unop_injective.add_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, 
 
 instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
 unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_group_with_one α] : add_group_with_one αᵐᵒᵖ :=
+{ int_cast := λ n, op n,
+  int_cast_of_nat := λ n, show op ((n : ℤ) : α) = op n, by rw int.cast_coe_nat,
+  int_cast_neg_succ_of_nat := λ n, show op _ = op (- unop (op ((n + 1 : ℕ) : α))),
+    by erw [unop_op, int.cast_neg_succ_of_nat]; refl,
+  .. mul_opposite.add_monoid_with_one α, .. mul_opposite.add_group α }
+
+instance [add_comm_group_with_one α] : add_comm_group_with_one αᵐᵒᵖ :=
+{ .. mul_opposite.add_group_with_one α, ..mul_opposite.add_comm_group α }
 
 /-!
 ### Multiplicative structures on `αᵐᵒᵖ`
@@ -124,6 +149,15 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 { .. mul_opposite.group α, .. mul_opposite.comm_monoid α }
 
 variable {α}
+
+@[simp, norm_cast, to_additive] lemma op_nat_cast [has_nat_cast α] (n : ℕ) : op (n : α) = n := rfl
+@[simp, norm_cast, to_additive] lemma op_int_cast [has_int_cast α] (n : ℤ) : op (n : α) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_nat_cast [has_nat_cast α] (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
+
+@[simp, norm_cast, to_additive]
+lemma unop_int_cast [has_int_cast α] (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 @[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
   unop (x / y) = (unop y)⁻¹ * unop x :=
@@ -215,6 +249,19 @@ unop_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 instance [comm_group α] : comm_group αᵃᵒᵖ :=
 unop_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
+-- NOTE: `add_monoid_with_one α → add_monoid_with_one αᵃᵒᵖ` does not hold
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵃᵒᵖ :=
+{ nat_cast_zero := show op ((0 : ℕ) : α) = 0, by rw [nat.cast_zero, op_zero],
+  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp [add_comm],
+  ..add_opposite.add_comm_monoid α, ..add_opposite.has_one, ..add_opposite.has_nat_cast _ }
+
+instance [add_comm_group_with_one α] : add_comm_group_with_one αᵃᵒᵖ :=
+{ int_cast_of_nat := λ n, congr_arg op $ int.cast_of_nat n,
+  int_cast_neg_succ_of_nat := λ _, congr_arg op $ int.cast_neg_succ_of_nat _,
+  ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α,
+  ..add_opposite.has_int_cast α }
+
 variable {α}
 
 /-- The function `add_opposite.op` is a multiplicative equivalence. -/
@@ -234,7 +281,7 @@ open mul_opposite
 `mul_equiv.inv`. -/
 @[to_additive "Negation on an additive group is an `add_equiv` to the opposite group. When `G`
 is commutative, there is `add_equiv.inv`.", simps { fully_applied := ff, simp_rhs := tt }]
-def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
+def mul_equiv.inv' (G : Type*) [division_monoid G] : G ≃* Gᵐᵒᵖ :=
 { map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 
@@ -299,6 +346,21 @@ rfl
 lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
+
+@[to_additive]
+lemma is_unit.op {M} [monoid M] {m : M} (h : is_unit m) : is_unit (op m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨units.op_equiv.symm (op u), rfl⟩
+
+@[to_additive]
+lemma is_unit.unop {M} [monoid M] {m : Mᵐᵒᵖ} (h : is_unit m) : is_unit (unop m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨unop (units.op_equiv u), rfl⟩
+
+@[simp, to_additive]
+lemma is_unit_op {M} [monoid M] {m : M} : is_unit (op m) ↔ is_unit m := ⟨is_unit.unop, is_unit.op⟩
+
+@[simp, to_additive]
+lemma is_unit_unop {M} [monoid M] {m : Mᵐᵒᵖ} : is_unit (unop m) ↔ is_unit m :=
+⟨is_unit.op, is_unit.unop⟩
 
 /-- A semigroup homomorphism `M →ₙ* N` can equivalently be viewed as a semigroup homomorphism
 `Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/

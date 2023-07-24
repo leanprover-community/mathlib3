@@ -8,7 +8,7 @@ import algebraic_topology.topological_simplex
 import category_theory.limits.presheaf
 import category_theory.limits.types
 import category_theory.yoneda
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -24,6 +24,9 @@ and their boundaries `∂Δ[n]` and horns `Λ[n, i]`.
 
 ## Future work
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There isn't yet a complete API for simplices, boundaries, and horns.
 As an example, we should have a function that constructs
 from a non-surjective order preserving function `fin n → fin n`
@@ -32,7 +35,7 @@ a morphism `Δ[n] ⟶ ∂Δ[n]`.
 
 universes v u
 
-open category_theory
+open category_theory category_theory.limits
 
 open_locale simplicial
 
@@ -48,7 +51,8 @@ namespace sSet
 is the Yoneda embedding of `n`. -/
 def standard_simplex : simplex_category ⥤ sSet := yoneda
 
-localized "notation `Δ[`n`]` := sSet.standard_simplex.obj (simplex_category.mk n)" in simplicial
+localized "notation (name := standard_simplex) `Δ[`n`]` :=
+  sSet.standard_simplex.obj (simplex_category.mk n)" in simplicial
 
 instance : inhabited sSet := ⟨Δ[0]⟩
 
@@ -68,7 +72,7 @@ def boundary (n : ℕ) : sSet :=
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
-localized "notation `∂Δ[`n`]` := sSet.boundary n" in simplicial
+localized "notation (name := sSet.boundary) `∂Δ[`n`]` := sSet.boundary n" in simplicial
 
 /-- The inclusion of the boundary of the `n`-th standard simplex into that standard simplex. -/
 def boundary_inclusion (n : ℕ) :
@@ -91,7 +95,7 @@ def horn (n : ℕ) (i : fin (n+1)) : sSet :=
     exact set.range_comp_subset_range _ _ hj,
   end⟩ }
 
-localized "notation `Λ[`n`, `i`]` := sSet.horn (n : ℕ) i" in simplicial
+localized "notation (name := sSet.horn) `Λ[`n`, `i`]` := sSet.horn (n : ℕ) i" in simplicial
 
 /-- The inclusion of the `i`-th horn of the `n`-th standard simplex into that standard simplex. -/
 def horn_inclusion (n : ℕ) (i : fin (n+1)) :
@@ -119,10 +123,30 @@ def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 
 instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
 
+/-- The category of augmented simplicial sets, as a particular case of
+augmented simplicial objects. -/
+abbreviation augmented := simplicial_object.augmented (Type u)
+
+namespace augmented
+
+/-- The functor which sends `[n]` to the simplicial set `Δ[n]` equipped by
+the obvious augmentation towards the terminal object of the category of sets. -/
+@[simps]
+noncomputable def standard_simplex : simplex_category ⥤ sSet.augmented :=
+{ obj := λ Δ,
+  { left := sSet.standard_simplex.obj Δ,
+    right := terminal _,
+    hom := { app := λ Δ', terminal.from _, }, },
+  map := λ Δ₁ Δ₂ θ,
+  { left := sSet.standard_simplex.map θ,
+    right := terminal.from _, }, }
+
+end augmented
+
 end sSet
 
 /-- The functor associating the singular simplicial set to a topological space. -/
-noncomputable def Top.to_sSet : Top ⥤ sSet :=
+def Top.to_sSet : Top ⥤ sSet :=
 colimit_adj.restricted_yoneda simplex_category.to_Top
 
 /-- The geometric realization functor. -/

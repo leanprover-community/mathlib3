@@ -9,6 +9,9 @@ import order.category.Preord
 /-!
 # Category of partial orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `PartOrd`, the category of partial orders with monotone maps.
 -/
 

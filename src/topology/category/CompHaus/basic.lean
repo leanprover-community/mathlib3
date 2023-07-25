@@ -8,10 +8,13 @@ import category_theory.adjunction.reflective
 import topology.stone_cech
 import category_theory.monad.limits
 import topology.urysohns_lemma
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 # The category of Compact Hausdorff Spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the category of compact Hausdorff spaces.
 The type of compact Hausdorff spaces is denoted `CompHaus`, and it is endowed with a category

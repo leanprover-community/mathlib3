@@ -12,6 +12,9 @@ import tactic.by_contra
 /-!
 # Krull topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the Krull topology on `L ≃ₐ[K] L` for an arbitrary field extension `L/K`. In order to do
 this, we first define a `group_filter_basis` on `L ≃ₐ[K] L`, whose sets are `E.fixing_subgroup` for
 all intermediate fields `E` with `E/K` finite dimensional.
@@ -88,7 +91,7 @@ intermediate_field.fixing_subgroup '' (finite_exts K L)
 /-- For an field extension `L/K`, the intermediate field `K` is finite-dimensional over `K` -/
 lemma intermediate_field.finite_dimensional_bot (K L : Type*) [field K]
   [field L] [algebra K L] : finite_dimensional K (⊥ : intermediate_field K L) :=
-finite_dimensional_of_dim_eq_one intermediate_field.dim_bot
+finite_dimensional_of_rank_eq_one intermediate_field.rank_bot
 
 /-- This lemma says that `Gal(L/K) = L ≃ₐ[K] L` -/
 lemma intermediate_field.fixing_subgroup.bot {K L : Type*} [field K]

@@ -9,6 +9,9 @@ import linear_algebra.basis
 /-!
 # Affine bases and barycentric coordinates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Suppose `P` is an affine space modelled on the module `V` over the ring `k`, and `p : ι → P` is an
 affine-independent family of points spanning `P`. Given this data, each point `q : P` may be written
 uniquely as an affine combination: `q = w₀ p₀ + w₁ p₁ + ⋯` for some (finitely-supported) weights

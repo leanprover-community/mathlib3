@@ -10,6 +10,9 @@ import topology.sheaves.functors
 /-!
 # Skyscraper (pre)sheaves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A skyscraper (pre)sheaf `𝓕 : (pre)sheaf C X` is the (pre)sheaf with value `A` at point `p₀` that is
 supported only at open sets contain `p₀`, i.e. `𝓕(U) = A` if `p₀ ∈ U` and `𝓕(U) = *` if `p₀ ∉ U`
 where `*` is a terminal object of `C`. In terms of stalks, `𝓕` is supported at all specializations

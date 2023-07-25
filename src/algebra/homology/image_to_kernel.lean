@@ -8,6 +8,9 @@ import category_theory.subobject.limits
 /-!
 # Image-to-kernel comparison maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Whenever `f : A ⟶ B` and `g : B ⟶ C` satisfy `w : f ≫ g = 0`,
 we have `image_le_kernel f g w : image_subobject f ≤ kernel_subobject g`
 (assuming the appropriate images and kernels exist).

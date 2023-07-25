@@ -10,6 +10,9 @@ import algebra.group.commutator
 /-!
 # `group`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Normalizes expressions in the language of groups. The basic idea is to use the simplifier
 to put everything into a product of group powers (`zpow` which takes a group element and an
 integer), then simplify the exponents using the `ring` tactic. The process needs to be repeated

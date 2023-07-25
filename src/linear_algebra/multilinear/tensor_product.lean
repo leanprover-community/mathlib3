@@ -8,6 +8,9 @@ import linear_algebra.tensor_product
 
 /-!
 # Constructions relating multilinear maps and tensor products.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multilinear_map

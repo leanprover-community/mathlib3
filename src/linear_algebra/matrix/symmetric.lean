@@ -8,6 +8,9 @@ import data.matrix.block
 /-!
 # Symmetric matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic results about symmetric matrices.
 
 ## Main definition

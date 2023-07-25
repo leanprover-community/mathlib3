@@ -3,13 +3,16 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 import number_theory.liouville.residual
 import number_theory.liouville.liouville_with
 import analysis.p_series
 
 /-!
 # Volume of the set of Liouville numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
 strictly greater than two is a set of Lebesuge measure zero, see

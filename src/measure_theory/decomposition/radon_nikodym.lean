@@ -8,6 +8,9 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Radon-Nikodym theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Radon-Nikodym theorem. The Radon-Nikodym theorem states that, given measures
 `μ, ν`, if `have_lebesgue_decomposition μ ν`, then `μ` is absolutely continuous with respect to
 `ν` if and only if there exists a measurable function `f : α → ℝ≥0∞` such that `μ = fν`.

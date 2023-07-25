@@ -6,6 +6,9 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import model_theory.basic
 /-!
 # Language Maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Maps between first-order languages in the style of the
 [Flypitch project](https://flypitch.github.io/), as well as several important maps between
 structures.

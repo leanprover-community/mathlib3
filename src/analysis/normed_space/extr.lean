@@ -9,6 +9,9 @@ import topology.local_extr
 /-!
 # (Local) maximums in a normed space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following lemma, see `is_max_filter.norm_add_same_ray`. If `f : α → E` is
 a function such that `norm ∘ f` has a maximum along a filter `l` at a point `c` and `y` is a vector
 on the same ray as `f c`, then the function `λ x, ‖f x + y‖` has a maximul along `l` at `c`.

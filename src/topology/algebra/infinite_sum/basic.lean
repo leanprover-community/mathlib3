@@ -989,8 +989,6 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
-local attribute [instance] topological_add_group.t3_space
-
 /-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all sums are zero. -/
 lemma tendsto_tsum_compl_at_top_zero (f : β → α) :
@@ -1075,17 +1073,25 @@ lemma summable.prod_factor {f : β × γ → α} (h : summable f) (b : β) :
   summable (λ c, f (b, c)) :=
 h.comp_injective $ λ c₁ c₂ h, (prod.ext_iff.1 h).2
 
-lemma tsum_sigma [t1_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
+section loc_instances
+-- enable inferring a T3-topological space from a topological group
+local attribute [instance] topological_add_group.t3_space
+-- disable getting a T0-space from a T3-space as this causes loops
+local attribute [-instance] t3_space.to_t0_space
+
+lemma tsum_sigma [t0_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) : ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
 tsum_sigma' (λ b, ha.sigma_factor b) ha
 
-lemma tsum_prod [t1_space α] {f : β × γ → α} (h : summable f) :
+lemma tsum_prod [t0_space α] {f : β × γ → α} (h : summable f) :
   ∑'p, f p = ∑'b c, f ⟨b, c⟩ :=
 tsum_prod' h h.prod_factor
 
-lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
+lemma tsum_comm [t0_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
+
+end loc_instances
 
 lemma tsum_subtype_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : set β) :
   ∑' x : s, f x + ∑' x : sᶜ, f x = ∑' x, f x :=

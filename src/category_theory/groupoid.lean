@@ -45,6 +45,11 @@ class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
+
+initialize_simps_projections groupoid (-to_category_to_category_struct_to_quiver_hom,
+  to_category_to_category_struct_comp → comp, to_category_to_category_struct_id → id,
+  -to_category_to_category_struct, -to_category)
+
 /--
 A `large_groupoid` is a groupoid
 where the objects live in `Type (u+1)` while the morphisms live in `Type u`.

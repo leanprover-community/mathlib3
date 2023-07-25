@@ -414,7 +414,7 @@ end zpow
 
 section ordered_comm_group
 
-variables [topological_space H] [ordered_comm_group H] [topological_group H]
+variables [topological_space H] [ordered_comm_group H] [has_continuous_inv H]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi {a : H} :
   tendsto has_inv.inv (𝓝[>] a) (𝓝[<] (a⁻¹)) :=
@@ -463,7 +463,7 @@ instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)
 open mul_opposite
 
 @[to_additive]
-instance [group α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
+instance [has_inv α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
 op_homeomorph.symm.inducing.has_continuous_inv unop_inv
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
@@ -1049,11 +1049,16 @@ class add_group_with_zero_nhd (G : Type u) extends add_comm_group G :=
 section filter_mul
 
 section
-variables (G) [topological_space G] [group G] [topological_group G]
+variables (G) [topological_space G] [group G] [has_continuous_mul G]
 
 @[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
+
+end
+
+section
+variables (G) [topological_space G] [group G] [topological_group G]
 
 @[priority 100, to_additive]
 instance topological_group.regular_space : regular_space G :=
@@ -1071,22 +1076,21 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.t3_space [t1_space G] : t3_space G := ⟨⟩
+lemma topological_group.t3_space [t0_space G] : t3_space G := ⟨⟩
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G :=
+lemma topological_group.t2_space [t0_space G] : t2_space G :=
 by { haveI := topological_group.t3_space G, apply_instance }
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
 instance subgroup.t3_quotient_of_is_closed
-  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : t3_space (G ⧸ S) :=
+  (S : subgroup G) [subgroup.normal S] [hS : is_closed (S : set G)] : t3_space (G ⧸ S) :=
 begin
-  suffices : t1_space (G ⧸ S), { exact @topological_group.t3_space _ _ _ _ this, },
-  have hS : is_closed (S : set G) := infer_instance,
   rw ← quotient_group.ker_mk S at hS,
-  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+  haveI := topological_group.t1_space (G ⧸ S) (quotient_map_quotient_mk.is_closed_preimage.mp hS),
+  exact topological_group.t3_space _,
 end
 
 /-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the left, if
@@ -1141,7 +1145,7 @@ section
 
 /-! Some results about an open set containing the product of two sets in a topological group. -/
 
-variables [topological_space G] [group G] [topological_group G]
+variables [topological_space G] [mul_one_class G] [has_continuous_mul G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `K * V ⊆ U`. -/
@@ -1182,6 +1186,11 @@ begin
   rwa [← image_preimage_eq V op_surjective, ← image_op_mul, image_subset_iff,
     preimage_image_eq _ op_injective] at hV'
 end
+
+end
+
+section
+variables [topological_space G] [group G] [topological_group G]
 
 /-- A compact set is covered by finitely many left multiplicative translates of a set
   with non-empty interior. -/
@@ -1293,7 +1302,7 @@ instance {G} [topological_space G] [add_group G] [topological_add_group G] :
 { continuous_inv := @continuous_neg G _ _ _ }
 
 section quotient
-variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
+variables [group G] [topological_space G] [has_continuous_mul G] {Γ : subgroup G}
 
 @[to_additive]
 instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=

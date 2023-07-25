@@ -8,6 +8,9 @@ import geometry.manifold.charted_space
 /-!
 # Local properties invariant under a groupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We study properties of a triple `(g, s, x)` where `g` is a function between two spaces `H` and `H'`,
 `s` is a subset of `H` and `x` is a point of `H`. Our goal is to register how such a property
 should behave to make sense in charted spaces modelled on `H` and `H'`.
@@ -45,7 +48,7 @@ in the one for `lift_prop_within_at`.
 noncomputable theory
 open_locale classical manifold topology
 
-open set filter
+open set filter topological_space
 
 variables {H M H' M' X : Type*}
 variables [topological_space H] [topological_space M] [charted_space H M]
@@ -564,6 +567,28 @@ lemma lift_prop_id (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
 begin
   simp_rw [lift_prop_iff, continuous_id, true_and],
   exact λ x, hG.congr' ((chart_at H x).eventually_right_inverse $ mem_chart_target H x) (hQ _)
+end
+
+lemma lift_prop_at_iff_comp_inclusion (hG : local_invariant_prop G G' P) {U V : opens M}
+  (hUV : U ≤ V) (f : V → M') (x : U) :
+  lift_prop_at P f (set.inclusion hUV x) ↔ lift_prop_at P (f ∘ set.inclusion hUV : U → M') x :=
+begin
+  congrm _ ∧ _,
+  { simp [continuous_within_at_univ,
+      (topological_space.opens.open_embedding_of_le hUV).continuous_at_iff] },
+  { apply hG.congr_iff,
+    exact (topological_space.opens.chart_at_inclusion_symm_eventually_eq hUV).fun_comp
+      (chart_at H' (f (set.inclusion hUV x)) ∘ f) },
+end
+
+lemma lift_prop_inclusion {Q : (H → H) → (set H) → H → Prop} (hG : local_invariant_prop G G Q)
+  (hQ : ∀ y, Q id univ y) {U V : opens M} (hUV : U ≤ V) :
+  lift_prop Q (set.inclusion hUV : U → V) :=
+begin
+  intro x,
+  show lift_prop_at Q (id ∘ inclusion hUV) x,
+  rw ← hG.lift_prop_at_iff_comp_inclusion hUV,
+  apply hG.lift_prop_id hQ,
 end
 
 end local_invariant_prop

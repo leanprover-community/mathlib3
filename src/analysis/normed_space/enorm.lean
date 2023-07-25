@@ -8,6 +8,9 @@ import analysis.normed_space.basic
 /-!
 # Extended norm
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a structure `enorm 𝕜 V` representing an extended norm (i.e., a norm that can
 take the value `∞`) on a vector space `V` over a normed field `𝕜`. We do not use `class` for
 an `enorm` because the same space can have more than one extended norm. For example, the space of

@@ -255,3 +255,14 @@ begin
 end
 
 end unique_factorization_monoid
+
+namespace int
+
+@[simp] lemma squarefree_nat_abs {n : ℤ} : squarefree n.nat_abs ↔ squarefree n :=
+by simp_rw [squarefree, nat_abs_surjective.forall, ←nat_abs_mul, nat_abs_dvd_iff_dvd,
+  is_unit_iff_nat_abs_eq, nat.is_unit_iff]
+
+@[simp] lemma squarefree_coe_nat {n : ℕ} : squarefree (n : ℤ) ↔ squarefree n :=
+by rw [←squarefree_nat_abs, nat_abs_of_nat]
+
+end int

@@ -7,13 +7,16 @@ import algebra.punit_instances
 import linear_algebra.finsupp
 import ring_theory.ideal.over
 import ring_theory.ideal.prod
-import ring_theory.localization.away
+import ring_theory.localization.away.basic
 import ring_theory.nilpotent
 import topology.sets.closeds
 import topology.sober
 
 /-!
 # Prime spectrum of a commutative ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The prime spectrum of a commutative ring is the type of all prime ideals.
 It is naturally endowed with a topology: the Zariski topology.

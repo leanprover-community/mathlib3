@@ -9,6 +9,9 @@ import geometry.euclidean.angle.unoriented.basic
 /-!
 # Angles between points
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines unoriented angles in Euclidean affine spaces.
 
 ## Main definitions

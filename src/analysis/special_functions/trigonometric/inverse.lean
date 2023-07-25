@@ -10,6 +10,9 @@ import topology.algebra.order.proj_Icc
 /-!
 # Inverse trigonometric functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See also `analysis.special_functions.trigonometric.arctan` for the inverse tan function.
 (This is delayed as it is easier to set up after developing complex trigonometric functions.)
 

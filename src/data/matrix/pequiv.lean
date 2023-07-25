@@ -9,6 +9,9 @@ import data.pequiv
 /-!
 # partial equivalences for matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Using partial equivalences to represent matrices.
 This file introduces the function `pequiv.to_matrix`, which returns a matrix containing ones and
 zeros. For any partial equivalence `f`, `f.to_matrix i j = 1 ↔ f i = some j`.

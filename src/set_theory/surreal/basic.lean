@@ -10,6 +10,9 @@ import set_theory.game.ordinal
 /-!
 # Surreal numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic theory of surreal numbers, built on top of the theory of combinatorial (pre-)games.
 
 A pregame is `numeric` if all the Left options are strictly smaller than all the Right options, and

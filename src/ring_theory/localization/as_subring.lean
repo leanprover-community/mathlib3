@@ -9,6 +9,9 @@ import ring_theory.localization.localization_localization
 
 # Localizations of domains as subalgebras of the fraction field.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
 does not contain zero, this file constructs the localization of `A` at `S`
 as a subalgebra of the field `K` over `A`.

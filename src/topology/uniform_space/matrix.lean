@@ -8,6 +8,9 @@ import data.matrix.basic
 
 /-!
 # Uniform space structure on matrices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open_locale uniformity topology

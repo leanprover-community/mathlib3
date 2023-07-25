@@ -17,6 +17,9 @@ import algebra.opposites
 /-!
 # Matrices over a category.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `C` is a preadditive category, `Mat_ C` is the preadditive category
 whose objects are finite tuples of objects in `C`, and
 whose morphisms are matrices of morphisms from `C`.

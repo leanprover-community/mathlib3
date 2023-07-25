@@ -11,6 +11,9 @@ import category_theory.equivalence
 /-!
 # The Karoubi envelope of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the Karoubi envelope `karoubi C` of a category `C`.
 
 ## Main constructions and definitions

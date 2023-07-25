@@ -74,14 +74,14 @@ begin
       ← (linear_proj_of_is_compl_eq_self_iff hUV u).mpr hu, h],
 end
 
-/-- `U` is invariant under `T` if and only if `pᵤ.comp T = T`,
+/-- `U` is invariant under `T` if and only if `pᵤ ∘ₗ T = T`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 lemma invariant_under_iff_linear_proj_comp_self_eq :
   U.invariant_under T ↔ (∀ x : U, (pᵤ (T x) : E) = T x) :=
 ⟨λ h u, invariant_under.linear_proj_comp_self_eq U V hUV T h u,
  λ h, invariant_under_of_linear_proj_comp_self_eq U V hUV T h⟩
 
-/-- `V` is invariant under `T` if and only if `pᵤ.comp (T.comp pᵤ) = pᵤ.comp T`,
+/-- `V` is invariant under `T` if and only if `pᵤ ∘ₗ (T ∘ₗ pᵤ) = pᵤ ∘ₗ T`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 lemma invariant_under'_iff_linear_proj_comp_self_comp_linear_proj_eq :
   V.invariant_under T ↔ (∀ x : E, (pᵤ (T (pᵤ x)) : E) = pᵤ (T x)) :=
@@ -93,7 +93,7 @@ by simp_rw [invariant_under_iff_linear_proj_comp_self_eq _ _ hUV.symm,
 /-- both `U` and `V` are invariant under `T` if and only if `T` commutes with `pᵤ`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 lemma is_compl_invariant_under_iff_linear_proj_and_self_commute :
-  (U.invariant_under T ∧ V.invariant_under T) ↔ commute (U.subtype.comp pᵤ) T :=
+  (U.invariant_under T ∧ V.invariant_under T) ↔ commute (U.subtype ∘ₗ pᵤ) T :=
 begin
   simp_rw [commute, semiconj_by, linear_map.ext_iff, linear_map.mul_apply,
            linear_map.comp_apply, U.subtype_apply],
@@ -111,34 +111,32 @@ begin
 end
 
 /-- `U` is invariant under `T.symm` if and only if `U ⊆ T(U)` -/
-lemma invariant_under_symm_iff_subset_image (T : E ≃ₗ[R] E) :
+lemma invariant_under_symm_iff_le_map (T : E ≃ₗ[R] E) :
   U.invariant_under T.symm ↔ U ≤ U.map T :=
 (U.invariant_under_iff T.symm).trans (T.to_equiv.symm.subset_image' _ _).symm
 
-/-- `U` is invariant under `⅟ T` if and only if `U ⊆ T(U)` -/
-lemma invariant_under_inv_of_iff_subset_image [invertible T] :
-  U.invariant_under (⅟ T) ↔ U ≤ U.map T :=
-begin
-  simp_rw [← linear_equiv.coe_linear_map_of_invertible T,
-           ← linear_equiv.coe_linear_map_of_invertible_symm],
-  exact invariant_under_symm_iff_subset_image U _,
-end
+/-- `U` is invariant under `⅟T` if and only if `U ⊆ T(U)` -/
+lemma invariant_under_inv_of_iff_le_map [invertible T] :
+  U.invariant_under (⅟T) ↔ U ≤ U.map T :=
+invariant_under_symm_iff_le_map _ (linear_equiv.of_invertible T)
 
-/-- (⅟ T).comp (pᵤ.comp T) = pᵤ` if and only if `T(U) = U` and `T(V) = V`,
+/-- (⅟T) ∘ₗ (pᵤ ∘ₗ T) = pᵤ` if and only if `T(U) = U` and `T(V) = V`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 theorem inv_of_comp_linear_proj_comp_self_eq_linear_proj_iff_image_eq [invertible T] :
-  (⅟ T).comp ((U.subtype.comp pᵤ).comp T) = U.subtype.comp pᵤ ↔ U.map T = U ∧ V.map T = V :=
+  (⅟T) ∘ₗ (U.subtype ∘ₗ pᵤ) ∘ₗ T = U.subtype ∘ₗ pᵤ ↔ U.map T = U ∧ V.map T = V :=
 begin
-  simp_rw [← commute_with_invertible_linear_map_iff_conj_eq_self,
+  have : ∀ f, commute f T ↔ ⅟T ∘ₗ f ∘ₗ T = f :=
+    λ f, commute.symm_iff.trans ((unit_of_invertible T).commute_iff_inv_mul_cancel f),
+  simp_rw [←this,
            ← is_compl_invariant_under_iff_linear_proj_and_self_commute, le_antisymm_iff,
            ← invariant_under_iff_map, and_and_and_comm, iff_self_and,
-           ← invariant_under_inv_of_iff_subset_image,
+           ← invariant_under_inv_of_iff_le_map,
            is_compl_invariant_under_iff_linear_proj_and_self_commute U V hUV],
-  rw [commute_with_invertible_linear_map_iff_conj_eq_self, commute, semiconj_by],
+  rw [this, commute, semiconj_by],
   simp_rw [← linear_map.mul_eq_comp],
   intros h,
   rw ← h,
-  simp_rw [mul_assoc _ _ (⅟ T), mul_inv_of_self, h],
+  simp_rw [mul_assoc _ _ (⅟T), mul_inv_of_self, h],
   refl,
 end
 

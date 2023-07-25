@@ -85,7 +85,7 @@ linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
 lemma coe_of_invertible [invertible T] :
   ⇑(linear_equiv.of_invertible T) = T := rfl
 
-lemma coe_linear_map_of_invertible [invertible T] :
+@[simp] lemma coe_linear_map_of_invertible [invertible T] :
   ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
 
 @[simp] lemma coe_linear_map_of_invertible_symm [invertible T] :

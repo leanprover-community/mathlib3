@@ -120,10 +120,10 @@ lemma invariant_under_inv_of_iff_le_map [invertible T] :
   U.invariant_under (⅟T) ↔ U ≤ U.map T :=
 invariant_under_symm_iff_le_map _ (linear_equiv.of_invertible T)
 
-/-- (⅟T) ∘ₗ (pᵤ ∘ₗ T) = pᵤ` if and only if `T(U) = U` and `T(V) = V`,
+/-- `⅟T ∘ₗ (pᵤ ∘ₗ T) = pᵤ` if and only if `T(U) = U` and `T(V) = V`,
 where `pᵤ` denotes the linear projection to `U` along `V` -/
 theorem inv_of_comp_linear_proj_comp_self_eq_linear_proj_iff_image_eq [invertible T] :
-  (⅟T) ∘ₗ (U.subtype ∘ₗ pᵤ) ∘ₗ T = U.subtype ∘ₗ pᵤ ↔ U.map T = U ∧ V.map T = V :=
+  ⅟T ∘ₗ (U.subtype ∘ₗ pᵤ) ∘ₗ T = U.subtype ∘ₗ pᵤ ↔ U.map T = U ∧ V.map T = V :=
 begin
   have : ∀ f, commute f T ↔ ⅟T ∘ₗ f ∘ₗ T = f :=
     λ f, commute.symm_iff.trans ((unit_of_invertible T).commute_iff_inv_mul_cancel f),

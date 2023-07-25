@@ -239,20 +239,105 @@ begin
   exact if h : ∃ g : Γ.opposite, g • x₀ ∈ 𝓕 then h.some • x₀ else 1,
 end
 
-lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.ae_right_inverse :
-  let s : setoid G := mul_action.orbit_rel Γ.opposite G in
-  ∀ᵐ x ∂μ, h𝓕.inverse_quotient_map (@quotient.mk _ s x) = x :=
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map_inv :
+  ∀ᵐ x ∂μ, (@quotient.mk _ (mul_action.orbit_rel Γ.opposite G : setoid G) x) =
+    (@quotient.mk _ (mul_action.orbit_rel Γ.opposite G : setoid G)
+    (h𝓕.inverse_quotient_map
+    (@quotient.mk _ (mul_action.orbit_rel Γ.opposite G : setoid G) x))) :=
 begin
-  intros s,
-  have := h𝓕.ae_covers, -- : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
-  have := h𝓕.ae_disjoint, -- : pairwise $ ae_disjoint μ on λ g : G, g • s)
+  filter_upwards [h𝓕.ae_covers],
+  rintros x₀ ⟨g, hg⟩,
+  set s := (mul_action.orbit_rel Γ.opposite G : setoid G),
+  set π := @quotient.mk _ s,
+  set x := π x₀,
+  let x₁ := @quotient.out _ s x,
+  obtain ⟨gg, hgg⟩ : ∃ gg, gg • x₀ = x₁ := @quotient.mk_out _ s x₀,
+  have h : ∃ (g₁ : Γ.opposite), g₁ • x₁ ∈ 𝓕,
+  { obtain ⟨gg, hgg⟩ : ∃ gg, gg • x₀ = x₁ := @quotient.mk_out _ s x₀,
+    use g * gg⁻¹,
+    convert hg using 1,
+    rw ←hgg,
+    simp [← mul_smul], },
+  dsimp [measure_theory.is_fundamental_domain.inverse_quotient_map],
+  simp_rw dif_pos h,
 
+  extract_goal,
+
+  have := @quotient.mk_out _ s x₀,
+  simp only [quotient.eq],
+  symmetry,
+end
+
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map_g :
+  ∀ᵐ x ∂μ, ∃ (g : Γ.opposite), g • x = h𝓕.inverse_quotient_map
+    (@quotient.mk _ (mul_action.orbit_rel Γ.opposite G : setoid G) x) :=
+begin
+  set s := (mul_action.orbit_rel Γ.opposite G : setoid G),
+  set π := @quotient.mk _ s,
+  filter_upwards [h𝓕.ae_covers],
+  rintros x₀ ⟨g, hg⟩,
+  let x := π x₀,
+  let x₁ := @quotient.out _ s x,
+  obtain ⟨gg, hgg⟩ : ∃ gg, gg • x₀ = x₁ := @quotient.mk_out _ s x₀,
+  have h : ∃ (g₁ : Γ.opposite), g₁ • x₁ ∈ 𝓕,
+  { obtain ⟨gg, hgg⟩ : ∃ gg, gg • x₀ = x₁ := @quotient.mk_out _ s x₀,
+    use g * gg⁻¹,
+    convert hg using 1,
+    rw ←hgg,
+    simp [← mul_smul], },
+  let g₁ := h.some,
+  use g₁,
+  dsimp [measure_theory.is_fundamental_domain.inverse_quotient_map],
+  rw dif_pos _,
   sorry
 end
 
-lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.quasi_measure_preserving :
-  quasi_measure_preserving h𝓕.inverse_quotient_map μ_𝓕 μ :=
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map_in_𝓕 :
+  ∀ᵐ x ∂μ, h𝓕.inverse_quotient_map
+    (@quotient.mk _ (mul_action.orbit_rel Γ.opposite G : setoid G) x) ∈ 𝓕 :=
 begin
+  set s := (mul_action.orbit_rel Γ.opposite G : setoid G),
+  set π := @quotient.mk _ s,
+  filter_upwards [h𝓕.ae_covers],
+  rintros x₀ ⟨g, hg⟩,
+  let x := π x₀,
+  let x₁ := @quotient.out _ s x,
+  have h : ∃ (g₁ : Γ.opposite), g₁ • x₁ ∈ 𝓕,
+  { obtain ⟨gg, hgg⟩ : ∃ gg, gg • x₀ = x₁ := @quotient.mk_out _ s x₀,
+    use g * gg⁻¹,
+    convert hg using 1,
+    rw ←hgg,
+    simp [← mul_smul], },
+  dsimp [measure_theory.is_fundamental_domain.inverse_quotient_map],
+  rw dif_pos h,
+  exact h.some_spec,
+end
+
+
+lemma _root_.measure_theory.is_fundamental_domain.ae_disjoint' :
+  ∀ᵐ x ∂μ, x ∈ 𝓕 → (∀ (γ : Γ.opposite), γ ≠ 1 → γ • x ∉ 𝓕) :=
+begin
+  sorry
+end
+
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.ae_right_inverse :
+  let s : setoid G := mul_action.orbit_rel Γ.opposite G in
+  ∀ᵐ x ∂μ, x ∈ 𝓕 → h𝓕.inverse_quotient_map (@quotient.mk _ s x) = x :=
+begin
+  intros s,
+  filter_upwards [h𝓕.inverse_quotient_map_in_𝓕, h𝓕.ae_disjoint', h𝓕.inverse_quotient_map_g]
+    with x hx hx₁ hx₂ x_in_F,
+  obtain ⟨g, hg⟩ := hx₂,
+  rw ← hg at ⊢ hx,
+  have := hx₁ x_in_F g,
+  contrapose! this,
+  exact ⟨λ hgg, by simpa [hgg] using this, hx⟩,
+end
+
+lemma _root_.measure_theory.is_fundamental_domain.inverse_quotient_map.quasi_measure_preserving
+  : quasi_measure_preserving h𝓕.inverse_quotient_map μ_𝓕 μ :=
+begin
+  dsimp [quasi_measure_preserving],
   sorry
 end
 

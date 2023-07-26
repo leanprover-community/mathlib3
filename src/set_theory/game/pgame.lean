@@ -6,6 +6,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 import data.fin.basic
 import data.list.basic
 import logic.relation
+import order.antisymmetrization
 import order.game_add
 
 /-!
@@ -495,14 +496,19 @@ classical.some_spec $ (zero_le.1 h) j
 `y ≤ x`.
 
 If `x ≈ 0`, then the second player can always win `x`. -/
-def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
+def equiv : pgame → pgame → Prop := @antisymm_rel pgame (≤)
 
 localized "infix (name := pgame.equiv) ` ≈ ` := pgame.equiv" in pgame
 
+theorem equiv_iff {x y : pgame} : x ≈ y ↔ x ≤ y ∧ y ≤ x := iff.rfl
+
+@[refl, simp] theorem equiv_rfl {x} : x ≈ x := antisymm_rel_refl _ x
+theorem equiv_refl (x) : x ≈ x := equiv_rfl
+
 instance : is_equiv _ (≈) :=
-{ refl := λ x, ⟨le_rfl, le_rfl⟩,
-  trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩,
-  symm := λ x y, and.symm }
+{ refl := λ x, equiv_rfl,
+  trans := λ x y z, antisymm_rel.trans,
+  symm := λ x y, antisymm_rel.symm }
 
 theorem equiv.le {x y : pgame} (h : x ≈ y) : x ≤ y := h.1
 theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2

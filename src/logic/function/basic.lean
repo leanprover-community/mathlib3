@@ -11,7 +11,6 @@ import tactic.cache
 # Miscellaneous function constructions and lemmas
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/511
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -46,6 +45,9 @@ lemma const_injective [nonempty α] : injective (const α : β → α → β) :=
 ⟨λ h, const_injective h, λ h, h ▸ rfl⟩
 
 lemma id_def : @id α = λ x, x := rfl
+
+@[simp] lemma on_fun_apply (f : β → β → γ) (g : α → β) (a b : α) : on_fun f g a b = f (g a) (g b) :=
+rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
@@ -551,33 +553,57 @@ along a function `f : α → β` to a function `β → γ`,
 by using the values of `g` on the range of `f`
 and the values of an auxiliary function `e' : β → γ` elsewhere.
 
-Mostly useful when `f` is injective. -/
+Mostly useful when `f` is injective, more generally when `g.factors_through f`. -/
 def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
+
+/-- g factors through f : `f a = f b → g a = g b` -/
+def factors_through (g : α → γ) (f : α → β) : Prop :=
+∀ ⦃a b⦄, f a = f b → g a = g b
+
+lemma injective.factors_through (hf : injective f) (g : α → γ) : g.factors_through f :=
+λ a b h, congr_arg g (hf h)
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
-@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
+lemma factors_through.extend_apply {g : α → γ} (hf : g.factors_through f) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
-  exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
+  exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
+
+@[simp] lemma injective.extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
+  extend f g e' (f a) = g a :=
+(hf.factors_through g).extend_apply e' a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
 
-lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
+lemma factors_through_iff (g : α → γ) [nonempty γ] :
+  g.factors_through f ↔ ∃ (e : β → γ), g = e ∘ f :=
+⟨λ hf, ⟨extend f g (const β (classical.arbitrary γ)),
+      funext (λ x, by simp only [comp_app, hf.extend_apply])⟩,
+  λ h a b hf, by rw [classical.some_spec h, comp_apply, hf]⟩
+
+lemma factors_through.apply_extend {δ} {g : α → γ} (hf : factors_through g f)
+  (F : γ → δ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin
   by_cases hb : ∃ a, f a = b,
   { cases hb with a ha, subst b,
-    rw [extend_apply hf, extend_apply hf] },
+    rw [factors_through.extend_apply, factors_through.extend_apply],
+    { intros a b h, simp only [comp_apply], apply congr_arg, exact hf h, },
+    { exact hf, }, },
   { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
 end
+
+lemma injective.apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
+  F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
+(hf.factors_through g).apply_extend F e' b
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
@@ -585,13 +611,18 @@ begin
   intros g₁ g₂ hg,
   refine funext (λ x, _),
   have H := congr_fun hg (f x),
-  simp only [hf, extend_apply] at H,
+  simp only [hf.extend_apply] at H,
   exact H
 end
 
+lemma factors_through.extend_comp {g : α → γ} (e' : β → γ)
+  (hf : factors_through g f) :
+  extend f g e' ∘ f = g :=
+funext $ λ a, by simp only [comp_app, hf.extend_apply e']
+
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
-funext $ λ a, extend_apply hf g e' a
+(hf.factors_through g).extend_comp e'
 
 lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
   surjective (λ g : β → γ, g ∘ f) :=

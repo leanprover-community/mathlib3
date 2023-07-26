@@ -9,6 +9,9 @@ import ring_theory.dedekind_domain.adic_valuation
 /-!
 # `S`-integers and `S`-units of fraction fields of Dedekind domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `K` be the field of fractions of a Dedekind domain `R`, and let `S` be a set of prime ideals in
 the height one spectrum of `R`. An `S`-integer of `K` is defined to have `v`-adic valuation at most
 one for all primes ideals `v` away from `S`, whereas an `S`-unit of `Kˣ` is defined to have `v`-adic

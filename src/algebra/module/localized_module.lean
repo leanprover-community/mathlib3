@@ -11,6 +11,9 @@ import algebra.algebra.restrict_scalars
 /-!
 # Localized Module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-module `M`, we can localize
 `M` by `S`. This gives us a `localization S`-module.
 
@@ -46,25 +49,29 @@ variables (M : Type v) [add_comm_monoid M] [module R M]
 
 /--The equivalence relation on `M × S` where `(m1, s1) ≈ (m2, s2)` if and only if
 for some (u : S), u * (s2 • m1 - s1 • m2) = 0-/
-def r : (M × S) → (M × S) → Prop
-| ⟨m1, s1⟩ ⟨m2, s2⟩ := ∃ (u : S), u • s1 • m2 = u • s2 • m1
+def r (a b : M × S) : Prop :=
+∃ (u : S), u • b.2 • a.1 = u • a.2 • b.1
 
 lemma r.is_equiv : is_equiv _ (r S M) :=
 { refl := λ ⟨m, s⟩, ⟨1, by rw [one_smul]⟩,
   trans := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m3, s3⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, begin
     use u1 * u2 * s2,
     -- Put everything in the same shape, sorting the terms using `simp`
-    have hu1' := congr_arg ((•) (u2 * s3)) hu1,
-    have hu2' := congr_arg ((•) (u1 * s1)) hu2,
+    have hu1' := congr_arg ((•) (u2 * s3)) hu1.symm,
+    have hu2' := congr_arg ((•) (u1 * s1)) hu2.symm,
     simp only [← mul_smul, smul_assoc, mul_assoc, mul_comm, mul_left_comm] at ⊢ hu1' hu2',
     rw [hu2', hu1']
   end,
   symm := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, ⟨u, hu.symm⟩ }
 
-
 instance r.setoid : setoid (M × S) :=
 { r := r S M,
   iseqv := ⟨(r.is_equiv S M).refl, (r.is_equiv S M).symm, (r.is_equiv S M).trans⟩ }
+
+-- TODO: change `localization` to use `r'` instead of `r` so that the two types are also defeq,
+-- `localization S = localized_module S R`.
+example {R} [comm_semiring R] (S : submonoid R) : ⇑(localization.r' S) = localized_module.r S R :=
+rfl
 
 /--
 If `S` is a multiplicative subset of a ring `R` and `M` an `R`-module, then
@@ -80,7 +87,7 @@ variables {M S}
 def mk (m : M) (s : S) : localized_module S M :=
 quotient.mk ⟨m, s⟩
 
-lemma mk_eq {m m' : M} {s s' : S} : mk m s = mk m' s' ↔ ∃ (u : S), u • s • m' = u • s' • m :=
+lemma mk_eq {m m' : M} {s s' : S} : mk m s = mk m' s' ↔ ∃ (u : S), u • s' • m = u • s • m' :=
 quotient.eq
 
 @[elab_as_eliminator]
@@ -149,7 +156,7 @@ begin
   rw [one_smul, one_smul],
   congr' 1,
   { rw [mul_assoc] },
-  { rw [mul_comm, add_assoc, mul_smul, mul_smul, ←mul_smul sx sz, mul_comm, mul_smul], },
+  { rw [eq_comm, mul_comm, add_assoc, mul_smul, mul_smul, ←mul_smul sx sz, mul_comm, mul_smul], },
 end
 
 private lemma add_comm' (x y : localized_module S M) :
@@ -207,9 +214,10 @@ instance {A : Type*} [semiring A] [algebra R A] {S : submonoid R} :
       rintros ⟨a₁, s₁⟩ ⟨a₂, s₂⟩ ⟨b₁, t₁⟩ ⟨b₂, t₂⟩ ⟨u₁, e₁⟩ ⟨u₂, e₂⟩,
       rw mk_eq,
       use u₁ * u₂,
-      dsimp only,
+      dsimp only at ⊢ e₁ e₂,
+      rw eq_comm,
       transitivity (u₁ • t₁ • a₁) • u₂ • t₂ • a₂,
-      rw [← e₁, ← e₂], swap, rw eq_comm,
+      rw [e₁, e₂], swap, rw eq_comm,
       all_goals { rw [smul_smul, mul_mul_mul_comm, ← smul_eq_mul, ← smul_eq_mul A,
         smul_smul_smul_comm, mul_smul, mul_smul] }
     end),
@@ -655,8 +663,9 @@ instance localized_module_is_localized_module :
         localized_module.mk_cancel t ],
     end,
   eq_iff_exists := λ m1 m2,
-  { mp := λ eq1, by simpa only [one_smul] using localized_module.mk_eq.mp eq1,
-    mpr := λ ⟨c, eq1⟩, localized_module.mk_eq.mpr ⟨c, by simpa only [one_smul] using eq1⟩ } }
+  { mp := λ eq1, by simpa only [eq_comm, one_smul] using localized_module.mk_eq.mp eq1,
+    mpr := λ ⟨c, eq1⟩,
+      localized_module.mk_eq.mpr ⟨c, by simpa only [eq_comm, one_smul] using eq1⟩ } }
 
 namespace is_localized_module
 
@@ -674,7 +683,7 @@ begin
   generalize_proofs h1 h2,
   erw [module.End_algebra_map_is_unit_inv_apply_eq_iff, ←h2.unit⁻¹.1.map_smul,
     module.End_algebra_map_is_unit_inv_apply_eq_iff', ←linear_map.map_smul, ←linear_map.map_smul],
-  exact ((is_localized_module.eq_iff_exists S f).mpr ⟨c, eq1⟩).symm,
+  exact (is_localized_module.eq_iff_exists S f).mpr ⟨c, eq1⟩,
 end
 
 @[simp] lemma from_localized_module'_mk (m : M) (s : S) :
@@ -894,7 +903,11 @@ by { rw [mk'_add_mk', ← smul_add, mk'_cancel_left] }
 
 lemma mk'_eq_mk'_iff (m₁ m₂ : M) (s₁ s₂ : S) :
   mk' f m₁ s₁ = mk' f m₂ s₂ ↔ ∃ s : S, s • s₁ • m₂ = s • s₂ • m₁ :=
-by { delta mk', rw [(from_localized_module.inj S f).eq_iff, localized_module.mk_eq] }
+begin
+  delta mk',
+  rw [(from_localized_module.inj S f).eq_iff, localized_module.mk_eq],
+  simp_rw eq_comm
+end
 
 lemma mk'_neg {M M' : Type*} [add_comm_group M] [add_comm_group M'] [module R M]
   [module R M'] (f : M →ₗ[R] M') [is_localized_module S f] (m : M) (s : S) :
@@ -963,6 +976,31 @@ begin
   obtain ⟨⟨m, s⟩, e : s • x = f m⟩ := is_localized_module.surj S f x,
   exact ⟨⟨m, s⟩, mk'_eq_iff.mpr e.symm⟩
 end
+
+section algebra
+
+lemma mk_of_algebra {R S S' : Type*} [comm_ring R] [comm_ring S] [comm_ring S']
+  [algebra R S] [algebra R S'] (M : submonoid R) (f : S →ₐ[R] S')
+  (h₁ : ∀ x ∈ M, is_unit (algebra_map R S' x))
+  (h₂ : ∀ y, ∃ (x : S × M), x.2 • y = f x.1)
+  (h₃ : ∀ x, f x = 0 → ∃ m : M, m • x = 0) :
+  is_localized_module M f.to_linear_map :=
+begin
+  replace h₃ := λ x, iff.intro (h₃ x) (λ ⟨⟨m, hm⟩, e⟩, (h₁ m hm).mul_left_cancel $
+    by { rw ← algebra.smul_def, simpa [submonoid.smul_def] using f.congr_arg e }),
+  constructor,
+  { intro x,
+    rw module.End_is_unit_iff,
+    split,
+    { rintros a b (e : x • a = x • b), simp_rw [submonoid.smul_def, algebra.smul_def] at e,
+      exact (h₁ x x.2).mul_left_cancel e },
+    { intro a, refine ⟨((h₁ x x.2).unit⁻¹ : _) * a, _⟩, change (x : R) • (_ * a) = _,
+      rw [algebra.smul_def, ← mul_assoc, is_unit.mul_coe_inv, one_mul] } },
+  { exact h₂ },
+  { intros, dsimp, rw [eq_comm, ← sub_eq_zero, ← map_sub, h₃], simp_rw [smul_sub, sub_eq_zero] },
+end
+
+end algebra
 
 end is_localized_module
 

@@ -9,6 +9,9 @@ import ring_theory.localization.ideal
 /-!
 # Localizations of commutative rings at the complement of a prime ideal
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_localization.at_prime (I : ideal R) [is_prime I] (S : Type*)` expresses that `S` is a
@@ -89,12 +92,12 @@ begin
   rw ←hrx at hx, rw ←hry at hy,
   obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
   simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
-  suffices : ↑sx * ↑sy * ↑sz * ↑t ∈ I, from
+  suffices : ↑t * (↑sx * ↑sy * ↑sz) ∈ I, from
     not_or (mt hp.mem_or_mem $ not_or sx.2 sy.2) sz.2
-      (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_right t.2),
-  rw [←ht, mul_assoc],
-  exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
-                                     (I.mul_mem_right _ $ this hy))
+      (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_left t.2),
+  rw [←ht],
+  exact I.mul_mem_left _ (I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
+                                                       (I.mul_mem_right _ $ this hy))),
 end
 
 end is_localization
@@ -139,6 +142,10 @@ not_iff_not.mp $ by
 simpa only [local_ring.mem_maximal_ideal, mem_nonunits_iff, not_not]
   using is_unit_to_map_iff S I x
 
+lemma comap_maximal_ideal (h : _root_.local_ring S := local_ring S I) :
+  (local_ring.maximal_ideal S).comap (algebra_map R S) = I :=
+ideal.ext $ λ x, by simpa only [ideal.mem_comap] using to_map_mem_maximal_iff _ I x
+
 lemma is_unit_mk'_iff (x : R) (y : I.prime_compl) :
   is_unit (mk' S x y) ↔ x ∈ I.prime_compl :=
 ⟨λ h hx, mk'_mem_iff.mpr ((to_map_mem_maximal_iff S I x).mpr hx) h,
@@ -168,8 +175,7 @@ variables {I}
 lemma at_prime.comap_maximal_ideal :
   ideal.comap (algebra_map R (localization.at_prime I))
     (local_ring.maximal_ideal (localization I.prime_compl)) = I :=
-ideal.ext $ λ x, by
-simpa only [ideal.mem_comap] using at_prime.to_map_mem_maximal_iff _ I x
+at_prime.comap_maximal_ideal _ _
 
 /-- The image of `I` in the localization at `I.prime_compl` is a maximal ideal, and in particular
 it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/

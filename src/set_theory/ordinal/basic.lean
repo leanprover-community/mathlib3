@@ -10,6 +10,9 @@ import set_theory.cardinal.basic
 /-!
 # Ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Ordinals are defined as equivalences of well-ordered sets under order isomorphism. They are endowed
 with a total order, where an ordinal is smaller than another one if it embeds into it as an
 initial segment (or, equivalently, in any way). This total order is well founded.
@@ -284,9 +287,9 @@ protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_if
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 := not_lt_bot
 theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a := eq_bot_or_bot_lt
 
-@[simp] theorem zero_lt_one : (0 : ordinal) < 1 := principal_seg.pempty_to_punit.ordinal_type_lt
+instance : zero_le_one_class ordinal := ⟨ordinal.zero_le _⟩
 
-instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
+instance ne_zero.one : ne_zero (1 : ordinal) := ⟨ordinal.one_ne_zero⟩
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
@@ -328,7 +331,7 @@ eq.symm $ quotient.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _
     ((subrel.rel_embedding _ _).trans f)
     (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.map_rel_iff.2 h))
-  (λ ⟨y, h⟩, by rcases f.init' h with ⟨a, rfl⟩;
+  (λ ⟨y, h⟩, by rcases f.init h with ⟨a, rfl⟩;
     exact ⟨⟨a, f.to_rel_embedding.map_rel_iff.1 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
 
 @[simp] theorem typein_lt_typein (r : α → α → Prop) [is_well_order α r]
@@ -355,28 +358,29 @@ injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
   {a b} : typein r a = typein r b ↔ a = b :=
 (typein_injective r).eq_iff
 
+/-- Principal segment version of the `typein` function, embedding a well order into
+  ordinals as a principal segment. -/
+def typein.principal_seg (r : α → α → Prop) [is_well_order α r] :
+  r ≺i ((<) : ordinal → ordinal → Prop) :=
+⟨⟨⟨typein r, typein_injective r⟩, λ a b, typein_lt_typein r⟩, type r,
+  λ o, ⟨typein_surj r, λ ⟨a, h⟩, h ▸ typein_lt_type r a⟩⟩
+
+@[simp] theorem typein.principal_seg_coe (r : α → α → Prop) [is_well_order α r] :
+  (typein.principal_seg r : α → ordinal) = typein r := rfl
+
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.
   That is, `enum` maps an initial segment of the ordinals, those
   less than the order type of `r`, to the elements of `α`. -/
-def enum (r : α → α → Prop) [is_well_order α r] (o) : o < type r → α :=
-quot.rec_on o (λ ⟨β, s, _⟩ h, (classical.choice h).top) $
-λ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨h⟩, begin
-  resetI, refine funext (λ (H₂ : type t < type r), _),
-  have H₁ : type s < type r, {rwa type_eq.2 ⟨h⟩},
-  have : ∀ {o e} (H : o < type r), @@eq.rec
-   (λ (o : ordinal), o < type r → α)
-   (λ (h : type s < type r), (classical.choice h).top)
-     e H = (classical.choice H₁).top, {intros, subst e},
-  exact (this H₂).trans (principal_seg.top_eq h
-    (classical.choice H₁) (classical.choice H₂))
-end
+def enum (r : α → α → Prop) [is_well_order α r] (o) (h : o < type r) : α :=
+(typein.principal_seg r).subrel_iso ⟨o, h⟩
 
 theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : s ≺i r)
   {h : type s < type r} : enum r (type s) h = f.top :=
-principal_seg.top_eq (rel_iso.refl _) _ _
+(typein.principal_seg r).injective $
+  ((typein.principal_seg r).apply_subrel_iso _).trans (typein_top _).symm
 
 @[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
   enum r (typein r a) (typein_lt_type r a) = a :=
@@ -409,13 +413,8 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exactI
-suffices ∀ a, acc (<) (typein r a), from
-⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
-λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
-  rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
-  exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩
+well_founded_iff_well_founded_subrel.mpr $ λ a, induction_on a $ λ α r wo, by exactI
+  rel_hom_class.well_founded (typein.principal_seg r).subrel_iso wo.wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 
@@ -424,18 +423,6 @@ instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
 lt_wf.induction i h
-
-/-- Principal segment version of the `typein` function, embedding a well order into
-  ordinals as a principal segment. -/
-def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
-  @principal_seg α ordinal.{u} r (<) :=
-⟨rel_embedding.of_monotone (typein r)
-  (λ a b, (typein_lt_typein r).2), type r, λ b,
-    ⟨λ h, ⟨enum r _ h, typein_enum r h⟩,
-    λ ⟨a, e⟩, e ▸ typein_lt_type _ _⟩⟩
-
-@[simp] theorem typein.principal_seg_coe (r : α → α → Prop) [is_well_order α r] :
-  (typein.principal_seg r : α → ordinal) = typein r := rfl
 
 /-! ### Cardinality of ordinals -/
 
@@ -817,21 +804,13 @@ by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_s
 
 @[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
-⟨λ h, begin
-  by_contra hne,
-  cases lt_or_gt_of_ne hne with hlt hlt;
-    apply (is_well_order.is_irrefl r).1,
-    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
-    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
-end, λ h, by simp_rw h⟩
+(typein.principal_seg r).subrel_iso.injective.eq_iff.trans subtype.mk_eq_mk
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
 { to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
-  left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
-  right_inv := λ h, enum_typein _ _,
-  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
+  ..(typein.principal_seg r).subrel_iso }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=

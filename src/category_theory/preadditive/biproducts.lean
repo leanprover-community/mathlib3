@@ -8,11 +8,14 @@ import category_theory.limits.shapes.biproducts
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.biproducts
 import category_theory.limits.preserves.shapes.products
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 import tactic.abel
 
 /-!
 # Basic facts about biproducts in preadditive categories.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In (or between) preadditive categories,
 
@@ -43,6 +46,13 @@ In (or between) preadditive categories,
 
 * A functor preserves a biproduct if and only if it preserves
   the corresponding product if and only if it preserves the corresponding coproduct.
+
+There are connections between this material and the special case of the category whose morphisms are
+matrices over a ring, in particular the Schur complement (see
+`linear_algebra.matrix.schur_complement`). In particular, the declarations
+`category_theory.biprod.iso_elim`, `category_theory.biprod.gaussian`
+and `matrix.invertible_of_from_blocks₁₁_invertible` are all closely related.
+
 -/
 
 open category_theory
@@ -171,12 +181,12 @@ has_biproduct.mk
 /-- A preadditive category with finite products has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_products [has_finite_products C] :
   has_finite_biproducts C :=
-⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
+⟨λ n, { has_biproduct := λ F, has_biproduct.of_has_product _ }⟩
 
 /-- A preadditive category with finite coproducts has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
   has_finite_biproducts C :=
-⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
+⟨λ n, { has_biproduct := λ F, has_biproduct.of_has_coproduct _ }⟩
 
 section
 variables {f : J → C} [has_biproduct f]

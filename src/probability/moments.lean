@@ -9,6 +9,9 @@ import probability.variance
 /-!
 # Moments and moment generating function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `probability_theory.moment X p μ`: `p`th moment of a real random variable `X` with respect to

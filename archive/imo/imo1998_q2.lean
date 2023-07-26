@@ -3,7 +3,7 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.fintype.basic
+import data.fintype.prod
 import data.int.parity
 import algebra.big_operators.order
 import tactic.ring
@@ -11,6 +11,9 @@ import tactic.noncomm_ring
 
 /-!
 # IMO 1998 Q2
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In a competition, there are `a` contestants and `b` judges, where `b ≥ 3` is an odd integer. Each
 judge rates each contestant as either "pass" or "fail". Suppose `k` is a number such that, for any
 two judges, their ratings coincide for at most `k` contestants. Prove that `k / a ≥ (b - 1) / (2b)`.
@@ -38,6 +41,11 @@ Rearranging gives the result.
 -/
 
 open_locale classical
+
+variables {C J : Type*} (r : C → J → Prop)
+
+namespace imo1998_q2
+
 noncomputable theory
 
 /-- An ordered pair of judges. -/
@@ -45,8 +53,6 @@ abbreviation judge_pair (J : Type*) := J × J
 
 /-- A triple consisting of contestant together with an ordered pair of judges. -/
 abbreviation agreed_triple (C J : Type*) := C × (judge_pair J)
-
-variables {C J : Type*} (r : C → J → Prop)
 
 /-- The first judge from an ordered pair of judges. -/
 abbreviation judge_pair.judge₁ : judge_pair J → J := prod.fst
@@ -138,7 +144,7 @@ lemma norm_bound_of_odd_sum {x y z : ℤ} (h : x + y = 2*z + 1) :
   2*z*z + 2*z + 1 ≤ x*x + y*y :=
 begin
   suffices : 4*z*z + 4*z + 1 + 1 ≤ 2*x*x + 2*y*y,
-  { rw ← mul_le_mul_left (@zero_lt_two _ _ int.nontrivial), convert this; ring, },
+  { rw ← mul_le_mul_left (zero_lt_two' ℤ), convert this; ring, },
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
@@ -193,6 +199,10 @@ end
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1 : ℚ) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 by rw div_le_div_iff; norm_cast; simp [ha, hb]
+
+end imo1998_q2
+
+open imo1998_q2
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)

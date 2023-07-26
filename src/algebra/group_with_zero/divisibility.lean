@@ -10,6 +10,9 @@ import algebra.divisibility.units
 /-!
 # Divisibility in groups with zero.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lemmas about divisibility in groups and monoids with zero.
 
 -/
@@ -85,3 +88,28 @@ begin
 end
 
 end monoid_with_zero
+
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] [subsingleton αˣ] {a b : α}
+
+lemma dvd_antisymm : a ∣ b → b ∣ a → a = b :=
+begin
+  rintro ⟨c, rfl⟩ ⟨d, hcd⟩,
+  rw [mul_assoc, eq_comm, mul_right_eq_self₀, mul_eq_one] at hcd,
+  obtain ⟨rfl, -⟩ | rfl := hcd; simp,
+end
+
+attribute [protected] nat.dvd_antisymm --This lemma is in core, so we protect it here
+
+lemma dvd_antisymm' : a ∣ b → b ∣ a → b = a := flip dvd_antisymm
+
+alias dvd_antisymm ← has_dvd.dvd.antisymm
+alias dvd_antisymm' ← has_dvd.dvd.antisymm'
+
+lemma eq_of_forall_dvd (h : ∀ c, a ∣ c ↔ b ∣ c) : a = b :=
+((h _).2 dvd_rfl).antisymm $ (h _).1 dvd_rfl
+
+lemma eq_of_forall_dvd' (h : ∀ c, c ∣ a ↔ c ∣ b) : a = b :=
+((h _).1 dvd_rfl).antisymm $ (h _).2 dvd_rfl
+
+end cancel_comm_monoid_with_zero

@@ -9,12 +9,8 @@ import data.finset.lattice
 /-!
 # Lemmas relating fintypes and order/lattice structure.
 
-## Instances
-
-We provide `infinite` instances for
-* specific types: `ℕ`, `ℤ`
-* type constructors: `multiset α`, `list α`
-
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function
@@ -55,23 +51,3 @@ by { casesI nonempty_fintype α, simpa using exists_max_image univ f univ_nonemp
 lemma finite.exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
 by { casesI nonempty_fintype α, simpa using exists_min_image univ f univ_nonempty }
-
-section
-open_locale classical
-
-instance : infinite ℕ :=
-infinite.of_not_fintype $ λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)
-
-instance : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
-
-instance [nonempty α] : infinite (multiset α) :=
-begin
-  inhabit α,
-  exact infinite.of_injective (multiset.repeat default) (multiset.repeat_injective _),
-end
-
-instance [nonempty α] : infinite (list α) :=
-infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
-
-end

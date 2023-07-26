@@ -14,6 +14,9 @@ import ring_theory.multiplicity
 
 # Unique factorization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * `wf_dvd_monoid` holds for `monoid`s for which a strict divisibility relation is
   well-founded.
@@ -626,7 +629,7 @@ begin
 end
 
 theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) (k : ℕ) :
-  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+  normalized_factors (p ^ k) = multiset.replicate k (normalize p) :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
 theorem normalized_factors_prod_eq (s : multiset α) (hs : ∀ a ∈ s, irreducible a) :
@@ -666,7 +669,7 @@ begin
 end
 
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
-  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+  normalized_factors (p ^ k) = multiset.replicate k (normalize p) :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
@@ -685,7 +688,7 @@ lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
 begin
   use (normalized_factors r).card,
   have := unique_factorization_monoid.normalized_factors_prod hr,
-  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
+  rwa [multiset.eq_replicate_of_mem (λ b, h), multiset.prod_replicate] at this
 end
 
 lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
@@ -860,14 +863,14 @@ lemma pow_eq_pow_iff {a : R} (ha0 : a ≠ 0) (ha1 : ¬ is_unit a) {i j : ℕ} :
 (pow_right_injective ha0 ha1).eq_iff
 
 section multiplicity
-variables [nontrivial R] [normalization_monoid R] [decidable_eq R]
+variables [nontrivial R] [normalization_monoid R]
 variables [dec_dvd : decidable_rel (has_dvd.dvd : R → R → Prop)]
 open multiplicity multiset
 
 include dec_dvd
-lemma le_multiplicity_iff_repeat_le_normalized_factors {a b : R} {n : ℕ}
+lemma le_multiplicity_iff_replicate_le_normalized_factors [decidable_eq R] {a b : R} {n : ℕ}
   (ha : irreducible a) (hb : b ≠ 0) :
-  ↑n ≤ multiplicity a b ↔ repeat (normalize a) n ≤ normalized_factors b :=
+  ↑n ≤ multiplicity a b ↔ replicate n (normalize a) ≤ normalized_factors b :=
 begin
   rw ← pow_dvd_iff_le_multiplicity,
   revert b,
@@ -876,12 +879,12 @@ begin
   split,
   { rintro ⟨c, rfl⟩,
     rw [ne.def, pow_succ, mul_assoc, mul_eq_zero, decidable.not_or_iff_and_not] at hb,
-    rw [pow_succ, mul_assoc, normalized_factors_mul hb.1 hb.2, repeat_succ,
+    rw [pow_succ, mul_assoc, normalized_factors_mul hb.1 hb.2, replicate_succ,
       normalized_factors_irreducible ha, singleton_add, cons_le_cons_iff, ← ih hb.2],
     apply dvd.intro _ rfl },
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
-    rw [← (normalized_factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_repeat],
+    rw [← (normalized_factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_replicate],
     exact (associated.pow_pow $ associated_normalize a).dvd.trans (dvd.intro u.prod rfl) }
 end
 
@@ -891,15 +894,15 @@ the normalized factor occurs in the `normalized_factors`.
 See also `count_normalized_factors_eq` which expands the definition of `multiplicity`
 to produce a specification for `count (normalized_factors _) _`..
 -/
-lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :
-  multiplicity a b = (normalized_factors b).count (normalize a) :=
+lemma multiplicity_eq_count_normalized_factors [decidable_eq R] {a b : R} (ha : irreducible a)
+ (hb : b ≠ 0) : multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
   apply le_antisymm,
   { apply part_enat.le_of_lt_add_one,
     rw [← nat.cast_one, ← nat.cast_add, lt_iff_not_ge, ge_iff_le,
-      le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
+      le_multiplicity_iff_replicate_le_normalized_factors ha hb, ← le_count_iff_replicate_le],
     simp },
-  rw [le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
+  rw [le_multiplicity_iff_replicate_le_normalized_factors ha hb, ← le_count_iff_replicate_le],
 end
 
 omit dec_dvd
@@ -909,8 +912,8 @@ the number of times it divides `x`.
 
 See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
 -/
-lemma count_normalized_factors_eq {p x : R} (hp : irreducible p) (hnorm : normalize p = p) {n : ℕ}
-  (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+lemma count_normalized_factors_eq [decidable_eq R] {p x : R} (hp : irreducible p)
+  (hnorm : normalize p = p) {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
   (normalized_factors x).count p = n :=
 begin
   letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
@@ -928,8 +931,8 @@ the number of times it divides `x`. This is a slightly more general version of
 
 See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
 -/
-lemma count_normalized_factors_eq' {p x : R} (hp : p = 0 ∨ irreducible p) (hnorm : normalize p = p)
-  {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+lemma count_normalized_factors_eq' [decidable_eq R] {p x : R} (hp : p = 0 ∨ irreducible p)
+  (hnorm : normalize p = p) {n : ℕ} (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
   (normalized_factors x).count p = n :=
 begin
   rcases hp with rfl|hp,
@@ -938,6 +941,18 @@ begin
     { rw [zero_pow (nat.succ_pos _)] at hle hlt,
       exact absurd hle hlt } },
   { exact count_normalized_factors_eq hp hnorm hle hlt }
+end
+
+lemma max_power_factor {a₀ : R} {x : R} (h : a₀ ≠ 0) (hx : irreducible x) :
+  ∃ n : ℕ, ∃ a : R, ¬ x ∣ a ∧ a₀ = x ^ n * a :=
+begin
+  classical,
+  let n := (normalized_factors a₀).count (normalize x),
+  obtain ⟨a, ha1, ha2⟩ := (@exists_eq_pow_mul_and_not_dvd R _ _ x a₀
+    (ne_top_iff_finite.mp (part_enat.ne_top_iff.mpr _))),
+  simp_rw [← (multiplicity_eq_count_normalized_factors hx h).symm] at ha1,
+  use [n, a, ha2, ha1],
+  use [n, (multiplicity_eq_count_normalized_factors hx h)],
 end
 
 end multiplicity
@@ -1579,9 +1594,9 @@ eq_of_prod_eq_prod (by rw [factors_prod, factor_set.prod, map_singleton, prod_si
                             subtype.coe_mk])
 
 theorem factors_prime_pow [nontrivial α] {p : associates α} (hp : irreducible p)
-  (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
-eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
-                           multiset.prod_repeat, subtype.coe_mk])
+  (k : ℕ) : factors (p ^ k) = some (multiset.replicate k ⟨p, hp⟩) :=
+eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_replicate,
+                           multiset.prod_replicate, subtype.coe_mk])
 
 include dec_irr
 
@@ -1589,7 +1604,7 @@ theorem prime_pow_dvd_iff_le [nontrivial α] {m p : associates α} (h₁ : m ≠
   (h₂ : irreducible p) {k : ℕ} : p ^ k ≤ m ↔ k ≤ count p m.factors :=
 begin
   obtain ⟨a, nz, rfl⟩ := associates.exists_non_zero_rep h₁,
-  rw [factors_mk _ nz, ← with_top.some_eq_coe, count_some, multiset.le_count_iff_repeat_le,
+  rw [factors_mk _ nz, ← with_top.some_eq_coe, count_some, multiset.le_count_iff_replicate_le,
       ← factors_le, factors_prime_pow h₂, factors_mk _ nz],
   exact with_top.coe_le_coe
 end

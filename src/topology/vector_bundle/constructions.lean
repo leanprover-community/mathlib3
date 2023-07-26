@@ -9,10 +9,13 @@ import topology.vector_bundle.basic
 /-!
 # Standard constructions on vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains several standard constructions on vector bundles:
 
 * `bundle.trivial.vector_bundle 𝕜 B F`: the trivial vector bundle with scalar field `𝕜` and model
-  fibre `F` over the base `B`
+  fiber `F` over the base `B`
 
 * `vector_bundle.prod`: for vector bundles `E₁` and `E₂` with scalar field `𝕜` over a common base,
   a vector bundle structure on their direct sum `E₁ ×ᵇ E₂` (the notation stands for
@@ -72,18 +75,32 @@ end bundle.trivial
 section
 variables (𝕜 : Type*) {B : Type*} [nontrivially_normed_field 𝕜] [topological_space B]
   (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
-  (E₁ : B → Type*) [topological_space (total_space E₁)]
+  (E₁ : B → Type*) [topological_space (total_space F₁ E₁)]
   (F₂ : Type*) [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
-  (E₂ : B → Type*) [topological_space (total_space E₂)]
+  (E₂ : B → Type*) [topological_space (total_space F₂ E₂)]
 
 namespace trivialization
 variables {F₁ E₁ F₂ E₂}
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
-  (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
+  (e₁ e₁' : trivialization F₁ (π F₁ E₁)) (e₂ e₂' : trivialization F₂ (π F₂ E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
+
+@[simp]
+lemma coord_changeL_prod [e₁.is_linear 𝕜] [e₁'.is_linear 𝕜] [e₂.is_linear 𝕜] [e₂'.is_linear 𝕜] ⦃b⦄
+  (hb : b ∈ ((e₁.prod e₂).base_set ∩ (e₁'.prod e₂').base_set)) :
+  ((e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b : F₁ × F₂ →L[𝕜] F₁ × F₂) =
+  (e₁.coord_changeL 𝕜 e₁' b : F₁ →L[𝕜] F₁).prod_map (e₂.coord_changeL 𝕜 e₂' b) :=
+begin
+  rw [continuous_linear_map.ext_iff, continuous_linear_map.coe_prod_map'],
+  rintro ⟨v₁, v₂⟩,
+  show (e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b (v₁, v₂) =
+    (e₁.coord_changeL 𝕜 e₁' b v₁, e₂.coord_changeL 𝕜 e₂' b v₂),
+  rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂', (e₁.prod e₂).coord_changeL_apply'],
+  exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩]
+end
 
 variables {e₁ e₂} [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
@@ -129,9 +146,9 @@ instance vector_bundle.prod  [vector_bundle 𝕜 F₁ E₁] [vector_bundle 𝕜 
 
 variables {𝕜 F₁ E₁ F₂ E₂}
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π E₁)}
-  {e₂ : trivialization F₂ (π E₂)} [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B} (hx₁ : x ∈ e₁.base_set)
-  (hx₂ : x ∈ e₂.base_set) :
+@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π F₁ E₁)}
+  {e₂ : trivialization F₂ (π F₂ E₂)} [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B}
+  (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
   (e₁.prod e₂).continuous_linear_equiv_at 𝕜 x ⟨hx₁, hx₂⟩
   = (e₁.continuous_linear_equiv_at 𝕜 x hx₁).prod (e₂.continuous_linear_equiv_at 𝕜 x hx₂) :=
 begin
@@ -155,12 +172,12 @@ instance [semiring R] [∀ (x : B), add_comm_monoid (E x)] [∀ x, module R (E x
   ∀ (x : B'), module R ((f *ᵖ E) x) :=
 by delta_instance bundle.pullback
 
-variables {E F} [topological_space B'] [topological_space (total_space E)]
+variables {E F} [topological_space B'] [topological_space (total_space F E)]
   [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
   [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   {K : Type*} [continuous_map_class K B' B]
 
-instance trivialization.pullback_linear (e : trivialization F (π E)) [e.is_linear 𝕜] (f : K) :
+instance trivialization.pullback_linear (e : trivialization F (π F E)) [e.is_linear 𝕜] (f : K) :
   (@trivialization.pullback _ _ _ B' _ _ _ _ _ _ _ e f).is_linear 𝕜 :=
 { linear := λ x h, e.linear 𝕜 h }
 

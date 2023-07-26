@@ -3,11 +3,16 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
+import analysis.calculus.deriv.pow
+import analysis.calculus.deriv.inv
 import analysis.special_functions.log.basic
 import analysis.special_functions.exp_deriv
 
 /-!
 # Derivative and series expansion of real logarithm
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that `real.log` is infinitely smooth at all nonzero `x : ℝ`. We also prove
 that the series `∑' n : ℕ, x ^ (n + 1) / (n + 1)` converges to `(-real.log (1 - x))` for all
@@ -19,7 +24,7 @@ logarithm, derivative
 -/
 
 open filter finset set
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 namespace real
 
@@ -248,7 +253,7 @@ begin
     suffices : tendsto (λ (t : ℕ), |x| ^ (t + 1) / (1 - |x|)) at_top
       (𝓝 (|x| * 0 / (1 - |x|))), by simpa,
     simp only [pow_succ],
-    refine (tendsto_const_nhds.mul _).div_const,
+    refine (tendsto_const_nhds.mul _).div_const _,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),

@@ -4,16 +4,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.big_operators.intervals
+import algebra.big_operators.order
+import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
-import topology.algebra.order.basic
+import order.filter.countable_Inter
+import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
-open filter
-open_locale topological_space classical
+open filter topological_space
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -210,7 +216,44 @@ begin
   exact H a as b bs ab ⟨A, B⟩,
 end
 
+variables [first_countable_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+lemma eventually_le_limsup (hf : is_bounded_under (≤) f u . is_bounded_default) :
+  ∀ᶠ b in f, u b ≤ f.limsup u :=
+begin
+  obtain ha | ha := is_top_or_exists_gt (f.limsup u),
+  { exact eventually_of_forall (λ _, ha _) },
+  by_cases H : is_glb (set.Ioi (f.limsup u)) (f.limsup u),
+  { obtain ⟨u, -, -, hua, hu⟩ := H.exists_seq_antitone_tendsto ha,
+    have := λ n, eventually_lt_of_limsup_lt (hu n) hf,
+    exact (eventually_countable_forall.2 this).mono
+      (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le) },
+  { obtain ⟨x, hx, xa⟩ : ∃ x, (∀ ⦃b⦄, f.limsup u < b → x ≤ b) ∧ f.limsup u < x,
+    { simp only [is_glb, is_greatest, lower_bounds, upper_bounds, set.mem_Ioi, set.mem_set_of_eq,
+        not_and, not_forall, not_le, exists_prop] at H,
+      exact H (λ x hx, le_of_lt hx) },
+    filter_upwards [eventually_lt_of_limsup_lt xa hf] with y hy,
+    contrapose! hy,
+    exact hx hy }
+end
+
+lemma eventually_liminf_le (hf : is_bounded_under (≥) f u . is_bounded_default) :
+  ∀ᶠ b in f, f.liminf u ≤ u b :=
+@eventually_le_limsup αᵒᵈ _ _ _ _ _ _ _ _ hf
+
 end conditionally_complete_linear_order
+
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [first_countable_topology α]
+  [order_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+@[simp] lemma limsup_eq_bot : f.limsup u = ⊥ ↔ u =ᶠ[f] ⊥ :=
+⟨λ h, (eventually_le.trans eventually_le_limsup $ eventually_of_forall $ λ _, h.le).mono $ λ x hx,
+  le_antisymm hx bot_le, λ h, by { rw limsup_congr h, exact limsup_const_bot }⟩
+
+@[simp] lemma liminf_eq_top : f.liminf u = ⊤ ↔ u =ᶠ[f] ⊤ := @limsup_eq_bot αᵒᵈ _ _ _ _ _ _ _ _
+
+end complete_linear_order
 
 end liminf_limsup
 
@@ -319,6 +362,46 @@ lemma monotone.map_liminf_of_continuous_at
 f_incr.map_Liminf_of_continuous_at f_cont
 
 end monotone
+
+section infi_and_supr
+
+open_locale topology
+
+open filter set
+
+variables {ι : Type*} {R : Type*} [complete_linear_order R] [topological_space R] [order_topology R]
+
+lemma infi_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
+  (x_le : ∀ i, x ≤ as i) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨅ i, as i) = x :=
+begin
+  refine infi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, x_le i) _,
+  apply λ w x_lt_w, ‹filter.ne_bot F›.nonempty_of_mem (eventually_lt_of_tendsto_lt x_lt_w as_lim),
+end
+
+lemma supr_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
+  (le_x : ∀ i, as i ≤ x) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨆ i, as i) = x :=
+@infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
+
+lemma Union_Ici_eq_Ioi_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (x_lt : ∀ i, x < as i)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Ici (as i)) = Ioi x :=
+begin
+  have obs : x ∉ range as,
+  { intro maybe_x_is,
+    rcases mem_range.mp maybe_x_is with ⟨i, hi⟩,
+    simpa only [hi, lt_self_iff_false] using x_lt i, } ,
+  rw ← infi_eq_of_forall_le_of_tendsto (λ i, (x_lt i).le) as_lim at *,
+  exact Union_Ici_eq_Ioi_infi obs,
+end
+
+lemma Union_Iic_eq_Iio_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (lt_x : ∀ i, as i < x)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Iic (as i)) = Iio x :=
+@Union_Ici_eq_Ioi_of_lt_of_tendsto (order_dual R) _ _ _ ι x as lt_x F _ as_lim
+
+end infi_and_supr
 
 section indicator
 

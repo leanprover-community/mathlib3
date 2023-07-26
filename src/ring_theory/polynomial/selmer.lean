@@ -5,10 +5,14 @@ Authors: Thomas Browning
 -/
 
 import data.polynomial.unit_trinomial
+import ring_theory.polynomial.gauss_lemma
 import tactic.linear_combination
 
 /-!
 # Irreducibility of Selmer Polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves irreducibility of the Selmer polynomials `X ^ n - X - 1`.
 

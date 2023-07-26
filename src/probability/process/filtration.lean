@@ -8,6 +8,9 @@ import measure_theory.function.conditional_expectation.real
 /-!
 # Filtrations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines filtrations of a measurable space and σ-finite filtrations.
 
 ## Main definitions
@@ -30,7 +33,7 @@ filtration, stochastic process
 -/
 
 open filter order topological_space
-open_locale classical measure_theory nnreal ennreal topological_space big_operators
+open_locale classical measure_theory nnreal ennreal topology big_operators
 
 namespace measure_theory
 

@@ -3,8 +3,7 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import algebra.algebra.spectrum
-import analysis.special_functions.pow
+import field_theory.is_alg_closed.spectrum
 import analysis.complex.liouville
 import analysis.complex.polynomial
 import analysis.analytic.radius_liminf
@@ -12,6 +11,9 @@ import topology.algebra.module.character_space
 import analysis.normed_space.exponential
 /-!
 # The spectrum of elements in a complete normed algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the basic theory for the resolvent and spectrum of a Banach algebra.
 
@@ -267,7 +269,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
         (le_max_left _ _),
       { by_cases ‖a‖₊ = 0,
         { simp only [h, zero_mul, zero_le', pow_succ], },
-        { rw [←ennreal.coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+        { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
           simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
   end,
   r_pos := ennreal.inv_pos.mpr coe_ne_top,
@@ -277,7 +279,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
     { by_cases h : ‖a‖₊ = 0,
       { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
       { have nnnorm_lt : ‖y‖₊ < ‖a‖₊⁻¹,
-        { simpa only [←ennreal.coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy },
+          by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
         rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
           ←nnreal.lt_inv_iff_mul_lt h] } },
     simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]
@@ -295,7 +297,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv, nnnorm_inv, ennreal.coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -312,7 +314,7 @@ begin
     simpa only [norm_to_nnreal, real.to_nnreal_coe]
       using real.to_nnreal_mono (mem_closed_ball_zero_iff.mp z_mem) },
   have H₁ : differentiable 𝕜 (λ w : 𝕜, 1 - w • a) := (differentiable_id.smul_const a).const_sub 1,
-  exact differentiable_at.comp z (differentiable_at_inverse hu.unit) (H₁.differentiable_at),
+  exact differentiable_at.comp z (differentiable_at_inverse hu) (H₁.differentiable_at),
 end
 
 end one_sub_smul
@@ -320,7 +322,7 @@ end one_sub_smul
 section gelfand_formula
 
 open filter ennreal continuous_multilinear_map
-open_locale topological_space
+open_locale topology
 
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
@@ -375,7 +377,7 @@ protected theorem nonempty : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
   is differentiable on `ℂ`. -/
-  rw ←set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   by_contra h,
   have H₀ : resolvent_set ℂ a = set.univ, by rwa [spectrum, set.compl_empty_iff] at h,
   have H₁ : differentiable ℂ (λ z : ℂ, resolvent a z), from λ z,
@@ -478,8 +480,7 @@ begin
   have hb : summable (λ n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ n),
   { refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial ‖a - ↑ₐz‖) _,
     filter_upwards [filter.eventually_cofinite_ne 0] with n hn,
-    rw [norm_smul, mul_comm, norm_inv, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
-      ←div_eq_mul_inv],
+    rw [norm_smul, mul_comm, norm_inv, is_R_or_C.norm_nat_cast, ← div_eq_mul_inv],
     exact div_le_div (pow_nonneg (norm_nonneg _) n) (norm_pow_le' (a - ↑ₐz) (zero_lt_iff.mpr hn))
       (by exact_mod_cast nat.factorial_pos n)
       (by exact_mod_cast nat.factorial_le (lt_add_one n).le) },

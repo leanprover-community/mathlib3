@@ -10,6 +10,9 @@ import topology.uniform_space.compact
 /-!
 # Integrals of Riemann, Henstock-Kurzweil, and McShane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the integral of a function over a box in `ℝⁿ. The same definition works for
 Riemann, Henstock-Kurzweil, and McShane integrals.
 
@@ -48,7 +51,7 @@ non-Riemann filter (e.g., Henstock-Kurzweil and McShane).
 integral
 -/
 
-open_locale big_operators classical topological_space nnreal filter uniformity box_integral
+open_locale big_operators classical topology nnreal filter uniformity box_integral
 open set finset function filter metric box_integral.integration_params
 
 noncomputable theory

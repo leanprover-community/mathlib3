@@ -10,6 +10,9 @@ import geometry.manifold.partition_of_unity
 /-!
 # Whitney embedding theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a version of the Whitney embedding theorem: for any compact real manifold `M`,
 for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 
@@ -32,7 +35,7 @@ variables {ι : Type uι}
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 open function filter finite_dimensional set
-open_locale topological_space manifold classical filter big_operators
+open_locale topology manifold classical filter big_operators
 
 noncomputable theory
 
@@ -45,12 +48,13 @@ In this section we prove a version of the Whitney embedding theorem: for any com
 `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 -/
 
-variables [t2_space M] [fintype ι] {s : set M} (f : smooth_bump_covering ι I M s)
+variables [t2_space M] [hi : fintype ι] {s : set M} (f : smooth_bump_covering ι I M s)
+include hi
 
 /-- Smooth embedding of `M` into `(E × ℝ) ^ ι`. -/
 def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, ι → (E × ℝ)), ι → (E × ℝ)⟯ :=
-{ to_fun := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
-  cont_mdiff_to_fun := cont_mdiff_pi_space.2 $ λ i,
+{ val := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
+  property := cont_mdiff_pi_space.2 $ λ i,
     ((f i).smooth_smul cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
 
 local attribute [simp] lemma embedding_pi_tangent_coe :
@@ -103,13 +107,16 @@ lemma embedding_pi_tangent_injective_mfderiv (x : M) (hx : x ∈ s) :
   injective (mfderiv I 𝓘(ℝ, ι → (E × ℝ)) f.embedding_pi_tangent x) :=
 linear_map.ker_eq_bot.1 (f.embedding_pi_tangent_ker_mfderiv x hx)
 
-/-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
+omit hi
+
+/-- Baby version of the **Whitney weak embedding theorem**: if `M` admits a finite covering by
 supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
 Euclidean space. -/
-lemma exists_immersion_euclidean (f : smooth_bump_covering ι I M) :
+lemma exists_immersion_euclidean [finite ι] (f : smooth_bump_covering ι I M) :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
+  casesI nonempty_fintype ι,
   set F := euclidean_space ℝ (fin $ finrank ℝ (ι → (E × ℝ))),
   letI : is_noetherian ℝ (E × ℝ) := is_noetherian.iff_fg.2 infer_instance,
   letI : finite_dimensional ℝ (ι → E × ℝ) := is_noetherian.iff_fg.1 infer_instance,

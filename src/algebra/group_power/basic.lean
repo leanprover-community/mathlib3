@@ -10,6 +10,9 @@ import algebra.group.type_tags
 /-!
 # Power operations on monoids and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The power operation on monoids and groups.
 We separate this from group, because it depends on `ℕ`,
 which in turn depends on other parts of algebra.

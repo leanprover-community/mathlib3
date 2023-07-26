@@ -10,6 +10,9 @@ import category_theory.path_category
 /-!
 # The category of quivers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The category of (bundled) quivers, and the free/forgetful adjunction between `Cat` and `Quiv`.
 
 -/

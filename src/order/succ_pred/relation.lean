@@ -7,6 +7,9 @@ import order.succ_pred.basic
 /-!
 # Relations on types with a `succ_order`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains properties about relations on types with a `succ_order`
 and their closure operations (like the transitive closure).
 -/

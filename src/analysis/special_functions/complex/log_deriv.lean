@@ -3,11 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import analysis.calculus.inverse
 import analysis.special_functions.complex.log
 import analysis.special_functions.exp_deriv
 
 /-!
 # Differentiability of the complex `log` function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 
@@ -17,7 +21,10 @@ namespace complex
 
 open set filter
 
-open_locale real topological_space
+open_locale real topology
+
+lemma is_open_map_exp : is_open_map exp :=
+open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
 /-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
 `target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
@@ -66,7 +73,7 @@ end complex
 section log_deriv
 
 open complex filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} [topological_space α] {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 

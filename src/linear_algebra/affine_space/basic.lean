@@ -8,6 +8,9 @@ import algebra.add_torsor
 /-!
 # Affine space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we introduce the following notation:
 
 * `affine_space V P` is an alternative notation for `add_torsor V P` introduced at the end of this

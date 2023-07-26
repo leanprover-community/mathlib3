@@ -7,6 +7,9 @@ import group_theory.group_action.defs
 
 /-! # Group actions on and by `Mˣ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the action of a unit on a type `α`, `has_smul Mˣ α`, in the presence of
 `has_smul M α`, with the obvious definition stated in `units.smul_def`. This definition preserves
 `mul_action` and `distrib_mul_action` structures too.

@@ -9,6 +9,9 @@ import category_theory.limits.shapes.terminal
 /-!
 # Transporting existence of specific limits across equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For now, we only treat the case of initial and terminal objects, but other special shapes can be
 added in the future.
 -/

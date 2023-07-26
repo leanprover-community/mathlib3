@@ -9,6 +9,9 @@ import data.list.basic
 /-!
 # Palindromes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines *palindromes*, lists which are equal to their reverse.
 
 The main result is the `palindrome` inductive type, and its associated `palindrome.rec_on` induction

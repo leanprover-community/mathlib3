@@ -7,8 +7,12 @@ import measure_theory.measure.measure_space_def
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
+
 /-!
 # Tactics for measure theory
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Currently we have one domain-specific tactic for measure theory: `measurability`.
 

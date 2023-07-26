@@ -9,6 +9,9 @@ import algebra.char_p.basic
 /-!
 # Invertibility of elements given a characteristic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes some instances of `invertible` for specific numbers in
 characteristic zero. Some more cases are given as a `def`, to be included only
 when needed. To construct instances for concrete numbers,

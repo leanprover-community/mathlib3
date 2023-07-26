@@ -9,6 +9,9 @@ import tactic.linarith
 /-!
 # Ackermann function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the two-argument Ackermann function `ack`. Despite having a recursive
 definition, we show that this isn't a primitive recursive function.
 
@@ -222,7 +225,7 @@ begin
       { apply add_le_add hk,
         norm_num,
         apply succ_le_of_lt,
-        rw [pow_succ, mul_lt_mul_left (@zero_lt_two ℕ _ _)],
+        rw [pow_succ, mul_lt_mul_left (zero_lt_two' ℕ)],
         apply lt_two_pow },
       { rw [pow_succ, pow_succ],
         linarith [one_le_pow k 2 zero_lt_two] } } }

@@ -10,6 +10,9 @@ import category_theory.limits.shapes.types
 /-!
 # Sheaves of types on a Grothendieck topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines the notion of a sheaf of types (usually called a sheaf of sets by mathematicians)
 on a category equipped with a Grothendieck topology, as well as a range of equivalent
 conditions useful in different situations.

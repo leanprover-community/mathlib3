@@ -4,17 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Frédéric Dupuis,
   Heather Macbeth
 -/
-import topology.algebra.ring
+import topology.algebra.ring.basic
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
+import topology.continuous_function.basic
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
-import ring_theory.simple_module
 
 /-!
 # Theory of topological modules and continuous linear maps.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We use the class `has_continuous_smul` for topological (semi) modules and topological vector spaces.
 
@@ -27,7 +30,7 @@ The corresponding notation for equivalences is `M ≃SL[σ] M₂`, `M ≃L[R] M�
 -/
 
 open filter linear_map (ker range)
-open_locale topological_space big_operators filter
+open_locale topology big_operators filter
 
 universes u v w u'
 
@@ -167,13 +170,10 @@ S.to_add_subgroup.topological_add_group
 end submodule
 
 section closure
-variables {R R' : Type u} {M M' : Type v}
+variables {R : Type u} {M : Type v}
 [semiring R] [topological_space R]
-[ring R'] [topological_space R']
 [topological_space M] [add_comm_monoid M]
-[topological_space M'] [add_comm_group M']
 [module R M] [has_continuous_smul R M]
-[module R' M'] [has_continuous_smul R' M']
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
   (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
@@ -208,7 +208,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-lemma submodule.submodule_topological_closure (s : submodule R M) :
+lemma submodule.le_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -223,13 +223,13 @@ closure_minimal h ht
 
 lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
   s.topological_closure ≤ t.topological_closure :=
-s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+s.topological_closure_minimal (h.trans t.le_topological_closure)
   t.is_closed_topological_closure
 
 /-- The topological closure of a closed submodule `s` is equal to `s`. -/
 lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
   s.topological_closure = s :=
-le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.le_topological_closure
 
 /-- A subspace is dense iff its topological closure is the entire space. -/
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
@@ -245,21 +245,31 @@ is_closed_closure.complete_space_coe
 is either closed or dense. -/
 lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
   is_closed (s : set M) ∨ dense (s : set M) :=
-(hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+(hs.le_iff.mp s.le_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
   submodule.dense_iff_topological_closure_eq_top.mpr
 
-lemma linear_map.is_closed_or_dense_ker [has_continuous_add M'] [is_simple_module R' R']
-  (l : M' →ₗ[R'] R') :
-  is_closed (l.ker : set M') ∨ dense (l.ker : set M') :=
+end closure
+
+section pi
+
+lemma linear_map.continuous_on_pi {ι : Type*} {R : Type*} {M : Type*} [finite ι] [semiring R]
+  [topological_space R] [add_comm_monoid M] [module R M] [topological_space M]
+  [has_continuous_add M] [has_continuous_smul R M] (f : (ι → R) →ₗ[R] M) :
+  continuous f :=
 begin
-  rcases l.surjective_or_eq_zero with (hl|rfl),
-  { refine l.ker.is_closed_or_dense_of_is_coatom (linear_map.is_coatom_ker_of_surjective hl) },
-  { rw linear_map.ker_zero,
-    left,
-    exact is_closed_univ },
+  casesI nonempty_fintype ι,
+  classical,
+  -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
+  -- function.
+  have : (f : (ι → R) → M) =
+         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
+    by { ext x, exact f.pi_apply_eq_sum_univ x },
+  rw this,
+  refine continuous_finset_sum _ (λi hi, _),
+  exact (continuous_apply i).smul continuous_const
 end
 
-end closure
+end pi
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications `M` and `M₂` will be topological modules over the topological
@@ -945,6 +955,19 @@ lemma range_coprod [module R₁ M₂] [module R₁ M₃] [has_continuous_add M�
   range (f₁.coprod f₂) = range f₁ ⊔ range f₂ :=
 linear_map.range_coprod _ _
 
+lemma comp_fst_add_comp_snd [module R₁ M₂] [module R₁ M₃] [has_continuous_add M₃]
+  (f : M₁ →L[R₁] M₃) (g : M₂ →L[R₁] M₃) :
+  f.comp (continuous_linear_map.fst R₁ M₁ M₂) +
+  g.comp (continuous_linear_map.snd R₁ M₁ M₂) =
+  f.coprod g :=
+rfl
+
+
+lemma coprod_inl_inr [has_continuous_add M₁] [has_continuous_add M'₁] :
+  (continuous_linear_map.inl R₁ M₁ M'₁).coprod (continuous_linear_map.inr R₁ M₁ M'₁) =
+  continuous_linear_map.id R₁ (M₁ × M'₁) :=
+by { apply coe_injective, apply linear_map.coprod_inl_inr }
+
 section
 
 variables {R S : Type*} [semiring R] [semiring S] [module R M₁] [module R M₂] [module R S]
@@ -979,6 +1002,37 @@ lemma smul_right_comp [has_continuous_mul R₁] {x : M₂} {c : R₁} :
   (smul_right (1 : R₁ →L[R₁] R₁) x).comp (smul_right (1 : R₁ →L[R₁] R₁) c) =
     smul_right (1 : R₁ →L[R₁] R₁) (c • x) :=
 by { ext, simp [mul_smul] }
+
+section to_span_singleton
+variables (R₁)
+variables [has_continuous_smul R₁ M₁]
+
+/-- Given an element `x` of a topological space `M` over a semiring `R`, the natural continuous
+linear map from `R` to `M` by taking multiples of `x`.-/
+def to_span_singleton (x : M₁) : R₁ →L[R₁] M₁ :=
+{ to_linear_map := linear_map.to_span_singleton R₁ M₁ x,
+  cont := continuous_id.smul continuous_const }
+
+lemma to_span_singleton_apply (x : M₁) (r : R₁) : to_span_singleton R₁ x r = r • x :=
+rfl
+
+lemma to_span_singleton_add [has_continuous_add M₁] (x y : M₁) :
+  to_span_singleton R₁ (x + y) = to_span_singleton R₁ x + to_span_singleton R₁ y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' {α} [monoid α] [distrib_mul_action α M₁]
+  [has_continuous_const_smul α M₁]
+  [smul_comm_class R₁ α M₁] (c : α) (x : M₁) :
+  to_span_singleton R₁ (c • x) = c • to_span_singleton R₁ x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+/-- A special case of `to_span_singleton_smul'` for when `R` is commutative. -/
+lemma to_span_singleton_smul (R) {M₁} [comm_semiring R] [add_comm_monoid M₁] [module R M₁]
+  [topological_space R] [topological_space M₁] [has_continuous_smul R M₁] (c : R) (x : M₁) :
+  to_span_singleton R (c • x) = c • to_span_singleton R x :=
+to_span_singleton_smul' R c x
+
+end to_span_singleton
 
 end semiring
 

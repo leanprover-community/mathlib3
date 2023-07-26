@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 import category_theory.endofunctor.algebra
 import category_theory.preadditive.additive_functor
 
 /-!
 # Preadditive structure on algebras over a monad
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If `C` is a preadditive categories and `F` is an additive endofunctor on `C` then `algebra F` is
 also preadditive. Dually, the category `coalgebra F` is also preadditive.

@@ -10,6 +10,9 @@ import data.fintype.basic
 
 # Finiteness and infiniteness of `finsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
 
 -/
@@ -17,7 +20,7 @@ Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
 noncomputable instance finsupp.fintype {ι π : Sort*} [decidable_eq ι] [has_zero π]
   [fintype ι] [fintype π] :
   fintype (ι →₀ π) :=
-fintype.of_equiv _ finsupp.equiv_fun_on_fintype.symm
+fintype.of_equiv _ finsupp.equiv_fun_on_finite.symm
 
 instance finsupp.infinite_of_left {ι π : Sort*} [nontrivial π] [has_zero π] [infinite ι] :
   infinite (ι →₀ π) :=

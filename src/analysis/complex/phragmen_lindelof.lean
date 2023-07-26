@@ -9,6 +9,9 @@ import analysis.asymptotics.superpolynomial_decay
 /-!
 # Phragmen-Lindelöf principle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the Phragmen-Lindelöf principle, a version of the maximum
 modulus principle for an unbounded domain.
 
@@ -43,7 +46,7 @@ real plane has only finitely many limit cycles).
 -/
 
 open set function filter asymptotics metric complex
-open_locale topological_space filter real
+open_locale topology filter real
 
 local notation `expR` := real.exp
 
@@ -756,7 +759,7 @@ begin
     rw [hgn, one_mul],
     refine mul_le_of_le_one_left (norm_nonneg _) (real.exp_le_one_iff.2 _),
     exact mul_nonpos_of_nonpos_of_nonneg ε₀.le (le_of_lt hz) },
-  { simp_rw [g, ← of_real_mul, ← of_real_exp, complex.coe_smul],
+  { simp_rw [g, ← of_real_mul, ← of_real_exp, coe_smul],
     have h₀ : tendsto (λ x : ℝ, expR (ε * x)) at_top (𝓝 0),
       from real.tendsto_exp_at_bot.comp (tendsto_const_nhds.neg_mul_at_top ε₀ tendsto_id),
     exact h₀.zero_smul_is_bounded_under_le hre },

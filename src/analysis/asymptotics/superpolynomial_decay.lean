@@ -11,6 +11,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Super-Polynomial Function Decay
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a predicate `asymptotics.superpolynomial_decay f` for a function satisfying
   one of following equivalent definitions (The definition is in terms of the first condition):
 
@@ -46,7 +49,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 namespace asymptotics
 
-open_locale topological_space polynomial
+open_locale topology polynomial
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if

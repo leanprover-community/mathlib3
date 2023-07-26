@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import logic.function.conjugate
+import tactic.alias
 
 /-!
 # Iterations of a function
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/585
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
@@ -152,7 +152,7 @@ lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p 
   iterate.rec p h ha 0 = ha :=
 rfl
 
-variable {f}
+variables {f} {m n : ℕ} {a : α}
 
 theorem left_inverse.iterate {g : α → α} (hg : left_inverse g f) (n : ℕ) :
   left_inverse (g^[n]) (f^[n]) :=
@@ -167,6 +167,18 @@ lemma iterate_comm (f : α → α) (m n : ℕ) : f^[n]^[m] = (f^[m]^[n]) :=
 
 lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[n]) :=
 λ f, iterate_comm f m n
+
+lemma iterate_add_eq_iterate (hf : injective f) : f^[m + n] a = (f^[n] a) ↔ (f^[m] a) = a :=
+iff.trans (by rw [←iterate_add_apply, nat.add_comm]) (hf.iterate n).eq_iff
+
+alias iterate_add_eq_iterate ↔ iterate_cancel_of_add _
+
+lemma iterate_cancel (hf : injective f) (ha : f^[m] a = (f^[n] a)) : f^[m - n] a = a :=
+begin
+  cases le_total m n,
+  { simp [nat.sub_eq_zero_of_le h] },
+  { exact iterate_cancel_of_add hf (by rwa nat.sub_add_cancel h) }
+end
 
 end function
 

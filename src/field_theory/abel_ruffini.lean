@@ -6,10 +6,13 @@ Authors: Thomas Browning, Patrick Lutz
 
 import group_theory.solvable
 import field_theory.polynomial_galois_group
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # The Abel-Ruffini Theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves one direction of the Abel-Ruffini theorem, namely that if an element is solvable
 by radicals, then its minimal polynomial has solvable Galois group.
@@ -98,12 +101,11 @@ begin
   { rw [hn, pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
+  simp only [mem_root_set_of_ne hn'', map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     lift n to ℕ+ using hn',
@@ -125,10 +127,8 @@ begin
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : X ^ n - C a ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h)),
-  have hn''' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : X ^ n - C a ≠ 0 := X_pow_sub_C_ne_zero hn' a,
+  have hn''' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (h.def.resolve_left hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c
@@ -136,7 +136,7 @@ begin
   apply is_solvable_of_comm,
   intros σ τ,
   ext b hb,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
+  simp only [mem_root_set_of_ne hn'', map_sub, aeval_X_pow, aeval_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
     rw [hb', zero_pow hn'] at hb,
@@ -187,7 +187,7 @@ begin
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
     rw [sub_comp, X_comp, C_comp, mul_sub, ←C_mul, mul_div_cancel' c hb'] },
   rw [key1, hs, multiset_prod_comp, multiset.map_map, key2, multiset.prod_map_mul,
-    multiset.map_const, multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
+    multiset.map_const, multiset.prod_replicate, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
   all_goals { exact field.to_nontrivial F },
 end
 
@@ -212,8 +212,8 @@ variables (F)
 
 /-- Inductive definition of solvable by radicals -/
 inductive is_solvable_by_rad : E → Prop
-| base (a : F) : is_solvable_by_rad (algebra_map F E a)
-| add (a b : E) : is_solvable_by_rad a → is_solvable_by_rad b → is_solvable_by_rad (a + b)
+| base (α : F) : is_solvable_by_rad (algebra_map F E α)
+| add (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α + β)
 | neg (α : E) : is_solvable_by_rad α → is_solvable_by_rad (-α)
 | mul (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α * β)
 | inv (α : E) : is_solvable_by_rad α → is_solvable_by_rad α⁻¹
@@ -347,8 +347,8 @@ begin
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],
-  exact gal_is_solvable_of_splits ⟨normal.splits (splitting_field.normal _) _⟩
-    (gal_mul_is_solvable hα hβ),
+  refine gal_is_solvable_of_splits ⟨_⟩ (gal_mul_is_solvable hα hβ),
+  exact normal.splits (splitting_field.normal _) (f ⟨γ, hγ⟩),
 end
 
 /-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/

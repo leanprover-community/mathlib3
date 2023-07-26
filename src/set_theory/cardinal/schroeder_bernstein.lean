@@ -9,6 +9,9 @@ import order.zorn
 /-!
 # Schröder-Bernstein theorem, well-ordering of cardinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Schröder-Bernstein theorem (see `schroeder_bernstein`), the well-ordering of
 cardinals (see `min_injective`) and the totality of their order (see `total`).
 

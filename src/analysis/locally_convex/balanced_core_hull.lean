@@ -8,6 +8,9 @@ import analysis.locally_convex.basic
 /-!
 # Balanced Core and Balanced Hull
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `balanced_core`: The largest balanced subset of a set `s`.
@@ -38,7 +41,7 @@ balanced
 
 
 open set
-open_locale pointwise topological_space filter
+open_locale pointwise topology filter
 
 
 variables {𝕜 E ι : Type*}
@@ -211,7 +214,7 @@ begin
     refine is_closed_map_smul_of_ne_zero ha' U hU },
   convert is_closed_empty,
   contrapose! h,
-  exact balanced_core_nonempty_iff.mp (set.ne_empty_iff_nonempty.mp h),
+  exact balanced_core_nonempty_iff.mp (set.nonempty_iff_ne_empty.2 h),
 end
 
 lemma balanced_core_mem_nhds_zero (hU : U ∈ 𝓝 (0 : E)) : balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=

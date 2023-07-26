@@ -9,6 +9,9 @@ import category_theory.thin
 /-!
 # Wide pullbacks
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category `wide_pullback_shape`, (resp. `wide_pushout_shape`) which is the category
 obtained from a discrete category of type `J` by adjoining a terminal (resp. initial) element.
 Limits of this shape are wide pullbacks (pushouts).

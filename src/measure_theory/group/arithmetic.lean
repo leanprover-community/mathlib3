@@ -8,6 +8,9 @@ import measure_theory.measure.ae_measurable
 /-!
 # Typeclasses for measurability of operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define classes `has_measurable_mul` etc and prove dot-style lemmas
 (`measurable.mul`, `ae_measurable.mul` etc). For binary operations we define two typeclasses:
 
@@ -334,6 +337,17 @@ begin
     exact (hf.sub hg) measurable_set_eq, },
   ext,
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
+end
+
+lemma null_measurable_set_eq_fun {E} [measurable_space E] [add_group E]
+  [measurable_singleton_class E] [has_measurable_sub₂ E] {f g : α → E}
+  (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  null_measurable_set {x | f x = g x} μ :=
+begin
+  apply (measurable_set_eq_fun hf.measurable_mk hg.measurable_mk).null_measurable_set.congr,
+  filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+  change (hf.mk f x = hg.mk g x) = (f x = g x),
+  simp only [hfx, hgx],
 end
 
 lemma measurable_set_eq_fun_of_countable {m : measurable_space α} {E} [measurable_space E]

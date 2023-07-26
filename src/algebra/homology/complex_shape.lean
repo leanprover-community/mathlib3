@@ -10,7 +10,6 @@ import logic.relation
 # Shapes of homological complexes
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/635
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We define a structure `complex_shape ι` for describing the shapes of homological complexes

@@ -3,12 +3,16 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import analysis.normed_space.finite_dimension
 import analysis.p_series
 import number_theory.arithmetic_function
-import topology.algebra.infinite_sum
+import topology.algebra.infinite_sum.basic
 
 /-!
 # L-series
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given an arithmetic function, we define the corresponding L-series.
 
@@ -57,7 +61,7 @@ begin
     simp [hf] },
   refine summable_of_norm_bounded (λ (n : ℕ), m / (n ^ z)) _ _,
   { simp_rw [div_eq_mul_inv],
-    exact (summable_mul_left_iff h0).1 (real.summable_nat_rpow_inv.2 hz) },
+    exact (summable_mul_left_iff h0).2 (real.summable_nat_rpow_inv.2 hz) },
   { intro n,
     have hm : 0 ≤ m := le_trans (complex.abs.nonneg _) (h 0),
     cases n,

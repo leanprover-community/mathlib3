@@ -10,6 +10,9 @@ import tactic.ring_exp
 /-!
 # Expand a polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
@@ -44,7 +47,7 @@ by { dsimp [expand, eval₂], refl, }
 @[simp] lemma expand_C (r : R) : expand R p (C r) = C r := eval₂_C _ _
 @[simp] lemma expand_X : expand R p X = X ^ p := eval₂_X _ _
 @[simp] lemma expand_monomial (r : R) : expand R p (monomial q r) = monomial (q * p) r :=
-by simp_rw [monomial_eq_smul_X, alg_hom.map_smul, alg_hom.map_pow, expand_X, mul_comm, pow_mul]
+by simp_rw [← smul_X_eq_monomial, alg_hom.map_smul, alg_hom.map_pow, expand_X, mul_comm, pow_mul]
 
 theorem expand_expand (f : R[X]) : expand R p (expand R q f) = expand R (p * q) f :=
 polynomial.induction_on f (λ r, by simp_rw expand_C)
@@ -70,7 +73,7 @@ by rw [function.iterate_succ_apply', pow_succ, expand_mul, ih]
 
 theorem derivative_expand (f : R[X]) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
-by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
+by rw [coe_expand, derivative_eval₂_C, derivative_pow, C_eq_nat_cast, derivative_X, mul_one]
 
 theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
@@ -209,7 +212,7 @@ theorem expand_char (f : R[X]) : map (frobenius R p) (expand R p f) = f ^ p :=
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
   { rw [alg_hom.map_add, polynomial.map_add, ha, hb, add_pow_char], },
-  { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X, monomial_eq_C_mul_X,
+  { rw [expand_monomial, map_monomial, ← C_mul_X_pow_eq_monomial, ← C_mul_X_pow_eq_monomial,
         mul_pow, ← C.map_pow, frobenius_def],
     ring_exp }
 end

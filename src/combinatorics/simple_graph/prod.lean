@@ -8,6 +8,9 @@ import combinatorics.simple_graph.connectivity
 /-!
 # Graph products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the box product of graphs and other product constructions. The box product of `G`
 and `H` is the graph on the product of the vertices such that `x` and `y` are related iff they agree
 on one component and the other one is related via either `G` or `H`. For example, the box product of

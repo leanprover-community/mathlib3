@@ -9,6 +9,9 @@ import data.set.sigma
 /-!
 # Finite sets in a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few `finset` constructions on `Σ i, α i`.
 
 ## Main declarations
@@ -53,6 +56,21 @@ by simp only [← not_nonempty_iff_eq_empty, sigma_nonempty, not_exists]
 @[mono] lemma sigma_mono (hs : s₁ ⊆ s₂) (ht : ∀ i, t₁ i ⊆ t₂ i) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
 λ ⟨i, a⟩ h, let ⟨hi, ha⟩ := mem_sigma.1 h in mem_sigma.2 ⟨hs hi, ht i ha⟩
 
+lemma pairwise_disjoint_map_sigma_mk :
+  (s : set ι).pairwise_disjoint (λ i, (t i).map (embedding.sigma_mk i)) :=
+begin
+  intros i hi j hj hij,
+  rw [function.on_fun, disjoint_left],
+  simp_rw [mem_map, function.embedding.sigma_mk_apply],
+  rintros _ ⟨y, hy, rfl⟩ ⟨z, hz, hz'⟩,
+  exact hij (congr_arg sigma.fst hz'.symm)
+end
+
+@[simp]
+lemma disj_Union_map_sigma_mk :
+  s.disj_Union (λ i, (t i).map (embedding.sigma_mk i))
+    pairwise_disjoint_map_sigma_mk = s.sigma t := rfl
+
 lemma sigma_eq_bUnion [decidable_eq (Σ i, α i)] (s : finset ι) (t : Π i, finset (α i)) :
   s.sigma t = s.bUnion (λ i, (t i).map $ embedding.sigma_mk i) :=
 by { ext ⟨x, y⟩, simp [and.left_comm] }
@@ -62,11 +80,8 @@ variables (s t) (f : (Σ i, α i) → β)
 lemma sup_sigma [semilattice_sup β] [order_bot β] :
   (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
 begin
-  refine (sup_le _).antisymm (sup_le $ λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩),
-  rintro ⟨i, b⟩ hb,
-  rw mem_sigma at hb,
-  refine le_trans _ (le_sup hb.1),
-  convert le_sup hb.2,
+  simp only [le_antisymm_iff, finset.sup_le_iff, mem_sigma, and_imp, sigma.forall],
+  exact ⟨λ i a hi ha, (le_sup hi).trans' $ le_sup ha, λ i hi a ha, le_sup $ mem_sigma.2 ⟨hi, ha⟩⟩,
 end
 
 lemma inf_sigma [semilattice_inf β] [order_top β] :

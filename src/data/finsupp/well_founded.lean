@@ -9,6 +9,9 @@ import data.finsupp.lex
 /-!
 # Well-foundedness of the lexicographic and product orders on `finsupp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `finsupp.lex.well_founded` and the two variants that follow it essentially say that if
 `(>)` is a well order on `α`, `(<)` is well-founded on `N`, and `0` is a bottom element in `N`,
 then the lexicographic `(<)` is well-founded on `α →₀ N`.
@@ -57,8 +60,7 @@ variable (r)
 
 theorem lex.well_founded_of_finite [is_strict_total_order α r] [finite α] [has_zero N]
   (hs : well_founded s) : well_founded (finsupp.lex r s) :=
-have _ := fintype.of_finite α,
-  by exactI inv_image.wf (@equiv_fun_on_fintype α N _ _) (pi.lex.well_founded r $ λ a, hs)
+inv_image.wf (@equiv_fun_on_finite α N _ _) (pi.lex.well_founded r $ λ a, hs)
 
 theorem lex.well_founded_lt_of_finite [linear_order α] [finite α] [has_zero N] [has_lt N]
   [hwf : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
@@ -74,7 +76,6 @@ finsupp.well_founded_lt $ λ a, (zero_le a).not_lt
 
 instance well_founded_lt_of_finite [finite α] [has_zero N] [preorder N]
   [well_founded_lt N] : well_founded_lt (α →₀ N) :=
-have _ := fintype.of_finite α,
-  by exactI ⟨inv_image.wf equiv_fun_on_fintype function.well_founded_lt.wf⟩
+⟨inv_image.wf equiv_fun_on_finite function.well_founded_lt.wf⟩
 
 end finsupp

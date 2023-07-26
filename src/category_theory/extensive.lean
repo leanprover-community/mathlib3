@@ -6,12 +6,15 @@ Authors: Andrew Yang
 import category_theory.limits.shapes.comm_sq
 import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.types
-import topology.category.Top.limits
+import topology.category.Top.limits.pullbacks
 import category_theory.limits.functor_category
 
 /-!
 
 # Extensive categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 - `category_theory.is_van_kampen_colimit`: A (colimit) cocone over a diagram `F : J ⥤ C` is van
@@ -486,8 +489,7 @@ end
 
 instance [has_pullbacks C] [finitary_extensive C] : finitary_extensive (D ⥤ C) :=
 begin
-  haveI : has_finite_coproducts (D ⥤ C) :=
-    ⟨λ J hJ, by exactI limits.functor_category_has_colimits_of_shape⟩,
+  haveI : has_finite_coproducts (D ⥤ C) := ⟨λ n, limits.functor_category_has_colimits_of_shape⟩,
   exact ⟨λ X Y c hc, is_van_kampen_colimit_of_evaluation _ c
     (λ x, finitary_extensive.van_kampen _ $ preserves_colimit.preserves hc)⟩
 end

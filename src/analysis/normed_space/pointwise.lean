@@ -10,15 +10,70 @@ import analysis.normed_space.basic
 /-!
 # Properties of pointwise scalar multiplication of sets in normed spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We explore the relationships between scalar multiplication of sets in vector spaces, and the norm.
 Notably, we express arbitrary balls as rescaling of other balls, and we show that the
 multiplication of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
-variables {𝕜 E : Type*} [normed_field 𝕜]
+variables {𝕜 E : Type*}
+
+section smul_zero_class
+variables [seminormed_add_comm_group 𝕜] [seminormed_add_comm_group E]
+variables [smul_zero_class 𝕜 E] [has_bounded_smul 𝕜 E]
+
+lemma ediam_smul_le (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) ≤ ‖c‖₊ • emetric.diam s :=
+(lipschitz_with_smul c).ediam_image_le s
+
+end smul_zero_class
+
+section division_ring
+variables [normed_division_ring 𝕜] [seminormed_add_comm_group E]
+variables [module 𝕜 E] [has_bounded_smul 𝕜 E]
+
+lemma ediam_smul₀ (c : 𝕜) (s : set E) :
+  emetric.diam (c • s) = ‖c‖₊ • emetric.diam s :=
+begin
+  refine le_antisymm (ediam_smul_le c s) _,
+  obtain rfl | hc := eq_or_ne c 0,
+  { obtain rfl | hs := s.eq_empty_or_nonempty,
+    { simp },
+    simp [zero_smul_set hs, ←set.singleton_zero], },
+  { have := (lipschitz_with_smul c⁻¹).ediam_image_le (c • s),
+    rwa [← smul_eq_mul, ←ennreal.smul_def, set.image_smul, inv_smul_smul₀ hc s, nnnorm_inv,
+      ennreal.le_inv_smul_iff (nnnorm_ne_zero_iff.mpr hc)] at this }
+end
+
+lemma diam_smul₀ (c : 𝕜) (x : set E) : diam (c • x) = ‖c‖ * diam x :=
+by simp_rw [diam, ediam_smul₀, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm, smul_eq_mul]
+
+lemma inf_edist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  emetric.inf_edist (c • x) (c • s) = ‖c‖₊ • emetric.inf_edist x s :=
+begin
+  simp_rw [emetric.inf_edist],
+  have : function.surjective ((•) c : E → E) :=
+    function.right_inverse.surjective (smul_inv_smul₀ hc),
+  transitivity ⨅ y (H : y ∈ s), ‖c‖₊ • edist x y,
+  { refine (this.infi_congr _ $ λ y, _).symm,
+    simp_rw [smul_mem_smul_set_iff₀ hc, edist_smul₀] },
+  { have : (‖c‖₊ : ennreal) ≠ 0 := by simp [hc],
+    simp_rw [ennreal.smul_def, smul_eq_mul, ennreal.mul_infi_of_ne this ennreal.coe_ne_top] },
+end
+
+lemma inf_dist_smul₀ {c : 𝕜} (hc : c ≠ 0) (s : set E) (x : E) :
+  metric.inf_dist (c • x) (c • s) = ‖c‖ * metric.inf_dist x s :=
+by simp_rw [metric.inf_dist, inf_edist_smul₀ hc, ennreal.to_real_smul, nnreal.smul_def, coe_nnnorm,
+  smul_eq_mul]
+
+end division_ring
+
+variables [normed_field 𝕜]
 
 section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
@@ -29,7 +84,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
+  simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul₀],
 end
 
 lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (‖c‖) :=
@@ -41,7 +96,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
+  simp only [mem_sphere, dist_smul₀, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
@@ -275,7 +330,7 @@ by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
 
 lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -283,7 +338,7 @@ by simp_rw [sub_eq_add_neg, neg_ball, ball_add_ball hε hδ]
 
 lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+by rw [ball_add, thickening_closed_ball hε hδ b, metric.vadd_ball, vadd_eq_add]
 
 lemma ball_sub_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε - closed_ball b δ = ball (a - b) (ε + δ) :=
@@ -291,7 +346,7 @@ by simp_rw [sub_eq_add_neg, neg_closed_ball, ball_add_closed_ball hε hδ]
 
 lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]; apply_instance
+by rw [add_comm, ball_add_closed_ball hδ hε b, add_comm, add_comm δ]
 
 lemma closed_ball_sub_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε - ball b δ = ball (a - b) (ε + δ) :=
@@ -299,8 +354,8 @@ by simp_rw [sub_eq_add_neg, neg_ball, closed_ball_add_ball hε hδ]
 
 lemma closed_ball_add_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
-by rw [(is_compact_closed_ball _ _).add_closed_ball hδ, cthickening_closed_ball hδ hε,
-  vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]; apply_instance
+by rw [(is_compact_closed_ball _ _).add_closed_ball hδ b, cthickening_closed_ball hδ hε a,
+  metric.vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]
 
 lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε - closed_ball b δ = closed_ball (a - b) (ε + δ) :=

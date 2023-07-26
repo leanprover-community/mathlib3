@@ -11,6 +11,9 @@ import category_theory.limits.shapes.diagonal
 /-!
 # Fibred products of schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we construct the fibred product of schemes via gluing.
 We roughly follow [har77] Theorem 3.3.
 

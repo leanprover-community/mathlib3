@@ -8,6 +8,9 @@ import analysis.special_functions.trigonometric.complex
 /-!
 # The `arctan` function.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Inequalities, derivatives,
 and `real.tan` as a `local_homeomorph` between `(-(π / 2), π / 2)` and the whole line.
 -/
@@ -17,7 +20,7 @@ noncomputable theory
 namespace real
 
 open set filter
-open_locale topological_space real
+open_locale topology real
 
 lemma tan_add {x y : ℝ}
   (h : ((∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) ∧ ∀ l : ℤ, y ≠ (2 * l + 1) * π / 2)

@@ -11,6 +11,9 @@ import category_theory.types
 /-!
 # The sheaf condition in terms of unique gluings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide an alternative formulation of the sheaf condition in terms of unique gluings.
 
 We work with sheaves valued in a concrete category `C` admitting all limits, whose forgetful

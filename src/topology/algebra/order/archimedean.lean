@@ -3,14 +3,17 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import algebra.order.archimedean
 
 /-!
 # Rational numbers are dense in a linear ordered archimedean field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that coercion from `ℚ` to a linear ordered archimedean field has dense range.
-This lemma is in a separate file because `topology.algebra.order.basic` does not import
+This lemma is in a separate file because `topology.order.basic` does not import
 `algebra.order.archimedean`.
 -/
 

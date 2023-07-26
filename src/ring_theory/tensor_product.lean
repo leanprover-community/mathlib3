@@ -11,6 +11,9 @@ import linear_algebra.direct_sum.finsupp
 /-!
 # The tensor product of R-algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a (semi)ring and `A` an `R`-algebra.
 In this file we:
 
@@ -74,7 +77,8 @@ lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).r
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
 bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
 @[simps] def curry (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
-{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
+{ to_fun := curry (f.restrict_scalars R),
+  map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
@@ -117,7 +121,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 
 @[simp] lemma lift_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
   lift f (x ⊗ₜ y) = f x y :=
-lift.tmul' x y
+rfl
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.uncurry`:
@@ -318,16 +322,16 @@ begin
   { intros, simp only [linear_map.map_add, *, linear_map.add_apply], },
 end
 
-lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
+protected lemma mul_assoc (x y z : A ⊗[R] B) : mul (mul x y) z = mul x (mul y z) :=
 mul_assoc' mul (by { intros, simp only [mul_apply, mul_assoc], }) x y z
 
-lemma one_mul (x : A ⊗[R] B) : mul (1 ⊗ₜ 1) x = x :=
+protected lemma one_mul (x : A ⊗[R] B) : mul (1 ⊗ₜ 1) x = x :=
 begin
   apply tensor_product.induction_on x;
   simp {contextual := tt},
 end
 
-lemma mul_one (x : A ⊗[R] B) : mul x (1 ⊗ₜ 1) = x :=
+protected lemma mul_one (x : A ⊗[R] B) : mul x (1 ⊗ₜ 1) = x :=
 begin
   apply tensor_product.induction_on x;
   simp {contextual := tt},
@@ -343,9 +347,9 @@ instance : semiring (A ⊗[R] B) :=
   add := (+),
   one := 1,
   mul := λ a b, mul a b,
-  one_mul := one_mul,
-  mul_one := mul_one,
-  mul_assoc := mul_assoc,
+  one_mul := algebra.tensor_product.one_mul,
+  mul_one := algebra.tensor_product.mul_one,
+  mul_assoc := algebra.tensor_product.mul_assoc,
   zero_mul := by simp,
   mul_zero := by simp,
   left_distrib := by simp,
@@ -379,22 +383,57 @@ def include_left_ring_hom : A →+* A ⊗[R] B :=
   map_one' := rfl,
   map_mul' := by simp }
 
-variables {S : Type*} [comm_semiring S] [algebra R S] [algebra S A] [is_scalar_tower R S A]
+variables {S : Type*}
 
-instance left_algebra : algebra S (A ⊗[R] B) :=
+-- we want `is_scalar_tower_right` to take priority since it's better for unification elsewhere
+@[priority 100]
+instance is_scalar_tower_right
+  [monoid S] [distrib_mul_action S A] [is_scalar_tower S A A] [smul_comm_class R S A] :
+  is_scalar_tower S (A ⊗[R] B) (A ⊗[R] B) :=
+{ smul_assoc := λ r x y, begin
+    change (r • x) * y = r • (x * y),
+    apply tensor_product.induction_on y,
+    { simp [smul_zero], },
+    { apply tensor_product.induction_on x,
+      { simp [smul_zero] },
+      { intros a b a' b',
+        dsimp,
+        rw [tensor_product.smul_tmul', tensor_product.smul_tmul', tmul_mul_tmul, smul_mul_assoc], },
+      { intros, simp [smul_add, add_mul, *], } },
+    { intros, simp [smul_add, mul_add, *], },
+  end }
+
+-- we want `algebra.to_smul_comm_class` to take priority since it's better for unification elsewhere
+@[priority 100]
+instance smul_comm_class_right
+  [monoid S] [distrib_mul_action S A] [smul_comm_class S A A] [smul_comm_class R S A] :
+  smul_comm_class S (A ⊗[R] B) (A ⊗[R] B) :=
+{ smul_comm := λ r x y, begin
+    change r • (x * y) = x * r • y,
+    apply tensor_product.induction_on y,
+    { simp [smul_zero], },
+    { apply tensor_product.induction_on x,
+      { simp [smul_zero] },
+      { intros a b a' b',
+        dsimp,
+        rw [tensor_product.smul_tmul', tensor_product.smul_tmul', tmul_mul_tmul, mul_smul_comm], },
+      { intros, simp [smul_add, add_mul, *], } },
+    { intros, simp [smul_add, mul_add, *], },
+  end }
+
+variables [comm_semiring S] [algebra S A]
+
+instance left_algebra [smul_comm_class R S A] : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
-    apply tensor_product.induction_on x,
-    { simp, },
-    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul], },
-    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'], },
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
+    rw [algebra_map_eq_smul_one, ←smul_tmul', ←one_def, mul_smul_comm, smul_mul_assoc, mul_one,
+      one_mul],
   end,
   smul_def' := λ r x,
   begin
-    apply tensor_product.induction_on x,
-    { simp [smul_zero], },
-    { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
-    { intros, dsimp, simp [smul_add, mul_add, *], },
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply, include_left_ring_hom_apply],
+    rw [algebra_map_eq_smul_one, ←smul_tmul', smul_mul_assoc, ←one_def, one_mul],
   end,
   .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
   .. (by apply_instance : module S (A ⊗[R] B)) }.
@@ -404,10 +443,8 @@ instance left_algebra : algebra S (A ⊗[R] B) :=
 instance : algebra R (A ⊗[R] B) := infer_instance
 
 @[simp]
-lemma algebra_map_apply (r : S) :
+lemma algebra_map_apply [smul_comm_class R S A] (r : S) :
   (algebra_map S (A ⊗[R] B)) r = ((algebra_map S A) r) ⊗ₜ 1 := rfl
-
-instance : is_scalar_tower R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 
@@ -420,6 +457,7 @@ begin
   simp [H],
 end
 
+-- TODO: with `smul_comm_class R S A` we can have this as an `S`-algebra morphism
 /-- The `R`-algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
 def include_left : A →ₐ[R] A ⊗[R] B :=
 { commutes' := by simp,
@@ -488,6 +526,20 @@ instance : comm_ring (A ⊗[R] B) :=
       simp [mul_add, add_mul, h₁, h₂], },
   end
   .. (by apply_instance : ring (A ⊗[R] B)) }.
+
+section right_algebra
+
+/-- `S ⊗[R] T` has a `T`-algebra structure. This is not a global instance or else the action of
+`S` on `S ⊗[R] S` would be ambiguous. -/
+@[reducible] def right_algebra : algebra B (A ⊗[R] B) :=
+(algebra.tensor_product.include_right.to_ring_hom : B →+* A ⊗[R] B).to_algebra
+
+local attribute [instance] tensor_product.right_algebra
+
+instance right_is_scalar_tower : is_scalar_tower R B (A ⊗[R] B) :=
+is_scalar_tower.of_algebra_map_eq (λ r, (algebra.tensor_product.include_right.commutes r).symm)
+
+end right_algebra
 
 end comm_ring
 
@@ -766,15 +818,15 @@ variables {R}
 
 lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = linear_map.mul' R S := rfl
 
-@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := linear_map.mul'_apply
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := rfl
 
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
-alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.mul_one _)
+alg_hom.ext $ _root_.mul_one
 
 @[simp]
 lemma lmul'_comp_include_right : (lmul' R : _ →ₐ[R] S).comp include_right = alg_hom.id R S :=
-alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.one_mul _)
+alg_hom.ext $ _root_.one_mul
 
 /--
 If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
@@ -912,8 +964,7 @@ tensor_product.lift
   map_smul' := λ n r, by { ext, simp only [ring_hom.id_apply, linear_map.smul_apply, smul_assoc] } }
 
 lemma module_aux_apply (a : A) (b : B) (m : M) :
-  module_aux (a ⊗ₜ[R] b) m = a • b • m :=
-by simp [module_aux]
+  module_aux (a ⊗ₜ[R] b) m = a • b • m := rfl
 
 variables [smul_comm_class A B M]
 
@@ -963,6 +1014,6 @@ protected def module : module (A ⊗[R] B) M :=
 
 local attribute [instance] tensor_product.algebra.module
 
-lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
+lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := rfl
 
 end tensor_product.algebra

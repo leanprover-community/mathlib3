@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.hahn_banach.extension
-import measure_theory.measure.lebesgue
+import measure_theory.integral.set_integral
+import measure_theory.measure.lebesgue.basic
+import topology.continuous_function.bounded
 
 /-!
 # A counterexample on Pettis integrability
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 There are several theories of integration for functions taking values in Banach spaces. Bochner
 integration, requiring approximation by simple functions, is the analogue of the one-dimensional
@@ -69,6 +74,8 @@ The space of all bounded functions is defined as the space of all bounded contin
 on a discrete copy of the original type, as mathlib only contains the space of all bounded
 continuous functions (which is the useful one).
 -/
+
+namespace counterexample
 
 universe u
 variables {α : Type u}
@@ -283,7 +290,7 @@ begin
         by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
-      swap, { rw disjoint.comm, apply disjoint_diff },
+      swap, { exact disjoint_sdiff_self_left },
       calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
       ... ≤ f (↑(s (n + 1 : ℕ)) \ ↑(s n)) + f (↑(s n)) :
         add_le_add (I1 n) IH } },
@@ -339,7 +346,7 @@ begin
   simp only [discrete_part, continuous_part, restrict_apply],
   rw [← f.additive, ← inter_distrib_right],
   { simp only [union_univ, union_diff_self, univ_inter] },
-  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_diff,
+  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_sdiff_self_right,
     exact this.mono (inter_subset_left _ _) (inter_subset_left _ _) }
 end
 
@@ -361,7 +368,7 @@ begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
   { exact continuous_part_apply_eq_zero_of_countable _ _ (hs.mono (inter_subset_right _ _)) },
-  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint.comm.1 disjoint_diff) },
+  { exact disjoint.mono_right (inter_subset_right _ _) disjoint_sdiff_self_left },
 end
 
 end bounded_additive_measure
@@ -515,7 +522,7 @@ begin
   have : φ (f Hcont x) = ψ (spf Hcont x) := rfl,
   have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_diff_self],
   rw [this, eq_add_parts, discrete_part_apply, hx, ψ.empty, zero_add, U,
-    ψ.continuous_part.additive _ _ (disjoint_diff),
+    ψ.continuous_part.additive _ _ disjoint_sdiff_self_right,
     ψ.continuous_part_apply_eq_zero_of_countable _ (countable_compl_spf Hcont x), add_zero],
 end
 
@@ -532,7 +539,7 @@ begin
     ⊆ ⋃ y ∈ φ.to_bounded_additive_measure.discrete_support, {x | y ∈ spf Hcont x},
   { assume x hx,
     dsimp at hx,
-    rw [← ne.def, ne_empty_iff_nonempty] at hx,
+    rw [← ne.def, ←nonempty_iff_ne_empty] at hx,
     simp only [exists_prop, mem_Union, mem_set_of_eq],
     exact hx },
   apply countable.mono (subset.trans A B),
@@ -604,3 +611,5 @@ begin
 end
 
 end phillips_1940
+
+end counterexample

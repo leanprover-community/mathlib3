@@ -9,6 +9,9 @@ import data.polynomial.reverse
 /-!
 # Floors and ceils aren't preserved under ordered ring homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Intuitively, if `f : α → β` is an ordered ring homomorphism, then floors and ceils should be
 preserved by `f` because:
 * `f` preserves the naturals/integers in `α` and `β` because it's a ring hom.
@@ -33,6 +36,8 @@ But it does not preserve floors (nor ceils) as `⌊-ε⌋ = -1` while `⌊f (-ε
 (`int_with_epsilons.forget_epsilons_floor_lt`, `int_with_epsilons.lt_forget_epsilons_ceil`).
 -/
 
+namespace counterexample
+
 noncomputable theory
 
 open function int polynomial
@@ -41,9 +46,9 @@ open_locale polynomial
 /-- The integers with infinitesimals adjoined. -/
 @[derive [comm_ring, nontrivial, inhabited]] def int_with_epsilon := ℤ[X]
 
-notation `ℤ[ε]` := int_with_epsilon
+local notation `ℤ[ε]` := int_with_epsilon
 
-notation `ε` := (X : ℤ[ε])
+local notation `ε` := (X : ℤ[ε])
 
 namespace int_with_epsilon
 
@@ -124,3 +129,5 @@ begin
 end
 
 end int_with_epsilon
+
+end counterexample

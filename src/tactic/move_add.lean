@@ -308,8 +308,8 @@ end
 example {a b c d : ℕ} (h : c = d) : c + b * c + a * c = a * d + d + b * d :=
 begin
   move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
-  -- the first `_ * c` unifies with `b * c` and moves it to the right
-  -- the second `_ * c` unifies with `a * c` and moves it to the left
+  -- the first `_ * c` unifies with `b * c` and moves to the right
+  -- the second `_ * c` unifies with `a * c` and moves to the left
   congr;
   assumption
 end
@@ -320,15 +320,16 @@ without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
 Finally, `move_add` can also target one or more hypotheses.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
-As usual, passing `⊢` refers to acting on the goal as well.
+As usual, passing `⊢` refers to acting on the goal.
 
 ##  Reporting sub-optimal usage
 
 The tactic could fail to prove the reordering.  One potential cause is when there are multiple
-matches for the rearrangements and an earlier rewrite makes a subsequent one fail.  If that is not
-the case, though, I would not know what the cause of this could be.
+matches for the rearrangements and an earlier rewrite makes a subsequent one fail.  Another
+possibility is that the rearranged expression changes the *Type* of some expression and the
+tactic gets stumped.  Please, report bugs and failures in the Zulip chat!
 
-There are three kinds of unwanted use for `move_add` that result in errors: the tactic fails
+There are three kinds of unwanted use for `move_add` that result in errors, where the tactic fails
 and flags the unwanted use.
 1. `move_add [vars]? at *` reports globally unused variables and whether *all* goals
    are unchanged, not *each unchanged goal*.
@@ -336,13 +337,14 @@ and flags the unwanted use.
    flagged (unless we are using `at *`).
 3. If a user-provided expression never unifies, then the variable is flagged.
 
-The tactic produces an error, reporting unused inputs and unchanged targets.
+In these cases, the tactic produces an error, reporting unused inputs and unchanged targets as
+appropriate.
 
 For instance, `move_add ← _` always fails reporting an unchanged goal, but never an unused variable.
 
 ##  Comparison with existing tactics
 
-* `tactive.interactive.abel`
+* `tactic.interactive.abel`
   performs a "reduction to normal form" that allows it to close goals involving sums with higher
   success rate than `move_add`.  If the goal is an equality of two sums that are simply obtained by
   reparenthesizing and permuting summands, then `move_add [appropriate terms]` can close the goal.
@@ -350,7 +352,9 @@ For instance, `move_add ← _` always fails reporting an unchanged goal, but nev
   the end of the final sum, so that from there the user can continue with the proof.
 
 * `tactic.interactive.ac_change`
-  supports a wide variety of operations.  At the moment, `move_add` only works with addition.
+  supports a wide variety of operations.  At the moment, `move_add` works with addition, `move_mul`
+  works with multiplication.  There is the possibility of supporting other operations, using the
+  non-interactive tactic `tactic.move_op`.
   Still, on several experiments, `move_add` had a much quicker performance than `ac_change`.
   Also, for `move_add` the user need only specify a few terms: the tactic itself takes care of
   producing the full rearrangement and proving it "behind the scenes".
@@ -368,7 +372,7 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
   tactic unit :=
 move_op args locat ``((+))
 
-/--  See the doc-string for `move_add` and mentally
+/--  See the doc-string for `tactic.interactive.move_add` and mentally
 replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
@@ -399,7 +403,7 @@ add_tactic_doc
 add_tactic_doc
 { name := "move_mul",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.move_add],
+  decl_names := [`tactic.interactive.move_mul],
   tags := ["arithmetic"] }
 
 end interactive

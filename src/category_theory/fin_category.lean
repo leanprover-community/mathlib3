@@ -11,6 +11,9 @@ import category_theory.category.ulift
 /-!
 # Finite categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A category is finite in this sense if it has finitely many objects, and finitely many morphisms.
 
 ## Implementation
@@ -57,15 +60,14 @@ noncomputable def obj_as_type_equiv : obj_as_type α ≌ α :=
 /-- A fin_category `α` is equivalent to a fin_category with in `Type`. -/
 @[nolint unused_arguments] abbreviation as_type : Type := fin (fintype.card α)
 
-@[simps hom id comp (lemmas_only)] noncomputable
+@[simps id comp (lemmas_only)] noncomputable
 instance category_as_type : small_category (as_type α) :=
 { hom := λ i j, fin (fintype.card (@quiver.hom (obj_as_type α) _ i j)),
   id := λ i, fintype.equiv_fin _ (𝟙 i),
   comp := λ i j k f g, fintype.equiv_fin _
     ((fintype.equiv_fin _).symm f ≫ (fintype.equiv_fin _).symm g) }
 
-local attribute [simp] category_as_type_hom category_as_type_id
-  category_as_type_comp
+local attribute [simp] category_as_type_id category_as_type_comp
 
 /-- The "identity" functor from `as_type α` to `obj_as_type α`. -/
 @[simps] noncomputable def as_type_to_obj_as_type : as_type α ⥤ obj_as_type α :=

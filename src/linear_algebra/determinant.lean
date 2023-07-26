@@ -564,7 +564,7 @@ lemma basis.det_reindex' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b.reindex e).det = b.det.dom_dom_congr e :=
 alternating_map.ext $ λ _, basis.det_reindex _ _ _
 
-lemma basis.det_reindex_symm_apply {ι' : Type*} [fintype ι'] [decidable_eq ι']
+lemma basis.det_reindex_symm {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :
   (b.reindex e.symm).det (v ∘ e) = b.det v :=
 by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.right_id]

@@ -582,7 +582,7 @@ rfl
 rfl
 
 @[simp] lemma dom_dom_congr_smul {S : Type*}
-  [monoid S] [distrib_mul_action S N] [smul_comm_class R S N](σ : ι ≃ ι') (c : S)
+  [monoid S] [distrib_mul_action S N] [smul_comm_class R S N] (σ : ι ≃ ι') (c : S)
   (f : alternating_map R M N ι) :
   (c • f).dom_dom_congr σ = c • f.dom_dom_congr σ :=
 rfl

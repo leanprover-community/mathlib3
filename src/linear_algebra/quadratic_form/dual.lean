@@ -21,15 +21,15 @@ import linear_algebra.quadratic_form.prod
 
 -/
 
-universes u v w
-variables (R M : Type*) {S N : Type*}
+variables (R M N : Type*)
 
 namespace bilin_form
 
 section semiring
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
-/-- The symmetric bilinear form on `module.dual R M × M` defined as `B (f, x) (g, y) = f y + g x`. -/
+/-- The symmetric bilinear form on `module.dual R M × M` defined as
+`B (f, x) (g, y) = f y + g x`. -/
 @[simps]
 def dual_prod : bilin_form R (module.dual R M × M) :=
 linear_map.to_bilin $
@@ -72,7 +72,6 @@ begin
 end
 
 end ring
-
 
 end bilin_form
 

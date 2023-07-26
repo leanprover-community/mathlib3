@@ -139,6 +139,24 @@ equiv.symm $ equiv.of_bijective
   ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
 
+@[simp, to_additive]
+lemma smul_orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) (y : α ⧸ (stabilizer α b)) :
+  a • ((orbit_equiv_quotient_stabilizer α b).symm y) =
+  (orbit_equiv_quotient_stabilizer α b).symm (a • y) :=
+by simpa only [orbit_equiv_quotient_stabilizer, mul_action.of_quotient_stabilizer_smul,
+               equiv.symm_symm, equiv.of_bijective_apply]
+
+@[simp, to_additive]
+lemma smul_orbit_equiv_quotient_stabilizer_apply (b : β) (a : α) (x : orbit α b) :
+  a • (orbit_equiv_quotient_stabilizer α b x) =
+  orbit_equiv_quotient_stabilizer α b (a • x) :=
+begin
+  have : (orbit_equiv_quotient_stabilizer α b).symm (orbit_equiv_quotient_stabilizer α b x) = x :=
+    (orbit_equiv_quotient_stabilizer α b).left_inv x,
+  nth_rewrite_rhs 0 ←this,
+  rw [smul_orbit_equiv_quotient_stabilizer_symm_apply, equiv.apply_symm_apply],
+end
+
 /-- Orbit-stabilizer theorem. -/
 @[to_additive "Orbit-stabilizer theorem."]
 noncomputable def orbit_prod_stabilizer_equiv_group (b : β) :

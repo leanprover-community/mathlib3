@@ -7,20 +7,34 @@ import algebra.module.basic
 
 /-!
 # Bundle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
 
 We represent a bundle `E` over a base space `B` as a dependent type `E : B → Type*`.
 
-We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
-a topology which is not the disjoint union topology `sigma.topological_space`. In general, the
-constructions of fiber bundles we will make will be of this form.
+We define `bundle.total_space F E` to be the type of pairs `⟨b, x⟩`, where `b : B` and `x : E x`.
+This type is isomorphic to `Σ x, E x` and uses an extra argument `F` for reasons explained below. In
+general, the constructions of fiber bundles we will make will be of this form.
 
 ## Main Definitions
 
 * `bundle.total_space` the total space of a bundle.
 * `bundle.total_space.proj` the projection from the total space to the base space.
-* `bundle.total_space_mk` the constructor for the total space.
+* `bundle.total_space.mk` the constructor for the total space.
+
+## Implementation Notes
+
+- We use a custom structure for the total space of a bundle instead of using a type synonym for the
+  canonical disjoint union `Σ x, E x` because the total space usually has a different topology and
+  Lean 4 `simp` fails to apply lemmas about `Σ x, E x` to elements of the total space.
+
+- The definition of `bundle.total_space` has an unused argument `F`. The reason is that in some
+  constructions (e.g., `bundle.continuous_linear_map.vector_bundle`) we need access to the atlas of
+  trivializations of original fiber bundles to construct the topology on the total space of the new
+  fiber bundle.
 
 ## References
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
@@ -28,61 +42,65 @@ constructions of fiber bundles we will make will be of this form.
 
 namespace bundle
 
-variables {B : Type*} (E : B → Type*)
+variables {B F : Type*} (E : B → Type*)
 
 /--
-`bundle.total_space E` is the total space of the bundle `Σ x, E x`.
-This type synonym is used to avoid conflicts with general sigma types.
+`bundle.total_space E` is the total space of the bundle. It consists of pairs
+`(proj : B, snd : E proj)`.
 -/
-def total_space := Σ x, E x
+@[ext]
+structure total_space (F : Type*) (E : B → Type*) :=
+(proj : B)
+(snd : E proj)
 
 instance [inhabited B] [inhabited (E default)] :
-  inhabited (total_space E) := ⟨⟨default, default⟩⟩
+  inhabited (total_space F E) := ⟨⟨default, default⟩⟩
 
 variables {E}
 
 /-- `bundle.total_space.proj` is the canonical projection `bundle.total_space E → B` from the
 total space to the base space. -/
-@[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
+add_decl_doc total_space.proj
 
 -- this notation won't be used in the pretty-printer
 localized "notation `π` := @bundle.total_space.proj _" in bundle
 
-/-- Constructor for the total space of a bundle. -/
-@[simp, reducible] def total_space_mk (b : B) (a : E b) :
-  bundle.total_space E := ⟨b, a⟩
-
-lemma total_space.proj_mk {x : B} {y : E x} : (total_space_mk x y).proj = x :=
-rfl
-
-lemma sigma_mk_eq_total_space_mk {x : B} {y : E x} : sigma.mk x y = total_space_mk x y :=
-rfl
+-- TODO: try `abbrev` in Lean 4
+localized "notation `total_space.mk'` F:max := @bundle.total_space.mk _ F _" in bundle
 
 lemma total_space.mk_cast {x x' : B} (h : x = x') (b : E x) :
-  total_space_mk x' (cast (congr_arg E h) b) = total_space_mk x b :=
+  total_space.mk' F x' (cast (congr_arg E h) b) = total_space.mk x b :=
 by { subst h, refl }
 
-lemma total_space.eta (z : total_space E) :
-  total_space_mk z.proj z.2 = z :=
-sigma.eta z
+instance {x : B} : has_coe_t (E x) (total_space F E) := ⟨total_space.mk x⟩
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk x⟩
+@[simp] lemma total_space.coe_proj (x : B) (v : E x) : (v : total_space F E).proj = x := rfl
+@[simp] lemma total_space.coe_snd {x : B} {y : E x} : (y : total_space F E).snd = y := rfl
 
-@[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
-@[simp] lemma coe_snd {x : B} {y : E x} : (y : total_space E).snd = y := rfl
+lemma total_space.coe_eq_mk {x : B} (v : E x) : (v : total_space F E) = total_space.mk x v := rfl
 
-lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk x v := rfl
+lemma total_space.eta (z : total_space F E) :
+  total_space.mk z.proj z.2 = z :=
+by cases z; refl
 
 -- notation for the direct sum of two bundles over the same base
 notation E₁ ` ×ᵇ `:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
-def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
-
-instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
+@[reducible, nolint unused_arguments]
+def trivial (B : Type*) (F : Type*) : B → Type* := λ _, F
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
-def trivial.proj_snd (B : Type*) (F : Type*) : total_space (bundle.trivial B F) → F := sigma.snd
+def total_space.trivial_snd (B : Type*) (F : Type*) : total_space F (bundle.trivial B F) → F :=
+total_space.snd
+
+/-- A trivial bundle is equivalent to the product `B × F`. -/
+@[simps { attrs := [`simp, `mfld_simps] }]
+def total_space.to_prod (B F : Type*) : total_space F (λ _ : B, F) ≃ B × F :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨_, _⟩, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
 
 section pullback
 
@@ -90,55 +108,36 @@ variable {B' : Type*}
 
 /-- The pullback of a bundle `E` over a base `B` under a map `f : B' → B`, denoted by `pullback f E`
 or `f *ᵖ E`,  is the bundle over `B'` whose fiber over `b'` is `E (f b')`. -/
-@[nolint has_nonempty_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+def pullback (f : B' → B) (E : B → Type*) : B' → Type* := λ x, E (f x)
 
-notation f ` *ᵖ ` E := pullback f E
+notation f ` *ᵖ ` E:max := pullback f E
+
+instance {f : B' → B} {x : B'} [nonempty (E (f x))] : nonempty (f *ᵖ E x) := ‹nonempty (E (f x))›
 
 /-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
 @[simp] def pullback_total_space_embedding (f : B' → B) :
-  total_space (f *ᵖ E) → B' × total_space E :=
-λ z, (z.proj, total_space_mk (f z.proj) z.2)
+  total_space F (f *ᵖ E) → B' × total_space F E :=
+λ z, (z.proj, total_space.mk (f z.proj) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
-def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
-λ z, total_space_mk (f z.proj) z.2
+@[simps { attrs := [`simp, `mfld_simps] }]
+def pullback.lift (f : B' → B) : total_space F (f *ᵖ E) → total_space F E :=
+λ z, ⟨f z.proj, z.2⟩
 
-@[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
-  (pullback.lift f x).proj = f x.1 :=
-rfl
-
-@[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
-  pullback.lift f (total_space_mk x y) = total_space_mk (f x) y :=
-rfl
-
-lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
-  (pullback_total_space_embedding f x).2 = pullback.lift f x :=
+@[simp, mfld_simps] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
+  pullback.lift f (total_space.mk' F x y) = ⟨f x, y⟩ :=
 rfl
 
 end pullback
 
 section fiber_structures
 
-variable [∀ x, add_comm_monoid (E x)]
+@[simp] lemma coe_snd_map_apply [∀ x, has_add (E x)] (x : B) (v w : E x) :
+  (↑(v + w) : total_space F E).snd = (v : total_space F E).snd + (w : total_space F E).snd := rfl
 
-@[simp] lemma coe_snd_map_apply (x : B) (v w : E x) :
-  (↑(v + w) : total_space E).snd = (v : total_space E).snd + (w : total_space E).snd := rfl
-
-variables (R : Type*) [semiring R] [∀ x, module R (E x)]
-
-@[simp] lemma coe_snd_map_smul (x : B) (r : R) (v : E x) :
-  (↑(r • v) : total_space E).snd = r • (v : total_space E).snd := rfl
+@[simp] lemma coe_snd_map_smul {R} [∀ x, has_smul R (E x)] (x : B) (r : R) (v : E x) :
+  (↑(r • v) : total_space F E).snd = r • (v : total_space F E).snd := rfl
 
 end fiber_structures
-
-section trivial_instances
-
-variables {F : Type*} {R : Type*} [semiring R] (b : B)
-
-instance [add_comm_monoid F] : add_comm_monoid (bundle.trivial B F b) := ‹add_comm_monoid F›
-instance [add_comm_group F] : add_comm_group (bundle.trivial B F b) := ‹add_comm_group F›
-instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := ‹module R F›
-
-end trivial_instances
 
 end bundle

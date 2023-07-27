@@ -8,6 +8,9 @@ import algebra.lie.submodule
 /-!
 # Ideal operations for Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a Lie module `M` over a Lie algebra `L`, there is a natural action of the Lie ideals of `L`
 on the Lie submodules of `M`. In the special case that `M = L` with the adjoint action, this
 provides a pairing of Lie ideals which is especially important. For example, it can be used to

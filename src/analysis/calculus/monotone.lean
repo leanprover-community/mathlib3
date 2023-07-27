@@ -3,13 +3,15 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.measure.lebesgue
-import analysis.calculus.deriv
+import analysis.calculus.deriv.slope
 import measure_theory.covering.one_dim
 import order.monotone.extension
 
 /-!
 # Differentiability of monotone functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that a monotone function `f : ℝ → ℝ` is differentiable almost everywhere, in
 `monotone.ae_differentiable_at`. (We also give a version for a function monotone on a set, in
@@ -30,8 +32,8 @@ limit of `(f y - f x) / (y - x)` by a lower and upper approximation argument fro
 behavior of `μ [x, y]`.
 -/
 
-open set filter function metric measure_theory measure_theory.measure is_doubling_measure
-open_locale topological_space
+open set filter function metric measure_theory measure_theory.measure is_unif_loc_doubling_measure
+open_locale topology
 
 /-- If `(f y - f x) / (y - x)` converges to a limit as `y` tends to `x`, then the same goes if
 `y` is shifted a little bit, i.e., `f (y + (y-x)^2) - f x) / (y - x)` converges to the same limit.

@@ -9,6 +9,9 @@ import algebra.group_with_zero.units.lemmas
 /-!
 # Centralizers of magmas and semigroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `set.centralizer`: the centralizer of a subset of a magma
@@ -97,6 +100,16 @@ end
 lemma centralizer_subset [has_mul M] (h : S ⊆ T) : centralizer T ⊆ centralizer S :=
 λ t ht s hs, ht s (h hs)
 
+@[to_additive add_center_subset_add_centralizer]
+lemma center_subset_centralizer [has_mul M] (S : set M) : set.center M ⊆ S.centralizer :=
+λ x hx m _, hx m
+
+@[simp, to_additive add_centralizer_eq_top_iff_subset]
+lemma centralizer_eq_top_iff_subset {s : set M} [has_mul M] :
+  centralizer s = set.univ ↔ s ⊆ center M :=
+eq_top_iff.trans $ ⟨λ h x hx g, (h trivial _ hx).symm,
+                    λ h x _ m hm, (h hm x).symm⟩
+
 variables (M)
 
 @[simp, to_additive add_centralizer_univ]
@@ -108,6 +121,7 @@ variables {M} (S)
 @[simp, to_additive add_centralizer_eq_univ]
 lemma centralizer_eq_univ [comm_semigroup M] : centralizer S = univ :=
 subset.antisymm (subset_univ _) $ λ x hx y hy, mul_comm y x
+
 
 end set
 
@@ -133,8 +147,15 @@ iff.rfl
 decidable_of_iff' _ mem_centralizer_iff
 
 @[to_additive]
+lemma center_le_centralizer (S) : center M ≤ centralizer S := S.center_subset_centralizer
+
+@[to_additive]
 lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
 set.centralizer_subset h
+
+@[simp, to_additive]
+lemma centralizer_eq_top_iff_subset {s : set M} : centralizer s = ⊤ ↔ s ⊆ center M :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 variables (M)
 

@@ -10,7 +10,6 @@ import logic.function.basic
 # Typeclasses for (semi)groups and monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/457
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define typeclasses for algebraic structures with one binary operation.
@@ -87,10 +86,6 @@ variables {G : Type*}
    Remark: we use a tactic for transporting theorems from the multiplicative fragment
    to the additive one.
 -/
-
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
 
 section has_mul
 variables [has_mul G]

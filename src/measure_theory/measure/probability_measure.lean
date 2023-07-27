@@ -5,10 +5,12 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 import measure_theory.integral.average
-import probability.conditional_probability
 
 /-!
 # Probability measures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the type of probability measures on a given measurable space. When the underlying
 space has a topology and the measurable space structure (sigma algebra) is finer than the Borel
@@ -69,7 +71,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 

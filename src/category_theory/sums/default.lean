@@ -1,1 +1,0 @@
-import category_theory.sums.associator

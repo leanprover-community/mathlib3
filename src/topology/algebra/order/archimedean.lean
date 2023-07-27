@@ -9,6 +9,9 @@ import algebra.order.archimedean
 /-!
 # Rational numbers are dense in a linear ordered archimedean field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that coercion from `ℚ` to a linear ordered archimedean field has dense range.
 This lemma is in a separate file because `topology.order.basic` does not import
 `algebra.order.archimedean`.

@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.integral.interval_integral
+import analysis.calculus.deriv.zpow
 import analysis.normed_space.pointwise
 import analysis.special_functions.non_integrable
 import analysis.analytic.basic
 
 /-!
 # Integral over a circle in `ℂ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
 prove some properties of this integral. We give definition and prove most lemmas for a function
@@ -69,7 +73,7 @@ variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 
-open_locale real nnreal interval pointwise topological_space
+open_locale real nnreal interval pointwise topology
 open complex measure_theory topological_space metric function set filter asymptotics
 
 /-!
@@ -259,7 +263,7 @@ begin
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
     simp only [circle_integrable_iff R, deriv_circle_map],
     rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
-    replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
+    replace hθ : θ ∈ [0, 2 * π], from Icc_subset_uIcc (Ioc_subset_Icc_self hθ),
     refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
     set f : ℝ → ℂ := λ θ', circle_map c R θ' - circle_map c R θ,
     have : ∀ᶠ θ' in 𝓝[≠] θ, f θ' ∈ ball (0 : ℂ) 1 \ {0},
@@ -530,9 +534,9 @@ begin
   { exact eventually_of_forall (λ _ _, (summable_geometric_of_lt_1 hwR.1 hwR.2).mul_left _) },
   { simpa only [tsum_mul_left, tsum_geometric_of_lt_1 hwR.1 hwR.2]
       using hf.norm.mul_continuous_on continuous_on_const },
-  { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _),
+  { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _ _),
     simp only [smul_smul],
-    refine has_sum.smul_const _,
+    refine has_sum.smul_const _ _,
     have : ‖w / (circle_map c R θ - c)‖ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
     simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
@@ -547,7 +551,7 @@ lemma has_sum_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R : ℝ} {
     ((2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
 begin
   simp only [cauchy_power_series_apply],
-  exact (has_sum_two_pi_I_cauchy_power_series_integral hf hw).const_smul
+  exact (has_sum_two_pi_I_cauchy_power_series_integral hf hw).const_smul _
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,

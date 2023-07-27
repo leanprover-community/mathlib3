@@ -12,6 +12,9 @@ import data.rat.order
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the local LYM and LYM inequalities as well as Sperner's theorem.
 
 ## Main declarations

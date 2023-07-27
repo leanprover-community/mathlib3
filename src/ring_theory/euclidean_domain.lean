@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Lemmas about Euclidean domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Various about Euclidean domains are proved; all of them seem to be true
 more generally for principal ideal domains, so these lemmas should
 probably be reproved in more generality and this file perhaps removed?
@@ -26,14 +29,12 @@ open euclidean_domain set ideal
 
 section gcd_monoid
 
-variables {R : Type*} [euclidean_domain R] [gcd_monoid R]
+variables {R : Type*} [euclidean_domain R] [gcd_monoid R] {p q : R}
 
-lemma gcd_ne_zero_of_left (p q : R) (hp : p ≠ 0) :
-  gcd_monoid.gcd p q ≠ 0 :=
+lemma gcd_ne_zero_of_left (hp : p ≠ 0) : gcd_monoid.gcd p q ≠ 0 :=
 λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_left p q)
 
-lemma gcd_ne_zero_of_right (p q : R) (hp : q ≠ 0) :
-  gcd_monoid.gcd p q ≠ 0 :=
+lemma gcd_ne_zero_of_right (hp : q ≠ 0) : gcd_monoid.gcd p q ≠ 0 :=
 λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_right p q)
 
 lemma left_div_gcd_ne_zero {p q : R} (hp : p ≠ 0) :
@@ -53,6 +54,13 @@ begin
   rw [hr, mul_comm, mul_div_cancel _ pq0] { occs := occurrences.pos [1] },
   exact r0,
 end
+
+lemma is_coprime_div_gcd_div_gcd (hq : q ≠ 0) :
+  is_coprime (p / gcd_monoid.gcd p q) (q / gcd_monoid.gcd p q) :=
+(gcd_is_unit_iff _ _).1 $ is_unit_gcd_of_eq_mul_gcd
+    (euclidean_domain.mul_div_cancel' (gcd_ne_zero_of_right hq) $ gcd_dvd_left _ _).symm
+    (euclidean_domain.mul_div_cancel' (gcd_ne_zero_of_right hq) $ gcd_dvd_right _ _).symm $
+    gcd_ne_zero_of_right hq
 
 end gcd_monoid
 

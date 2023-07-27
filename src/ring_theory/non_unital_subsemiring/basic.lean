@@ -14,6 +14,9 @@ import group_theory.subsemigroup.centralizer
 /-!
 # Bundled non-unital subsemirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define bundled non-unital subsemirings and some standard constructions:
 `complete_lattice` structure, `subtype` and `inclusion` ring homomorphisms, non-unital subsemiring
 `map`, `comap` and range (`srange`) of a `non_unital_ring_hom` etc.
@@ -28,12 +31,12 @@ variables {R : Type u} {S : Type v} {T : Type w} [non_unital_non_assoc_semiring 
 
 /-- `non_unital_subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both an additive submonoid and also a multiplicative subsemigroup. -/
-class non_unital_subsemiring_class (S : Type*) (R : out_param $ Type u)
+class non_unital_subsemiring_class (S : Type*) (R : Type u)
   [non_unital_non_assoc_semiring R] [set_like S R] extends add_submonoid_class S R :=
 (mul_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a * b ∈ s)
 
 @[priority 100] -- See note [lower instance priority]
-instance non_unital_subsemiring_class.mul_mem_class (S : Type*) (R : out_param $ Type u)
+instance non_unital_subsemiring_class.mul_mem_class (S : Type*) (R : Type u)
   [non_unital_non_assoc_semiring R] [set_like S R] [h : non_unital_subsemiring_class S R] :
   mul_mem_class S R :=
 { .. h }
@@ -414,9 +417,16 @@ lemma mem_centralizer_iff {R} [non_unital_semiring R] {s : set R} {z : R} :
   z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer {R} [non_unital_semiring R] (s) : center R ≤ centralizer s :=
+  s.center_subset_centralizer
+
 lemma centralizer_le {R} [non_unital_semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h
+
+@[simp] lemma centralizer_eq_top_iff_subset {R} [non_unital_semiring R] {s : set R} :
+  centralizer s = ⊤ ↔ s ⊆ center R :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[simp]
 lemma centralizer_univ {R} [non_unital_semiring R] : centralizer set.univ = center R :=

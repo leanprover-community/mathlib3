@@ -11,6 +11,9 @@ import category_theory.preadditive.additive_functor
 /-!
 # Preadditive structure on algebras over a monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` is a preadditive categories and `F` is an additive endofunctor on `C` then `algebra F` is
 also preadditive. Dually, the category `coalgebra F` is also preadditive.
 -/

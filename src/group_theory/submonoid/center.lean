@@ -9,6 +9,9 @@ import group_theory.subsemigroup.center
 /-!
 # Centers of monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `submonoid.center`: the center of a monoid

@@ -8,6 +8,9 @@ import algebra.parity
 
 /-!
 # The cardinality of `fin (bit0 n)` is even.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

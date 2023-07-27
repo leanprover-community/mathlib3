@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.between
-import analysis.convex.topology
+import analysis.convex.normed
 import analysis.normed.group.add_torsor
 
 /-!
 # Sides of affine subspaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines notions of two points being on the same or opposite sides of an affine subspace.
 
@@ -75,7 +78,7 @@ begin
   rcases hfp₁ with ⟨p₁, hp₁, rfl⟩,
   rcases hfp₂ with ⟨p₂, hp₂, rfl⟩,
   refine ⟨p₁, hp₁, p₂, hp₂, _⟩,
-  simp_rw [←linear_map_vsub, (f.injective_iff_linear_injective.2 hf).same_ray_map_iff] at h,
+  simp_rw [←linear_map_vsub, (f.linear_injective_iff.2 hf).same_ray_map_iff] at h,
   exact h
 end
 
@@ -111,7 +114,7 @@ begin
   rcases hfp₁ with ⟨p₁, hp₁, rfl⟩,
   rcases hfp₂ with ⟨p₂, hp₂, rfl⟩,
   refine ⟨p₁, hp₁, p₂, hp₂, _⟩,
-  simp_rw [←linear_map_vsub, (f.injective_iff_linear_injective.2 hf).same_ray_map_iff] at h,
+  simp_rw [←linear_map_vsub, (f.linear_injective_iff.2 hf).same_ray_map_iff] at h,
   exact h
 end
 

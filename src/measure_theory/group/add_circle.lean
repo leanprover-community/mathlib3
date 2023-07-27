@@ -9,6 +9,9 @@ import data.zmod.quotient
 /-!
 # Measure-theoretic results about the additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The file is a place to collect measure-theoretic results about the additive circle.
 
 ## Main definitions:
@@ -21,7 +24,7 @@ The file is a place to collect measure-theoretic results about the additive circ
 -/
 
 open set function filter measure_theory measure_theory.measure metric
-open_locale measure_theory pointwise big_operators topological_space ennreal
+open_locale measure_theory pointwise big_operators topology ennreal
 
 namespace add_circle
 

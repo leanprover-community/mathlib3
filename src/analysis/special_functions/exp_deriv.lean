@@ -3,12 +3,13 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.calculus.inverse
 import analysis.complex.real_deriv
-import analysis.special_functions.exp
 
 /-!
 # Complex and real exponential
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that `complex.exp` and `real.exp` are infinitely smooth functions.
 
@@ -20,7 +21,7 @@ exp, derivative
 noncomputable theory
 
 open filter asymptotics set function
-open_locale classical topological_space
+open_locale classical topology
 
 namespace complex
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
@@ -67,9 +68,6 @@ cont_diff_exp.cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x) le_rfl
 lemma has_strict_fderiv_at_exp_real (x : ℂ) :
   has_strict_fderiv_at exp (exp x • (1 : ℂ →L[ℝ] ℂ)) x :=
 (has_strict_deriv_at_exp x).complex_to_real_fderiv
-
-lemma is_open_map_exp : is_open_map exp :=
-open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
 end complex
 

@@ -9,6 +9,9 @@ import order.well_founded
 /-!
 # Atoms, Coatoms, and Simple Lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines atoms, which are minimal non-`⊥` elements in bounded lattices, simple lattices,
 which are lattices with only two elements, and related ideas.
 

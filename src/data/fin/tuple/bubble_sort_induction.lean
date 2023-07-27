@@ -10,6 +10,9 @@ import order.well_founded
 /-!
 # "Bubble sort" induction
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We implement the following induction principle `tuple.bubble_sort_induction`
 on tuples with values in a linear order `α`.
 
@@ -36,8 +39,7 @@ lemma bubble_sort_induction' {n : ℕ} {α : Type*} [linear_order α] {f : fin n
   P (f ∘ sort f) :=
 begin
   letI := @preorder.lift _ (lex (fin n → α)) _ (λ σ : equiv.perm (fin n), to_lex (f ∘ σ)),
-  refine @well_founded.induction_bot' _ _ _
-    (@finite.preorder.well_founded_lt (equiv.perm (fin n)) _ _)
+  refine @well_founded.induction_bot' _ _ _ (is_well_founded.wf : well_founded (<))
     (equiv.refl _) (sort f) P (λ σ, f ∘ σ) (λ σ hσ hfσ, _) hf,
   obtain ⟨i, j, hij₁, hij₂⟩ := antitone_pair_of_not_sorted' hσ,
   exact ⟨σ * equiv.swap i j, pi.lex_desc hij₁ hij₂, h σ i j hij₁ hij₂ hfσ⟩,

@@ -9,6 +9,9 @@ import linear_algebra.dual
 /-!
 # Lagrange multipliers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we formalize the
 [Lagrange multipliers](https://en.wikipedia.org/wiki/Lagrange_multiplier) method of solving
 conditional extremum problems: if a function `φ` has a local extremum at `x₀` on the set
@@ -27,7 +30,7 @@ lagrange multiplier, local extremum
 -/
 
 open filter set
-open_locale topological_space filter big_operators
+open_locale topology filter big_operators
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
   {f : E → F} {φ : E → ℝ} {x₀ : E} {f' : E →L[ℝ] F} {φ' : E →L[ℝ] ℝ}

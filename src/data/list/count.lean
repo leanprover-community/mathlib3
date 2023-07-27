@@ -8,6 +8,9 @@ import data.list.big_operators.basic
 /-!
 # Counting in lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic properties of `list.countp` and `list.count`, which count the number of
 elements of a list satisfying a predicate and equal to a given element respectively. Their
 definitions can be found in [`data.list.defs`](./defs).
@@ -161,21 +164,30 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 countp_eq_length _
 
-@[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
-by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
-   exact λ b m, (eq_of_mem_repeat m).symm
+@[simp] lemma count_replicate_self (a : α) (n : ℕ) : count a (replicate n a) = n :=
+by rw [count, countp_eq_length_filter, filter_eq_self.2, length_replicate];
+   exact λ b m, (eq_of_mem_replicate m).symm
 
-lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
-  n ≤ count a l ↔ repeat a n <+ l :=
-⟨λ h, ((repeat_sublist_repeat a).2 h).trans $
-  have filter (eq a) l = repeat a (count a l), from eq_repeat.2
-    ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
-  by rw ← this; apply filter_sublist,
- λ h, by simpa only [count_repeat] using h.count_le a⟩
+lemma count_replicate (a b : α) (n : ℕ) : count a (replicate n b) = if a = b then n else 0 :=
+begin
+  split_ifs with h,
+  exacts [h ▸ count_replicate_self _ _, count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h]
+end
 
-lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
-  repeat a (count a l) = l :=
-(le_count_iff_repeat_sublist.mp le_rfl).eq_of_length $ (length_repeat a (count a l)).trans h
+theorem filter_eq (l : list α) (a : α) : l.filter (eq a) = replicate (count a l) a :=
+by simp [eq_replicate, count, countp_eq_length_filter, @eq_comm _ _ a]
+
+theorem filter_eq' (l : list α) (a : α) : l.filter (λ x, x = a) = replicate (count a l) a :=
+by simp only [filter_eq, @eq_comm _ _ a]
+
+lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
+  n ≤ count a l ↔ replicate n a <+ l :=
+⟨λ h, ((replicate_sublist_replicate a).2 h).trans $ filter_eq l a ▸ filter_sublist _,
+ λ h, by simpa only [count_replicate_self] using h.count_le a⟩
+
+lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
+  replicate (count a l) a = l :=
+(le_count_iff_replicate_sublist.mp le_rfl).eq_of_length $ (length_replicate (count a l) a).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

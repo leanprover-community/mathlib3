@@ -182,8 +182,8 @@ It also returns the largest variable index that appears in comparisons in `c`.
 -/
 meta def linear_forms_and_max_var (red : transparency) (pfs : list expr) :
   tactic (list comp × ℕ) :=
-do pftps ← pfs.mmap infer_type,
-   (l, _, map) ← to_comp_fold red [] pftps mk_rb_map,
+do pftps ← pfs.mmap (λ e, infer_type e >>= instantiate_mvars),
+   (l, _, map) ← to_comp_fold red []  pftps mk_rb_map,
    return (l, map.size - 1)
 
 

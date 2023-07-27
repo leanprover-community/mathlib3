@@ -11,6 +11,9 @@ import linear_algebra.tensor_product
 /-!
 # Facts about algebras involving bilinear maps and tensor products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We move a few basic statements about algebras out of `algebra.algebra.basic`,
 in order to avoid importing `linear_algebra.bilinear_map` and
 `linear_algebra.tensor_product` unnecessarily.
@@ -59,8 +62,7 @@ variables {R}
 @[simp] lemma mul_right_apply (a b : A) : mul_right R a b = b * a := rfl
 @[simp] lemma mul_left_right_apply (a b x : A) : mul_left_right R (a, b) x = a * x * b := rfl
 
-@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b :=
-by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply']
+@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b := rfl
 
 @[simp] lemma mul_left_zero_eq_zero :
   mul_left R (0 : A) = 0 :=

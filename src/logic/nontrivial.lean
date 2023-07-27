@@ -12,7 +12,6 @@ import logic.unique
 # Nontrivial types
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/547
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A type is *nontrivial* if it contains at least two elements. This is useful in particular for rings
@@ -179,12 +178,9 @@ end pi
 instance function.nontrivial [h : nonempty α] [nontrivial β] : nontrivial (α → β) :=
 h.elim $ λ a, pi.nontrivial_at a
 
-mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
-
+@[nontriviality]
 protected lemma subsingleton.le [preorder α] [subsingleton α] (x y : α) : x ≤ y :=
 le_of_eq (subsingleton.elim x y)
-
-attribute [nontriviality] eq_iff_true_of_subsingleton subsingleton.le
 
 namespace bool
 

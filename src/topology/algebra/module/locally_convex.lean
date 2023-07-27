@@ -7,6 +7,9 @@ import analysis.convex.topology
 /-!
 # Locally convex topological modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `locally_convex_space` is a topological semimodule over an ordered semiring in which any point
 admits a neighborhood basis made of convex sets, or equivalently, in which convex neighborhoods of
 a point form a neighborhood basis at that point.
@@ -29,7 +32,7 @@ In a module, this is equivalent to `0` satisfying such properties.
 
 open topological_space filter set
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 section semimodule
 

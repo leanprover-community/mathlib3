@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import algebra.monoid_algebra.basic
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `polynomial R`, the type of univariate polynomials over the semiring `R`, builds
 a semiring structure on it, and gives basic definitions that are expanded in other files in this
@@ -179,11 +183,15 @@ function.injective.semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
   (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
+instance {S} [distrib_smul S R] : distrib_smul S R[X] :=
+function.injective.distrib_smul ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩
+to_finsupp_injective to_finsupp_smul
+
 instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_smul S R] :
+instance {S} [smul_zero_class S R] [has_faithful_smul S R] :
   has_faithful_smul S R[X] :=
 { eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
@@ -191,12 +199,12 @@ instance {S} [semiring S] [module S R] : module S R[X] :=
 function.injective.module _
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
+instance {S₁ S₂} [smul_zero_class S₁ R] [smul_zero_class S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
-  [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
+instance {S₁ S₂} [has_smul S₁ S₂] [smul_zero_class S₁ R] [smul_zero_class S₂ R]
+  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 
 instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]
@@ -204,7 +212,7 @@ instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]
 ⟨by rintros _ ⟨⟩ ⟨⟩;
   simp_rw [smul_eq_mul, ← of_finsupp_smul, ← of_finsupp_mul, ← of_finsupp_smul, smul_mul_assoc]⟩
 
-instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+instance {S} [smul_zero_class S R] [smul_zero_class Sᵐᵒᵖ R]
   [is_central_scalar S R] : is_central_scalar S R[X] :=
 ⟨by { rintros _ ⟨⟩, simp_rw [←of_finsupp_smul, op_smul_eq_smul] }⟩
 
@@ -297,7 +305,7 @@ begin
   { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
-lemma smul_monomial {S} [monoid S] [distrib_mul_action S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [smul_zero_class S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 to_finsupp_injective $ by simp
 
@@ -338,7 +346,7 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
-@[simp] lemma smul_C {S} [monoid S] [distrib_mul_action S R] (s : S) (r : R) :
+@[simp] lemma smul_C {S} [smul_zero_class S R] (s : S) (r : R) :
   s • C r = C (s • r) :=
 smul_monomial _ _ r
 
@@ -496,6 +504,8 @@ lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
 @[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
 @[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
+
+lemma C_ne_zero : C a ≠ 0 ↔ a ≠ 0 := C_eq_zero.not
 
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=
@@ -779,7 +789,7 @@ by { ext, rw [coeff_update_apply, coeff_erase] }
 
 lemma support_update (p : R[X]) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
-by { cases p, simp only [support, update, support_update], congr }
+by { classical, cases p, simp only [support, update, support_update], congr }
 
 lemma support_update_zero (p : R[X]) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=
@@ -850,6 +860,15 @@ lemma X_ne_zero : (X : R[X]) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
+
+section division_ring
+
+variables [division_ring R]
+
+lemma rat_smul_eq_C_mul (a : ℚ) (f : R[X]) : a • f = polynomial.C ↑a * f :=
+by rw [←rat.smul_one_eq_coe, ←polynomial.smul_C, C_1, smul_one_mul]
+
+end division_ring
 
 @[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
 ⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h in nontrivial.of_polynomial_ne hrs,

@@ -11,6 +11,9 @@ import ring_theory.polynomial.basic
 /-!
 # Cramer's rule and adjugate matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The adjugate matrix is the transpose of the cofactor matrix.
 It is calculated with Cramer's rule, which we introduce first.
 The vectors returned by Cramer's rule are given by the linear map `cramer`,
@@ -40,8 +43,9 @@ cramer, cramer's rule, adjugate
 -/
 
 namespace matrix
-universes u v
-variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
+universes u v w
+variables {m : Type u} {n : Type v} {α : Type w}
+variables [decidable_eq n] [fintype n] [decidable_eq m] [fintype m] [comm_ring α]
 open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
@@ -98,7 +102,7 @@ begin
   split_ifs with h,
   { -- i = j: this entry should be `A.det`
     subst h,
-    simp only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
+    simp only [update_column_transpose, det_transpose, update_row_eq_self] },
   { -- i ≠ j: this entry should be 0
     rw [update_column_transpose, det_transpose],
     apply det_zero_of_row_eq h,
@@ -151,6 +155,18 @@ calc ∑ x in s, cramer A (λ j, f j x) i
 ... = cramer A (λ (j : n), ∑ x in s, f j x) i :
   by { rw [sum_cramer, cramer_apply], congr' with j, apply finset.sum_apply }
 
+lemma cramer_submatrix_equiv (A : matrix m m α) (e : n ≃ m) (b : n → α) :
+  cramer (A.submatrix e e) b = cramer A (b ∘ e.symm) ∘ e :=
+begin
+  ext i,
+  simp_rw [function.comp_apply, cramer_apply, update_column_submatrix_equiv,
+    det_submatrix_equiv_self e],
+end
+
+lemma cramer_reindex (e : m ≃ n) (A : matrix m m α) (b : n → α) :
+  cramer (reindex e e A) b = cramer A (b ∘ e) ∘ e.symm :=
+cramer_submatrix_equiv _ _ _
+
 end cramer
 
 section adjugate
@@ -169,14 +185,15 @@ These will hold for any matrix over a commutative ring.
   matrix replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
-def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer Aᵀ (pi.single i 1)
+def adjugate (A : matrix n n α) : matrix n n α :=
+of $ λ i, cramer Aᵀ (pi.single i 1)
 
 lemma adjugate_def (A : matrix n n α) :
-  adjugate A = λ i, cramer Aᵀ (pi.single i 1) := rfl
+  adjugate A = of (λ i, cramer Aᵀ (pi.single i 1)) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (pi.single i 1)).det :=
-by { rw adjugate_def, simp only, rw [cramer_apply, update_column_transpose, det_transpose], }
+by rw [adjugate_def, of_apply, cramer_apply, update_column_transpose, det_transpose]
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
@@ -208,6 +225,20 @@ begin
     intro h',
     exact h ((symm_apply_eq σ).mp h') }
 end
+
+@[simp] lemma adjugate_submatrix_equiv_self (e : n ≃ m) (A : matrix m m α) :
+  adjugate (A.submatrix e e) = (adjugate A).submatrix e e :=
+begin
+  ext i j,
+  rw [adjugate_apply, submatrix_apply, adjugate_apply, ← det_submatrix_equiv_self e,
+    update_row_submatrix_equiv],
+  congr,
+  exact function.update_comp_equiv _ e.symm _ _,
+end
+
+lemma adjugate_reindex (e : m ≃ n) (A : matrix m m α) :
+  adjugate (reindex e e A) = reindex e e (adjugate A) :=
+adjugate_submatrix_equiv_self _ _
 
 /-- Since the map `b ↦ cramer A b` is linear in `b`, it must be multiplication by some matrix. This
 matrix is `A.adjugate`. -/
@@ -282,7 +313,7 @@ by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
   adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
 begin
   ext,
-  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  simp only [adjugate_def, cramer_apply, diagonal_transpose, of_apply],
   obtain rfl | hij := eq_or_ne i j,
   { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
       prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
@@ -308,7 +339,6 @@ lemma _root_.alg_hom.map_adjugate {R A B : Type*} [comm_semiring R] [comm_ring A
   [algebra R A] [algebra R B] (f : A →ₐ[R] B)
   (M : matrix n n A) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
 f.to_ring_hom.map_adjugate _
-
 
 lemma det_adjugate (A : matrix n n α) : (adjugate A).det = A.det ^ (fintype.card n - 1) :=
 begin
@@ -344,14 +374,44 @@ begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i; fin_cases j;
-  simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
-    fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
+  simp only [one_mul, fin.one_eq_zero_iff, pi.single_eq_same, mul_zero, sub_zero,
+    pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self, update_row_ne, cons_val_zero,
+    of_apply, nat.succ_succ_ne_one, pi.single_eq_of_ne, update_row_self, pi.single_eq_of_ne, ne.def,
+    fin.zero_eq_one_iff, nat.succ_succ_ne_one, not_false_iff, update_row_ne, fin.one_eq_zero_iff,
+    zero_mul, pi.single_eq_same, one_mul, zero_sub, of_apply, cons_val', cons_val_fin_one,
+    cons_val_one, head_fin_const, neg_inj, eq_self_iff_true, cons_val_zero, head_cons, mul_one]
 end
 
 @[simp] lemma adjugate_fin_two_of (a b c d : α) :
   adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
+
+lemma adjugate_fin_succ_eq_det_submatrix {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) α) (i j) :
+  adjugate A i j = (-1)^(j + i : ℕ) * det (A.submatrix j.succ_above i.succ_above) :=
+begin
+  simp_rw [adjugate_apply, det_succ_row _ j, update_row_self, submatrix_update_row_succ_above],
+  rw [fintype.sum_eq_single i (λ h hjk, _), pi.single_eq_same, mul_one],
+  rw [pi.single_eq_of_ne hjk, mul_zero, zero_mul],
+end
+
+lemma det_eq_sum_mul_adjugate_row (A : matrix n n α) (i : n) :
+  det A = ∑ j : n, A i j * adjugate A j i :=
+begin
+  haveI : nonempty n := ⟨i⟩,
+  obtain ⟨n', hn'⟩ := nat.exists_eq_succ_of_ne_zero (fintype.card_ne_zero : fintype.card n ≠ 0),
+  obtain ⟨e⟩ := fintype.trunc_equiv_fin_of_card_eq hn',
+  let A' := reindex e e A,
+  suffices : det A' = ∑ j : fin n'.succ, A' (e i) j * adjugate A' j (e i),
+  { simp_rw [A', det_reindex_self, adjugate_reindex, reindex_apply, submatrix_apply, ←e.sum_comp,
+      equiv.symm_apply_apply] at this,
+    exact this },
+  rw det_succ_row A' (e i),
+  simp_rw [mul_assoc, mul_left_comm _ (A' _ _), ←adjugate_fin_succ_eq_det_submatrix],
+end
+
+lemma det_eq_sum_mul_adjugate_col (A : matrix n n α) (j : n) :
+  det A = ∑ i : n, A i j * adjugate A j i :=
+by simpa only [det_transpose, ←adjugate_transpose] using det_eq_sum_mul_adjugate_row Aᵀ j
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
 begin

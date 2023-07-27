@@ -10,7 +10,6 @@ import data.nat.cast.prod
 # The product of two `add_group_with_one`s.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1015
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

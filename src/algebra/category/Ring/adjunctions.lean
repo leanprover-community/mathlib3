@@ -7,6 +7,9 @@ import algebra.category.Ring.basic
 import data.mv_polynomial.comm_ring
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Multivariable polynomials on a type is the left adjoint of the
 forgetful functor from commutative rings to types.
 -/

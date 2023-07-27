@@ -11,6 +11,9 @@ import group_theory.submonoid.operations
 /-!
 # Congruence relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines congruence relations: equivalence relations that preserve a binary operation,
 which in this case is multiplication or addition. The principal definition is a `structure`
 extending a `setoid` (an equivalence relation), and the inductive definition of the smallest

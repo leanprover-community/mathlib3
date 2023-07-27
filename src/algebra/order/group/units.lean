@@ -11,7 +11,6 @@ import algebra.order.monoid.units
 # Adjoining a top element to a `linear_ordered_add_comm_group_with_top`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/898
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

@@ -15,6 +15,9 @@ import tactic.interval_cases
 /-!
 # p-groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof that if `G` is a `p`-group acting on a finite set `α`,
 then the number of fixed points of the action is congruent mod `p` to the cardinality of `α`.
 It also contains proofs of some corollaries of this lemma about existence of fixed points.
@@ -52,7 +55,7 @@ begin
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
-    rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
+    rw [←list.prod_replicate, ←list.eq_replicate_of_mem this, nat.prod_factors hG] },
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,

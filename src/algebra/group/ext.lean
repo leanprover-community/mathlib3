@@ -9,7 +9,6 @@ import algebra.hom.group
 # Extensionality lemmas for monoid and group structures
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/850
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove extensionality lemmas for `monoid` and higher algebraic structures with one

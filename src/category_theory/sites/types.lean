@@ -9,6 +9,9 @@ import category_theory.sites.canonical
 /-!
 # Grothendieck Topology and Sheaves on the Category of Types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a Grothendieck topology on the category of types,
 and construct the canonical functor that sends a type to a sheaf over
 the category of types, and make this an equivalence of categories.

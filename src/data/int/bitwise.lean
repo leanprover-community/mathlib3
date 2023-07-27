@@ -10,6 +10,9 @@ import data.nat.size
 /-!
 # Bitwise operations on integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 ## Recursors
 * `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for

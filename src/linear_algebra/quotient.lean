@@ -9,6 +9,9 @@ import linear_algebra.span
 /-!
 # Quotients by submodules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * If `p` is a submodule of `M`, `M ⧸ p` is the quotient of `M` with respect to `p`:
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 

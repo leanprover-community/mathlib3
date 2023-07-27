@@ -8,10 +8,13 @@ import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open filter filter.germ
-open_locale topological_space classical
+open_locale topology classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[derive [linear_ordered_field, inhabited]]

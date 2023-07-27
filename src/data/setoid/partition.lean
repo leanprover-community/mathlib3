@@ -12,6 +12,9 @@ import order.partition.finpartition
 /-!
 # Equivalence relations: partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file comprises properties of equivalence relations viewed as partitions.
 There are two implementations of partitions here:
 * A collection `c : set (set α)` of sets is a partition of `α` if `∅ ∉ c` and each element `a : α`

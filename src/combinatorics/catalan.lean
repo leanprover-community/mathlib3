@@ -3,14 +3,20 @@ Copyright (c) 2022 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import data.nat.choose.central
 import algebra.big_operators.fin
+import algebra.big_operators.nat_antidiagonal
 import algebra.char_zero.lemmas
+import data.finset.nat_antidiagonal
+import data.nat.choose.central
+import data.tree
 import tactic.field_simp
 import tactic.linear_combination
 
 /-!
 # Catalan numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Catalan numbers (http://oeis.org/A000108) are probably the most ubiquitous sequence of integers
 in mathematics. They enumerate several important objects like binary trees, Dyck paths, and
@@ -26,6 +32,9 @@ triangulations of convex polygons.
 * `catalan_eq_central_binom_div `: The explicit formula for the Catalan number using the central
   binomial coefficient, `catalan n = nat.central_binom n / (n + 1)`.
 
+* `trees_of_nodes_eq_card_eq_catalan`: The number of binary trees with `n` internal nodes
+  is `catalan n`
+
 ## Implementation details
 
 The proof of `catalan_eq_central_binom_div` follows
@@ -40,7 +49,8 @@ https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof
 -/
 
 open_locale big_operators
-open finset
+
+open finset finset.nat.antidiagonal (fst_le snd_le)
 
 /-- The recursive definition of the sequence of Catalan numbers:
 `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)` -/
@@ -53,6 +63,11 @@ def catalan : ℕ → ℕ
 
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
+
+lemma catalan_succ' (n : ℕ) :
+  catalan (n + 1) = ∑ ij in nat.antidiagonal n, catalan ij.1 * catalan ij.2 :=
+by rw [catalan_succ, nat.sum_antidiagonal_eq_sum_range_succ (λ x y, catalan x * catalan y) n,
+    sum_range]
 
 @[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
 
@@ -129,3 +144,59 @@ by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
 
 lemma catalan_three : catalan 3 = 5 :=
 by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
+
+namespace tree
+open_locale tree
+
+/-- Given two finsets, find all trees that can be formed with
+  left child in `a` and right child in `b` -/
+@[reducible] def pairwise_node (a b : finset (tree unit)) : finset (tree unit) :=
+(a ×ˢ b).map ⟨λ x, x.1 △ x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, λ h, by simpa using h⟩
+
+/-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
+def trees_of_num_nodes_eq : ℕ → finset (tree unit)
+| 0 := {nil}
+| (n+1) := (finset.nat.antidiagonal n).attach.bUnion $ λ ijh,
+  have _ := nat.lt_succ_of_le (fst_le ijh.2),
+  have _ := nat.lt_succ_of_le (snd_le ijh.2),
+  pairwise_node (trees_of_num_nodes_eq ijh.1.1) (trees_of_num_nodes_eq ijh.1.2)
+
+@[simp] lemma trees_of_nodes_eq_zero : trees_of_num_nodes_eq 0 = {nil} :=
+by rw [trees_of_num_nodes_eq]
+
+lemma trees_of_nodes_eq_succ (n : ℕ) : trees_of_num_nodes_eq (n + 1) =
+  (nat.antidiagonal n).bUnion (λ ij, pairwise_node (trees_of_num_nodes_eq ij.1)
+    (trees_of_num_nodes_eq ij.2)) :=
+by { rw trees_of_num_nodes_eq, ext, simp, }
+
+@[simp] theorem mem_trees_of_nodes_eq {x : tree unit} {n : ℕ} :
+  x ∈ trees_of_num_nodes_eq n ↔ x.num_nodes = n :=
+begin
+  induction x using tree.unit_rec_on generalizing n;
+  cases n;
+  simp [trees_of_nodes_eq_succ, nat.succ_eq_add_one, *],
+  trivial,
+end
+
+lemma mem_trees_of_nodes_eq_num_nodes (x : tree unit) :
+  x ∈ trees_of_num_nodes_eq x.num_nodes := mem_trees_of_nodes_eq.mpr rfl
+
+@[simp, norm_cast] lemma coe_trees_of_nodes_eq (n : ℕ) :
+  ↑(trees_of_num_nodes_eq n) = {x : tree unit | x.num_nodes = n} := set.ext (by simp)
+
+lemma trees_of_nodes_eq_card_eq_catalan (n : ℕ) :
+  (trees_of_num_nodes_eq n).card = catalan n :=
+begin
+  induction n using nat.case_strong_induction_on with n ih,
+  { simp, },
+  rw [trees_of_nodes_eq_succ, card_bUnion, catalan_succ'],
+  { apply sum_congr rfl,
+    rintro ⟨i, j⟩ H,
+    simp [ih _ (fst_le H), ih _ (snd_le H)], },
+  { simp_rw disjoint_left,
+    rintros ⟨i, j⟩ _ ⟨i', j'⟩ _,
+    clear_except,
+    tidy, },
+end
+
+end tree

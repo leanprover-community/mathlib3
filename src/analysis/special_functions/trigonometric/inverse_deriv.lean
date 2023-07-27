@@ -9,11 +9,14 @@ import analysis.special_functions.trigonometric.deriv
 /-!
 # derivatives of the inverse trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Derivatives of `arcsin` and `arccos`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 open_locale real

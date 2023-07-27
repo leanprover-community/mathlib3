@@ -9,6 +9,9 @@ import data.rat.init
 
 /-! # The rationals are `encodable`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 As a consequence we also get the instance `countable ℚ`.
 
 This is kept separate from `data.rat.defs` in order to minimize imports.

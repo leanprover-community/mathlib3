@@ -12,6 +12,9 @@ import algebra.order.monoid.min_max
 
 # Tropical algebraic structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines algebraic structures of the (min-)tropical numbers, up to the tropical semiring.
 Some basic lemmas about conversion from the base type `R` to `tropical R` are provided, as
 well as the expected implementations of tropical addition and tropical multiplication.

@@ -11,6 +11,9 @@ import measure_theory.integral.average
 /-!
 # Jensen's inequality for integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several forms of Jensen's inequality for integrals.
 
 - for convex sets: `convex.average_mem`, `convex.set_average_mem`, `convex.integral_mem`;
@@ -35,7 +38,7 @@ convex, integral, center mass, average value, Jensen's inequality
 -/
 
 open measure_theory measure_theory.measure metric set filter topological_space function
-open_locale topological_space big_operators ennreal convex
+open_locale topology big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]

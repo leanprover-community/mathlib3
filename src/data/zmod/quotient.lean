@@ -6,9 +6,13 @@ Authors: Anne Baanen
 import data.zmod.basic
 import group_theory.group_action.quotient
 import ring_theory.int.basic
+import ring_theory.ideal.quotient_operations
 
 /-!
 # `zmod n` and quotient groups / rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file relates `zmod n` to the quotient group
 `quotient_add_group.quotient (add_subgroup.zmultiples n)` and to the quotient ring

@@ -10,6 +10,9 @@ import topology.homeomorph
 /-!
 # Topological group with zero
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `has_continuous_inv₀` to be a mixin typeclass a type with `has_inv` and
 `has_zero` (e.g., a `group_with_zero`) such that `λ x, x⁻¹` is continuous at all nonzero points. Any
 normed (semi)field has this property. Currently the only example of `has_continuous_inv₀` in
@@ -29,7 +32,7 @@ On a `group_with_zero` with continuous multiplication, we also define left and r
 as homeomorphisms.
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open filter function
 
 /-!
@@ -48,24 +51,24 @@ section div_const
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_mul G₀]
   {f : α → G₀} {s : set α} {l : filter α}
 
-lemma filter.tendsto.div_const {x y : G₀} (hf : tendsto f l (𝓝 x)) :
+lemma filter.tendsto.div_const {x : G₀} (hf : tendsto f l (𝓝 x)) (y : G₀) :
   tendsto (λa, f a / y) l (𝓝 (x / y)) :=
 by simpa only [div_eq_mul_inv] using hf.mul tendsto_const_nhds
 
 variables [topological_space α]
 
-lemma continuous_at.div_const {a : α} (hf : continuous_at f a) {y : G₀} :
+lemma continuous_at.div_const {a : α} (hf : continuous_at f a) (y : G₀) :
   continuous_at (λ x, f x / y) a :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_at_const
 
-lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) {y : G₀} :
+lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) (y : G₀) :
   continuous_within_at (λ x, f x / y) s a :=
-hf.div_const
+hf.div_const _
 
-lemma continuous_on.div_const (hf : continuous_on f s) {y : G₀} : continuous_on (λ x, f x / y) s :=
+lemma continuous_on.div_const (hf : continuous_on f s) (y : G₀) : continuous_on (λ x, f x / y) s :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_on_const
 
-@[continuity] lemma continuous.div_const (hf : continuous f) {y : G₀} :
+@[continuity] lemma continuous.div_const (hf : continuous f) (y : G₀) :
   continuous (λ x, f x / y) :=
 by simpa only [div_eq_mul_inv] using hf.mul continuous_const
 
@@ -125,6 +128,12 @@ lemma continuous_on.inv₀ (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0
 
 end inv₀
 
+/-- If `G₀` is a group with zero with topology such that `x ↦ x⁻¹` is continuous at all nonzero
+points. Then the coercion `Mˣ → M` is a topological embedding. -/
+theorem units.embedding_coe₀ [group_with_zero G₀] [topological_space G₀] [has_continuous_inv₀ G₀] :
+  embedding (coe : G₀ˣ → G₀) :=
+units.embedding_coe_mk $ continuous_on_inv₀.mono $ λ x, is_unit.ne_zero
+
 /-!
 ### Continuity of division
 
@@ -141,6 +150,17 @@ lemma filter.tendsto.div {l : filter α} {a b : G₀} (hf : tendsto f l (𝓝 a)
   (hg : tendsto g l (𝓝 b)) (hy : b ≠ 0) :
   tendsto (f / g) l (𝓝 (a / b)) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv₀ hy)
+
+lemma filter.tendsto_mul_iff_of_ne_zero [t1_space G₀]
+  {f g : α → G₀} {l : filter α} {x y : G₀}
+  (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λ n, f n * g n) l (𝓝 $ x * y) ↔ tendsto f l (𝓝 x) :=
+begin
+  refine ⟨λ hfg, _, λ hf, hf.mul hg⟩,
+  rw ←mul_div_cancel x hy,
+  refine tendsto.congr' _ (hfg.div hg hy),
+  refine eventually.mp (hg.eventually_ne hy) (eventually_of_forall (λ n hn, mul_div_cancel _ hn)),
+end
 
 variables [topological_space α] [topological_space β] {s : set α} {a : α}
 

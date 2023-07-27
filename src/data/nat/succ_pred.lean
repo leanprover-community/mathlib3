@@ -9,6 +9,9 @@ import order.succ_pred.basic
 /-!
 # Successors and predecessors of naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show that `ℕ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/
 

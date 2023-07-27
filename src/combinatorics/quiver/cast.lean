@@ -11,7 +11,6 @@ import combinatorics.quiver.path
 # Rewriting arrows and paths along vertex equalities
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/990
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This files defines `hom.cast` and `path.cast` (and associated lemmas) in order to allow

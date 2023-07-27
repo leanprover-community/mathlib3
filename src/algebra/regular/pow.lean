@@ -9,6 +9,9 @@ import algebra.regular.basic
 /-!
 # Regular elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Implementation details
 
 Group powers and other definitions import a lot of the algebra hierarchy.

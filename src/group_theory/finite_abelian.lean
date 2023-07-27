@@ -9,6 +9,9 @@ import data.zmod.quotient
 /-!
 # Structure of finite(ly generated) abelian groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `add_comm_group.equiv_free_prod_direct_sum_zmod` : Any finitely generated abelian group is the
   product of a power of `ℤ` and a direct sum of some `zmod (p i ^ e i)` for some prime powers
   `p i ^ e i`.

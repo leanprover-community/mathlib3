@@ -9,6 +9,9 @@ import data.list.perm
 /-!
 # Lists of elements of `fin n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops some results on `fin_range n`.
 -/
 

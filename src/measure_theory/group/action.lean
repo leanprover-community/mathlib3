@@ -11,13 +11,16 @@ import dynamics.minimal
 /-!
 # Measures invariant under group actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A measure `μ : measure α` is said to be *invariant* under an action of a group `G` if scalar
 multiplication by `c : G` is a measure preserving map for all `c`. In this file we define a
 typeclass for measures invariant under action of an (additive or multiplicative) group and prove
 some basic properties of such measures.
 -/
 
-open_locale ennreal nnreal pointwise topological_space
+open_locale ennreal nnreal pointwise topology
 open measure_theory measure_theory.measure set function
 
 namespace measure_theory
@@ -147,6 +150,8 @@ variable {μ}
   null_measurable_set (c • s) μ :=
 by simpa only [← preimage_smul_inv]
   using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
+
+lemma measure_smul_null {s} (h : μ s = 0) (c : G) : μ (c • s) = 0 := by rwa measure_smul
 
 section is_minimal
 

@@ -10,6 +10,9 @@ import data.nat.cast.with_top
 /-!
 # Smoothness of series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that series of functions are continuous, or differentiable, or smooth, when each individual
 function in the series is and additionally suitable uniform summable bounds are satisfied.
 
@@ -22,7 +25,7 @@ We also give versions of these statements which are localized to a set.
 -/
 
 open set metric topological_space function asymptotics filter
-open_locale topological_space nnreal big_operators
+open_locale topology nnreal big_operators
 
 variables {α β 𝕜 E F : Type*}
   [is_R_or_C 𝕜]

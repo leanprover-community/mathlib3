@@ -5,10 +5,13 @@ Authors: Sébastien Gouëzel
 -/
 
 import analysis.specific_limits.basic
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 
 /-!
 # Results on discretized exponentials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We state several auxiliary results pertaining to sequences of the form `⌊c^n⌋₊`.
 
@@ -19,7 +22,7 @@ We state several auxiliary results pertaining to sequences of the form `⌊c^n�
 -/
 
 open filter finset
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 /-- If a monotone sequence `u` is such that `u n / n` tends to a limit `l` along subsequences with
 exponential growth rate arbitrarily close to `1`, then `u n / n` tends to `l`. -/

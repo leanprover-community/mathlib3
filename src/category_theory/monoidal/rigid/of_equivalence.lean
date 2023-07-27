@@ -7,6 +7,9 @@ import category_theory.monoidal.rigid.basic
 
 /-!
 # Transport rigid structures over a monoidal equivalence.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 noncomputable theory

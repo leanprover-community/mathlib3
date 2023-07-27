@@ -9,6 +9,9 @@ import analysis.normed_space.complemented
 /-!
 # Implicit function theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove three versions of the implicit function theorem. First we define a structure
 `implicit_function_data` that holds arguments for the most general version of the implicit function
 theorem, see `implicit_function_data.implicit_function`
@@ -45,7 +48,7 @@ implicit function, inverse function
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter
 open continuous_linear_map (fst snd smul_right ker_prod)
 open continuous_linear_equiv (of_bijective)

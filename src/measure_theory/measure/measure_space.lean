@@ -10,6 +10,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
@@ -90,7 +93,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
-open_locale classical topological_space big_operators filter ennreal nnreal interval measure_theory
+open_locale classical topology big_operators filter ennreal nnreal interval measure_theory
 
 variables {α β γ δ ι R R' : Type*}
 
@@ -104,10 +107,10 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 ⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
-/-- See also `measure_theory.ae_restrict_interval_oc_iff`. -/
-lemma ae_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+/-- See also `measure_theory.ae_restrict_uIoc_iff`. -/
+lemma ae_uIoc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, eventually_and]
+by simp only [uIoc_eq_union, mem_union, or_imp_distrib, eventually_and]
 
 lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
@@ -212,7 +215,7 @@ lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
 measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
 lemma measure_add_diff (hs : measurable_set s) (t : set α) : μ s + μ (t \ s) = μ (s ∪ t) :=
-by rw [← measure_union' disjoint_diff hs, union_diff_self]
+by rw [← measure_union' disjoint_sdiff_right hs, union_diff_self]
 
 lemma measure_diff' (s : set α) (hm : measurable_set t) (h_fin : μ t ≠ ∞) :
   μ (s \ t) = μ (s ∪ t) - μ t :=
@@ -474,7 +477,7 @@ begin
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
       exact measure_mono (diff_subset_diff_right hji) },
-    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm (h i), set.union_comm],
+    { rw [tsub_le_iff_right, ← measure_union disjoint_sdiff_left (h i), set.union_comm],
       exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
 end
@@ -695,8 +698,11 @@ instance [measurable_space α] : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
+instance [is_empty α] {m : measurable_space α} : subsingleton (measure α) :=
+⟨λ μ ν, by{ ext1 s hs, simp only [eq_empty_of_is_empty s, measure_empty] }⟩
+
 lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
+subsingleton.elim μ 0
 
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
@@ -932,6 +938,17 @@ instance [measurable_space α] : complete_lattice (measure α) :=
 
 end Inf
 
+@[simp] lemma _root_.measure_theory.outer_measure.to_measure_top [measurable_space α] :
+  (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top)
+    = (⊤ : measure α) :=
+top_unique $ λ s hs,
+    by cases s.eq_empty_or_nonempty with h h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply]
+
+@[simp] lemma to_outer_measure_top [measurable_space α] :
+  (⊤ : measure α).to_outer_measure = (⊤ : outer_measure α) :=
+by rw [←outer_measure.to_measure_top, to_measure_to_outer_measure, outer_measure.trim_top]
+
 @[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
 @[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
 
@@ -942,6 +959,10 @@ lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
 
 @[simp] lemma measure_univ_eq_zero : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
+
+lemma measure_univ_ne_zero : μ univ ≠ 0 ↔ μ ≠ 0 := measure_univ_eq_zero.not
+
+@[simp] lemma measure_univ_pos : 0 < μ univ ↔ μ ≠ 0 := pos_iff_ne_zero.trans measure_univ_ne_zero
 
 /-! ### Pushforward and pullback -/
 
@@ -1784,6 +1805,10 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
+lemma sum_comm {ι' : Type*} (μ : ι → ι' → measure α) :
+  sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
+by { ext1 s hs, simp_rw [sum_apply _ hs], rw ennreal.tsum_comm, }
+
 lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero
@@ -1847,6 +1872,16 @@ end
 @[simp] lemma sum_smul_dirac [countable α] [measurable_singleton_class α] (μ : measure α) :
   sum (λ a, μ {a} • dirac a) = μ :=
 by simpa using (map_eq_sum μ id measurable_id).symm
+
+/-- Given that `α` is a countable, measurable space with all singleton sets measurable,
+write the measure of a set `s` as the sum of the measure of `{x}` for all `x ∈ s`. -/
+lemma tsum_indicator_apply_singleton [countable α] [measurable_singleton_class α]
+  (μ : measure α) (s : set α) (hs : measurable_set s) :
+  ∑' (x : α), s.indicator (λ x, μ {x}) x = μ s :=
+calc ∑' (x : α), s.indicator (λ x, μ {x}) x = measure.sum (λ a, μ {a} • measure.dirac a) s :
+    by simp only [measure.sum_apply _ hs, measure.smul_apply, smul_eq_mul, measure.dirac_apply,
+      set.indicator_apply, mul_ite, pi.one_apply, mul_one, mul_zero]
+  ... = μ s : by rw μ.sum_smul_dirac
 
 omit m0
 end sum
@@ -2377,15 +2412,15 @@ lemma ae_eq_restrict_bUnion_finset_iff (s : ι → set α) (t : finset ι) (f g 
   f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
 ae_eq_restrict_bUnion_iff s t.countable_to_set f g
 
-lemma ae_restrict_interval_oc_eq [linear_order α] (a b : α) :
+lemma ae_restrict_uIoc_eq [linear_order α] (a b : α) :
   (μ.restrict (Ι a b)).ae = (μ.restrict (Ioc a b)).ae ⊔ (μ.restrict (Ioc b a)).ae :=
-by simp only [interval_oc_eq_union, ae_restrict_union_eq]
+by simp only [uIoc_eq_union, ae_restrict_union_eq]
 
-/-- See also `measure_theory.ae_interval_oc_iff`. -/
-lemma ae_restrict_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+/-- See also `measure_theory.ae_uIoc_iff`. -/
+lemma ae_restrict_uIoc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ.restrict (Ι a b), P x) ↔
     (∀ᵐ x ∂μ.restrict (Ioc a b), P x) ∧ (∀ᵐ x ∂μ.restrict (Ioc b a), P x) :=
-by rw [ae_restrict_interval_oc_eq, eventually_sup]
+by rw [ae_restrict_uIoc_eq, eventually_sup]
 
 lemma ae_restrict_iff {p : α → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
@@ -2430,6 +2465,13 @@ end
 lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 eventually.filter_mono (ae_mono measure.restrict_le_self) h
+
+lemma ae_restrict_iff'₀ {p : α → Prop} (hs : null_measurable_set s μ) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  refine ⟨λ h, ae_imp_of_ae_restrict h, λ h, _⟩,
+  filter_upwards [ae_restrict_mem₀ hs, ae_restrict_of_ae h] with x hx h'x using h'x hx,
+end
 
 lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst : s ⊆ t)
   (h : ∀ᵐ x ∂(μ.restrict t), p x) :
@@ -2896,7 +2938,7 @@ end
 
 open_locale interval
 
-lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
+lemma uIoc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
 
 end no_atoms
 
@@ -3100,7 +3142,8 @@ lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurab
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
   set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
-  rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
+  rcases exists_seq_strict_anti_tendsto' (zero_lt_one : (0 : ℝ≥0∞) < 1)
+    with ⟨as, as_decr, as_mem, as_lim⟩,
   set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
   have countable_union : posmeas = (⋃ n, fairmeas n) ,
   { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
@@ -3145,6 +3188,85 @@ begin
     (λ b, g_mble (‹measurable_singleton_class β›.measurable_set_singleton b)) level_sets_disjoint,
 end
 
+/-- If a set `t` is covered by a countable family of finite measure sets, then its measurable
+superset `to_measurable μ t` (which has the same measure as `t`) satisfies,
+for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`. -/
+lemma measure_to_measurable_inter_of_cover
+  {s : set α} (hs : measurable_set s) {t : set α} {v : ℕ → set α} (hv : t ⊆ ⋃ n, v n)
+  (h'v : ∀ n, μ (t ∩ v n) ≠ ∞) :
+  μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
+begin
+  -- we show that there is a measurable superset of `t` satisfying the conclusion for any
+  -- measurable set `s`. It is built on each member of a spanning family using `to_measurable`
+  -- (which is well behaved for finite measure sets thanks to `measure_to_measurable_inter`), and
+  -- the desired property passes to the union.
+  have A : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
+  { let w := λ n, to_measurable μ (t ∩ v n),
+    have hw : ∀ n, μ (w n) < ∞,
+    { assume n,
+      simp_rw [w, measure_to_measurable],
+      exact (h'v n).lt_top },
+    set t' := ⋃ n, to_measurable μ (t ∩ disjointed w n) with ht',
+    have tt' : t ⊆ t' := calc
+      t ⊆ ⋃ n, t ∩ disjointed w n :
+        begin
+          rw [← inter_Union, Union_disjointed, inter_Union],
+          assume x hx,
+          rcases mem_Union.1 (hv hx) with ⟨n, hn⟩,
+          refine mem_Union.2 ⟨n, _⟩,
+          have : x ∈ t ∩ v n := ⟨hx, hn⟩,
+          exact ⟨hx, subset_to_measurable μ _ this⟩,
+        end
+      ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed w n) :
+        Union_mono (λ n, subset_to_measurable _ _),
+    refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
+    apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
+    calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed w n) ∩ u) :
+      by { rw [ht', Union_inter], exact measure_Union_le _ }
+    ... = ∑' n, μ ((t ∩ disjointed w n) ∩ u) :
+      begin
+        congr' 1,
+        ext1 n,
+        apply measure_to_measurable_inter hu,
+        apply ne_of_lt,
+        calc μ (t ∩ disjointed w n)
+            ≤ μ (t ∩ w n) : measure_mono ((inter_subset_inter_right _ (disjointed_le w n)))
+        ... ≤ μ (w n) : measure_mono (inter_subset_right _ _)
+        ... < ∞ : hw n
+      end
+    ... = ∑' n, μ.restrict (t ∩ u) (disjointed w n) :
+      begin
+        congr' 1,
+        ext1 n,
+        rw [restrict_apply, inter_comm t _, inter_assoc],
+        apply measurable_set.disjointed (λ n, _),
+        exact measurable_set_to_measurable _ _
+      end
+    ... = μ.restrict (t ∩ u) (⋃ n, disjointed w n) :
+      begin
+        rw measure_Union,
+        { exact disjoint_disjointed _ },
+        { intro i,
+          apply measurable_set.disjointed (λ n, _),
+          exact measurable_set_to_measurable _ _ }
+      end
+    ... ≤ μ.restrict (t ∩ u) univ : measure_mono (subset_univ _)
+    ... = μ (t ∩ u) : by rw [restrict_apply measurable_set.univ, univ_inter] },
+  -- thanks to the definition of `to_measurable`, the previous property will also be shared
+  -- by `to_measurable μ t`, which is enough to conclude the proof.
+  rw [to_measurable],
+  split_ifs with ht,
+  { apply measure_congr,
+    exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
+  { exact A.some_spec.snd.2 s hs },
+end
+
+lemma restrict_to_measurable_of_cover {s : set α} {v : ℕ → set α} (hv : s ⊆ ⋃ n, v n)
+  (h'v : ∀ n, μ (s ∩ v n) ≠ ∞) :
+  μ.restrict (to_measurable μ s) = μ.restrict s :=
+ext $ λ t ht, by simp only [restrict_apply ht, inter_comm t,
+  measure_to_measurable_inter_of_cover ht hv h'v]
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
@@ -3153,55 +3275,11 @@ lemma measure_to_measurable_inter_of_sigma_finite
   [sigma_finite μ] {s : set α} (hs : measurable_set s) (t : set α) :
   μ (to_measurable μ t ∩ s) = μ (t ∩ s) :=
 begin
-  -- we show that there is a measurable superset of `t` satisfying the conclusion for any
-  -- measurable set `s`. It is built on each member of a spanning family using `to_measurable`
-  -- (which is well behaved for finite measure sets thanks to `measure_to_measurable_inter`), and
-  -- the desired property passes to the union.
-  have A : ∃ t' ⊇ t, measurable_set t' ∧ (∀ u, measurable_set u → μ (t' ∩ u) = μ (t ∩ u)),
-  { set t' := ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) with ht',
-    have tt' : t ⊆ t' := calc
-      t ⊆ ⋃ n, t ∩ disjointed (spanning_sets μ) n :
-        by rw [← inter_Union, Union_disjointed, Union_spanning_sets, inter_univ]
-      ... ⊆ ⋃ n, to_measurable μ (t ∩ disjointed (spanning_sets μ) n) :
-        Union_mono (λ n, subset_to_measurable _ _),
-    refine ⟨t', tt', measurable_set.Union (λ n, measurable_set_to_measurable μ _), λ u hu, _⟩,
-    apply le_antisymm _ (measure_mono (inter_subset_inter tt' subset.rfl)),
-    calc μ (t' ∩ u) ≤ ∑' n, μ (to_measurable μ (t ∩ disjointed (spanning_sets μ) n) ∩ u) :
-      by { rw [ht', Union_inter], exact measure_Union_le _ }
-    ... = ∑' n, μ ((t ∩ disjointed (spanning_sets μ) n) ∩ u) :
-      begin
-        congr' 1,
-        ext1 n,
-        apply measure_to_measurable_inter hu,
-        apply ne_of_lt,
-        calc μ (t ∩ disjointed (spanning_sets μ) n)
-            ≤ μ (disjointed (spanning_sets μ) n) : measure_mono (inter_subset_right _ _)
-        ... ≤ μ (spanning_sets μ n) : measure_mono (disjointed_le (spanning_sets μ) n)
-        ... < ∞ : measure_spanning_sets_lt_top _ _
-      end
-    ... = ∑' n, μ.restrict (t ∩ u) (disjointed (spanning_sets μ) n) :
-      begin
-        congr' 1,
-        ext1 n,
-        rw [restrict_apply, inter_comm t _, inter_assoc],
-        exact measurable_set.disjointed (measurable_spanning_sets _) _
-      end
-    ... = μ.restrict (t ∩ u) (⋃ n, disjointed (spanning_sets μ) n) :
-      begin
-        rw measure_Union,
-        { exact disjoint_disjointed _ },
-        { intro i, exact measurable_set.disjointed (measurable_spanning_sets _) _ }
-      end
-    ... = μ (t ∩ u) :
-      by rw [Union_disjointed, Union_spanning_sets, restrict_apply measurable_set.univ,
-             univ_inter] },
-  -- thanks to the definition of `to_measurable`, the previous property will also be shared
-  -- by `to_measurable μ t`, which is enough to conclude the proof.
-  rw [to_measurable],
-  split_ifs with ht,
-  { apply measure_congr,
-    exact ae_eq_set_inter ht.some_spec.snd.2 (ae_eq_refl _) },
-  { exact A.some_spec.snd.2 s hs },
+  have : t ⊆ ⋃ n, spanning_sets μ n,
+  { rw Union_spanning_sets, exact subset_univ _ },
+  apply measure_to_measurable_inter_of_cover hs this (λ n, ne_of_lt _),
+  calc μ (t ∩ spanning_sets μ n) ≤ μ(spanning_sets μ n) : measure_mono (inter_subset_right _ _)
+  ... < ∞ : measure_spanning_sets_lt_top μ n,
 end
 
 @[simp] lemma restrict_to_measurable_of_sigma_finite [sigma_finite μ] (s : set α) :

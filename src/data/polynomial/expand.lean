@@ -10,6 +10,9 @@ import tactic.ring_exp
 /-!
 # Expand a polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
@@ -70,7 +73,7 @@ by rw [function.iterate_succ_apply', pow_succ, expand_mul, ih]
 
 theorem derivative_expand (f : R[X]) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
-by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
+by rw [coe_expand, derivative_eval₂_C, derivative_pow, C_eq_nat_cast, derivative_X, mul_one]
 
 theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=

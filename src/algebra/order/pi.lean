@@ -10,6 +10,9 @@ import tactic.positivity
 /-!
 # Pi instances for ordered groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for ordered group, monoid, and related structures on Pi types.
 -/
 

@@ -9,7 +9,6 @@ import data.nat.basic
 # Partial predecessor and partial subtraction on the natural numbers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/806
 > Any changes to this file require a corresponding PR to mathlib4.
 
 The usual definition of natural number subtraction (`nat.sub`) returns 0 as a "garbage value" for

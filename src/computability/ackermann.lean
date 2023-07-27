@@ -9,6 +9,9 @@ import tactic.linarith
 /-!
 # Ackermann function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the two-argument Ackermann function `ack`. Despite having a recursive
 definition, we show that this isn't a primitive recursive function.
 

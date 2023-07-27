@@ -9,6 +9,9 @@ import data.int.least_greatest
 /-!
 ## `ℤ` forms a conditionally complete linear order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The integers form a conditionally complete linear order.
 -/
 

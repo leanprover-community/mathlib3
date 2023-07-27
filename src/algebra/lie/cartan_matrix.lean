@@ -10,6 +10,9 @@ import data.matrix.notation
 /-!
 # Lie algebras from Cartan matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Split semi-simple Lie algebras are uniquely determined by their Cartan matrix. Indeed, if `A` is
 an `l × l` Cartan matrix, the corresponding Lie algebra may be obtained as the Lie algebra on
 `3l` generators: $H_1, H_2, \ldots H_l, E_1, E_2, \ldots, E_l, F_1, F_2, \ldots, F_l$

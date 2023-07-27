@@ -8,6 +8,9 @@ import data.nat.order.basic
 /-!
 # Lists as Functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definitions for using lists as finite representations of finitely-supported functions with domain
 ℕ.
 
@@ -351,7 +354,7 @@ by {apply get_pointwise, apply sub_zero}
   (sub xs ys).length = max xs.length ys.length :=
 @length_pointwise α α α ⟨0⟩ ⟨0⟩ _ _ _
 
-@[simp] lemma nil_sub {α : Type} [add_group α]
+@[simp] lemma nil_sub {α : Type*} [add_group α]
   (as : list α) : sub [] as = neg as :=
 begin
   rw [sub, nil_pointwise],
@@ -359,7 +362,7 @@ begin
   rw [zero_sub]
 end
 
-@[simp] lemma sub_nil {α : Type} [add_group α]
+@[simp] lemma sub_nil {α : Type*} [add_group α]
   (as : list α) : sub as [] = as :=
 begin
   rw [sub, pointwise_nil],

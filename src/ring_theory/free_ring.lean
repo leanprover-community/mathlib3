@@ -8,6 +8,9 @@ import group_theory.free_abelian_group
 /-!
 # Free rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The theory of the free ring over a type.
 
 ## Main definitions

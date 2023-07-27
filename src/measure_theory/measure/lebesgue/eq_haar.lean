@@ -74,6 +74,25 @@ set_like.coe_injective $ begin
   { exact zero_le_one },
 end
 
+/-- A parallelepiped can be exressed on the standard basis -/
+lemma basis.parallelepiped_eq_map {ι M : Type*} [fintype ι] [normed_add_comm_group M]
+  [normed_space ℝ M] (b : basis ι ℝ M) :
+  b.parallelepiped = (topological_space.positive_compacts.pi_Icc01 ι).map b.equiv_fun.symm
+    b.equiv_funL.symm.continuous
+    (by haveI := finite_dimensional.of_fintype_basis b; exact
+      b.equiv_funL.symm.to_linear_map.is_open_map_of_finite_dimensional
+        b.equiv_fun.symm.surjective) :=
+begin
+  rw ← basis.parallelepiped_basis_fun,
+  refine (congr_arg _ _).trans (basis.parallelepiped_map _ _),
+  ext i,
+  rw [basis.map_apply, basis.apply_eq_iff],
+  ext j,
+  classical,
+  rw [←basis.coord_apply b, basis.coord_equiv_fun_symm, pi.basis_fun_apply],
+  refl,
+end
+
 namespace measure_theory
 
 open measure topological_space.positive_compacts finite_dimensional
@@ -274,18 +293,17 @@ add_haar_preimage_linear_map μ hf s
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_equiv
   (f : E ≃ₗ[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ennreal.of_real (abs f.det⁻¹) * μ s :=
 begin
   have A : (f : E →ₗ[ℝ] E).det ≠ 0 := (linear_equiv.is_unit_det' f).ne_zero,
   convert add_haar_preimage_linear_map μ A s,
-  simp only [linear_equiv.det_coe_symm]
 end
 
 /-- The preimage of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_equiv
   (f : E ≃L[ℝ] E) (s : set E) :
-  μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
+  μ (f ⁻¹' s) = ennreal.of_real (abs f.det⁻¹) * μ s :=
 add_haar_preimage_linear_equiv μ _ s
 
 /-- The image of a set `s` under a linear map `f` has measure
@@ -297,11 +315,10 @@ begin
   rcases ne_or_eq f.det 0 with hf|hf,
   { let g := (f.equiv_of_det_ne_zero hf).to_continuous_linear_equiv,
     change μ (g '' s) = _,
-    rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv],
-    congr,
-    ext x,
-    simp only [linear_equiv.coe_to_continuous_linear_equiv, linear_equiv.of_is_unit_det_apply,
-               linear_equiv.coe_coe, continuous_linear_equiv.symm_symm], },
+    rw [continuous_linear_equiv.image_eq_preimage g s, add_haar_preimage_continuous_linear_equiv,
+      continuous_linear_equiv.symm_to_linear_equiv, linear_equiv.det_symm, units.coe_inv, inv_inv,
+      linear_equiv.coe_det, linear_equiv.to_linear_equiv_to_continuous_linear_equiv,
+      linear_equiv.coe_of_is_unit_det] },
   { simp only [hf, zero_mul, ennreal.of_real_zero, abs_zero],
     have : μ f.range = 0 :=
       add_haar_submodule μ _ (linear_map.range_lt_top_of_det_eq_zero hf).ne,

@@ -69,20 +69,6 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 lemma ext_iff {x₀ x₁ : sigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact sigma.mk.inj_iff }
 
-lemma ext_iff' {x₀ x₁ : sigma β} :
-  x₀ = x₁ ↔ ∃ h : x₀.1 = x₁.1, h.rec_on x₀.2 = x₁.2 :=
-begin
-  split,
-  { rintro ⟨⟩,
-    exact ⟨rfl, rfl⟩, },
-  { induction x₀,
-    induction x₁,
-    rintros ⟨h, H⟩,
-    cases h,
-    cases H,
-    refl, },
-end
-
 /-- A specialized ext lemma for equality of sigma types over an indexed subtype. -/
 @[ext]
 lemma subtype_ext {β : Type*} {p : α → β → Prop} :

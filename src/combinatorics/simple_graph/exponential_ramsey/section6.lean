@@ -240,7 +240,7 @@ end
 lemma nat.cast_sub_le {x y : ℕ} : (x - y : ℝ) ≤ (x - y : ℕ) :=
 by rw [sub_le_iff_le_add, ←nat.cast_add, nat.cast_le, ←tsub_le_iff_right]
 
-lemma six_five_red (μ p₀ : ℝ) :
+lemma six_five_red (μ : ℝ) :
   ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
   ∀ ini : book_config χ,
   ∀ i : ℕ, i ∈ red_steps μ k l ini →
@@ -684,7 +684,7 @@ lemma six_four_weak (μ p₀ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀ :
   p_ (i + 1) ≤ ini.p →
   p_ (i - 1) - k ^ (1 / 8 : ℝ) * α_function k (height k ini.p (p_ (i - 1))) ≤ p_ (i + 1) :=
 begin
-  filter_upwards [six_four_density μ p₀ hμ₁ hp₀, six_five_red μ p₀,
+  filter_upwards [six_four_density μ p₀ hμ₁ hp₀, six_five_red μ,
     top_adjuster (tendsto_coe_nat_at_top_at_top.eventually six_four_weak_aux)] with l hl hr hk
     k hlk n χ ini hini i hi hi',
   simp only [mem_union, or_assoc] at hi,

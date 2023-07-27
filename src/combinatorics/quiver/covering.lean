@@ -230,7 +230,8 @@ section has_involutive_reverse
 
 variables [has_involutive_reverse U] [has_involutive_reverse V] [prefunctor.map_reverse φ]
 
-/-- In a quiver with involutive inverses, the star and costar at any vertex are equivalent. -/
+/-- In a quiver with involutive inverses, the star and costar at every vertex are equivalent.
+This map is induced by `quiver.reverse`. -/
 @[simps] def quiver.star_equiv_costar (u : U) :
   quiver.star u ≃ quiver.costar u :=
 { to_fun := λ e, ⟨e.1, reverse e.2⟩,
@@ -244,8 +245,9 @@ variables [has_involutive_reverse U] [has_involutive_reverse V] [prefunctor.map_
 @[simp] lemma quiver.star_equiv_costar_symm_apply {u v : U} (e : u ⟶ v) :
   (quiver.star_equiv_costar v).symm (quiver.costar.mk e) = quiver.star.mk (reverse e) := rfl
 
-lemma prefunctor.costar_conj_star (u : U) : (φ.costar u) =
-  quiver.star_equiv_costar (φ.obj u) ∘ φ.star u ∘ (quiver.star_equiv_costar u).symm :=
+lemma prefunctor.costar_conj_star (u : U) :
+  φ.costar u =
+    quiver.star_equiv_costar (φ.obj u) ∘ φ.star u ∘ (quiver.star_equiv_costar u).symm :=
 by { ext ⟨v, f⟩; simp, }
 
 lemma prefunctor.bijective_costar_iff_bijective_star (u : U) :

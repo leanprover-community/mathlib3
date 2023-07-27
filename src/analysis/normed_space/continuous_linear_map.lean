@@ -187,9 +187,7 @@ linear_equiv.to_continuous_linear_equiv_of_bounds f a a⁻¹
 
 end seminormed
 
-/-! ## The span of a single vector
-
-Note that some of the results in this section are not about normed spaces at all! -/
+/-! ## The span of a single vector -/
 
 namespace continuous_linear_map
 variables (𝕜)

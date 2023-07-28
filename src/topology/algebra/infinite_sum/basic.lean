@@ -1335,8 +1335,8 @@ begin
   exact tsum_const_smul'' _,
 end
 
-/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
-  -scalar multiplication. -/
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the 
+  `R`-scalar multiplication. -/
 lemma add_action.automorphize_smul_left [add_group α] [add_action α β]  (f : β → M)
   (g : quotient (add_action.orbit_rel α β) → R) :
   add_action.automorphize ((g ∘ quotient.mk') • f)

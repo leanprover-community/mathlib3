@@ -3,10 +3,13 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.sites.sheafification
 import category_theory.sites.whiskering
+import category_theory.sites.plus
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 In this file, we prove that the plus functor is compatible with functors which
 preserve the correct limits and colimits.

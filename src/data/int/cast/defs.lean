@@ -8,6 +8,9 @@ import data.nat.cast.defs
 /-!
 # Cast of integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the *canonical* homomorphism from the integers into an
 additive group with a one (typically a `ring`).  In additive groups with a one
 element, there exists a unique such homomorphism and we store it in the
@@ -41,7 +44,7 @@ class has_int_cast (R : Type u) :=
 An `add_group_with_one` is an `add_group` with a `1`.
 It also contains data for the unique homomorphisms `ℕ → R` and `ℤ → R`.
 -/
-@[protect_proj]
+@[protect_proj, ancestor has_int_cast add_group add_monoid_with_one]
 class add_group_with_one (R : Type u)
   extends has_int_cast R, add_group R, add_monoid_with_one R :=
 (int_cast := int.cast_def)
@@ -49,8 +52,9 @@ class add_group_with_one (R : Type u)
 (int_cast_neg_succ_of_nat : ∀ n : ℕ, int_cast (-(n+1 : ℕ)) = -((n+1 : ℕ) : R) . control_laws_tac)
 
 /-- An `add_comm_group_with_one` is an `add_group_with_one` satisfying `a + b = b + a`. -/
-@[protect_proj]
-class add_comm_group_with_one (R : Type u) extends add_comm_group R, add_group_with_one R
+@[protect_proj, ancestor add_comm_group add_group_with_one add_comm_monoid_with_one]
+class add_comm_group_with_one (R : Type u)
+  extends add_comm_group R, add_group_with_one R, add_comm_monoid_with_one R
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `R` -/
 protected def int.cast {R : Type u} [has_int_cast R] (i : ℤ) : R := has_int_cast.int_cast i

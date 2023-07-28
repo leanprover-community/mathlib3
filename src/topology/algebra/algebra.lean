@@ -5,10 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
-import topology.algebra.field
+import ring_theory.adjoin.basic
 
 /-!
 # Topological (sub)algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A topological algebra over a topological semiring `R` is a topological semiring with a compatible
 continuous scalar multiplication by elements of `R`. We reuse typeclass `has_continuous_smul` for
@@ -80,7 +83,7 @@ variables [topological_semiring A]
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
 { carrier := closure (s : set A),
-  algebra_map_mem' := λ r, s.to_subsemiring.subring_topological_closure (s.algebra_map_mem r),
+  algebra_map_mem' := λ r, s.to_subsemiring.le_topological_closure (s.algebra_map_mem r),
   .. s.to_subsemiring.topological_closure }
 
 @[simp] lemma subalgebra.topological_closure_coe (s : subalgebra R A) :
@@ -90,7 +93,7 @@ rfl
 instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
 s.to_subsemiring.topological_semiring
 
-lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
+lemma subalgebra.le_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -149,7 +152,7 @@ def algebra.elemental_algebra (x : A) : subalgebra R A :=
 (algebra.adjoin R ({x} : set A)).topological_closure
 
 lemma algebra.self_mem_elemental_algebra (x : A) : x ∈ algebra.elemental_algebra R x :=
-set_like.le_def.mp (subalgebra.subalgebra_topological_closure (algebra.adjoin R ({x} : set A))) $
+set_like.le_def.mp (subalgebra.le_topological_closure (algebra.adjoin R ({x} : set A))) $
   algebra.self_mem_adjoin_singleton R x
 
 variables {R}

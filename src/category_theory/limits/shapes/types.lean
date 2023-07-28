@@ -7,10 +7,14 @@ import category_theory.limits.types
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
+import category_theory.concrete_category.basic
 import tactic.elementwise
 
 /-!
 # Special shapes for limits in `Type`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The general shape (co)limits defined in `category_theory.limits.types`
 are intended for use through the limits API,

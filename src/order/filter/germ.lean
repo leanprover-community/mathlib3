@@ -9,6 +9,9 @@ import algebra.module.pi
 /-!
 # Germ of a function at a filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The germ of a function `f : α → β` at a filter `l : filter α` is the equivalence class of `f`
 with respect to the equivalence relation `eventually_eq l`: `f ≈ g` means `∀ᶠ x in l, f x = g x`.
 

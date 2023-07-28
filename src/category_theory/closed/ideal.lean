@@ -14,6 +14,9 @@ import category_theory.subterminal
 /-!
 # Exponential ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` such that for any
 `B : D` and `A : C`, the exponential `A ⟹ B` is in `D`: resembling ring theoretic ideals. We
 define the notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories to
@@ -110,7 +113,7 @@ variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D
 variables (i : D ⥤ C)
 
 lemma reflective_products [has_finite_products C] [reflective i] : has_finite_products D :=
-⟨λ J 𝒥, by exactI has_limits_of_shape_of_reflective i⟩
+⟨λ n, has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
 

@@ -3,11 +3,16 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import data.finset.prod
 import data.sym.basic
+import data.set_like.basic
 import tactic.linarith
 
 /-!
 # The symmetric square
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the symmetric square, which is `α × α` modulo
 swapping.  This is also known as the type of unordered pairs.
@@ -41,7 +46,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open finset fintype function sym
+open finset function sym
 
 universe u
 variables {α β γ : Type*}
@@ -198,24 +203,42 @@ end
 
 section membership
 
-/-! ### Declarations about membership -/
+/-! ### Membership and set coercion -/
 
 /--
 This is a predicate that determines whether a given term is a member of a term of the
 symmetric square.  From this point of view, the symmetric square is the subtype of
 cardinality-two multisets on `α`.
 -/
-def mem (x : α) (z : sym2 α) : Prop :=
+protected def mem (x : α) (z : sym2 α) : Prop :=
 ∃ (y : α), z = ⟦(x, y)⟧
 
-instance : has_mem α (sym2 α) := ⟨mem⟩
+lemma mem_iff' {a b c : α} : sym2.mem a ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
+  mpr := by { rintro (rfl|rfl), { exact ⟨_, rfl⟩ }, rw eq_swap, exact ⟨_, rfl⟩ } }
+
+instance : set_like (sym2 α) α :=
+{ coe := λ z, {x | z.mem x},
+  coe_injective' := λ z z' h, begin
+    simp only [set.ext_iff, set.mem_set_of_eq] at h,
+    induction z using sym2.ind with x y,
+    induction z' using sym2.ind with x' y',
+    have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
+    simp only [mem_iff', eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
+    cases hx; cases hy; cases hx'; cases hy'; subst_vars,
+    rw [sym2.eq_swap],
+  end }
+
+@[simp] lemma mem_iff_mem {x : α} {z : sym2 α} : sym2.mem x z ↔ x ∈ z := iff.rfl
+
+lemma mem_iff_exists {x : α} {z : sym2 α} : x ∈ z ↔ ∃ (y : α), z = ⟦(x, y)⟧ := iff.rfl
+
+@[ext] theorem ext {p q : sym2 α} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
 lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 
-@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
-{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c := mem_iff'
 
 lemma out_fst_mem (e : sym2 α) : e.out.1 ∈ e := ⟨e.out.2, by rw [prod.mk.eta, e.out_eq]⟩
 lemma out_snd_mem (e : sym2 α) : e.out.2 ∈ e := ⟨e.out.1, by rw [eq_swap, prod.mk.eta, e.out_eq]⟩
@@ -256,17 +279,6 @@ end
 lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
   (h1 : x ∈ z) (h2 : y ∈ z) (h3 : x ∈ z') (h4 : y ∈ z') : z = z' :=
 ((mem_and_mem_iff h).mp ⟨h1, h2⟩).trans ((mem_and_mem_iff h).mp ⟨h3, h4⟩).symm
-
-@[ext]
-protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
-begin
-  induction z using sym2.ind with x y,
-  induction z' using sym2.ind with x' y',
-  have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
-  simp only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
-  cases hx; cases hy; cases hx'; cases hy'; subst_vars,
-  simp only [sym2.eq_swap],
-end
 
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
 quotient.rec_on_subsingleton z (λ ⟨y₁, y₂⟩, decidable_of_iff' _ mem_iff)
@@ -527,7 +539,7 @@ begin
   have h' := mem_iff.mp h,
   dsimp [mem.other', quot.rec, pair_other],
   cases h'; subst a,
-  { simp only [if_true, eq_self_iff_true], refl, },
+  { simp only [eq_self_iff_true], refl, },
   { split_ifs, subst h_1, refl, rw eq_swap, refl, },
   refl,
 end
@@ -547,7 +559,7 @@ begin
   split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
-  simp only [h, if_false, if_true, eq_self_iff_true],
+  simp only [h, if_false, eq_self_iff_true],
   exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
@@ -583,7 +595,7 @@ begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simp only [mem_image, mem_off_diag, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,

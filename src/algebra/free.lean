@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.hom.group
+import algebra.hom.equiv.basic
 import control.applicative
 import control.traversable.basic
 import logic.equiv.defs
@@ -11,6 +12,9 @@ import data.list.basic
 
 /-!
 # Free constructions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 

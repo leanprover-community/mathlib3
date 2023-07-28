@@ -5,9 +5,13 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.synonym
+import order.hom.set
 
 /-!
 # Galois connections, insertions and coinsertions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Galois connections are order theoretic adjoints, i.e. a pair of functions `u` and `l`,
 such that `∀ a b, l a ≤ b ↔ a ≤ u b`.

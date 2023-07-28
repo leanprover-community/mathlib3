@@ -5,13 +5,16 @@ Authors: Simon Hudon
 -/
 
 import order.omega_complete_partial_order
-import order.category.Preorder
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.concrete_category.bundled_hom
 
 /-!
 # Category of types with a omega complete partial order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we bundle the class `omega_complete_partial_order` into a
 concrete category and prove that continuous functions also form

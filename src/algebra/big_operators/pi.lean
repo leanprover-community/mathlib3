@@ -3,11 +3,16 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import data.fintype.card
+import algebra.group.prod
 import algebra.big_operators.basic
 import algebra.ring.pi
 
 /-!
 # Big operators for Pi Types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains theorems relevant to big operators in binary and arbitrary product
 of monoids and groups
@@ -51,35 +56,37 @@ lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : fin
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s rfl (by simp [prod.ext_iff] {contextual := tt})
 
-section single
+section mul_single
 variables {I : Type*} [decidable_eq I] {Z : I → Type*}
-variables [Π i, add_comm_monoid (Z i)]
+variables [Π i, comm_monoid (Z i)]
 
--- As we only defined `single` into `add_monoid`, we only prove the `finset.sum` version here.
-lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
-  ∑ i, pi.single i (f i) = f :=
+@[to_additive]
+lemma finset.univ_prod_mul_single [fintype I] (f : Π i, Z i) :
+  ∏ i, pi.mul_single i (f i) = f :=
 by { ext a, simp }
 
-lemma add_monoid_hom.functions_ext [finite I] (G : Type*) [add_comm_monoid G]
-  (g h : (Π i, Z i) →+ G) (H : ∀ i x, g (pi.single i x) = h (pi.single i x)) : g = h :=
+@[to_additive]
+lemma monoid_hom.functions_ext [finite I] (G : Type*) [comm_monoid G]
+  (g h : (Π i, Z i) →* G) (H : ∀ i x, g (pi.mul_single i x) = h (pi.mul_single i x)) : g = h :=
 begin
   casesI nonempty_fintype I,
   ext k,
-  rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
+  rw [← finset.univ_prod_mul_single k, g.map_prod, h.map_prod],
   simp only [H]
 end
 
-/-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
+/-- This is used as the ext lemma instead of `monoid_hom.functions_ext` for reasons explained in
 note [partially-applied ext lemmas]. -/
-@[ext]
-lemma add_monoid_hom.functions_ext' [finite I] (M : Type*) [add_comm_monoid M]
-  (g h : (Π i, Z i) →+ M)
-  (H : ∀ i, g.comp (add_monoid_hom.single Z i) = h.comp (add_monoid_hom.single Z i)) :
+@[ext, to_additive "
+This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
+note [partially-applied ext lemmas]."]
+lemma monoid_hom.functions_ext' [finite I] (M : Type*) [comm_monoid M]
+  (g h : (Π i, Z i) →* M)
+  (H : ∀ i, g.comp (monoid_hom.single Z i) = h.comp (monoid_hom.single Z i)) :
   g = h :=
-have _ := λ i, add_monoid_hom.congr_fun (H i), -- elab without an expected type
-g.functions_ext M h this
+g.functions_ext M h $ λ i, monoid_hom.congr_fun (H i)
 
-end single
+end mul_single
 
 section ring_hom
 open pi

@@ -3,12 +3,14 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.finite.basic
 import set_theory.cardinal.finite
 
 /-!
 
 # Cardinality of finite types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The cardinality of a finite type `α` is given by `nat.card α`. This function has
 the "junk value" of `0` for infinite types, but to ensure the function has valid
@@ -155,6 +157,18 @@ theorem card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
 
 end finite
+
+namespace part_enat
+
+lemma card_eq_coe_nat_card (α : Type*) [finite α] : card α = nat.card α :=
+begin
+  unfold part_enat.card,
+  apply symm,
+  rw cardinal.coe_nat_eq_to_part_enat_iff,
+  exact finite.cast_card_eq_mk ,
+end
+
+end part_enat
 
 namespace set
 

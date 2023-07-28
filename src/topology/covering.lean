@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import topology.is_locally_homeomorph
-import topology.fiber_bundle
+import topology.fiber_bundle.basic
 
 /-!
 # Covering Maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines covering maps.
 
@@ -20,6 +23,8 @@ This file defines covering maps.
   not connected, then the fibers `f ⁻¹' {x}` are not necessarily isomorphic. Also, `f` is not
   assumed to be surjective, so the fibers are even allowed to be empty.
 -/
+
+open_locale bundle
 
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) (s : set X)
 
@@ -150,6 +155,13 @@ end is_covering_map
 
 variables {f}
 
-protected lemma is_topological_fiber_bundle.is_covering_map {F : Type*} [topological_space F]
-  [discrete_topology F] (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
+protected lemma is_fiber_bundle.is_covering_map {F : Type*} [topological_space F]
+  [discrete_topology F] (hf : ∀ x : X, ∃ e : trivialization F f, x ∈ e.base_set) :
+  is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))
+
+protected lemma fiber_bundle.is_covering_map {F : Type*} {E : X → Type*} [topological_space F]
+  [discrete_topology F] [topological_space (bundle.total_space F E)] [Π x, topological_space (E x)]
+  [hf : fiber_bundle F E] : is_covering_map (π F E) :=
+is_fiber_bundle.is_covering_map
+  (λ x, ⟨trivialization_at F E x, mem_base_set_trivialization_at F E x ⟩)

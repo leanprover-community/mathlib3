@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.monoid.defs
-import algebra.group.units
 import algebra.group.inj_surj
 import order.hom.basic
 
 /-!
 # Ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops some additional material on ordered monoids.
 -/

@@ -10,6 +10,9 @@ import tactic.linarith
 /-!
 # IMO 1981 Q3
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine the maximum value of `m ^ 2 + n ^ 2`, where `m` and `n` are integers in
 `{1, 2, ..., 1981}` and `(n ^ 2 - m * n - m ^ 2) ^ 2 = 1`.
 
@@ -24,7 +27,7 @@ We first generalize the problem to `{1, 2, ..., N}` and specialize to `N = 1981`
 -/
 
 open int nat set
-section
+namespace imo1981_q3
 variable (N : ℕ) -- N = 1981
 
 @[mk_iff] structure problem_predicate (m n : ℤ) : Prop :=
@@ -189,7 +192,9 @@ theorem solution_greatest (H : problem_predicate N (fib K) (fib (K + 1))) :
   is_greatest (specified_set N) M :=
 ⟨⟨fib K, fib (K+1), by simp [HM], H⟩, λ k h, solution_bound HK HM h⟩
 
-end
+end imo1981_q3
+
+open imo1981_q3
 
 /-
 Now we just have to demonstrate that 987 and 1597 are in fact the largest Fibonacci

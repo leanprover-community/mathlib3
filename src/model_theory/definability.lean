@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import logic.equiv.fintype
 import model_theory.semantics
 
 /-!
 # Definable Sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines what it means for a set over a first-order structure to be definable.
 
 ## Main Definitions

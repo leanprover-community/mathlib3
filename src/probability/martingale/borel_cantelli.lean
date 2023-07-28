@@ -6,11 +6,13 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 
 # Generalized Borel-Cantelli lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves Lévy's generalized Borel-Cantelli lemma which is a generalization of the
 Borel-Cantelli lemmas. With this generalization, one can easily deduce the Borel-Cantelli lemmas
@@ -29,7 +31,7 @@ is required to prove the generalized Borel-Cantelli.
 -/
 
 open filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
+open_locale nnreal ennreal measure_theory probability_theory big_operators topology
 
 namespace measure_theory
 
@@ -257,7 +259,7 @@ begin
     refine neg_le.2 (hc _ _),
     simpa only [pi.neg_apply, set.mem_range, neg_inj] },
   { rw mem_lower_bounds at hc,
-    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_neg_eq, eq_comm] at hω,
+    simp_rw [set.mem_range, pi.neg_apply, neg_eq_iff_eq_neg] at hω,
     refine le_neg.1 (hc _ _),
     simpa only [set.mem_range] }
 end
@@ -322,7 +324,8 @@ end
 lemma integrable_process (μ : measure Ω) [is_finite_measure μ]
   (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
   integrable (process s n) μ :=
-integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
+integrable_finset_sum' _ $ λ k hk,
+  integrable_on.integrable_indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
 end borel_cantelli
 

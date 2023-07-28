@@ -10,6 +10,9 @@ import topology.metric_space.baire
 /-!
 # Topology of irrational numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following theorems:
 
 * `is_Gδ_irrational`, `dense_irrational`, `eventually_residual_irrational`: irrational numbers
@@ -29,7 +32,7 @@ irrational, residual
 -/
 
 open set filter metric
-open_locale filter topological_space
+open_locale filter topology
 
 lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
 (countable_range _).is_Gδ_compl

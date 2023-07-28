@@ -3,13 +3,16 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.basic
 import topology.metric_space.pi_nat
 import topology.metric_space.isometry
 import topology.metric_space.gluing
+import analysis.normed.field.basic
 
 /-!
 # Polish spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A topological space is Polish if its topology is second-countable and there exists a compatible
 complete metric. This is the class of spaces that is well-behaved with respect to measure theory.
@@ -44,7 +47,7 @@ with additional properties:
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 variables {α : Type*} {β : Type*}
@@ -413,7 +416,7 @@ end complete_copy
 this set is open and closed. It turns out that this notion is equivalent to being Borel-measurable,
 but this is nontrivial (see `is_clopenable_iff_measurable_set`). -/
 def is_clopenable [t : topological_space α] (s : set α) : Prop :=
-∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ @is_closed α t' s ∧ @is_open α t' s
+∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ is_closed[t'] s ∧ is_open[t'] s
 
 /-- Given a closed set `s` in a Polish space, one can construct a finer Polish topology for
 which `s` is both open and closed. -/
@@ -450,13 +453,13 @@ begin
       have : sum.inr ⁻¹' (⇑(f.symm) ⁻¹' u) = (coe : t → α) ⁻¹' u,
         by { ext x, simp only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inr] },
       rwa this } },
-  { have : @is_closed α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
+  { have : is_closed[t'] (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
     { apply is_closed.preimage,
       { exact @homeomorph.continuous _ _ t' _ g },
       { exact is_closed_range_inl } },
     convert this,
     exact A.symm },
-  { have : @is_open α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
+  { have : is_open[t'] (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
     { apply is_open.preimage,
       { exact @homeomorph.continuous _ _ t' _ g },
       { exact is_open_range_inl } },
@@ -483,14 +486,14 @@ begin
   obtain ⟨t', t'm, -, t'_polish⟩ :
     ∃ (t' : topological_space α), (∀ (n : ℕ), t' ≤ m n) ∧ (t' ≤ t) ∧ @polish_space α t' :=
       exists_polish_space_forall_le m mt m_polish,
-  have A : @is_open α t' (⋃ n, s n),
+  have A : is_open[t'] (⋃ n, s n),
   { apply is_open_Union,
     assume n,
     apply t'm n,
     exact m_open n },
   obtain ⟨t'', t''_le, t''_polish, h1, h2⟩ :
     ∃ (t'' : topological_space α), t'' ≤ t' ∧ @polish_space α t''
-      ∧ @is_closed α t'' (⋃ n, s n) ∧ @is_open α t'' (⋃ n, s n) :=
+      ∧ is_closed[t''] (⋃ n, s n) ∧ is_open[t''] (⋃ n, s n) :=
         @is_open.is_clopenable α t' t'_polish _ A,
   exact ⟨t'', t''_le.trans ((t'm 0).trans (mt 0)), t''_polish, h1, h2⟩,
 end

@@ -3,12 +3,15 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import topology.continuous_function.compact
 import analysis.normed_space.units
 import algebra.algebra.spectrum
+import topology.continuous_function.algebra
 
 /-!
 # Units of continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file concerns itself with `C(X, M)ˣ` and `C(X, Mˣ)` when `X` is a topological space
 and `M` has some monoid structure compatible with its topology.

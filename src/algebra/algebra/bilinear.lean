@@ -11,6 +11,9 @@ import linear_algebra.tensor_product
 /-!
 # Facts about algebras involving bilinear maps and tensor products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We move a few basic statements about algebras out of `algebra.algebra.basic`,
 in order to avoid importing `linear_algebra.bilinear_map` and
 `linear_algebra.tensor_product` unnecessarily.
@@ -59,8 +62,7 @@ variables {R}
 @[simp] lemma mul_right_apply (a b : A) : mul_right R a b = b * a := rfl
 @[simp] lemma mul_left_right_apply (a b x : A) : mul_left_right R (a, b) x = a * x * b := rfl
 
-@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b :=
-by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply']
+@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b := rfl
 
 @[simp] lemma mul_left_zero_eq_zero :
   mul_left R (0 : A) = 0 :=
@@ -165,18 +167,27 @@ variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
 
 lemma mul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul_left R x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_right_injective₀ hx,
+end
 
 lemma mul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul_right R x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_left_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_left_injective₀ hx,
+end
 
 lemma mul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (mul R A x) :=
-by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
-     exact mul_right_injective₀ hx }
+begin
+  letI : nontrivial A := ⟨⟨x, 0, hx⟩⟩,
+  letI := no_zero_divisors.to_is_domain A,
+  exact mul_right_injective₀ hx,
+end
 
 end ring
 

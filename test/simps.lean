@@ -34,7 +34,9 @@ run_cmd do
   e.get `foo.rfl_to_fun,
   e.get `foo.rfl_inv_fun,
   success_if_fail (e.get `foo.rfl_left_inv),
-  success_if_fail (e.get `foo.rfl_right_inv)
+  success_if_fail (e.get `foo.rfl_right_inv),
+  p ← simps_aux.get_param `foo.rfl,
+  guard $ p = [`foo.rfl_to_fun, `foo.rfl_inv_fun]
 
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
@@ -256,7 +258,9 @@ Note: these projection names might not correspond to the projection names of the
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
-  classical.choice specify.specify5._proof_1"
+  classical.choice specify.specify5._proof_1",
+    p ← simps_aux.get_param `specify.specify4,
+    guard $ p = [`specify.specify4_snd, `specify.specify4_snd_snd]
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -514,7 +518,8 @@ variables {α β γ : Sort*}
 /-- See Note [custom simps projection] -/
 noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.choice ⟨e.inv_fun⟩
 
-run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
+run_cmd do e ← get_env, success_if_fail_with_msg
+  (simps_get_raw_projections e `faulty_manual_coercion.equiv)
 "Invalid custom projection:
   λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
 Expression is not definitionally equal to

@@ -9,6 +9,9 @@ import ring_theory.valuation.basic
 /-!
 # Ring of integers under a given valuation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The elements with valuation less than or equal to 1.
 
 TODO: Define characteristic predicate.

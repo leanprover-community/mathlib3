@@ -3,10 +3,14 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.defs
 import logic.encodable.basic
+import data.nat.gcd.basic
+import data.rat.init
 
 /-! # The rationals are `encodable`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 As a consequence we also get the instance `countable ℚ`.
 

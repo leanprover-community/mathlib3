@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import order.compactly_generated
-import order.order_iso_nat
 import topology.sets.closeds
 
 /-!
 # Noetherian space
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A Noetherian space is a topological space that satisfies any of the following equivalent conditions:
 - `well_founded ((>) : opens α → opens α → Prop)`
@@ -55,27 +57,24 @@ end
 
 @[priority 100]
 instance noetherian_space.compact_space [h : noetherian_space α] : compact_space α :=
-is_compact_univ_iff.mp ((noetherian_space_iff_opens α).mp h ⊤)
+⟨(noetherian_space_iff_opens α).mp h ⊤⟩
 
-variable {α}
+variables {α β}
+
+protected lemma noetherian_space.is_compact [noetherian_space α] (s : set α) : is_compact s :=
+begin
+  refine is_compact_iff_finite_subcover.2 (λ ι U hUo hs, _),
+  rcases ((noetherian_space_iff_opens α).mp ‹_›
+    ⟨⋃ i, U i, is_open_Union hUo⟩).elim_finite_subcover U hUo set.subset.rfl with ⟨t, ht⟩,
+  exact ⟨t, hs.trans ht⟩
+end
+
+protected lemma inducing.noetherian_space [noetherian_space α] {i : β → α} (hi : inducing i) :
+  noetherian_space β :=
+(noetherian_space_iff_opens _).2 $ λ s, hi.is_compact_iff.1 (noetherian_space.is_compact _)
 
 instance noetherian_space.set [h : noetherian_space α] (s : set α) : noetherian_space s :=
-begin
-  rw noetherian_space_iff,
-  apply well_founded.well_founded_iff_has_max'.2,
-  intros p hp,
-  obtain ⟨⟨_, u, hu, rfl⟩, hu'⟩ := hp,
-  obtain ⟨U, hU, hU'⟩ := well_founded.well_founded_iff_has_max'.1 h.1
-    (((opens.comap ⟨_, continuous_subtype_coe⟩)) ⁻¹' p) ⟨⟨u, hu⟩, hu'⟩,
-  refine ⟨opens.comap ⟨_, continuous_subtype_coe⟩ U, hU, _⟩,
-  rintros ⟨_, x, hx, rfl⟩ hx' hx'',
-  refine le_antisymm (set.preimage_mono (_ : (⟨x, hx⟩ : opens α) ≤ U)) hx'',
-  refine sup_eq_right.mp (hU' (⟨x, hx⟩ ⊔ U) _ le_sup_right),
-  dsimp [set.preimage],
-  rw map_sup,
-  convert hx',
-  exact sup_eq_left.mpr hx''
-end
+inducing_coe.noetherian_space
 
 variable (α)
 
@@ -93,7 +92,7 @@ begin
   tfae_have : 1 ↔ 4,
   { exact noetherian_space_iff_opens α },
   tfae_have : 1 → 3,
-  { intros H s, rw is_compact_iff_compact_space, resetI, apply_instance },
+  { exact @noetherian_space.is_compact _ _ },
   tfae_have : 3 → 4,
   { exact λ H s, H s },
   tfae_finish
@@ -111,9 +110,6 @@ begin
     exact ⟨a, ha, or.inr hf⟩ },
   { exact ⟨a, filter.le_principal_iff.mp hs, or.inl le_rfl⟩ }
 end
-
-lemma noetherian_space.is_compact [h : noetherian_space α] (s : set α) : is_compact s :=
-let H := (noetherian_space_tfae α).out 0 2 in H.mp h s
 
 lemma noetherian_space_of_surjective [noetherian_space α] (f : α → β)
   (hf : continuous f) (hf' : function.surjective f) : noetherian_space β :=

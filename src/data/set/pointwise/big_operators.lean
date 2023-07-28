@@ -8,15 +8,42 @@ import data.set.pointwise.basic
 
 /-!
 # Results about pointwise operations on sets and big operators.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace set
 
-section big_operators
 open_locale big_operators pointwise
 open function
 
-variables {α : Type*} {ι : Type*} [comm_monoid α]
+variables {ι α β F : Type*}
+
+section monoid
+variables [monoid α] [monoid β] [monoid_hom_class F α β]
+
+@[to_additive]
+lemma image_list_prod (f : F) : ∀ (l : list (set α)),
+  (f : α → β) '' l.prod = (l.map (λ s, f '' s)).prod
+| [] := image_one.trans $ congr_arg singleton (map_one f)
+| (a :: as) := by rw [list.map_cons, list.prod_cons, list.prod_cons, image_mul, image_list_prod]
+
+end monoid
+
+section comm_monoid
+variables [comm_monoid α] [comm_monoid β] [monoid_hom_class F α β]
+
+@[to_additive]
+lemma image_multiset_prod (f : F) : ∀ (m : multiset (set α)),
+  (f : α → β) '' m.prod = (m.map (λ s, f '' s)).prod :=
+quotient.ind $ by simpa only [multiset.quot_mk_to_coe, multiset.coe_prod, multiset.coe_map]
+                 using image_list_prod f
+
+@[to_additive]
+lemma image_finset_prod (f : F) (m : finset ι) (s : ι → set α) :
+  (f : α → β) '' (∏ i in m, s i) = (∏ i in m, f '' s i) :=
+(image_multiset_prod f _).trans $ congr_arg multiset.prod $ multiset.map_map _ _ _
 
 /-- The n-ary version of `set.mem_mul`. -/
 @[to_additive /-" The n-ary version of `set.mem_add`. "-/]
@@ -124,8 +151,20 @@ lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : 
   ∏ (i : ι) in s, ({I i} : set M) = {∏ (i : ι) in s, I i} :=
 (map_prod (singleton_monoid_hom : M →* set M) _ _).symm
 
-/-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
+/-- The n-ary version of `set.image_mul_prod`. -/
+@[to_additive "The n-ary version of `set.add_image_prod`. "]
+lemma image_finset_prod_pi (l : finset ι) (S : ι → set α) :
+  (λ f : ι → α, ∏ i in l, f i) '' (l : set ι).pi S = (∏ i in l, S i) :=
+by { ext, simp_rw [mem_finset_prod, mem_image, mem_pi, exists_prop, finset.mem_coe] }
 
-end big_operators
+/-- A special case of `set.image_finset_prod_pi` for `finset.univ`. -/
+@[to_additive "A special case of `set.image_finset_sum_pi` for `finset.univ`. "]
+lemma image_fintype_prod_pi [fintype ι] (S : ι → set α) :
+  (λ f : ι → α, ∏ i, f i) '' univ.pi S = (∏ i, S i) :=
+by simpa only [finset.coe_univ] using image_finset_prod_pi finset.univ S
+
+end comm_monoid
+
+/-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end set

@@ -3,11 +3,14 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.order
+import data.int.order.basic
 import data.nat.succ_pred
 
 /-!
 # Successors and predecessors of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we show that `ℤ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/

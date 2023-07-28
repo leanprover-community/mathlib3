@@ -6,10 +6,12 @@ Authors: Bhavik Mehta
 import category_theory.whiskering
 import category_theory.functor.fully_faithful
 import category_theory.natural_isomorphism
-import data.sigma.basic
 
 /-!
 # Disjoint union of categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the category structure on a sigma-type (disjoint union) of categories.
 -/

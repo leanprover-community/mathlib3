@@ -9,6 +9,9 @@ import algebra.ne_zero
 /-!
 # The positive natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definitions, and basic results.
 Most algebraic facts are deferred to `data.pnat.basic`, as they need more imports.
 -/

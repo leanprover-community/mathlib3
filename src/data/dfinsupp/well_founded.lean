@@ -11,6 +11,9 @@ import set_theory.ordinal.basic
 /-!
 # Well-foundedness of the lexicographic and product orders on `dfinsupp` and `pi`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The primary results are `dfinsupp.lex.well_founded` and the two variants that follow it,
 which essentially say that if `(>)` is a well order on `ι`, `(<)` is well-founded on each
 `α i`, and `0` is a bottom element in `α i`, then the lexicographic `(<)` is well-founded

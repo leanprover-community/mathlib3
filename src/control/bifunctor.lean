@@ -9,6 +9,9 @@ import data.sum.basic
 /-!
 # Functors with two arguments
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bifunctors.
 
 A bifunctor is a function `F : Type* → Type* → Type*` along with a bimap which turns `F α β` into

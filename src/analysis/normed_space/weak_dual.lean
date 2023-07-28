@@ -10,6 +10,9 @@ import analysis.normed_space.operator_norm
 /-!
 # Weak dual of normed space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `E` be a normed space over a field `𝕜`. This file is concerned with properties of the weak-*
 topology on the dual of `E`. By the dual, we mean either of the type synonyms
 `normed_space.dual 𝕜 E` or `weak_dual 𝕜 E`, depending on whether it is viewed as equipped with its
@@ -87,7 +90,7 @@ weak-star, weak dual
 
 noncomputable theory
 open filter function metric set
-open_locale topological_space filter
+open_locale topology filter
 
 /-!
 ### Weak star topology on duals of normed spaces
@@ -164,7 +167,7 @@ variables (𝕜)
 weak-star topology is `weak_dual.polar 𝕜 s`. -/
 def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' polar 𝕜 s
 
-lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
+lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ‖f x‖ ≤ 1} := rfl
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used. -/

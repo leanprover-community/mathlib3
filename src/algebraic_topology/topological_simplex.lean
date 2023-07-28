@@ -10,6 +10,9 @@ import topology.instances.nnreal
 /-!
 # Topological simplices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the natural functor from `simplex_category` to `Top` sending `[n]` to the
 topological `n`-simplex.
 This is used to define `Top.to_sSet` in `algebraic_topology.simpliciaL_set`.
@@ -47,7 +50,9 @@ begin
     intros i,
     rw finset.mem_bUnion,
     exact ⟨f i, by simp, by simp⟩ },
-  { intros i hi j hj h e he,
+  { intros i hi j hj h,
+    rw [function.on_fun, disjoint_iff_inf_le],
+    intros e he,
     apply h,
     simp only [true_and, finset.inf_eq_inter,
       finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,
@@ -83,7 +88,9 @@ def to_Top : simplex_category ⥤ Top :=
     apply finset.sum_congr,
     { exact finset.ext (λ j, ⟨λ hj, by simpa using hj, λ hj, by simpa using hj⟩) },
     { tauto },
-    { intros j hj k hk h e he,
+    { intros j hj k hk h,
+      rw [function.on_fun, disjoint_iff_inf_le],
+      intros e he,
       apply h,
       simp only [true_and, finset.inf_eq_inter,
         finset.mem_univ, finset.mem_filter, finset.mem_inter] at he,

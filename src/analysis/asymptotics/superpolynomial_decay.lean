@@ -11,6 +11,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # Super-Polynomial Function Decay
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a predicate `asymptotics.superpolynomial_decay f` for a function satisfying
   one of following equivalent definitions (The definition is in terms of the first condition):
 
@@ -46,7 +49,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 namespace asymptotics
 
-open_locale topological_space polynomial
+open_locale topology polynomial
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if
@@ -280,12 +283,12 @@ variable [normed_linear_ordered_field β]
 variables (l k f)
 
 lemma superpolynomial_decay_iff_norm_tendsto_zero :
-  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ∥(k a) ^ n * f a∥) l (𝓝 0) :=
+  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ‖(k a) ^ n * f a‖) l (𝓝 0) :=
 ⟨λ h z, tendsto_zero_iff_norm_tendsto_zero.1 (h z),
   λ h z, tendsto_zero_iff_norm_tendsto_zero.2 (h z)⟩
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_norm :
-  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ∥k a∥) (λ a, ∥f a∥) :=
+  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ‖k a‖) (λ a, ‖f a‖) :=
 (superpolynomial_decay_iff_norm_tendsto_zero l k f).trans (by simp [superpolynomial_decay])
 
 variables {l k}

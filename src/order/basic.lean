@@ -9,6 +9,9 @@ import data.subtype
 /-!
 # Basic definitions about `≤` and `<`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about orders, provides extensive dot notation, defines useful order
 classes and allows to transfer order instances.
 
@@ -58,7 +61,7 @@ preorder, order, partial order, poset, linear order, chain
 open function
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {π : ι → Type*} {r : α → α → Prop}
 
 section preorder
 variables [preorder α] {a b c : α}
@@ -152,10 +155,18 @@ namespace has_le.le
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
 
-lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+section partial_order
+variables [partial_order α] {a b : α}
 
-lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
-⟨λ h', h'.antisymm h, eq.le⟩
+lemma lt_iff_ne (h : a ≤ b) : a < b ↔ a ≠ b := ⟨λ h, h.ne, h.lt_of_ne⟩
+lemma gt_iff_ne (h : a ≤ b) : a < b ↔ b ≠ a := ⟨λ h, h.ne.symm, h.lt_of_ne'⟩
+lemma not_lt_iff_eq (h : a ≤ b) : ¬ a < b ↔ a = b := h.lt_iff_ne.not_left
+lemma not_gt_iff_eq (h : a ≤ b) : ¬ a < b ↔ b = a := h.gt_iff_ne.not_left
+
+lemma le_iff_eq (h : a ≤ b) : b ≤ a ↔ b = a := ⟨λ h', h'.antisymm h, eq.le⟩
+lemma ge_iff_eq (h : a ≤ b) : b ≤ a ↔ a = b := ⟨h.antisymm, eq.ge⟩
+
+end partial_order
 
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h
@@ -216,6 +227,9 @@ le_iff_lt_or_eq.trans or.comm
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, h1.lt_of_ne h2⟩
 
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+by rw [lt_iff_le_and_ne, not_and, not_not, eq_comm]
+
 -- See Note [decidable namespace]
 protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
@@ -228,10 +242,13 @@ by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
 lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
 h.lt_or_eq.symm.imp eq.symm id
+lemma gt_or_eq_of_le [partial_order α] {a b : α} (hab : a ≤ b) : a < b ∨ b = a :=
+(eq_or_gt_of_le hab).symm
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 alias eq_or_gt_of_le ← has_le.le.eq_or_gt
+alias gt_or_eq_of_le ← has_le.le.gt_or_eq
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
@@ -257,6 +274,26 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] 
 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
+
+-- Variant of `min_def` with the branches reversed.
+lemma min_def' [linear_order α] (a b : α) : min a b = if b ≤ a then b else a :=
+begin
+  rw [min_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
+-- Variant of `min_def` with the branches reversed.
+-- This is sometimes useful as it used to be the default.
+lemma max_def' [linear_order α] (a b : α) : max a b = if b ≤ a then a else b :=
+begin
+  rw [max_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
@@ -346,6 +383,23 @@ lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hb
   a ≤ b → c ≤ d :=
 λ hab, (hca.trans hab).trans hbd
 
+section partial_order
+variables [partial_order α]
+
+/-- To prove commutativity of a binary operation `○`, we only to check `a ○ b ≤ b ○ a` for all `a`,
+`b`. -/
+lemma commutative_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
+λ a b, (comm _ _).antisymm $ comm _ _
+
+/-- To prove associativity of a commutative binary operation `○`, we only to check
+`(a ○ b) ○ c ≤ a ○ (b ○ c)` for all `a`, `b`, `c`. -/
+lemma associative_of_commutative_of_le {f : α → α → α} (comm : commutative f)
+  (assoc : ∀ a b c, f (f a b) c ≤ f a (f b c)) :
+  associative f :=
+λ a b c, le_antisymm (assoc _ _ _) $ by { rw [comm, comm b, comm _ c, comm a], exact assoc _ _ _ }
+
+end partial_order
+
 @[ext]
 lemma preorder.to_has_le_injective {α : Type*} :
   function.injective (@preorder.to_has_le α) :=
@@ -432,8 +486,8 @@ instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
   min := @max α _,
   max := @min α _,
-  min_def := @linear_order.max_def α _,
-  max_def := @linear_order.min_def α _,
+  min_def := funext₂ $ @max_def' α _,
+  max_def := funext₂ $ @min_def' α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited αᵒᵈ := id
@@ -495,8 +549,11 @@ lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
+instance pi.partial_order [Π i, partial_order (π i)] : partial_order (Π i, π i) :=
+{ le_antisymm := λ f g h1 h2, funext $ λ b, (h1 b).antisymm (h2 b),
+  ..pi.preorder }
+
 section pi
-variables {ι : Type*} {π : ι → Type*}
 
 /-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
 def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
@@ -523,25 +580,31 @@ alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
 
 end pi
 
-lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
+section function
+variables [decidable_eq ι] [Π i, preorder (π i)] {x y : Π i, π i} {i : ι} {a b : π i}
+
+lemma le_update_iff : x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, x j ≤ z)
 
-lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
+lemma update_le_iff : function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
 
-lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a b : α i} :
+lemma update_le_update_iff :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
 by simp [update_le_iff] {contextual := tt}
 
-instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
-  partial_order (Π i, α i) :=
-{ le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
-  ..pi.preorder }
+@[simp] lemma update_le_update_iff' : update x i a ≤ update x i b ↔ a ≤ b :=
+by simp [update_le_update_iff]
+
+@[simp] lemma update_lt_update_iff : update x i a < update x i b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' update_le_update_iff' update_le_update_iff'
+
+@[simp] lemma le_update_self_iff : x ≤ update x i a ↔ x i ≤ a := by simp [le_update_iff]
+@[simp] lemma update_le_self_iff : update x i a ≤ x ↔ a ≤ x i := by simp [update_le_iff]
+@[simp] lemma lt_update_self_iff : x < update x i a ↔ x i < a := by simp [lt_iff_le_not_le]
+@[simp] lemma update_lt_self_iff : update x i a < x ↔ a < x i := by simp [lt_iff_le_not_le]
+
+end function
 
 instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
   has_sdiff (Π i, α i) :=
@@ -576,13 +639,13 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
-lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+lemma min_def_lt (x y : α) : min x y = if x < y then x else y :=
 begin
   rw [min_comm, min_def, ← ite_not],
   simp only [not_le],
 end
 
-lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+lemma max_def_lt (x y : α) : max x y = if x < y then y else x :=
 begin
   rw [max_comm, max_def, ← ite_not],
   simp only [not_le],
@@ -641,7 +704,7 @@ for a version that takes `[has_sup α]` and `[has_inf α]`, then uses them as `m
 See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-@linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
+@linear_order.lift α β _ ⟨λ x y, if f x ≤ f y then y else x⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
   f inj (λ x y, (apply_ite f _ _ _).trans (max_def _ _).symm)
   (λ x y, (apply_ite f _ _ _).trans (min_def _ _).symm)
 
@@ -771,6 +834,32 @@ instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered �
   densely_ordered αᵒᵈ :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
+@[simp] lemma densely_ordered_order_dual [has_lt α] : densely_ordered αᵒᵈ ↔ densely_ordered α :=
+⟨by { convert @order_dual.densely_ordered αᵒᵈ _, casesI ‹has_lt α›, refl },
+  @order_dual.densely_ordered α _⟩
+
+instance [preorder α] [preorder β] [densely_ordered α] [densely_ordered β] :
+  densely_ordered (α × β) :=
+⟨λ a b, begin
+  simp_rw prod.lt_iff,
+  rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+  { obtain ⟨c, ha, hb⟩ := exists_between h₁,
+    exact ⟨(c, _), or.inl ⟨ha, h₂⟩, or.inl ⟨hb, le_rfl⟩⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h₂,
+    exact ⟨(_, c), or.inr ⟨h₁, ha⟩, or.inr ⟨le_rfl, hb⟩⟩ }
+end⟩
+
+instance {α : ι → Type*} [Π i, preorder (α i)] [Π i, densely_ordered (α i)] :
+  densely_ordered (Π i, α i) :=
+⟨λ a b, begin
+  classical,
+  simp_rw pi.lt_def,
+  rintro ⟨hab, i, hi⟩,
+  obtain ⟨c, ha, hb⟩ := exists_between hi,
+  exact ⟨a.update i c, ⟨le_update_iff.2 ⟨ha.le, λ _ _, le_rfl⟩, i, by rwa update_same⟩,
+    update_le_iff.2 ⟨hb.le, λ _ _, hab _⟩, i, by rwa update_same⟩,
+end⟩
+
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀ a, a₂ < a → a₁ ≤ a) :
   a₁ ≤ a₂ :=
@@ -798,6 +887,16 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+/-- If a linear order has no elements `x < y < z`, then it has at most two elements. -/
+lemma eq_or_eq_or_eq_of_forall_not_lt_lt {α : Type*} [linear_order α]
+  (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) (x y z : α) : x = y ∨ y = z ∨ x = z :=
+begin
+  by_contra hne, push_neg at hne,
+  cases hne.1.lt_or_lt with h₁ h₁; cases hne.2.1.lt_or_lt with h₂ h₂;
+    cases hne.2.2.lt_or_lt with h₃ h₃,
+  exacts [h h₁ h₂, h h₂ h₃, h h₃ h₂, h h₃ h₁, h h₁ h₃, h h₂ h₃, h h₁ h₃, h h₂ h₁]
+end
 
 namespace punit
 variables (a b : punit.{u+1})

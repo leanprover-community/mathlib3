@@ -6,13 +6,15 @@ Authors: Frédéric Dupuis
 import algebra.module.pi
 import algebra.module.prod
 import algebra.order.monoid.prod
-import algebra.order.field.basic
 import algebra.order.pi
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import tactic.positivity
 
 /-!
 # Ordered scalar product
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 

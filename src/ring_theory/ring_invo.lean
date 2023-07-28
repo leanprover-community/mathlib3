@@ -9,6 +9,9 @@ import algebra.ring.opposite
 /-!
 # Ring involutions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a ring involution as a structure extending `R ≃+* Rᵐᵒᵖ`,
 with the additional fact `f.involution : (f (f x).unop).unop = x`.
 
@@ -27,12 +30,33 @@ Ring involution
 
 variables (R : Type*)
 
+set_option old_structure_cmd true
+
 /-- A ring involution -/
 structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
 
+/-- The equivalence of rings underlying a ring involution. -/
+add_decl_doc ring_invo.to_ring_equiv
+
+/-- `ring_invo_class F R S` states that `F` is a type of ring involutions.
+You should extend this class when you extend `ring_invo`. -/
+class ring_invo_class (F : Type*) (R : out_param Type*) [semiring R]
+  extends ring_equiv_class F R Rᵐᵒᵖ :=
+(involution : ∀ (f : F) (x), (f (f x).unop).unop = x)
+
 namespace ring_invo
 variables {R} [semiring R]
+
+instance (R : Type*) [semiring R] : ring_invo_class (ring_invo R) R :=
+{ coe := to_fun,
+  inv :=  inv_fun,
+  coe_injective' := λ e f h₁ h₂, by { cases e, cases f, congr' },
+  map_add := map_add',
+  map_mul := map_mul',
+  left_inv := left_inv,
+  right_inv := right_inv,
+  involution := involution' }
 
 /-- Construct a ring involution from a ring homomorphism. -/
 def mk' (f : R →+* Rᵐᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
@@ -43,6 +67,8 @@ def mk' (f : R →+* Rᵐᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
   involution' := involution,
   .. f }
 
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
 instance : has_coe_to_fun (ring_invo R) (λ _, R → Rᵐᵒᵖ) := ⟨λ f, f.to_ring_equiv.to_fun⟩
 
 @[simp]

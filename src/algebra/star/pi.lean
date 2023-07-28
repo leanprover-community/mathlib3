@@ -5,10 +5,12 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.pi
-import algebra.module.pi
 
 /-!
 # `star` on pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We put a `has_star` structure on pi types that operates elementwise, such that it describes the
 complex conjugation of vectors.
@@ -26,6 +28,9 @@ instance [Π i, has_star (f i)] : has_star (Π i, f i) :=
 @[simp] lemma star_apply [Π i, has_star (f i)] (x : Π i, f i) (i : I) : star x i = star (x i) := rfl
 
 lemma star_def [Π i, has_star (f i)] (x : Π i, f i) : star x = λ i, star (x i) := rfl
+
+instance [Π i, has_star (f i)] [∀ i, has_trivial_star (f i)] : has_trivial_star (Π i, f i) :=
+{ star_trivial  := λ _, funext $ λ _, star_trivial _ }
 
 instance [Π i, has_involutive_star (f i)] : has_involutive_star (Π i, f i) :=
 { star_involutive := λ _, funext $ λ _, star_star _ }

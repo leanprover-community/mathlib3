@@ -9,11 +9,14 @@ import analysis.special_functions.trigonometric.deriv
 /-!
 # derivatives of the inverse trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Derivatives of `arcsin` and `arccos`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open set filter
 
 open_locale real
@@ -82,7 +85,7 @@ begin
   refine ⟨_, λ h, (has_deriv_within_at_arcsin_Ici h).differentiable_within_at⟩,
   rintro h rfl,
   have : sin ∘ arcsin =ᶠ[𝓝[≥] (-1 : ℝ)] id,
-  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩]
+  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (zero_lt_one' ℝ)⟩]
       with x using sin_arcsin', },
   have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simp),
   simpa using (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _)

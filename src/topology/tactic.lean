@@ -11,6 +11,9 @@ import topology.basic
 /-!
 # Tactics for topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Currently we have one domain-specific tactic for topology: `continuity`.
 
 -/

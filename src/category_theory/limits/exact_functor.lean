@@ -8,6 +8,9 @@ import category_theory.limits.preserves.finite
 /-!
 # Bundled exact functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a functor `F` is left exact if it preserves finite limits, it is right exact if it
 preserves finite colimits, and it is exact if it is both left exact and right exact.
 

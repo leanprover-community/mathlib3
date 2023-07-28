@@ -4,10 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import analysis.normed_space.conformal_linear_map
-import analysis.calculus.fderiv
+import analysis.calculus.fderiv.add
+import analysis.calculus.fderiv.mul
+import analysis.calculus.fderiv.equiv
+import analysis.calculus.fderiv.restrict_scalars
 
 /-!
 # Conformal Maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A continuous linear map between real normed spaces `X` and `Y` is `conformal_at` some point `x`
 if it is real differentiable at that point and its differential `is_conformal_linear_map`.
@@ -26,7 +32,7 @@ if it is real differentiable at that point and its differential `is_conformal_li
 In `analysis.calculus.conformal.inner_product`:
 * `conformal_at_iff`: an equivalent definition of the conformality of a map
 
-In `geometry.euclidean.basic`:
+In `geometry.euclidean.angle.unoriented.conformal`:
 * `conformal_at.preserves_angle`: if a map is conformal at `x`, then its differential
                                   preserves all angles at `x`
 

@@ -3,11 +3,14 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.basic
+import data.fintype.card
 import logic.small.basic
 
 /-!
 # All finite types are small.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 That is, any `α` with `[fintype α]` is equivalent to a type in any universe.
 

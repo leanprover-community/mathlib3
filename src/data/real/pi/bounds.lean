@@ -8,6 +8,9 @@ import analysis.special_functions.trigonometric.bounds
 /-!
 # Pi
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas which establish bounds on `real.pi`.
 Notably, these include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`,
 which bound `π` using series;

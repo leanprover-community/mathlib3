@@ -15,6 +15,9 @@ import tactic.interval_cases
 /-!
 # p-groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a proof that if `G` is a `p`-group acting on a finite set `α`,
 then the number of fixed points of the action is congruent mod `p` to the cardinality of `α`.
 It also contains proofs of some corollaries of this lemma about existence of fixed points.
@@ -52,7 +55,7 @@ begin
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
-    rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
+    rw [←list.prod_replicate, ←list.eq_replicate_of_mem this, nat.prod_factors hG] },
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
@@ -119,10 +122,9 @@ include hp
 @[reducible] noncomputable def pow_equiv' {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
 pow_equiv hG (hp.out.coprime_iff_not_dvd.mpr hn)
 
-lemma index (H : subgroup G) [finite (G ⧸ H)] :
-  ∃ n : ℕ, H.index = p ^ n :=
+lemma index (H : subgroup G) [H.finite_index] : ∃ n : ℕ, H.index = p ^ n :=
 begin
-  casesI nonempty_fintype (G ⧸ H),
+  haveI := H.normal_core.fintype_quotient_of_finite_index,
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),
@@ -154,6 +156,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
   haveI := fintype.of_equiv (orbit G a) ϕ,
+  haveI := (stabilizer G a).finite_index_of_finite_quotient,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end
@@ -289,11 +292,11 @@ lemma to_sup_of_normal_left {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_
 
 lemma to_sup_of_normal_right' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : H ≤ K.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
-let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of_le hHK).symm)
-  (hK.of_equiv (subgroup.comap_subtype_equiv_of_le subgroup.le_normalizer).symm) in
+let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.subgroup_of_equiv_of_le hHK).symm)
+  (hK.of_equiv (subgroup.subgroup_of_equiv_of_le subgroup.le_normalizer).symm) in
 ((congr_arg (λ H : subgroup K.normalizer, is_p_group p H)
   (subgroup.sup_subgroup_of_eq hHK subgroup.le_normalizer)).mp hHK').of_equiv
-  (subgroup.comap_subtype_equiv_of_le (sup_le hHK subgroup.le_normalizer))
+  (subgroup.subgroup_of_equiv_of_le (sup_le hHK subgroup.le_normalizer))
 
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
@@ -316,18 +319,15 @@ lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p
   (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
   disjoint H₁ H₂ :=
 begin
-  rintro x ⟨hx₁, hx₂⟩,
-  rw subgroup.mem_bot,
+  rw subgroup.disjoint_def,
+  intros x hx₁ hx₂,
   obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
-  have : n₁ = 0,
-  { contrapose! hne with h,
-    rw ← associated_iff_eq at this ⊢,
-    exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
-  simpa [this] using hn₁,
+  rcases n₁.eq_zero_or_pos with rfl|hn₁,
+  { simpa using hn₁ },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm

@@ -8,6 +8,9 @@ import analysis.normed_space.multilinear
 /-!
 # Formal multilinear series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `formal_multilinear_series 𝕜 E F` to be a family of `n`-multilinear maps for
 all `n`, designed to model the sequence of derivatives of a function. In other files we use this
 notion to define `C^n` functions (called `cont_diff` in `mathlib`) and analytic functions.
@@ -25,7 +28,7 @@ multilinear, formal series
 noncomputable theory
 
 open set fin
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 𝕜' E F G : Type*}
 
@@ -260,7 +263,7 @@ by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.mk_pi_field_eq_zer
 @[simp] lemma apply_eq_pow_smul_coeff : p n (λ _, z) = z ^ n • p.coeff n :=
 by simp
 
-@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coeff p n∥ :=
+@[simp] lemma norm_apply_eq_norm_coef : ‖p n‖ = ‖coeff p n‖ :=
 by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.norm_mk_pi_field]
 
 end coef

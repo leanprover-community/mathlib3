@@ -3,12 +3,16 @@ Copyright (c) 2022 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Jakob von Raumer
 -/
-import category_theory.abelian.opposite
 import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.kernels
+import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.preadditive.additive_functor
 
 /-!
 # Left exactness of functors between preadditive categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We show that a functor is left exact in the sense that it preserves finite limits, if it
 preserves kernels. The dual result holds for right exact functors and cokernels.

@@ -5,9 +5,13 @@ Authors: Mario Carneiro
 -/
 import data.analysis.filter
 import topology.bases
+import topology.locally_finite
 
 /-!
 # Computational realization of topological spaces (experimental)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides infrastructure to compute with topological spaces.
 
@@ -21,7 +25,7 @@ This file provides infrastructure to compute with topological spaces.
 
 open set
 open filter (hiding realizer)
-open_locale topological_space
+open_locale topology
 
 /-- A `ctop α σ` is a realization of a topology (basis) on `α`,
   represented by a type `σ` together with operations for the top element and

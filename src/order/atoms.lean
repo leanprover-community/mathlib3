@@ -3,11 +3,14 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.finite
 import order.modular_lattice
+import order.well_founded
 
 /-!
 # Atoms, Coatoms, and Simple Lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines atoms, which are minimal non-`⊥` elements in bounded lattices, simple lattices,
 which are lattices with only two elements, and related ideas.
@@ -42,8 +45,6 @@ which are lattices with only two elements, and related ideas.
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
   * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
-  * `finite.to_is_atomic`, `finite.to_is_coatomic`: Finite partial orders with bottom resp. top
-    are atomic resp. coatomic.
 
 -/
 
@@ -135,6 +136,28 @@ to_dual_covby_to_dual_iff.symm.trans bot_covby_iff
 alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
 end is_coatom
+
+section partial_order
+variables [partial_order α] {a b : α}
+
+@[simp] lemma set.Ici.is_atom_iff {b : set.Ici a} : is_atom b ↔ a ⋖ b :=
+begin
+  rw ←bot_covby_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, a ≤ c) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Ici,
+end
+
+@[simp] lemma set.Iic.is_coatom_iff {a : set.Iic b} : is_coatom a ↔ ↑a ⋖ b :=
+begin
+  rw ←covby_top_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, c ≤ b) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Iic,
+end
+
+lemma covby_iff_atom_Ici (h : a ≤ b) : a ⋖ b ↔ is_atom (⟨b, h⟩ : set.Ici a) := by simp
+lemma covby_iff_coatom_Iic (h : a ≤ b) : a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) := by simp
+
+end partial_order
 
 section pairwise
 
@@ -436,12 +459,6 @@ def order_iso_bool : α ≃o bool :=
   end,
   ..equiv_bool }
 
-/- It is important that `is_simple_order` is the last type-class argument of this instance,
-so that type-class inference fails quickly if it doesn't apply. -/
-@[priority 200]
-instance {α} [decidable_eq α] [has_le α] [bounded_order α] [is_simple_order α] : fintype α :=
-fintype.of_equiv bool equiv_bool.symm
-
 /-- A simple `bounded_order` is also a `boolean_algebra`. -/
 protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order α]
   [is_simple_order α] : boolean_algebra α :=
@@ -513,34 +530,6 @@ instance : is_atomistic α :=
 instance : is_coatomistic α := is_atomistic_dual_iff_is_coatomistic.1 is_simple_order.is_atomistic
 
 end is_simple_order
-namespace fintype
-namespace is_simple_order
-variables [partial_order α] [bounded_order α] [is_simple_order α] [decidable_eq α]
-
-lemma univ : (finset.univ : finset α) = {⊤, ⊥} :=
-begin
-  change finset.map _ (finset.univ : finset bool) = _,
-  rw fintype.univ_bool,
-  simp only [finset.map_insert, function.embedding.coe_fn_mk, finset.map_singleton],
-  refl,
-end
-
-lemma card : fintype.card α = 2 :=
-(fintype.of_equiv_card _).trans fintype.card_bool
-
-end is_simple_order
-end fintype
-
-namespace bool
-
-instance : is_simple_order bool :=
-⟨λ a, begin
-  rw [← finset.mem_singleton, or.comm, ← finset.mem_insert,
-      top_eq_tt, bot_eq_ff, ← fintype.univ_bool],
-  apply finset.mem_univ,
-end⟩
-
-end bool
 
 theorem is_simple_order_iff_is_atom_top [partial_order α] [bounded_order α] :
   is_simple_order α ↔ is_atom (⊤ : α) :=
@@ -733,42 +722,18 @@ theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
 
 end is_modular_lattice
 
-section fintype
-
-open finset
-
-@[priority 100]  -- see Note [lower instance priority]
-instance finite.to_is_coatomic [partial_order α] [order_top α] [finite α] : is_coatomic α :=
-begin
-  refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
-  obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
-    (set.to_finite _) ⟨b, le_rfl, ht⟩,
-  refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
-  by_contra hyt,
-  obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
-  exact (lt_self_iff_false _).mp hcy
-end
-
-@[priority 100]  -- see Note [lower instance priority]
-instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
-
-end fintype
-
 namespace set
 
 lemma is_atom_singleton (x : α) : is_atom ({x} : set α) :=
-⟨(singleton_nonempty x).ne_empty, λ s hs, ssubset_singleton_iff.mp hs⟩
+⟨singleton_ne_empty _, λ s hs, ssubset_singleton_iff.mp hs⟩
 
 lemma is_atom_iff (s : set α) : is_atom s ↔ ∃ x, s = {x} :=
 begin
   refine ⟨_, by { rintro ⟨x, rfl⟩, exact is_atom_singleton x }⟩,
-  rintro ⟨hs₁, hs₂⟩,
-  obtain ⟨x, hx⟩ := ne_empty_iff_nonempty.mp hs₁,
-  have := singleton_subset_iff.mpr hx,
-  refine ⟨x, subset.antisymm _ this⟩,
-  by_contra h,
-  exact (singleton_nonempty x).ne_empty (hs₂ {x} (ssubset_of_subset_not_subset this h)),
+  rw [is_atom_iff, bot_eq_empty, ←nonempty_iff_ne_empty],
+  rintro ⟨⟨x, hx⟩, hs⟩,
+  exact ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy,
+    (hs {y} (singleton_ne_empty _) (singleton_subset_iff.2 hy) hx).symm⟩⟩,
 end
 
 lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=

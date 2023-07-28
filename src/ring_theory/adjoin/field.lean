@@ -11,6 +11,9 @@ import ring_theory.adjoin_root
 /-!
 # Adjoining elements to a field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Some lemmas on the ring generating by adjoining an element to a field.
 
 ## Main statements
@@ -46,11 +49,6 @@ alg_equiv.symm $ alg_equiv.of_bijective
     ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset
-
-/-- If a `subalgebra` is finite_dimensional as a submodule then it is `finite_dimensional`. -/
-lemma finite_dimensional.of_subalgebra_to_submodule
-  {K V : Type*} [field K] [ring V] [algebra K V] {s : subalgebra K V}
-  (h : finite_dimensional K s.to_submodule) : finite_dimensional K s := h
 
 /-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/

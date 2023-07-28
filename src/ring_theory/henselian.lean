@@ -11,6 +11,9 @@ import linear_algebra.adic_completion
 /-!
 # Henselian rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we set up the basic theory of Henselian (local) rings.
 A ring `R` is *Henselian* at an ideal `I` if the following conditions hold:
 * `I` is contained in the Jacobson radical of `R`
@@ -138,7 +141,7 @@ begin
   { intros H, constructor, intros f hf a₀ h₁ h₂,
     specialize H f hf (residue R a₀),
     have aux := flip mem_nonunits_iff.mp h₂,
-    simp only [aeval_def, ring_hom.algebra_map_to_algebra, eval₂_at_apply,
+    simp only [aeval_def, residue_field.algebra_map_eq, eval₂_at_apply,
       ← ideal.quotient.eq_zero_iff_mem, ← local_ring.mem_maximal_ideal] at H h₁ aux,
     obtain ⟨a, ha₁, ha₂⟩ := H h₁ aux,
     refine ⟨a, ha₁, _⟩,

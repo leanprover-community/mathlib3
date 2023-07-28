@@ -3,11 +3,15 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
+import data.fintype.card
 import algebra.hom.commute
 import algebra.big_operators.basic
 
 /-!
 # Products (respectively, sums) over a finset or a multiset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The regular `finset.prod` and `multiset.prod` require `[comm_monoid α]`.
 Often, there are collections `s : finset α` where `[monoid α]` and we know,

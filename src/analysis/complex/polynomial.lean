@@ -9,6 +9,9 @@ import field_theory.is_alg_closed.basic
 /-!
 # The fundamental theorem of algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that every nonconstant complex polynomial has a root using Liouville's theorem.
 
 As a consequence, the complex numbers are algebraically closed.
@@ -29,7 +32,7 @@ begin
     exact degree_C_le },
   { obtain ⟨z₀, h₀⟩ := f.exists_forall_norm_le,
     simp only [bounded_iff_forall_norm_le, set.forall_range_iff, norm_inv],
-    exact ⟨∥eval z₀ f∥⁻¹, λ z, inv_le_inv_of_le (norm_pos_iff.2 $ hf z₀) (h₀ z)⟩ },
+    exact ⟨‖eval z₀ f‖⁻¹, λ z, inv_le_inv_of_le (norm_pos_iff.2 $ hf z₀) (h₀ z)⟩ },
 end
 
 instance is_alg_closed : is_alg_closed ℂ :=

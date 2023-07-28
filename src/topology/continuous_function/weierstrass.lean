@@ -9,6 +9,9 @@ import topology.algebra.algebra
 /-!
 # The Weierstrass approximation theorem for continuous functions on `[a,b]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We've already proved the Weierstrass approximation theorem
 in the sense that we've shown that the Bernstein approximations
 to a continuous function on `[0,1]` converge uniformly.
@@ -103,7 +106,7 @@ Every real-valued continuous function on `[a,b]` is within any `ε > 0` of some 
 -/
 theorem exists_polynomial_near_continuous_map (a b : ℝ) (f : C(set.Icc a b, ℝ))
   (ε : ℝ) (pos : 0 < ε) :
-  ∃ (p : ℝ[X]), ∥p.to_continuous_map_on _ - f∥ < ε :=
+  ∃ (p : ℝ[X]), ‖p.to_continuous_map_on _ - f‖ < ε :=
 begin
   have w := mem_closure_iff_frequently.mp (continuous_map_mem_polynomial_functions_closure _ _ f),
   rw metric.nhds_basis_ball.frequently_iff at w,

@@ -3,14 +3,17 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import analysis.normed_space.basic
 import data.polynomial.algebra_map
 import data.polynomial.inductions
 import data.polynomial.splits
 import ring_theory.polynomial.vieta
+import analysis.normed.field.basic
 
 /-!
 # Polynomials and limits
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the following lemmas.
 
@@ -21,8 +24,8 @@ In this file we prove the following lemmas.
 * `polynomial.continuous`:  `polynomial.eval` defines a continuous functions;
   we also prove convenience lemmas `polynomial.continuous_at`, `polynomial.continuous_within_at`,
   `polynomial.continuous_on`.
-* `polynomial.tendsto_norm_at_top`: `λ x, ∥polynomial.eval (z x) p∥` tends to infinity provided that
-  `λ x, ∥z x∥` tends to infinity and `0 < degree p`;
+* `polynomial.tendsto_norm_at_top`: `λ x, ‖polynomial.eval (z x) p‖` tends to infinity provided that
+  `λ x, ‖z x‖` tends to infinity and `0 < degree p`;
 * `polynomial.tendsto_abv_eval₂_at_top`, `polynomial.tendsto_abv_at_top`,
   `polynomial.tendsto_abv_aeval_at_top`: a few versions of the previous statement for
   `is_absolute_value abv` instead of norm.
@@ -46,7 +49,7 @@ variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring
 protected lemma continuous_eval₂ [semiring S] (p : S[X]) (f : S →+* R) :
   continuous (λ x, p.eval₂ f x) :=
 begin
-  dsimp only [eval₂_eq_sum, finsupp.sum],
+  simp only [eval₂_eq_sum, finsupp.sum],
   exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
 end
 
@@ -121,12 +124,12 @@ tendsto_abv_eval₂_at_top _ abv p hd h₀ hz
 variables {α R : Type*} [normed_ring R] [is_absolute_value (norm : R → ℝ)]
 
 lemma tendsto_norm_at_top (p : R[X]) (h : 0 < degree p) {l : filter α} {z : α → R}
-  (hz : tendsto (λ x, ∥z x∥) l at_top) :
-  tendsto (λ x, ∥p.eval (z x)∥) l at_top :=
+  (hz : tendsto (λ x, ‖z x‖) l at_top) :
+  tendsto (λ x, ‖p.eval (z x)‖) l at_top :=
 p.tendsto_abv_at_top norm h hz
 
 lemma exists_forall_norm_le [proper_space R] (p : R[X]) :
-  ∃ x, ∀ y, ∥p.eval x∥ ≤ ∥p.eval y∥ :=
+  ∃ x, ∀ y, ‖p.eval x‖ ≤ ‖p.eval y‖ :=
 if hp0 : 0 < degree p
 then p.continuous.norm.exists_forall_le $ p.tendsto_norm_at_top hp0 tendsto_norm_cocompact_at_top
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
@@ -140,7 +143,7 @@ variables {F K : Type*} [comm_ring F] [normed_field K]
 open multiset
 
 lemma eq_one_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (hB : B < 0)
-  (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B) :
+  (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B) :
   p = 1 :=
 h1.nat_degree_eq_zero_iff_eq_one.mp begin
   contrapose !hB,
@@ -150,8 +153,8 @@ h1.nat_degree_eq_zero_iff_eq_one.mp begin
 end
 
 lemma coeff_le_of_roots_le {p : F[X]} {f : F →+* K} {B : ℝ} (i : ℕ)
-  (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B) :
-  ∥ (map f p).coeff i ∥ ≤ B^(p.nat_degree - i) * p.nat_degree.choose i  :=
+  (h1 : p.monic) (h2 : splits f p) (h3 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B) :
+  ‖ (map f p).coeff i ‖ ≤ B^(p.nat_degree - i) * p.nat_degree.choose i  :=
 begin
   obtain hB | hB := lt_or_le B 0,
   { rw [eq_one_of_roots_le hB h1 h2 h3, polynomial.map_one,
@@ -179,8 +182,8 @@ end
 /-- The coefficients of the monic polynomials of bounded degree with bounded roots are
 uniformely bounded. -/
 lemma coeff_bdd_of_roots_le {B : ℝ} {d : ℕ} (f : F →+* K) {p : F[X]}
-  (h1 : p.monic) (h2 : splits f p) (h3 : p.nat_degree ≤ d) (h4 : ∀ z ∈ (map f p).roots, ∥z∥ ≤ B)
-  (i : ℕ) : ∥(map f p).coeff i∥ ≤ (max B 1) ^ d * d.choose (d / 2) :=
+  (h1 : p.monic) (h2 : splits f p) (h3 : p.nat_degree ≤ d) (h4 : ∀ z ∈ (map f p).roots, ‖z‖ ≤ B)
+  (i : ℕ) : ‖(map f p).coeff i‖ ≤ (max B 1) ^ d * d.choose (d / 2) :=
 begin
   obtain hB | hB := le_or_lt 0 B,
   { apply (coeff_le_of_roots_le i h1 h2 h4).trans,

@@ -5,12 +5,16 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.init
 import data.int.cast.defs
-import data.int.div
+import data.int.dvd.basic
+import algebra.ring.regular
 import data.nat.gcd.basic
 import data.pnat.defs
 
 /-!
 # Basics for the Rational Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -161,8 +165,7 @@ begin
       all_goals { exact int.coe_nat_dvd.2 (nat.gcd_dvd_left _ _) } },
     intros a c h,
     suffices bd : b / a.gcd b = d / c.gcd d,
-    { refine ⟨_, bd⟩,
-      apply nat.eq_of_mul_eq_mul_left hb,
+    { refine ⟨mul_left_cancel₀ hb.ne' _, bd⟩,
       rw [← nat.mul_div_assoc _ (nat.gcd_dvd_left _ _), mul_comm,
           nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), bd,
           ← nat.mul_div_assoc _ (nat.gcd_dvd_right _ _), h, mul_comm,
@@ -435,8 +438,7 @@ instance : comm_group_with_zero ℚ :=
   .. rat.comm_ring }
 
 instance : is_domain ℚ :=
-{ .. rat.comm_group_with_zero,
-  .. (infer_instance : no_zero_divisors ℚ) }
+no_zero_divisors.to_is_domain _
 
 /- Extra instances to short-circuit type class resolution -/
 -- TODO(Mario): this instance slows down data.real.basic
@@ -585,3 +587,6 @@ lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n := ⟨congr_arg num, con
 end casts
 
 end rat
+
+-- Guard against import creep.
+assert_not_exists field

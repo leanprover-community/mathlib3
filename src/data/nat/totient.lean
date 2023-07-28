@@ -11,6 +11,9 @@ import data.zmod.basic
 /-!
 # Euler's totient function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines [Euler's totient function](https://en.wikipedia.org/wiki/Euler's_totient_function)
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
@@ -35,6 +38,17 @@ localized "notation (name := nat.totient) `φ` := nat.totient" in nat
 by simp [totient]
 
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
+
+/-- A characterisation of `nat.totient` that avoids `finset`. -/
+lemma totient_eq_card_lt_and_coprime (n : ℕ) : φ n = nat.card {m | m < n ∧ n.coprime m} :=
+begin
+  let e : {m | m < n ∧ n.coprime m} ≃ finset.filter n.coprime (finset.range n) :=
+  { to_fun  := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    inv_fun := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    left_inv  := λ m, by simp only [subtype.coe_mk, subtype.coe_eta],
+    right_inv := λ m, by simp only [subtype.coe_mk, subtype.coe_eta] },
+  rw [totient_eq_card_coprime, card_congr e, card_eq_fintype_card, fintype.card_coe],
+end
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 ((range n).card_filter_le _).trans_eq (card_range n)

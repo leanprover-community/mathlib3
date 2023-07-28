@@ -8,6 +8,9 @@ import topology.local_homeomorph
 /-!
 # Charted spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A smooth manifold is a topological space `M` locally modelled on a euclidean space (or a euclidean
 half-space for manifolds with boundaries, or an infinite dimensional vector space for more general
 notions of manifolds), i.e., the manifold is covered by open subsets on which there are local
@@ -108,7 +111,7 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 open filter
 universes u
 
@@ -207,7 +210,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
     { simpa only [he, refl_trans]},
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
-      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
+      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := eq_bot_iff.2 this,
       exact (mem_union _ _ _).2 (or.inr this) },
   end,
   symm' := λe he, begin
@@ -708,7 +711,7 @@ protected def to_topological_space : topological_space M :=
 topological_space.generate_from $ ⋃ (e : local_equiv M H) (he : e ∈ c.atlas)
   (s : set H) (s_open : is_open s), {e ⁻¹' s ∩ e.source}
 
-lemma open_source' (he : e ∈ c.atlas) : @is_open M c.to_topological_space e.source :=
+lemma open_source' (he : e ∈ c.atlas) : is_open[c.to_topological_space] e.source :=
 begin
   apply topological_space.generate_open.basic,
   simp only [exists_prop, mem_Union, mem_singleton_iff],
@@ -980,6 +983,21 @@ instance [closed_under_restriction G] : has_groupoid s G :=
     { exact G.compatible (chart_mem_atlas H x) (chart_mem_atlas H x') },
     { exact preimage_open_of_open_symm (chart_at H x) s.2 },
   end }
+
+lemma chart_at_inclusion_symm_eventually_eq {U V : opens M} (hUV : U ≤ V) {x : U} :
+  (chart_at H (set.inclusion hUV x)).symm
+  =ᶠ[𝓝 (chart_at H (set.inclusion hUV x) (set.inclusion hUV x))] set.inclusion hUV
+    ∘ (chart_at H x).symm :=
+begin
+  set i := set.inclusion hUV,
+  set e := chart_at H (x:M),
+  haveI : nonempty U := ⟨x⟩,
+  haveI : nonempty V := ⟨i x⟩,
+  have heUx_nhds : (e.subtype_restr U).target ∈ 𝓝 (e x),
+  { apply (e.subtype_restr U).open_target.mem_nhds,
+    exact e.map_subtype_source (mem_chart_source _ _) },
+  exact filter.eventually_eq_of_mem heUx_nhds (e.subtype_restr_symm_eq_on_of_le hUV),
+end
 
 end topological_space.opens
 

@@ -7,14 +7,14 @@ import category_theory.groupoid.vertex_group
 import category_theory.groupoid.basic
 import category_theory.groupoid
 import algebra.group.defs
-import algebra.hom.group
-import algebra.hom.equiv.basic
 import data.set.lattice
-import combinatorics.quiver.connected_component
 import group_theory.subgroup.basic
 import order.galois_connection
 /-!
 # Subgroupoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines subgroupoids as `structure`s containing the subsets of arrows and their
 stability under composition and inversion.

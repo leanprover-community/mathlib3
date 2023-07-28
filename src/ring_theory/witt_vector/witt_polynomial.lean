@@ -5,7 +5,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import algebra.char_p.invertible
-import data.fintype.card
+import data.fintype.big_operators
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
@@ -13,6 +13,9 @@ import data.zmod.basic
 
 /-!
 # Witt polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 To endow `witt_vector p R` with a ring structure,
 we need to study the so-called Witt polynomials.

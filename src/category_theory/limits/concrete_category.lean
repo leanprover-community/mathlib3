@@ -7,10 +7,15 @@ import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.multiequalizer
-import category_theory.concrete_category.elementwise
+import category_theory.concrete_category.basic
+import category_theory.limits.shapes.kernels
+import tactic.apply_fun
 
 /-!
 # Facts about (co)limits of functors into concrete categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes w v u

@@ -12,6 +12,9 @@ import data.fun_like.basic
 /-!
 # Monoid and group homomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the bundled structures for monoid and group homomorphisms. Namely, we define
 `monoid_hom` (resp., `add_monoid_hom`) to be bundled homomorphisms between multiplicative (resp.,
 additive) monoids or groups.
@@ -645,6 +648,14 @@ protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (
 { to_fun := f',
   map_one' := h.symm ▸ f.map_one' }
 
+@[simp, to_additive] lemma one_hom.coe_copy {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma one_hom.coe_copy_eq {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 @[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -654,6 +665,14 @@ protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (
 { to_fun := f',
   map_mul' := h.symm ▸ f.map_mul' }
 
+@[simp, to_additive]
+lemma mul_hom.coe_copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (f' : M → N)
+  (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+@[to_additive] lemma mul_hom.coe_copy_eq {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 @[to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -662,11 +681,27 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
   (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
 
+@[simp, to_additive] lemma monoid_hom.coe_copy {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma monoid_hom.copy_eq {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
   (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
+
+@[simp] lemma monoid_with_zero_hom.coe_copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma monoid_with_zero_hom.copy_eq {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 @[to_additive]
 protected lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'

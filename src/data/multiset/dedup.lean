@@ -7,6 +7,9 @@ import data.multiset.nodup
 
 /-!
 # Erasing duplicates in a multiset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset

@@ -5,12 +5,14 @@ Authors: Anne Baanen
 -/
 import algebra.big_operators.fin
 import algebra.geom_sum
-import group_theory.perm.fin
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.nondegenerate
 
 /-!
 # Vandermonde matrix
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the `vandermonde` matrix and gives its determinant.
 

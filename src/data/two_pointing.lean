@@ -9,6 +9,9 @@ import logic.nontrivial
 /-!
 # Two-pointings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `two_pointing α`, the type of two pointings of `α`. A two-pointing is the data of
 two distinct terms.
 

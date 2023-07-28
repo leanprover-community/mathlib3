@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 import linear_algebra.quadratic_form.isometry
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
 import data.real.sign
 
 /-!
 # Real quadratic forms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Sylvester's law of inertia `equivalent_one_neg_one_weighted_sum_squared`:
 A real quadratic form is equivalent to a weighted

@@ -5,13 +5,15 @@ Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
 import category_theory.monoidal.linear
-import category_theory.concrete_category.basic
 import category_theory.preadditive.additive_functor
 import category_theory.linear.linear_functor
 import category_theory.closed.monoidal
 
 /-!
 # Full monoidal subcategories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a monidal category `C` and a monoidal predicate on `C`, that is a function `P : C → Prop`
 closed under `𝟙_` and `⊗`, we can put a monoidal structure on `{X : C // P X}` (the category

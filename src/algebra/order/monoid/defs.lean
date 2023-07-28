@@ -3,12 +3,14 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
+import algebra.order.monoid.lemmas
 import order.bounded_order
-import algebra.group_with_zero.defs
-import algebra.order.zero_le_one
 
 /-!
 # Ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the definitions of ordered monoids.
 
@@ -81,16 +83,6 @@ class linear_ordered_add_comm_monoid (α : Type*)
 @[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
 class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α.
-
-/-- A linearly ordered commutative monoid with a zero element. -/
-class linear_ordered_comm_monoid_with_zero (α : Type*)
-  extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
-(zero_le_one : (0 : α) ≤ 1)
-
-@[priority 100]
-instance linear_ordered_comm_monoid_with_zero.zero_le_one_class
-  [h : linear_ordered_comm_monoid_with_zero α] : zero_le_one_class α :=
-{ ..h }
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/

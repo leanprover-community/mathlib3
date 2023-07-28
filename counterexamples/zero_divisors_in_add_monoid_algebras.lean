@@ -12,6 +12,9 @@ import data.zmod.basic
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains an easy source of zero-divisors in an `add_monoid_algebra`.
 If `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.
@@ -41,6 +44,8 @@ finitely supported function is lexicographic, matching the list notation.  The i
 -/
 open finsupp add_monoid_algebra
 
+namespace counterexample
+
 /--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with an element `a` satisfying `n • a = a` and `(n - 1) • a ≠ a`, for some `2 ≤ n`,
 then `add_monoid_algebra R A` contains non-zero zero-divisors.  The elements are easy to write down:
@@ -49,7 +54,7 @@ is zero.
 
 Observe that such an element `a` *cannot* be invertible.  In particular, this lemma never applies
 if `A` is a group. -/
-lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} {a : A}
+lemma zero_divisors_of_periodic {R A} [nontrivial R] [ring R] [add_monoid A] {n : ℕ} (a : A)
   (n2 : 2 ≤ n) (na : n • a = a) (na1 : (n - 1) • a ≠ 0) :
   ∃ f g : add_monoid_algebra R A, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
 begin
@@ -202,7 +207,7 @@ end
 
 example {α} [ring α] [nontrivial α] :
   ∃ f g : add_monoid_algebra α F, f ≠ 0 ∧ g ≠ 0 ∧ f * g = 0 :=
-zero_divisors_of_periodic le_rfl ((two_smul _ _).trans (by refl)) z01.ne'
+zero_divisors_of_periodic (1 : F) le_rfl (by simp [two_smul]) (z01.ne')
 
 example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (single 0 1 : α →₀ F) ≠ 0 :=
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩
@@ -230,3 +235,5 @@ begin
   { simpa [unique_add] },
   exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
 end
+
+end counterexample

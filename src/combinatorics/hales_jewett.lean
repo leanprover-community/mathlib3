@@ -3,11 +3,16 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.fintype.basic
+import data.fintype.option
+import data.fintype.pi
+import data.fintype.sum
 import algebra.big_operators.basic
 
 /-!
 # The Hales-Jewett theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
 

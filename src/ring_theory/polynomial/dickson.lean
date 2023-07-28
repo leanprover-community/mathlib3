@@ -5,13 +5,15 @@ Authors: Julian Kuelshammer
 -/
 import algebra.char_p.invertible
 import data.zmod.basic
-import field_theory.finite.basic
 import ring_theory.localization.fraction_ring
 import ring_theory.polynomial.chebyshev
-
+import ring_theory.ideal.local_ring
 
 /-!
 # Dickson polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
 with coefficients in a commutative ring `R` depending on an element `a∈R`. More precisely, the

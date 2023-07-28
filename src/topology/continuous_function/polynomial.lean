@@ -5,11 +5,13 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!
 # Constructions relating polynomial functions and continuous functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 

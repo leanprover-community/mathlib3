@@ -5,10 +5,12 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.split
 import analysis.normed_space.operator_norm
-import data.set.intervals.proj_Icc
 
 /-!
 # Box additive functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a function `f : box ι → M` from boxes in `ℝⁿ` to a commutative additive monoid `M` is
 *box additive* on subboxes of `I₀ : with_top (box ι)` if for any box `J`, `↑J ≤ I₀`, and a partition

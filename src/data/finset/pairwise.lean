@@ -8,6 +8,9 @@ import data.finset.lattice
 /-!
 # Relations holding pairwise on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few results about the interaction of `set.pairwise_disjoint` and `finset`,
 as well as the interaction of `list.pairwise disjoint` and the condition of
 `disjoint` on `list.to_finset`, in `set` form.
@@ -21,7 +24,7 @@ instance [decidable_eq α] {r : α → α → Prop} [decidable_rel r] {s : finse
   decidable ((s : set α).pairwise r) :=
 decidable_of_iff' (∀ a ∈ s, ∀ b ∈ s, a ≠ b → r a b) iff.rfl
 
-lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
+lemma finset.pairwise_disjoint_range_singleton :
   (set.range (singleton : α → finset α)).pairwise_disjoint id :=
 begin
   rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
@@ -30,20 +33,28 @@ end
 
 namespace set
 
-lemma pairwise_disjoint.elim_finset [decidable_eq α] {s : set ι} {f : ι → finset α}
+lemma pairwise_disjoint.elim_finset {s : set ι} {f : ι → finset α}
   (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i)
   (haj : a ∈ f j) :
   i = j :=
 hs.elim hi hj (finset.not_disjoint_iff.2 ⟨a, hai, haj⟩)
 
-lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] [semilattice_inf α] [order_bot α]
-  {s : finset ι} {f : ι → α} (hs : (s : set ι).pairwise_disjoint f) {g : ι → ι}
-  (hf : ∀ a, f (g a) ≤ f a) :
+section semilattice_inf
+variables [semilattice_inf α] [order_bot α] {s : finset ι} {f : ι → α}
+
+lemma pairwise_disjoint.image_finset_of_le [decidable_eq ι] {s : finset ι} {f : ι → α}
+  (hs : (s : set ι).pairwise_disjoint f) {g : ι → ι} (hf : ∀ a, f (g a) ≤ f a) :
   (s.image g : set ι).pairwise_disjoint f :=
 begin
   rw coe_image,
   exact hs.image_of_le hf,
 end
+
+lemma pairwise_disjoint.attach (hs : (s : set ι).pairwise_disjoint f) :
+  (s.attach : set {x // x ∈ s}).pairwise_disjoint (f ∘ subtype.val) :=
+λ i _ j _ hij, hs i.2 j.2 $ mt subtype.ext_val hij
+
+end semilattice_inf
 
 variables [lattice α] [order_bot α]
 

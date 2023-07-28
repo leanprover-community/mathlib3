@@ -9,6 +9,9 @@ import measure_theory.function.uniform_integrable
 /-!
 # Identically distributed random variables
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two random variables defined on two (possibly different) probability spaces but taking value in
 the same space are *identically distributed* if their distributions (i.e., the image probability
 measures on the target space) coincide. We define this concept and establish its basic properties
@@ -44,7 +47,7 @@ instance:
 
 We also register several dot notation shortcuts for convenience.
 For instance, if `h : ident_distrib f g μ ν`, then `h.sq` states that `f^2` and `g^2` are
-identically distributed, and `h.norm` states that `∥f∥` and `∥g∥` are identically distributed, and
+identically distributed, and `h.norm` states that `‖f‖` and `‖g‖` are identically distributed, and
 so on.
 -/
 
@@ -52,7 +55,7 @@ open measure_theory filter finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory ennreal nnreal
+open_locale topology big_operators measure_theory ennreal nnreal
 
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β]
   [measurable_space γ] [measurable_space δ]
@@ -241,11 +244,11 @@ lemma integrable_iff [normed_add_comm_group γ] [borel_space γ] (h : ident_dist
 ⟨λ hf, h.integrable_snd hf, λ hg, h.symm.integrable_snd hg⟩
 
 protected lemma norm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
-  ident_distrib (λ x, ∥f x∥) (λ x, ∥g x∥) μ ν :=
+  ident_distrib (λ x, ‖f x‖) (λ x, ‖g x‖) μ ν :=
 h.comp measurable_norm
 
 protected lemma nnnorm [normed_add_comm_group γ] [borel_space γ] (h : ident_distrib f g μ ν) :
-  ident_distrib (λ x, ∥f x∥₊) (λ x, ∥g x∥₊) μ ν :=
+  ident_distrib (λ x, ‖f x‖₊) (λ x, ‖g x‖₊) μ ν :=
 h.comp measurable_nnnorm
 
 protected lemma pow [has_pow γ ℕ] [has_measurable_pow γ ℕ] (h : ident_distrib f g μ ν) {n : ℕ} :
@@ -313,11 +316,11 @@ begin
   by_cases hι : nonempty ι,
   swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
   obtain ⟨C, hC₁, hC₂⟩ := hℒp.snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
-  have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} :=
+  have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖f i x‖₊} :=
     λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
   refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
-  have : {x : α | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊}.indicator (f i) =
-    (λ x : E, if (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥x∥₊ then x else 0) ∘ (f i),
+  have : {x : α | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖f i x‖₊}.indicator (f i) =
+    (λ x : E, if (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ‖x‖₊ then x else 0) ∘ (f i),
   { ext x,
     simp only [set.indicator, set.mem_set_of_eq] },
   simp_rw [coe_nnnorm, this],

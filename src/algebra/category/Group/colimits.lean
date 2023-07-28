@@ -5,12 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of additive commutative groups has all colimits.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 It is a very uniform approach, that conceivably could be synthesised directly

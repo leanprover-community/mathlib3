@@ -3,11 +3,14 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.order
+import data.int.order.basic
 import data.nat.cast.basic
 
 /-!
 # Cast of integers (additional theorems)
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves additional properties about the *canonical* homomorphism from
 the integers into an additive group with a one (`int.cast`),
@@ -32,6 +35,12 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n := nat.cast_pos
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
+
+lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=
+by { rw [←to_nat_lt_to_nat, to_nat_coe_nat], exact coe_nat_pos.2 hb.bot_lt }
+
+lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
+(to_nat_lt hb).2 $ mod_lt_of_pos _ $ coe_nat_pos.2 hb.bot_lt
 
 section cast
 
@@ -124,12 +133,7 @@ end
 variables (α) {n}
 
 lemma cast_le_neg_one_or_one_le_cast_of_ne_zero (hn : n ≠ 0) : (n : α) ≤ -1 ∨ 1 ≤ (n : α) :=
-begin
-  rcases lt_trichotomy n 0 with h | rfl | h,
-  { exact or.inl (cast_le_neg_one_of_neg h), },
-  { contradiction, },
-  { exact or.inr (cast_one_le_of_pos h), },
-end
+hn.lt_or_lt.imp cast_le_neg_one_of_neg cast_one_le_of_pos
 
 variables {α} (n)
 
@@ -165,22 +169,6 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
-
-namespace prod
-
-variables [add_group_with_one α] [add_group_with_one β]
-
-instance : add_group_with_one (α × β) :=
-{ int_cast := λ n, (n, n),
-  int_cast_of_nat := λ _, by simp; refl,
-  int_cast_neg_succ_of_nat := λ _, by simp; refl,
-  .. prod.add_monoid_with_one, .. prod.add_group }
-
-@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n := rfl
-
-@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n := rfl
-
-end prod
 
 open int
 
@@ -301,15 +289,6 @@ instance : add_group_with_one (Π i, π i) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
-
-namespace mul_opposite
-variables [add_group_with_one α]
-
-@[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
-
-@[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
-
-end mul_opposite
 
 /-! ### Order dual -/
 

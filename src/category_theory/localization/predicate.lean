@@ -10,6 +10,9 @@ import category_theory.localization.construction
 
 # Predicate for localized categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, a predicate `L.is_localization W` is introduced for a functor `L : C ⥤ D`
 and `W : morphism_property C`: it expresses that `L` identifies `D` with the localized
 category of `C` with respect to `W` (up to equivalence).

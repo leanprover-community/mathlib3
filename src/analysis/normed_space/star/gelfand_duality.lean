@@ -14,6 +14,9 @@ import topology.continuous_function.stone_weierstrass
 /-!
 # Gelfand Duality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `gelfand_transform` is an algebra homomorphism from a topological `𝕜`-algebra `A` to
 `C(character_space 𝕜 A, 𝕜)`. In the case where `A` is a commutative complex Banach algebra, then
 the Gelfand transform is actually spectrum-preserving (`spectrum.gelfand_transform_eq`). Moreover,
@@ -93,14 +96,24 @@ begin
     (haM (mem_span_singleton.mpr ⟨1, (mul_one a).symm⟩))⟩,
 end
 
+lemma weak_dual.character_space.mem_spectrum_iff_exists {a : A} {z : ℂ} :
+  z ∈ spectrum ℂ a ↔ ∃ f : character_space ℂ A, f a = z :=
+begin
+  refine ⟨λ hz, _, _⟩,
+  { obtain ⟨f, hf⟩ := weak_dual.character_space.exists_apply_eq_zero hz,
+    simp only [map_sub, sub_eq_zero, alg_hom_class.commutes, algebra.id.map_eq_id,
+      ring_hom.id_apply] at hf,
+    exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩ },
+  { rintro ⟨f, rfl⟩,
+    exact alg_hom.apply_mem_spectrum f a, }
+end
+
 /-- The Gelfand transform is spectrum-preserving. -/
 lemma spectrum.gelfand_transform_eq (a : A) : spectrum ℂ (gelfand_transform ℂ A a) = spectrum ℂ a :=
 begin
-  refine set.subset.antisymm (alg_hom.spectrum_apply_subset (gelfand_transform ℂ A) a) (λ z hz, _),
-  obtain ⟨f, hf⟩ := weak_dual.character_space.exists_apply_eq_zero hz,
-  simp only [map_sub, sub_eq_zero, alg_hom_class.commutes, algebra.id.map_eq_id, ring_hom.id_apply]
-    at hf,
-  exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩,
+  ext z,
+  rw [continuous_map.spectrum_eq_range, weak_dual.character_space.mem_spectrum_iff_exists],
+  exact iff.rfl,
 end
 
 instance [nontrivial A] : nonempty (character_space ℂ A) :=
@@ -148,7 +161,7 @@ begin
   have h : (gelfand_transform ℂ A).range.topological_closure = (gelfand_transform ℂ A).range,
   from le_antisymm (subalgebra.topological_closure_minimal _ le_rfl
     (gelfand_transform_isometry A).closed_embedding.closed_range)
-    (subalgebra.subalgebra_topological_closure _),
+    (subalgebra.le_topological_closure _),
   refine h ▸ continuous_map.subalgebra_is_R_or_C_topological_closure_eq_top_of_separates_points
     _ (λ _ _, _) (λ f hf, _),
   /- Separating points just means that elements of the `character_space` which agree at all points

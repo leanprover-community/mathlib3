@@ -5,10 +5,14 @@ Authors: Aaron Anderson
 -/
 
 import computability.encoding
+import logic.small.list
 import model_theory.syntax
 import set_theory.cardinal.ordinal
 
 /-! # Encodings and Cardinality of First-Order Syntax
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main Definitions
 * `first_order.language.term.encoding` encodes terms as lists.
@@ -73,7 +77,7 @@ begin
         (fin_range n).map (option.some ∘ ts) ++ list_decode l,
       { induction (fin_range n) with i l' l'ih,
         { refl },
-        { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
+        { rw [cons_bind, list.append_assoc, ih, map_cons, l'ih, cons_append] } },
       have h' : ∀ i, (list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l)).nth
         ↑i = some (some (ts i)),
       { intro i,
@@ -267,7 +271,7 @@ begin
         rw [list.drop_append_eq_append_drop, length_map, length_fin_range, nat.sub_self, drop,
           drop_eq_nil_of_le, nil_append],
         rw [length_map, length_fin_range], }, },
-    { rw [list_encode, append_assoc, cons_append, list_decode],
+    { rw [list_encode, list.append_assoc, cons_append, list_decode],
       simp only [subtype.val_eq_coe] at *,
       rw [(ih1 _).1, (ih1 _).2, (ih2 _).1, (ih2 _).2, sigma_imp, dif_pos rfl],
       exact ⟨rfl, rfl⟩, },

@@ -8,10 +8,14 @@ import linear_algebra.direct_sum.finsupp
 import logic.small.basic
 import linear_algebra.std_basis
 import linear_algebra.finsupp_vector_space
+import linear_algebra.tensor_product_basis
 
 /-!
 
 # Free modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce a class `module.free R M`, for `R` a `semiring` and `M` an `R`-module and we provide
 several basic instances for this class.
@@ -68,7 +72,7 @@ variables [add_comm_monoid N] [module R N]
 
 /-- If `module.free R M` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
-@[nolint has_nonempty_instance] def choose_basis_index := (exists_basis R M).some.1
+def choose_basis_index := (exists_basis R M).some.1
 
 /-- If `module.free R M` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
@@ -91,6 +95,9 @@ noncomputable def constr {S : Type z} [semiring S] [module S N] [smul_comm_class
 @[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors
+
+instance [nontrivial M] : nonempty (module.free.choose_basis_index R M) :=
+(module.free.choose_basis R M).index_nonempty
 
 variables {R M N}
 
@@ -155,8 +162,7 @@ variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
 variables [add_comm_group N] [module R N] [module.free R N]
 
 instance tensor : module.free R (M ⊗[R] N) :=
-of_equiv' (of_equiv' (free.finsupp _ R _) (finsupp_tensor_finsupp' R _ _).symm)
-  (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
+let ⟨bM⟩ := exists_basis R M, ⟨bN⟩ := exists_basis R N in of_basis (bM.2.tensor_product bN.2)
 
 end comm_ring
 

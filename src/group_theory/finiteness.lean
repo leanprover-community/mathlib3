@@ -4,15 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import data.set.finite
-import data.finset
+import data.set.pointwise.finite
 import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 import set_theory.cardinal.finite
+import data.finset.preimage
 
 /-!
 # Finitely generated monoids and groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.

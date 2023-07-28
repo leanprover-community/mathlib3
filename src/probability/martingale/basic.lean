@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.process.hitting_time
+import probability.process.stopping
 
 /-!
 # Martingales
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A family of functions `f : ι → Ω → E` is a martingale with respect to a filtration `ℱ` if every
 `f i` is integrable, `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
@@ -352,7 +355,7 @@ begin
   refine ⟨hf.1.smul c, λ i j hij, _, λ i, (hf.2.2 i).smul c⟩,
   refine (condexp_smul c (f j)).le.trans _,
   filter_upwards [hf.2.1 i j hij] with _ hle,
-  simp,
+  simp_rw [pi.smul_apply],
   exact smul_le_smul_of_nonneg hle hc,
 end
 

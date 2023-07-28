@@ -10,6 +10,9 @@ import category_theory.graded_object
 /-!
 # The homology of a complex
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `C : homological_complex V c`, we have `C.cycles i` and `C.boundaries i`,
 both defined as subobjects of `C.X i`.
 

@@ -1371,8 +1371,8 @@ variables {G : Type*} [group G] {Γ : subgroup G}
   `g ↦ ∑' (γ : Γ), f(γ • g)`."]
 def quotient_group.automorphize  (f : G → M) : G ⧸ Γ → M := mul_action.automorphize f
 
-/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
-  -scalar multiplication. -/
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the 
+  `R`-scalar multiplication. -/
 lemma quotient_group.automorphize_smul_left (f : G → M) (g : G ⧸ Γ → R) :
   quotient_group.automorphize ((g ∘ quotient.mk') • f)
     = g • (quotient_group.automorphize f : G ⧸ Γ → M) :=

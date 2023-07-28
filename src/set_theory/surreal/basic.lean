@@ -328,6 +328,34 @@ theorem zero_to_game : to_game 0 = 0 := rfl
 @[simp] theorem one_to_game : to_game 1 = 1 := rfl
 @[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
 
+theorem upper_bound_numeric {ι : Type u} {f : ι → pgame.{u}} (H : ∀ i, (f i).numeric) :
+  (upper_bound f).numeric :=
+numeric_of_is_empty_right_moves _ $ λ i, (H _).move_left _
+
+theorem lower_bound_numeric {ι : Type u} {f : ι → pgame.{u}} (H : ∀ i, (f i).numeric) :
+  (lower_bound f).numeric :=
+numeric_of_is_empty_left_moves _ $ λ i, (H _).move_right _
+
+/-- A small set `s` of surreals is bounded above. -/
+lemma bdd_above_of_small (s : set surreal.{u}) [small.{u} s] : bdd_above s :=
+begin
+  let g := subtype.val ∘ quotient.out ∘ subtype.val ∘ (equiv_shrink s).symm,
+  refine ⟨mk (upper_bound g) (upper_bound_numeric $ λ i, subtype.prop _), λ i hi, _⟩,
+  rw ←quotient.out_eq i,
+  show i.out.1 ≤ _,
+  simpa [g] using le_upper_bound g (equiv_shrink s ⟨i, hi⟩)
+end
+
+/-- A small set `s` of surreals is bounded below. -/
+lemma bdd_below_of_small (s : set surreal.{u}) [small.{u} s] : bdd_below s :=
+begin
+  let g := subtype.val ∘ quotient.out ∘ subtype.val ∘ (equiv_shrink s).symm,
+  refine ⟨mk (lower_bound g) (lower_bound_numeric $ λ i, subtype.prop _), λ i hi, _⟩,
+  rw ←quotient.out_eq i,
+  show _ ≤ i.out.1,
+  simpa [g] using lower_bound_le g (equiv_shrink s ⟨i, hi⟩)
+end
+
 end surreal
 
 open surreal

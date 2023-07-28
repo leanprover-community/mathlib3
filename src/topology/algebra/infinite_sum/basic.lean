@@ -1312,8 +1312,8 @@ begin
   simpa [mul_smul] using (equiv.mul_right a).tsum_eq (λ a', f (a' • b₂)),
 end
 
-/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the `R`
-  -scalar multiplication. -/
+/-- Automorphization of a function into an `R`-`module` distributes, that is, commutes with the 
+  `R`-scalar multiplication. -/
 lemma mul_action.automorphize_smul_left [group α] [mul_action α β]  (f : β → M)
   (g : quotient (mul_action.orbit_rel α β) → R) :
   mul_action.automorphize ((g ∘ quotient.mk') • f)

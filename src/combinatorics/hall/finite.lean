@@ -9,6 +9,9 @@ import data.set.finite
 /-!
 # Hall's Marriage Theorem for finite index types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module proves the basic form of Hall's theorem.
 In constrast to the theorem described in `combinatorics.hall.basic`, this
 version requires that the indexed family `t : ι → finset α` have `ι` be finite.

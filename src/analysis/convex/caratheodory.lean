@@ -10,6 +10,9 @@ import tactic.field_simp
 /-!
 # Carathéodory's convexity theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Convex hull can be regarded as a refinement of affine span. Both are closure operators but whereas
 convex hull takes values in the lattice of convex subsets, affine span takes values in the much
 coarser sublattice of affine subspaces.

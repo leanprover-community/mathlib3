@@ -11,6 +11,9 @@ import data.int.order.units
 /-!
 # Sign of a permutation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition of this file is `equiv.perm.sign`, associating a `ℤˣ` sign with a
 permutation.
 
@@ -518,11 +521,11 @@ sign_symm_trans_trans f e.symm
 
 lemma sign_prod_list_swap {l : list (perm α)}
   (hl : ∀ g ∈ l, is_swap g) : sign l.prod = (-1) ^ l.length :=
-have h₁ : l.map sign = list.repeat (-1) l.length :=
-  list.eq_repeat.2 ⟨by simp, λ u hu,
+have h₁ : l.map sign = list.replicate l.length (-1) :=
+  list.eq_replicate.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
   hg.2 ▸ (hl _ hg.1).sign_eq⟩,
-by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
+by rw [← list.prod_replicate, ← h₁, list.prod_hom _ (@sign α _ _)]
 
 variable (α)
 
@@ -545,15 +548,15 @@ have ∀ {f}, is_swap f → s f = -1 :=
   have ∀ a ∈ l.map s, a = (1 : ℤˣ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
-    by rw [← l.prod_hom s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
+    by rw [← l.prod_hom s, list.eq_replicate_length.2 this, list.prod_replicate, one_pow],
   by { rw [hl.1, hg] at this,
     exact absurd this dec_trivial }),
 monoid_hom.ext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := (trunc_swap_factors f).out in
 have hsl : ∀ a ∈ l.map s, a = (-1 : ℤˣ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
-by rw [← hl₁, ← l.prod_hom s, list.eq_repeat'.2 hsl, list.length_map,
-     list.prod_repeat, sign_prod_list_swap hl₂]
+by rw [← hl₁, ← l.prod_hom s, list.eq_replicate_length.2 hsl, list.length_map,
+     list.prod_replicate, sign_prod_list_swap hl₂]
 
 lemma sign_subtype_perm (f : perm α) {p : α → Prop} [decidable_pred p]
   (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) : sign (subtype_perm f h₁) = sign f :=

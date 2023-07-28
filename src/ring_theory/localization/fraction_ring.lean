@@ -9,6 +9,9 @@ import ring_theory.localization.basic
 /-!
 # Fraction ring / fraction field Frac(R) as localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_fraction_ring R K` expresses that `K` is a field of fractions of `R`, as an abbreviation of
@@ -57,7 +60,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
     rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    apply mul_right_cancel₀ _ h,
+    apply mul_left_cancel₀ _ h,
     rwa mem_non_zero_divisors_iff_ne_zero at hc,
   end }
 
@@ -112,12 +115,10 @@ mk' K ↑(sec (non_zero_divisors A) z).2
    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, h $
     eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) z) h0⟩
 
-local attribute [semireducible] is_fraction_ring.inv
-
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
-show x * dite _ _ _ = 1, begin
-  rw [dif_neg hx, ←is_unit.mul_left_inj
+begin
+  rw [is_fraction_ring.inv, dif_neg hx, ←is_unit.mul_left_inj
     (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
       λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
     one_mul, mul_assoc],
@@ -131,7 +132,11 @@ See note [reducible non-instances]. -/
 noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
-  inv_zero := dif_pos rfl,
+  inv_zero := begin
+    change is_fraction_ring.inv A (0 : K) = 0,
+    rw [is_fraction_ring.inv],
+    exact dif_pos rfl
+  end,
   .. is_fraction_ring.is_domain A,
   .. show comm_ring K, by apply_instance }
 
@@ -163,7 +168,7 @@ is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   {y : non_zero_divisors R} : mk' K x y = 0 ↔ x = 0 :=
 begin
   refine ⟨λ hxy, _, λ h, by rw [h, mk'_zero]⟩,
-  { simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
+  { simp_rw [mk'_eq_zero_iff, mul_left_coe_non_zero_divisors_eq_zero_iff] at hxy,
     exact (exists_const _).mp hxy },
 end
 

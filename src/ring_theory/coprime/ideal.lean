@@ -9,6 +9,9 @@ import ring_theory.ideal.operations
 /-!
 # An additional lemma about coprime ideals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This lemma generalises `exists_sum_eq_one_iff_pairwise_coprime` to the case of non-principal ideals.
 It is on a separate file due to import requirements.
 -/
@@ -62,9 +65,11 @@ begin
         apply this _ (finset.mem_cons_self _ _), rintro rfl, exact hat hx },
       { have := submodule.coe_mem (μ a), simp only [mem_infi] at this,
         exact this _ (finset.subset_cons _ hb) ab.symm } } },
-  { rintro ⟨hs, Hb⟩, obtain ⟨μ, hμ⟩ := ih.mpr hs,
-    obtain ⟨u, hu, v, hv, huv⟩ := submodule.mem_sup.mp
-      ((eq_top_iff_one _).mp $ sup_infi_eq_top $ λ b hb, Hb b hb $ by { rintro rfl, exact hat hb }),
+  { rintro ⟨hs, Hb⟩,
+    obtain ⟨μ, hμ⟩ := ih.mpr hs,
+    have := sup_infi_eq_top (λ b hb, Hb b hb (ne_of_mem_of_not_mem hb hat).symm),
+    rw [eq_top_iff_one, submodule.mem_sup] at this,
+    obtain ⟨u, hu, v, hv, huv⟩ := this,
     refine ⟨λ i, if hi : i = a then ⟨v, _⟩ else ⟨u * μ i, _⟩, _⟩,
     { simp only [mem_infi] at hv ⊢,
       intros j hj ij, rw [finset.mem_cons, ← hi] at hj,

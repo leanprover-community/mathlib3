@@ -9,6 +9,9 @@ import tactic.field_simp
 /-!
 # Slope of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the slope of a function `f : k → PE` taking values in an affine space over
 `k` and prove some basic theorems about `slope`. The `slope` function naturally appears in the Mean
 Value Theorem, and in the proof of the fact that a function with nonnegative second derivative on an

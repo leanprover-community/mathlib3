@@ -10,6 +10,9 @@ import category_theory.localization.predicate
 
 # Localization of the opposite category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a functor `L : C ⥤ D` is a localization functor for `W : morphism_property C`, it
 is shown in this file that `L.op : Cᵒᵖ ⥤ Dᵒᵖ` is also a localization functor.
 

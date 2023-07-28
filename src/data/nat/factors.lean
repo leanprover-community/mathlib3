@@ -11,6 +11,9 @@ import tactic.nth_rewrite
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with the factors of natural numbers.
 
 ## Important declarations
@@ -154,13 +157,13 @@ begin
 end
 
 lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
-  (p ^ n).factors = list.repeat p n :=
+  (p ^ n).factors = list.replicate n p :=
 begin
   symmetry,
-  rw ← list.repeat_perm,
-  apply nat.factors_unique (list.prod_repeat p n),
+  rw ← list.replicate_perm,
+  apply nat.factors_unique (list.prod_replicate n p),
   intros q hq,
-  rwa eq_of_mem_repeat hq,
+  rwa eq_of_mem_replicate hq,
 end
 
 lemma eq_prime_pow_of_unique_prime_dvd {n p : ℕ} (hpos : n ≠ 0)
@@ -168,8 +171,8 @@ lemma eq_prime_pow_of_unique_prime_dvd {n p : ℕ} (hpos : n ≠ 0)
   n = p ^ n.factors.length :=
 begin
   set k := n.factors.length,
-  rw [←prod_factors hpos, ←prod_repeat p k,
-    eq_repeat_of_mem (λ d hd, h (prime_of_mem_factors hd) (dvd_of_mem_factors hd))],
+  rw [← prod_factors hpos, ← prod_replicate k p,
+    eq_replicate_of_mem (λ d hd, h (prime_of_mem_factors hd) (dvd_of_mem_factors hd))],
 end
 
 /-- For positive `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/

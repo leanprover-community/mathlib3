@@ -9,6 +9,9 @@ import order.hom.complete_lattice
 /-!
 # liminfs and limsups of functions and filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines the Liminf/Limsup of a function taking values in a conditionally complete lattice, with
 respect to an arbitrary filter.
 

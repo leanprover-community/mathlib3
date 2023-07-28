@@ -7,6 +7,9 @@ import ring_theory.unique_factorization_domain
 
 /-!
 # Squarefree elements of monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 An element of a monoid is squarefree when it is not divisible by any squares
 except the squares of units.
 
@@ -252,3 +255,14 @@ begin
 end
 
 end unique_factorization_monoid
+
+namespace int
+
+@[simp] lemma squarefree_nat_abs {n : ℤ} : squarefree n.nat_abs ↔ squarefree n :=
+by simp_rw [squarefree, nat_abs_surjective.forall, ←nat_abs_mul, nat_abs_dvd_iff_dvd,
+  is_unit_iff_nat_abs_eq, nat.is_unit_iff]
+
+@[simp] lemma squarefree_coe_nat {n : ℕ} : squarefree (n : ℤ) ↔ squarefree n :=
+by rw [←squarefree_nat_abs, nat_abs_of_nat]
+
+end int

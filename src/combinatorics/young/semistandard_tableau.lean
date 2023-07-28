@@ -8,6 +8,9 @@ import combinatorics.young.young_diagram
 /-!
 # Semistandard Young tableaux
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A semistandard Young tableau is a filling of a Young diagram by natural numbers, such that
 the entries are weakly increasing left-to-right along rows (i.e. for fixed `i`), and
 strictly-increasing top-to-bottom along columns (i.e. for fixed `j`).

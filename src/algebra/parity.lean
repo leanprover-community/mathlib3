@@ -167,6 +167,14 @@ by simp [even_iff_exists_two_nsmul]
 
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simp [even, has_dvd.dvd, two_mul]
 
+alias even_iff_two_dvd ↔ even.two_dvd _
+
+theorem even.trans_dvd (hm : even m) (hn : m ∣ n) : even n :=
+even_iff_two_dvd.2 $ hm.two_dvd.trans hn
+
+theorem has_dvd.dvd.even (hn : m ∣ n) (hm : even m) : even n :=
+hm.trans_dvd hn
+
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x) = {a | even a} :=
 by { ext x, simp [eq_comm, two_mul, even] }
@@ -214,9 +222,8 @@ lemma odd.add_odd : odd m → odd n → even (m + n) :=
 begin
   rintro ⟨m, rfl⟩ ⟨n, rfl⟩,
   refine ⟨n + m + 1, _⟩,
-  rw [← two_mul, ←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m),
-    mul_one],
-  refl
+  rw [two_mul, two_mul],
+  ac_refl
 end
 
 @[simp] lemma odd_one : odd (1 : α) :=

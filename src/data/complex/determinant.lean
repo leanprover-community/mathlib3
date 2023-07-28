@@ -9,6 +9,9 @@ import linear_algebra.determinant
 /-!
 # Determinants of maps in the complex numbers as a vector space over `ℝ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides results about the determinants of maps in the complex numbers as a vector
 space over `ℝ`.
 

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.probability_measure
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 
 /-!
 # Characterizations of weak convergence of finite measures and probability measures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file will provide portmanteau characterizations of the weak convergence of finite measures
 and of probability measures, i.e., the standard characterizations of convergence in distribution.
@@ -73,7 +76,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 

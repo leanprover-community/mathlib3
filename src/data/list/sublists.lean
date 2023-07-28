@@ -8,6 +8,9 @@ import data.list.perm
 
 /-! # sublists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `list.sublists` gives a list of all (not necessarily contiguous) sublists of a list.
 
 This file contains basic results on this function.

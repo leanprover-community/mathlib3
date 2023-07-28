@@ -10,6 +10,9 @@ import tactic.tfae
 /-!
 # Inseparable points in a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `specializes` (notation: `x ⤳ y`) : a relation saying that `𝓝 x ≤ 𝓝 y`;
@@ -35,7 +38,7 @@ topological space, separation setoid
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y Z α ι : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [∀ i, topological_space (π i)] {x y z : X} {s : set X} {f : X → Y}

@@ -10,6 +10,9 @@ import category_theory.limits.functor_category
 /-!
 # The morphism comparing a colimit of limits with the corresponding limit of colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For `F : J × K ⥤ C` there is always a morphism $\colim_k \lim_j F(j,k) → \lim_j \colim_k F(j, k)$.
 While it is not usually an isomorphism, with additional hypotheses on `J` and `K` it may be,
 in which case we say that "colimits commute with limits".

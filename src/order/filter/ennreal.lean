@@ -3,13 +3,13 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-
-import data.real.ennreal
-import order.filter.countable_Inter
-import order.liminf_limsup
+import topology.instances.ennreal
 
 /-!
 # Order properties of extended non-negative reals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file compiles filter-related results about `ℝ≥0∞` (see data/real/ennreal.lean).
 -/
@@ -22,34 +22,11 @@ variables {α : Type*} {f : filter α}
 
 lemma eventually_le_limsup [countable_Inter_filter f] (u : α → ℝ≥0∞) :
   ∀ᶠ y in f, u y ≤ f.limsup u :=
-begin
-  by_cases hx_top : f.limsup u = ⊤,
-  { simp_rw hx_top,
-    exact eventually_of_forall (λ a, le_top), },
-  have h_forall_le : ∀ᶠ y in f, ∀ n : ℕ, u y < f.limsup u + (1:ℝ≥0∞)/n,
-  { rw eventually_countable_forall,
-    refine λ n, eventually_lt_of_limsup_lt _,
-    nth_rewrite 0 ←add_zero (f.limsup u),
-    exact (ennreal.add_lt_add_iff_left hx_top).mpr (by simp), },
-  refine h_forall_le.mono (λ y hy, le_of_forall_pos_le_add (λ r hr_pos hx_top, _)),
-  have hr_ne_zero : (r : ℝ≥0∞) ≠ 0,
-  { rw [ne.def, coe_eq_zero],
-    exact (ne_of_lt hr_pos).symm, },
-  cases (exists_inv_nat_lt hr_ne_zero) with i hi,
-  rw inv_eq_one_div at hi,
-  exact (hy i).le.trans (add_le_add_left hi.le (f.limsup u)),
-end
+eventually_le_limsup
 
 lemma limsup_eq_zero_iff [countable_Inter_filter f] {u : α → ℝ≥0∞} :
   f.limsup u = 0 ↔ u =ᶠ[f] 0 :=
-begin
-  split; intro h,
-  { have hu_zero := eventually_le.trans (eventually_le_limsup u)
-      (eventually_of_forall (λ _, le_of_eq h)),
-    exact hu_zero.mono (λ x hx, le_antisymm hx (zero_le _)), },
-  { rw limsup_congr h,
-    simp_rw [pi.zero_apply, ←ennreal.bot_eq_zero, limsup_const_bot] },
-end
+limsup_eq_bot
 
 lemma limsup_const_mul_of_ne_top {u : α → ℝ≥0∞} {a : ℝ≥0∞} (ha_top : a ≠ ⊤) :
   f.limsup (λ (x : α), a * (u x)) = a * f.limsup u :=
@@ -60,8 +37,8 @@ begin
   let g := λ x : ℝ≥0∞, a * x,
   have hg_bij : function.bijective g,
   from function.bijective_iff_has_inverse.mpr ⟨(λ x, a⁻¹ * x),
-    ⟨λ x, by simp [←mul_assoc, inv_mul_cancel ha_zero ha_top],
-    λ x, by simp [g, ←mul_assoc, mul_inv_cancel ha_zero ha_top]⟩⟩,
+    ⟨λ x, by simp [←mul_assoc, ennreal.inv_mul_cancel ha_zero ha_top],
+    λ x, by simp [g, ←mul_assoc, ennreal.mul_inv_cancel ha_zero ha_top]⟩⟩,
   have hg_mono : strict_mono g,
     from monotone.strict_mono_of_injective
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
@@ -100,8 +77,7 @@ lemma limsup_mul_le [countable_Inter_filter f] (u v : α → ℝ≥0∞) :
 calc f.limsup (u * v) ≤ f.limsup (λ x, (f.limsup u) * v x) :
   begin
     refine limsup_le_limsup _ _,
-    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx,
-      exact ennreal.mul_le_mul hx le_rfl, },
+    { filter_upwards [@eventually_le_limsup _ f _ u] with x hx using mul_le_mul_right' hx _ },
     { is_bounded_default, },
   end
 ... = f.limsup u * f.limsup v : limsup_const_mul

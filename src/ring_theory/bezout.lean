@@ -11,6 +11,9 @@ import algebra.gcd_monoid.integrally_closed
 
 # Bézout rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Bézout ring (Bezout ring) is a ring whose finitely generated ideals are principal.
 Notible examples include principal ideal rings, valuation rings, and the ring of algebraic integers.
 
@@ -95,7 +98,8 @@ local attribute [instance] to_gcd_domain
 -- Note that the proof, despite being `infer_instance`, depends on the `local attribute [instance]`
 -- lemma above, and is thus necessary to be restated.
 @[priority 100]
-instance [is_domain R] [is_bezout R] : is_integrally_closed R := infer_instance
+instance [is_domain R] [is_bezout R] : is_integrally_closed R :=
+by classical; exact gcd_monoid.to_is_integrally_closed
 
 lemma _root_.function.surjective.is_bezout {S : Type v} [comm_ring S] (f : R →+* S)
   (hf : function.surjective f) [is_bezout R] : is_bezout S :=

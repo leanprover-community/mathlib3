@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sean Leather, Mario Carneiro
 -/
 import data.list.alist
-import data.finset.basic
+import data.finset.sigma
 import data.part
 /-!
 # Finite maps over `multiset`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -31,6 +34,14 @@ def nodupkeys (s : multiset (sigma β)) : Prop :=
 quot.lift_on s list.nodupkeys (λ s t p, propext $ perm_nodupkeys p)
 
 @[simp] theorem coe_nodupkeys {l : list (sigma β)} : @nodupkeys α β l ↔ l.nodupkeys := iff.rfl
+
+lemma nodup_keys {m : multiset (Σ a, β a)} : m.keys.nodup ↔ m.nodupkeys :=
+by { rcases m with ⟨l⟩, refl }
+
+alias nodup_keys ↔ _ nodupkeys.nodup_keys
+
+lemma nodupkeys.nodup {m : multiset (Σ a, β a)} (h : m.nodupkeys) : m.nodup :=
+h.nodup_keys.of_map _
 
 end multiset
 
@@ -59,6 +70,8 @@ def list.to_finmap [decidable_eq α] (s : list (sigma β)) : finmap β := s.to_a
 
 namespace finmap
 open alist
+
+lemma nodup_entries (f : finmap β) : f.entries.nodup := f.nodupkeys.nodup
 
 /-! ### lifting from alist -/
 
@@ -126,7 +139,7 @@ theorem mem_def {a : α} {s : finmap β} :
 
 /-- The set of keys of a finite map. -/
 def keys (s : finmap β) : finset α :=
-⟨s.entries.keys, induction_on s keys_nodup⟩
+⟨s.entries.keys, s.nodupkeys.nodup_keys⟩
 
 @[simp] theorem keys_val (s : alist β) : (keys ⟦s⟧).val = s.keys := rfl
 
@@ -194,6 +207,23 @@ induction_on s $ λ s, alist.lookup_is_some
 theorem lookup_eq_none {a} {s : finmap β} : lookup a s = none ↔ a ∉ s :=
 induction_on s $ λ s, alist.lookup_eq_none
 
+lemma mem_lookup_iff {f : finmap β} {a : α} {b : β a} :
+  b ∈ f.lookup a ↔ sigma.mk a b ∈ f.entries :=
+by { rcases f with ⟨⟨l⟩, hl⟩, exact list.mem_lookup_iff hl }
+
+/-- A version of `finmap.mem_lookup_iff` with LHS in the simp-normal form. -/
+lemma lookup_eq_some_iff {f : finmap β} {a : α} {b : β a} :
+  f.lookup a = some b ↔ sigma.mk a b ∈ f.entries :=
+mem_lookup_iff
+
+@[simp] lemma sigma_keys_lookup (f : finmap β) :
+  f.keys.sigma (λ i, (f.lookup i).to_finset) = ⟨f.entries, f.nodup_entries⟩ :=
+begin
+  ext x,
+  have : x ∈ f.entries → x.fst ∈ f.keys, from multiset.mem_map_of_mem _,
+  simpa [lookup_eq_some_iff]
+end
+
 @[simp] lemma lookup_singleton_eq {a : α} {b : β a} : (singleton a b).lookup a = some b :=
 by rw [singleton, lookup_to_finmap, alist.singleton, alist.lookup, lookup_cons_eq]
 
@@ -203,7 +233,7 @@ decidable_of_iff _ lookup_is_some
 lemma mem_iff {a : α} {s : finmap β} : a ∈ s ↔ ∃ b, s.lookup a = some b :=
 induction_on s $ λ s,
 iff.trans list.mem_keys $ exists_congr $ λ b,
-(mem_lookup_iff s.nodupkeys).symm
+(list.mem_lookup_iff s.nodupkeys).symm
 
 lemma mem_of_lookup_eq_some {a : α} {b : β a} {s : finmap β} (h : s.lookup a = some b) : a ∈ s :=
 mem_iff.mpr ⟨_, h⟩
@@ -217,6 +247,46 @@ begin
   intros x y,
   rw h,
 end
+
+/-- An equivalence between `finmap β` and pairs `(keys : finset α, lookup : Π a, option (β a))` such
+that `(lookup a).is_some ↔ a ∈ keys`. -/
+@[simps apply_coe_fst apply_coe_snd]
+def keys_lookup_equiv :
+  finmap β ≃ {f : finset α × (Π a, option (β a)) // ∀ i, (f.2 i).is_some ↔ i ∈ f.1} :=
+{ to_fun := λ f, ⟨(f.keys, λ i, f.lookup i), λ i, lookup_is_some⟩,
+  inv_fun := λ f, ⟨(f.1.1.sigma $ λ i, (f.1.2 i).to_finset).val,
+    begin
+      refine multiset.nodup_keys.1 ((finset.nodup _).map_on _),
+      simp only [finset.mem_val, finset.mem_sigma, option.mem_to_finset, option.mem_def],
+      rintro ⟨i, x⟩ ⟨hi, hx⟩ ⟨j, y⟩ ⟨hj, hy⟩ (rfl : i = j),
+      obtain rfl : x = y, from option.some.inj (hx.symm.trans hy),
+      refl
+    end⟩,
+  left_inv := λ f, ext $ by simp,
+  right_inv := λ ⟨⟨s, f⟩, hf⟩,
+    begin
+      ext : 2; dsimp [keys],
+      { ext1 i,
+        have : i ∈ s → (∃ x, f i = some x),
+          from λ hi, ⟨option.get _, option.get_mem $ (hf i).2 hi⟩,
+        simpa [multiset.keys] },
+      { ext i x : 2,
+        simp only [option.mem_def, lookup_eq_some_iff, finset.mem_val, finset.mem_sigma,
+          option.mem_to_finset, and_iff_right_iff_imp, ← hf],
+        exact λ h, option.is_some_iff_exists.2 ⟨_, h⟩ }
+    end }
+
+@[simp] lemma keys_lookup_equiv_symm_apply_keys :
+  ∀ f : {f : finset α × (Π a, option (β a)) // ∀ i, (f.2 i).is_some ↔ i ∈ f.1},
+    (keys_lookup_equiv.symm f).keys = (f : finset α × Π a, option (β a)).1 :=
+keys_lookup_equiv.surjective.forall.2 $ λ f,
+  by simp only [equiv.symm_apply_apply, keys_lookup_equiv_apply_coe_fst]
+
+@[simp] lemma keys_lookup_equiv_symm_apply_lookup :
+  ∀ (f : {f : finset α × (Π a, option (β a)) // ∀ i, (f.2 i).is_some ↔ i ∈ f.1}) a,
+    (keys_lookup_equiv.symm f).lookup a = (f : finset α × Π a, option (β a)).2 a :=
+keys_lookup_equiv.surjective.forall.2 $ λ f a,
+  by simp only [equiv.symm_apply_apply, keys_lookup_equiv_apply_coe_snd]
 
 /-! ### replace -/
 
@@ -249,11 +319,11 @@ m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
 /-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∨ f y z) (by { intros,  simp [or.right_comm] }) ff
+s.foldl (λ x y z, x || f y z) (by { intros, simp_rw [bool.bor_assoc, bool.bor_comm] }) ff
 
 /-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∧ f y z) (by { intros, simp [and.right_comm] }) ff
+s.foldl (λ x y z, x && f y z) (by { intros, simp_rw [bool.band_assoc, bool.band_comm] }) tt
 
 /-! ### erase -/
 

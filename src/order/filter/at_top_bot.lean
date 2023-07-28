@@ -13,6 +13,9 @@ import algebra.order.group.min_max
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the filters
 
 * `at_top`: corresponds to `n → +∞`;

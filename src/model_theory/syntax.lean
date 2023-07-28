@@ -10,6 +10,9 @@ import model_theory.language_map
 
 /-!
 # Basics on First-Order Syntax
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines first-order terms, formulas, sentences, and theories in a style inspired by the
 [Flypitch project](https://flypitch.github.io/).
 

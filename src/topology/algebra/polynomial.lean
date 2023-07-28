@@ -12,6 +12,9 @@ import analysis.normed.field.basic
 /-!
 # Polynomials and limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the following lemmas.
 
 * `polynomial.continuous_eval₂: `polynomial.eval₂` defines a continuous function.
@@ -46,7 +49,7 @@ variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring
 protected lemma continuous_eval₂ [semiring S] (p : S[X]) (f : S →+* R) :
   continuous (λ x, p.eval₂ f x) :=
 begin
-  dsimp only [eval₂_eq_sum, finsupp.sum],
+  simp only [eval₂_eq_sum, finsupp.sum],
   exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
 end
 

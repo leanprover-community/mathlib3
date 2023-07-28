@@ -10,6 +10,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # Biproducts and binary biproducts
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the notion of (finite) biproducts and binary biproducts.
 
 These are slightly unusual relative to the other shapes in the library,

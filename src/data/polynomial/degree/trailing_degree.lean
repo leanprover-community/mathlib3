@@ -9,6 +9,9 @@ import data.polynomial.degree.definitions
 /-!
 # Trailing degree of univariate polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `trailing_degree p`: the multiplicity of `X` in the polynomial `p`

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import data.finsupp.defs
+import data.finsupp.indicator
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.order
@@ -13,13 +13,16 @@ import group_theory.submonoid.membership
 /-!
 # Big operators for finsupps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems relevant to big operators in finitely supported functions.
 -/
 
 noncomputable theory
 
 open finset function
-open_locale classical big_operators
+open_locale big_operators
 
 variables {α ι γ A B C : Type*} [add_comm_monoid A] [add_comm_monoid B] [add_comm_monoid C]
 variables {t : ι → A → C} (h0 : ∀ i, t i 0 = 0) (h1 : ∀ i x y, t i (x + y) = t i x + t i y)
@@ -86,7 +89,11 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq, }
 @[simp] lemma sum_ite_self_eq
   [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
   f.sum (λ x v, ite (a = x) v 0) = f a :=
-by { convert f.sum_ite_eq a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
+begin
+  classical,
+  convert f.sum_ite_eq a (λ x, id),
+  simp [ite_eq_right_iff.2 eq.symm]
+end
 
 /-- A restatement of `prod_ite_eq` with the equality test reversed. -/
 @[simp, to_additive "A restatement of `sum_ite_eq` with the equality test reversed."]
@@ -97,7 +104,11 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
 @[simp] lemma sum_ite_self_eq'
   [decidable_eq α] {N : Type*} [add_comm_monoid N] (f : α →₀ N) (a : α) :
   f.sum (λ x v, ite (x = a) v 0) = f a :=
-by { convert f.sum_ite_eq' a (λ x, id), simp [ite_eq_right_iff.2 eq.symm] }
+begin
+  classical,
+  convert f.sum_ite_eq' a (λ x, id),
+  simp [ite_eq_right_iff.2 eq.symm]
+end
 
 @[simp] lemma prod_pow [fintype α] (f : α →₀ ℕ) (g : α → N) :
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
@@ -121,6 +132,7 @@ single element `y ∈ f.support` to the sum over `erase y f`. "-/]
 lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
   g y (f y) * (erase y f).prod g = f.prod g :=
 begin
+  classical,
   rw [finsupp.prod, finsupp.prod, ←finset.mul_prod_erase _ _ hyf, finsupp.support_erase,
     finset.prod_congr rfl],
   intros h hx,
@@ -288,7 +300,7 @@ This is a more general version of `finsupp.prod_add_index'`; the latter has simp
 @[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
 if `h` is an additive homomorphism on the support.
 This is a more general version of `finsupp.sum_add_index'`; the latter has simpler hypotheses."]
-lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index [decidable_eq α] [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
   (h_add : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
@@ -309,7 +321,7 @@ This is a more specific version of `finsupp.sum_add_index` with simpler hypothes
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-prod_add_index (λ a ha, h_zero a) (λ a ha, h_add a)
+by classical; exact prod_add_index (λ a ha, h_zero a) (λ a ha, h_add a)
 
 @[simp]
 lemma sum_hom_add_index [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
@@ -401,8 +413,8 @@ lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
   {s : finset ι} {g : ι → α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
-finset.induction_on s rfl $ λ a s has ih,
-by rw [prod_insert has, ih, sum_insert has, prod_add_index' h_zero h_add]
+finset.cons_induction_on s rfl $ λ a s has ih,
+by rw [prod_cons, ih, sum_cons, prod_add_index' h_zero h_add]
 
 @[to_additive]
 lemma prod_sum_index
@@ -420,10 +432,12 @@ lemma multiset_sum_sum_index
 multiset.induction_on f rfl $ assume a s ih,
 by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index' h₀ h₁, ih]
 
-lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [add_comm_monoid M]
+lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [decidable_eq α]
+  [add_comm_monoid M]
   {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
   (∑ i in s, g i).support = s.bUnion (λ i, (g i).support) :=
 begin
+  classical,
   apply finset.induction_on s,
   { simp },
   { intros i s hi,
@@ -455,19 +469,43 @@ have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
   ∏ x in f1.support, g x (f1 x + f2 x) = f1.prod g :=
   λ f1 f2 hd, finset.prod_congr rfl (λ x hx,
     by simp only [not_mem_support_iff.mp (disjoint_left.mp hd hx), add_zero]),
-by simp_rw [← this hd, ← this hd.symm,
-  add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+begin
+  classical,
+  simp_rw [← this hd, ← this hd.symm,
+    add_comm (f2 _), finsupp.prod, support_add_eq hd, prod_union hd, add_apply]
+end
 
 lemma prod_dvd_prod_of_subset_of_dvd [add_comm_monoid M] [comm_monoid N]
   {f1 f2 : α →₀ M} {g1 g2 : α → M → N} (h1 : f1.support ⊆ f2.support)
   (h2 : ∀ (a : α), a ∈ f1.support → g1 a (f1 a) ∣ g2 a (f2 a)) :
   f1.prod g1 ∣ f2.prod g2 :=
 begin
+  classical,
   simp only [finsupp.prod, finsupp.prod_mul],
   rw [←sdiff_union_of_subset h1, prod_union sdiff_disjoint],
   apply dvd_mul_of_dvd_right,
   apply prod_dvd_prod_of_dvd,
   exact h2,
+end
+
+lemma indicator_eq_sum_single [add_comm_monoid M] (s : finset α) (f : Π a ∈ s, M) :
+  indicator s f = ∑ x in s.attach, single x (f x x.2) :=
+begin
+  rw [← sum_single (indicator s f), sum, sum_subset (support_indicator_subset _ _), ← sum_attach],
+  { refine finset.sum_congr rfl (λ x hx, _),
+    rw [indicator_of_mem], },
+  intros i _ hi,
+  rw [not_mem_support_iff.mp hi, single_zero],
+end
+
+@[simp, to_additive]
+lemma prod_indicator_index [has_zero M] [comm_monoid N]
+  {s : finset α} (f : Π a ∈ s, M) {h : α → M → N} (h_zero : ∀ a ∈ s, h a 0 = 1) :
+  (indicator s f).prod h = ∏ x in s.attach, h x (f x x.2) :=
+begin
+  rw [prod_of_support_subset _ (support_indicator_subset _ _) h h_zero, ← prod_attach],
+  refine finset.prod_congr rfl (λ x hx, _),
+  rw [indicator_of_mem],
 end
 
 end finsupp

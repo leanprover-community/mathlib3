@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.mv_polynomial.supported
-import ring_theory.derivation
+import ring_theory.derivation.basic
 
 /-!
 # Derivations of multivariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that a derivation of `mv_polynomial σ R` is determined by its values on all
 monomials `mv_polynomial.X i`. We also provide a constructor `mv_polynomial.mk_derivation` that
@@ -110,7 +113,7 @@ def mk_derivation (f : σ → A) : derivation R (mv_polynomial σ R) A :=
   leibniz' := (leibniz_iff_X (mk_derivationₗ R f) (mk_derivationₗ_C _ 1)).2 $ λ s i,
     begin
       simp only [mk_derivationₗ_monomial, X, monomial_mul, one_smul, one_mul],
-      rw [finsupp.sum_add_index];
+      rw [finsupp.sum_add_index'];
         [skip, by simp, by { intros, simp only [nat.cast_add, (monomial _).map_add, add_smul] }],
       rw [finsupp.sum_single_index, finsupp.sum_single_index]; [skip, by simp, by simp],
       rw [tsub_self, add_tsub_cancel_right, nat.cast_one, ← C_apply, C_1, one_smul,

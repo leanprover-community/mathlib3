@@ -12,6 +12,9 @@ import ring_theory.noetherian
 /-!
 # Finiteness conditions in commutative algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a notion of finiteness that is common in commutative algebra.
 
 ## Main declarations

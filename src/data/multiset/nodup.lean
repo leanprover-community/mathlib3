@@ -9,6 +9,9 @@ import data.multiset.range
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -45,7 +48,7 @@ theorem not_nodup_pair : ∀ a : α, ¬ nodup (a ::ₘ a ::ₘ 0) := not_nodup_p
 
 theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a ::ₘ a ::ₘ 0 ≤ s :=
 quot.induction_on s $ λ l, nodup_iff_sublist.trans $ forall_congr $ λ a,
-not_congr (@repeat_le_coe _ a 2 _).symm
+  (@replicate_le_coe _ a 2 _).symm.not
 
 lemma nodup_iff_ne_cons_cons {s : multiset α} : s.nodup ↔ ∀ a t, s ≠ a ::ₘ a ::ₘ t :=
 nodup_iff_le.trans

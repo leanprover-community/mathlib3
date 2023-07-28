@@ -10,6 +10,9 @@ import linear_algebra.matrix.charpoly.basic
 /-!
 # Characteristic polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give methods for computing coefficients of the characteristic polynomial.
 
 ## Main definitions

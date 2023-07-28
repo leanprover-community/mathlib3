@@ -12,6 +12,9 @@ import algebra.order.group.min_max
 /-!
 # (Pre)images of intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a bunch of trivial lemmas like “if we add `a` to all points of `[b, c]`,
 then we get `[a + b, a + c]`”. For the functions `x ↦ x ± a`, `x ↦ a ± x`, and `x ↦ -x` we prove
 lemmas about preimages and images of all intervals. We also prove a few lemmas about images under
@@ -254,56 +257,56 @@ end ordered_add_comm_group
 section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] (a b c d : α)
 
-@[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
+@[simp] lemma preimage_const_add_uIcc : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
 by simp only [←Icc_min_max, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
 
-@[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
-by simpa only [add_comm] using preimage_const_add_interval a b c
+@[simp] lemma preimage_add_const_uIcc : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
+by simpa only [add_comm] using preimage_const_add_uIcc a b c
 
-@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
+@[simp] lemma preimage_neg_uIcc : - [a, b] = [-a, -b] :=
 by simp only [←Icc_min_max, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
-@[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
+@[simp] lemma preimage_sub_const_uIcc : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
+@[simp] lemma preimage_const_sub_uIcc : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
 by { simp_rw [←Icc_min_max, preimage_const_sub_Icc],
   simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
 
-@[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
+@[simp] lemma image_const_add_uIcc : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
 by simp [add_comm]
 
-@[simp] lemma image_add_const_interval : (λ x, x + a) '' [b, c] = [b + a, c + a] :=
+@[simp] lemma image_add_const_uIcc : (λ x, x + a) '' [b, c] = [b + a, c + a] :=
 by simp
 
-@[simp] lemma image_const_sub_interval : (λ x, a - x) '' [b, c] = [a - b, a - c] :=
+@[simp] lemma image_const_sub_uIcc : (λ x, a - x) '' [b, c] = [a - b, a - c] :=
 by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
-@[simp] lemma image_sub_const_interval : (λ x, x - a) '' [b, c] = [b - a, c - a] :=
+@[simp] lemma image_sub_const_uIcc : (λ x, x - a) '' [b, c] = [b - a, c - a] :=
 by simp [sub_eq_add_neg, add_comm]
 
-lemma image_neg_interval : has_neg.neg '' [a, b] = [-a, -b] := by simp
+lemma image_neg_uIcc : has_neg.neg '' [a, b] = [-a, -b] := by simp
 
 variables {a b c d}
 
 /-- If `[c, d]` is a subinterval of `[a, b]`, then the distance between `c` and `d` is less than or
 equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [c, d] ⊆ [a, b]) : |d - c| ≤ |b - a| :=
+lemma abs_sub_le_of_uIcc_subset_uIcc (h : [c, d] ⊆ [a, b]) : |d - c| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
-  rw [interval_subset_interval_iff_le] at h,
+  rw [uIcc_subset_uIcc_iff_le] at h,
   exact sub_le_sub h.2 h.1,
 end
 
 /-- If `c ∈ [a, b]`, then the distance between `a` and `c` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_left_of_mem_interval (h : c ∈ [a, b]) : |c - a| ≤ |b - a| :=
-abs_sub_le_of_subinterval (interval_subset_interval_left h)
+lemma abs_sub_left_of_mem_uIcc (h : c ∈ [a, b]) : |c - a| ≤ |b - a| :=
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc_left h
 
 /-- If `x ∈ [a, b]`, then the distance between `c` and `b` is less than or equal to
 that of `a` and `b`  -/
-lemma abs_sub_right_of_mem_interval (h : c ∈ [a, b]) : |b - c| ≤ |b - a| :=
-abs_sub_le_of_subinterval (interval_subset_interval_right h)
+lemma abs_sub_right_of_mem_uIcc (h : c ∈ [a, b]) : |b - c| ≤ |b - a| :=
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc_right h
 
 end linear_ordered_add_comm_group
 
@@ -442,32 +445,32 @@ by simpa only [mul_comm] using preimage_mul_const_Ico_of_neg a b h
   ((*) c) ⁻¹' (Icc a b) = Icc (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 
-@[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
+@[simp] lemma preimage_mul_const_uIcc (ha : a ≠ 0) (b c : α) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
   (λ h, by simp [←Icc_min_max, h, h.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
   (λ (ha : 0 < a), by simp [←Icc_min_max, ha, ha.le, min_div_div_right, max_div_div_right])
 
-@[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
+@[simp] lemma preimage_const_mul_uIcc (ha : a ≠ 0) (b c : α) :
   (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
-by simp only [← preimage_mul_const_interval ha, mul_comm]
+by simp only [← preimage_mul_const_uIcc ha, mul_comm]
 
-@[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : α) :
+@[simp] lemma preimage_div_const_uIcc (ha : a ≠ 0) (b c : α) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
+by simp only [div_eq_mul_inv, preimage_mul_const_uIcc (inv_ne_zero ha), inv_inv]
 
-@[simp] lemma image_mul_const_interval (a b c : α) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
+@[simp] lemma image_mul_const_uIcc (a b c : α) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else
 calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
   (units.mk0 a ha).mul_right.image_eq_preimage _
 ... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
-... = [b * a, c * a] : preimage_div_const_interval ha _ _
+... = [b * a, c * a] : preimage_div_const_uIcc ha _ _
 
-@[simp] lemma image_const_mul_interval (a b c : α) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
-by simpa only [mul_comm] using image_mul_const_interval a b c
+@[simp] lemma image_const_mul_uIcc (a b c : α) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
+by simpa only [mul_comm] using image_mul_const_uIcc a b c
 
-@[simp] lemma image_div_const_interval (a b c : α) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
-by simp only [div_eq_mul_inv, image_mul_const_interval]
+@[simp] lemma image_div_const_uIcc (a b c : α) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
+by simp only [div_eq_mul_inv, image_mul_const_uIcc]
 
 lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
@@ -507,7 +510,7 @@ begin
 end
 
 lemma inv_Ioi {a : α} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
-by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
+by rw [inv_eq_iff_eq_inv, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
 
 lemma image_const_mul_Ioi_zero {k : Type*} [linear_ordered_field k]
   {x : k} (hx : 0 < x) :

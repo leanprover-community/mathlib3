@@ -140,7 +140,7 @@ do
 
     -- Now we generate the actual proof of the target.
     tgt ← target,
-    proof ← mk_mapp inj_name (list.repeat none (inj_arity - 3) ++ [some h, some tgt]),
+    proof ← mk_mapp inj_name (list.replicate (inj_arity - 3) none ++ [some h, some tgt]),
     eapply proof,
     (next, ns) ← intron_with num_equations ns base offset,
 

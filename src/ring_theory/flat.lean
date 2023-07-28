@@ -9,6 +9,9 @@ import ring_theory.noetherian
 /-!
 # Flat modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A module `M` over a commutative ring `R` is *flat*
 if for all finitely generated ideals `I` of `R`,
 the canonical map `I ⊗ M →ₗ M` is injective.

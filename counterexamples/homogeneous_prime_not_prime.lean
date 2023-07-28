@@ -10,6 +10,9 @@ import tactic.derive_fintype
 /-!
 # A homogeneous prime that is homogeneously prime but not prime
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is indexed
 by a `linear_ordered_cancel_add_comm_monoid` to prove that a homogeneous ideal is prime if and only
 if it is homogeneously prime. This file is aimed to show that even if this assumption isn't strictly
@@ -29,6 +32,8 @@ prime. But it is homogeneously prime, i.e. if `(a, b), (c, d)` are two homogeneo
 
 homogeneous, prime
 -/
+
+namespace counterexample
 
 namespace counterexample_not_prime_but_homogeneous_prime
 
@@ -74,7 +79,7 @@ lemma grading.mul_mem : ∀ ⦃i j : two⦄ {a b : (R × R)} (ha : a ∈ grading
 
 end
 
-notation `R` := zmod 4
+local notation `R` := zmod 4
 
 /-- `R² ≅ {(a, a) | a ∈ R} ⨁ {(0, b) | b ∈ R}` by `(x, y) ↦ (x, x) + (0, y - x)`. -/
 def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
@@ -152,3 +157,5 @@ begin
 end
 
 end counterexample_not_prime_but_homogeneous_prime
+
+end counterexample

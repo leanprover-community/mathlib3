@@ -3,10 +3,14 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
+import data.nat.interval
 import order.conditionally_complete_lattice.finset
 
 /-!
 # Conditionally complete linear order structure on `ℕ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we
 
@@ -34,7 +38,7 @@ lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
 dif_pos _
 
 lemma _root_.set.infinite.nat.Sup_eq_zero {s : set ℕ} (h : s.infinite) : Sup s = 0 :=
-dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks).not_lt hk
+dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_gt n in (hn k hks).not_lt hk
 
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin

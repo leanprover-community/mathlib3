@@ -8,6 +8,9 @@ import analysis.normed.field.basic
 /-!
 # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we apply `metric.complete_of_cauchy_seq_tendsto` to prove that a `normed_ring`
 is complete in terms of `cauchy` filter if and only if it is complete in terms
 of `cau_seq` Cauchy sequences.
@@ -15,7 +18,7 @@ of `cau_seq` Cauchy sequences.
 
 universes u v
 open set filter
-open_locale topological_space classical
+open_locale topology classical
 
 variable {β : Type v}
 

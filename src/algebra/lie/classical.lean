@@ -14,6 +14,9 @@ import linear_algebra.symplectic_group
 /-!
 # Classical Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is the place to find definitions and basic properties of the classical Lie algebras:
   * Aₗ = sl(l+1)
   * Bₗ ≃ so(l+1, l) ≃ so(2l+1)
@@ -328,7 +331,7 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_inl_inl,
+  simp only [indefinite_diagonal, matrix.diagonal_apply, equiv.sum_assoc_apply_inl_inl,
     matrix.reindex_lie_equiv_apply, matrix.submatrix_apply, equiv.symm_symm, matrix.reindex_apply,
     sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
     dmatrix.zero_apply, equiv.sum_assoc_apply_inl_inr, if_false, matrix.from_blocks_apply₁₂,

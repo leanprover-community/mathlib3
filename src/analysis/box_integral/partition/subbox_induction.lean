@@ -9,6 +9,9 @@ import analysis.box_integral.partition.tagged
 /-!
 # Induction on subboxes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove (see
 `box_integral.tagged_partition.exists_is_Henstock_is_subordinate_homothetic`) that for every box `I`
 in `ℝⁿ` and a function `r : ℝⁿ → ℝ` positive on `I` there exists a tagged partition `π` of `I` such
@@ -29,7 +32,7 @@ partition, tagged partition, Henstock integral
 namespace box_integral
 
 open set metric
-open_locale classical topological_space
+open_locale classical topology
 noncomputable theory
 
 variables {ι : Type*} [fintype ι] {I J : box ι}

@@ -98,6 +98,7 @@ lemma zpow_bit0_nonneg (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n :=
 (mul_self_nonneg _).trans_eq $ (zpow_bit0 _ _).symm
 
 lemma zpow_two_nonneg (a : α) : 0 ≤ a ^ (2 : ℤ) := zpow_bit0_nonneg _ _
+lemma zpow_neg_two_nonneg (a : α) : 0 ≤ a ^ (-2 : ℤ) := zpow_bit0_nonneg _ (-1)
 
 lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 (zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm

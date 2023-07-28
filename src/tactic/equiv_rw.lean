@@ -187,11 +187,6 @@ do
   -- to compress away some `map_equiv equiv.refl` subexpressions.
   prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
 
-mk_simp_attribute equiv_rw_simp "The simpset `equiv_rw_simp` is used by the tactic `equiv_rw` to
-simplify applications of equivalences and their inverses."
-
-attribute [equiv_rw_simp] equiv.symm_symm equiv.apply_symm_apply equiv.symm_apply_apply
-
 /--
 Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.

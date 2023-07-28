@@ -14,6 +14,9 @@ import data.finset.preimage
 /-!
 # Finitely generated monoids and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.
 

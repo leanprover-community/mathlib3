@@ -10,6 +10,9 @@ import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file establishes a version of Hilbert's classical Nullstellensatz for `mv_polynomial`s.
 The main statement of the theorem is `vanishing_ideal_zero_locus_eq_radical`.
 

@@ -11,6 +11,9 @@ import data.polynomial.degree.lemmas
 /-!
 # Taylor expansions of polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `polynomial.taylor`: the Taylor expansion of the polynomial `f` at `r`

@@ -12,6 +12,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # Preadditive categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A preadditive category is a category in which `X ⟶ Y` is an abelian group in such a way that
 composition of morphisms is linear in both variables.
 

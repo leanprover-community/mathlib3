@@ -9,6 +9,9 @@ import ring_theory.localization.integral
 /-!
 # Integrally closed rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An integrally closed domain `R` contains all the elements of `Frac(R)` that are
 integral over `R`. A special case of integrally closed domains are the Dedekind domains.
 
@@ -22,7 +25,9 @@ integral over `R`. A special case of integrally closed domains are the Dedekind 
   is integrally closed iff it is the integral closure of `R` in `K`
 -/
 
-open_locale non_zero_divisors
+open_locale non_zero_divisors polynomial
+
+open polynomial
 
 /-- `R` is integrally closed if all integral elements of `Frac(R)` are also elements of `R`.
 
@@ -124,8 +129,10 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R]
-variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
+variables {R : Type*} [comm_ring R]
+variables (K : Type*) [field K] [algebra R K]
+
+variables  [is_domain R] [is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
 
 -- Can't be an instance because you need to supply `K`.

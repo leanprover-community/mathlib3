@@ -9,6 +9,9 @@ import order.filter.countable_Inter
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines measure spaces, the almost-everywhere filter and ae_measurable functions.
 See `measure_theory.measure_space` for their properties and for extended documentation.
 
@@ -16,10 +19,10 @@ Given a measurable space `α`, a measure on `α` is a function that sends measur
 extended nonnegative reals that satisfies the following conditions:
 1. `μ ∅ = 0`;
 2. `μ` is countably additive. This means that the measure of a countable union of pairwise disjoint
-   sets is equal to the measure of the individual sets.
+   sets is equal to the sum of the measures of the individual sets.
 
 Every measure can be canonically extended to an outer measure, so that it assigns values to
-all subsets, not just the measurable subsets. On the other hand, a measure that is countably
+all subsets, not just the measurable subsets. On the other hand, an outer measure that is countably
 additive on measurable sets can be restricted to measurable sets to obtain a measure.
 In this file a measure is defined to be an outer measure that is countably additive on
 measurable sets, with the additional assumption that the outer measure is the canonical
@@ -54,7 +57,7 @@ measure, almost everywhere, measure space
 noncomputable theory
 
 open classical set filter (hiding map) function measurable_space
-open_locale classical topological_space big_operators filter ennreal nnreal
+open_locale classical topology big_operators filter ennreal nnreal
 
 variables {α β γ δ ι : Type*}
 
@@ -439,9 +442,9 @@ lemma inter_ae_eq_empty_of_ae_eq_empty_right (h : t =ᵐ[μ] (∅ : set α)) :
 by { convert ae_eq_set_inter (ae_eq_refl s) h, rw inter_empty, }
 
 @[to_additive]
-lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
-  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-by simpa [filter.eventually_eq, ae_iff] using h
+lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α} :
+  s.mul_indicator f =ᵐ[μ] 1 ↔ μ (s ∩ f.mul_support) = 0 :=
+by simpa [eventually_eq, eventually_iff, measure.ae, compl_set_of]
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

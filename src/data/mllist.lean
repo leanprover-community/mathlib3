@@ -7,6 +7,9 @@ import data.option.defs
 
 /-! # Monadic lazy lists.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An alternative construction of lazy lists (see also `data.lazy_list`),
 with "lazyness" controlled by an arbitrary monad.
 

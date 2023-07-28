@@ -10,6 +10,9 @@ import topology.uniform_space.cauchy
 /-!
 # Uniform convergence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A sequence of functions `Fₙ` (with values in a metric space) converges uniformly on a set `s` to a
 function `f` if, for all `ε > 0`, for all large enough `n`, one has for all `y ∈ s` the inequality
 `dist (f y, Fₙ y) < ε`. Under uniform convergence, many properties of the `Fₙ` pass to the limit,
@@ -60,7 +63,7 @@ Uniform limit, uniform convergence, tends uniformly to
  -/
 
 noncomputable theory
-open_locale topological_space classical uniformity filter
+open_locale topology classical uniformity filter
 
 open set filter
 

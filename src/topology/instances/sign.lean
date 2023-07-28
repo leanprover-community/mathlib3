@@ -9,6 +9,9 @@ import topology.order.basic
 /-!
 # Topology on `sign_type`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file gives `sign_type` the discrete topology, and proves continuity results for `sign` in
 an `order_topology`.
 

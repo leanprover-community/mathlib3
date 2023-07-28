@@ -9,6 +9,9 @@ import data.polynomial.degree.definitions
 /-!
 # Erase the leading term of a univariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Definition
 
 * `erase_lead f`: the polynomial `f - leading term of f`

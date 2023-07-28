@@ -9,6 +9,9 @@ import analysis.complex.removable_singularity
 /-!
 # Schwarz lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the Schwarz lemma.
 
 * `complex.norm_deriv_le_div_of_maps_to_ball`, `complex.abs_deriv_le_div_of_maps_to_ball`: if
@@ -47,7 +50,7 @@ Schwarz lemma
 -/
 
 open metric set function filter topological_space
-open_locale topological_space
+open_locale topology
 
 namespace complex
 
@@ -98,7 +101,7 @@ begin
   have hg₀ : ‖g‖₊ ≠ 0, by simpa only [hg'] using one_ne_zero,
   calc ‖dslope f c z‖ = ‖dslope (g ∘ f) c z‖ :
     begin
-      rw [g.dslope_comp, hgf, is_R_or_C.norm_of_real, norm_norm],
+      rw [g.dslope_comp, hgf, is_R_or_C.norm_of_real, abs_norm],
       exact λ _, hd.differentiable_at (ball_mem_nhds _ hR₁)
     end
   ... ≤ R₂ / R₁ :

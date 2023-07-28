@@ -11,6 +11,9 @@ import data.fun_like.basic
 /-!
 # Finiteness of `fun_like` types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show a type `F` with a `fun_like F α β` is finite if both `α` and `β` are finite.
 This corresponds to the following two pairs of declarations:
 

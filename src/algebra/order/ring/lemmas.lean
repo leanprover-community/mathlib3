@@ -548,7 +548,10 @@ lemma mul_lt_iff_lt_one_left
   a * b < b ↔ a < 1 :=
 iff.trans (by rw [one_mul]) (mul_lt_mul_right b0)
 
-/-! Lemmas of the form `b ≤ 1` → `a * b ≤ a`. -/
+/-! Lemmas of the form `b ≤ 1` → `a * b ≤ a`.
+
+Variants with `< 0` and `≤ 0` instead of `0 <` and `0 ≤` appear in `algebra/order/ring/defs` (which
+imports this file) as they need additional results which are not yet available here. -/
 
 lemma mul_le_of_le_one_right [pos_mul_mono α] (a0 : 0 ≤ a) (h : b ≤ 1) : a * b ≤ a :=
 by simpa only [mul_one] using mul_le_mul_of_nonneg_left h a0

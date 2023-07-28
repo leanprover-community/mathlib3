@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # Locus of unequal values of finitely supported functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `α N` be two Types, assume that `N` has a `0` and let `f g : α →₀ N` be finitely supported
 functions.
 

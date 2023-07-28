@@ -9,6 +9,9 @@ import analysis.normed.group.basic
 /-!
 # Hamming spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Hamming metric counts the number of places two members of a (finite) Pi type
 differ. The Hamming norm is the same as the Hamming metric over additive groups, and
 counts the number of places a member of a (finite) Pi type differs from zero.

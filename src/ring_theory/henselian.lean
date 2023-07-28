@@ -11,6 +11,9 @@ import linear_algebra.adic_completion
 /-!
 # Henselian rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we set up the basic theory of Henselian (local) rings.
 A ring `R` is *Henselian* at an ideal `I` if the following conditions hold:
 * `I` is contained in the Jacobson radical of `R`

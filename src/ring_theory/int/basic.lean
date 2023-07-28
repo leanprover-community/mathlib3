@@ -11,6 +11,9 @@ import ring_theory.principal_ideal_domain
 /-!
 # Divisibility over ℕ and ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file collects results for the integers and natural numbers that use abstract algebra in
 their proofs or cases of ℕ and ℤ being examples of structures in abstract algebra.
 
@@ -91,24 +94,22 @@ instance : normalization_monoid ℤ :=
 lemma normalize_of_nonneg {z : ℤ} (h : 0 ≤ z) : normalize z = z :=
 show z * ↑(ite _ _ _) = z, by rw [if_pos h, units.coe_one, mul_one]
 
-lemma normalize_of_neg {z : ℤ} (h : z < 0) : normalize z = -z :=
-show z * ↑(ite _ _ _) = -z,
-by rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one]
+lemma normalize_of_nonpos {z : ℤ} (h : z ≤ 0) : normalize z = -z :=
+begin
+  obtain rfl | h := h.eq_or_lt,
+  { simp },
+  { change z * ↑(ite _ _ _) = -z,
+   rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one] }
+end
 
 lemma normalize_coe_nat (n : ℕ) : normalize (n : ℤ) = n :=
 normalize_of_nonneg (coe_nat_le_coe_nat_of_le $ nat.zero_le n)
 
-theorem coe_nat_abs_eq_normalize (z : ℤ) : (z.nat_abs : ℤ) = normalize z :=
-begin
-  by_cases 0 ≤ z,
-  { simp [nat_abs_of_nonneg h, normalize_of_nonneg h] },
-  { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
-end
+lemma abs_eq_normalize (z : ℤ) : |z| = normalize z :=
+by cases le_total 0 z; simp [normalize_of_nonneg, normalize_of_nonpos, *]
 
 lemma nonneg_of_normalize_eq_self {z : ℤ} (hz : normalize z = z) : 0 ≤ z :=
-calc 0 ≤ (z.nat_abs : ℤ) : coe_zero_le _
-... = normalize z : coe_nat_abs_eq_normalize _
-... = z : hz
+abs_eq_self.1 $ by rw [abs_eq_normalize, hz]
 
 lemma nonneg_iff_normalize_eq_self (z : ℤ) : normalize z = z ↔ 0 ≤ z :=
 ⟨nonneg_of_normalize_eq_self, normalize_of_nonneg⟩
@@ -127,7 +128,7 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
   gcd_mul_lcm    := λ a b, by
-  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs, abs_eq_normalize],
     exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
@@ -150,7 +151,7 @@ lemma exists_unit_of_abs (a : ℤ) : ∃ (u : ℤ) (h : is_unit u), (int.nat_abs
 begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
-  { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
+  { use [-1, is_unit_one.neg], rw [← neg_eq_iff_eq_neg.mpr h],
     simp only [neg_mul, one_mul] }
 end
 
@@ -225,10 +226,10 @@ begin
   { refine (assume a, quotient.induction_on' a $ assume a,
       associates.mk_eq_mk_iff_associated.2 $ associated.symm $ ⟨norm_unit a, _⟩),
     show normalize a = int.nat_abs (normalize a),
-    rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
+    rw [int.coe_nat_abs, int.abs_eq_normalize, normalize_idem] },
   { intro n,
     dsimp,
-    rw [←normalize_apply, ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+    rw [←normalize_apply, ←int.abs_eq_normalize, int.nat_abs_abs, int.nat_abs_of_nat] }
 end
 
 lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}
@@ -357,8 +358,8 @@ namespace int
 lemma zmultiples_nat_abs (a : ℤ) :
   add_subgroup.zmultiples (a.nat_abs : ℤ) = add_subgroup.zmultiples a :=
 le_antisymm
-  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
-  (add_subgroup.zmultiples_subset (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_le_of_mem (mem_zmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.zmultiples_le_of_mem (mem_zmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
 
 lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
 by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }

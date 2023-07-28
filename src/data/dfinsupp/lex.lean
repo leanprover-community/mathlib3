@@ -10,6 +10,9 @@ import order.well_founded_set
 /-!
 # Lexicographic order on finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the lexicographic order on `dfinsupp`.
 -/
 

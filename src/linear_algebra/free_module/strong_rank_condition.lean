@@ -11,6 +11,9 @@ import linear_algebra.invariant_basis_number
 
 # Strong rank condition for commutative rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that any nontrivial commutative ring satisfies `strong_rank_condition`, meaning that
 if there is an injective linear map `(fin n → R) →ₗ[R] fin m → R`, then `n ≤ m`. This implies that
 any commutative ring satisfies `invariant_basis_number`: the rank of a finitely generated free

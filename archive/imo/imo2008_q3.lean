@@ -12,6 +12,9 @@ import tactic.linear_combination
 
 /-!
 # IMO 2008 Q3
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Prove that there exist infinitely many positive integers `n` such that `n^2 + 1` has a prime
 divisor which is greater than `2n + √(2n)`.
 
@@ -27,6 +30,8 @@ Then `p = 2n + k ≥ 2n + √(p - 4) = 2n + √(2n + k - 4) > √(2n)` and we ar
 -/
 
 open real
+
+namespace imo2008_q3
 
 lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (hp_gt_20 : p > 20) :
   ∃ n : ℕ, p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
@@ -76,6 +81,10 @@ begin
 
   exact ⟨n, hnat₁, by linarith only [hreal₆, hreal₁]⟩,
 end
+
+end imo2008_q3
+
+open imo2008_q3
 
 theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=

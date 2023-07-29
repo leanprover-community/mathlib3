@@ -8,6 +8,9 @@ import category_theory.monoidal.functor
 /-!
 # The free monoidal category over a type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a type `C`, the free monoidal category over `C` has as objects formal expressions built from
 (formal) tensor products of terms of `C` and a formal unit. Its morphisms are compositions and
 tensor products of identities, unitors and associators.

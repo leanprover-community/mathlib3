@@ -10,6 +10,9 @@ import category_theory.concrete_category.elementwise
 /-!
 # The category of monoids has all colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We do this construction knowing nothing about monoids.
 In particular, I want to claim that this file could be produced by a python script
 that just looks at the output of `#print monoid`:

@@ -136,6 +136,13 @@ begin
   exact h,
 end
 
+example : ∀ y, y ≤ 3 → true :=
+begin
+  refine λ y hy, _,
+  interval_cases y,
+  all_goals { trivial },
+end
+
 /-
 Sadly, this one doesn't work, reporting:
   `deep recursion was detected at 'expression equality test'`

@@ -14,6 +14,9 @@ import group_theory.subsemigroup.centralizer
 /-!
 # Bundled non-unital subsemirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define bundled non-unital subsemirings and some standard constructions:
 `complete_lattice` structure, `subtype` and `inclusion` ring homomorphisms, non-unital subsemiring
 `map`, `comap` and range (`srange`) of a `non_unital_ring_hom` etc.
@@ -414,9 +417,16 @@ lemma mem_centralizer_iff {R} [non_unital_semiring R] {s : set R} {z : R} :
   z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
+lemma center_le_centralizer {R} [non_unital_semiring R] (s) : center R ≤ centralizer s :=
+  s.center_subset_centralizer
+
 lemma centralizer_le {R} [non_unital_semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h
+
+@[simp] lemma centralizer_eq_top_iff_subset {R} [non_unital_semiring R] {s : set R} :
+  centralizer s = ⊤ ↔ s ⊆ center R :=
+set_like.ext'_iff.trans set.centralizer_eq_top_iff_subset
 
 @[simp]
 lemma centralizer_univ {R} [non_unital_semiring R] : centralizer set.univ = center R :=

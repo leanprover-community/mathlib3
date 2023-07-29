@@ -9,6 +9,9 @@ import linear_algebra.determinant
 /-!
 # Matrix results for barycentric co-ordinates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Results about the matrix of barycentric co-ordinates for a family of points in an affine space, with
 respect to some affine basis.
 -/

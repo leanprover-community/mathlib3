@@ -6,11 +6,14 @@ Authors: María Inés de Frutos-Fernández
 import ring_theory.dedekind_domain.ideal
 import ring_theory.valuation.extend_to_localization
 import ring_theory.valuation.valuation_subring
-import ring_theory.polynomial.cyclotomic.basic
 import topology.algebra.valued_field
+import algebra.order.group.type_tags
 
 /-!
 # Adic valuations on Dedekind domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Given a Dedekind domain `R` of Krull dimension 1 and a maximal ideal `v` of `R`, we define the
 `v`-adic valuation on `R` and its extension to the field of fractions `K` of `R`.
 We prove several properties of this valuation, including the existence of uniformizers.

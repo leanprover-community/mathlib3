@@ -519,6 +519,31 @@ end
 
 end function
 
+namespace function
+variables {α β : Type*} {f : α → α} {g : β → β} {x : α × β} {a : α} {b : β} {m n : ℕ}
+
+@[simp] lemma iterate_prod_map (f : α → α) (g : β → β) (n : ℕ) :
+  (prod.map f g)^[n] = prod.map (f^[n]) (g^[n]) := by induction n; simp [*, prod.map_comp_map]
+
+@[simp] lemma is_fixed_pt_prod_map (x : α × β) :
+  is_fixed_pt (prod.map f g) x ↔ is_fixed_pt f x.1 ∧ is_fixed_pt g x.2 := prod.ext_iff
+
+@[simp] lemma is_periodic_pt_prod_map (x : α × β) :
+  is_periodic_pt (prod.map f g) n x ↔ is_periodic_pt f n x.1 ∧ is_periodic_pt g n x.2 :=
+by simp [is_periodic_pt]
+
+lemma minimal_period_prod_map (f : α → α) (g : β → β) (x : α × β) :
+  minimal_period (prod.map f g) x = (minimal_period f x.1).lcm (minimal_period g x.2) :=
+eq_of_forall_dvd $ by cases x; simp [←is_periodic_pt_iff_minimal_period_dvd, nat.lcm_dvd_iff]
+
+lemma minimal_period_fst_dvd : minimal_period f x.1 ∣ minimal_period (prod.map f g) x :=
+by { rw minimal_period_prod_map, exact nat.dvd_lcm_left _ _ }
+
+lemma minimal_period_snd_dvd : minimal_period g x.2 ∣ minimal_period (prod.map f g) x :=
+by { rw minimal_period_prod_map, exact nat.dvd_lcm_right _ _ }
+
+end function
+
 namespace mul_action
 
 open function

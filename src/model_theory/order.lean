@@ -7,6 +7,9 @@ import model_theory.semantics
 
 /-!
 # Ordered First-Ordered Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines ordered first-order languages and structures, as well as their theories.
 
 ## Main Definitions

@@ -12,6 +12,9 @@ import topology.instances.ereal
 /-!
 # Vitali-Carathéodory theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Vitali-Carathéodory theorem asserts the following. Consider an integrable function `f : α → ℝ` on
 a space with a regular measure. Then there exists a function `g : α → ereal` such that `f x < g x`
 everywhere, `g` is lower semicontinuous, and the integral of `g` is arbitrarily close to that of

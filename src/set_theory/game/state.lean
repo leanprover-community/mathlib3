@@ -8,6 +8,9 @@ import set_theory.game.short
 /-!
 # Games described via "the state of the board".
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a simple mechanism for constructing combinatorial (pre-)games, by describing
 "the state of the board", and providing an upper bound on the number of turns remaining.
 

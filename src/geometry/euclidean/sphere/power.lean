@@ -9,6 +9,9 @@ import geometry.euclidean.sphere.basic
 /-!
 # Power of a point (intersecting chords and secants)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic geometrical results about power of a point (intersecting chords and
 secants) in spheres in real inner product spaces and Euclidean affine spaces.
 

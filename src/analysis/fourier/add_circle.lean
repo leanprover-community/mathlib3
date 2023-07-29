@@ -3,18 +3,22 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, David Loeffler
 -/
+import analysis.special_functions.exp_deriv
 import analysis.special_functions.complex.circle
-import topology.instances.add_circle
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.group.integration
 import measure_theory.integral.periodic
 import topology.continuous_function.stone_weierstrass
+import measure_theory.integral.fund_thm_calculus
 
 /-!
 
 # Fourier analysis on the additive circle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic results on Fourier series for functions on the additive circle
 `add_circle T = ℝ / ℤ • T`.
@@ -263,7 +267,7 @@ lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
   (span ℂ (range (@fourier_Lp T _ p _))).topological_closure = ⊤ :=
 begin
-  convert (continuous_map.to_Lp_dense_range ℂ hp (@haar_add_circle T hT) ℂ
+  convert (continuous_map.to_Lp_dense_range ℂ (@haar_add_circle T hT) hp ℂ
     ).topological_closure_map_submodule (span_fourier_closure_eq_top),
   rw [map_span, range_comp],
   simp only [continuous_linear_map.coe_coe],

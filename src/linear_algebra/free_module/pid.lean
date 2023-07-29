@@ -11,6 +11,9 @@ import ring_theory.finiteness
 
 /-! # Free modules over PID
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
 
@@ -604,6 +607,10 @@ begin
   refine subtype.coe_injective _,
   simp [hi]
 end
+
+instance (F : Type u) [comm_ring F] [algebra F R] (b : basis ι R S) {I : ideal S} (hI : I ≠ ⊥) (i) :
+  module F (R ⧸ ideal.span ({I.smith_coeffs b hI i} : set R)) :=
+by apply_instance -- quotient.module' _
 
 end ideal
 

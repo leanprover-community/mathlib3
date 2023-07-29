@@ -9,6 +9,9 @@ import tactic.basic
 /-!
 # A compiler for arithmetic expressions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A formalization of the correctness of a compiler from arithmetic expressions to machine language
 described by McCarthy and Painter, which is considered the first proof of compiler correctness.
 

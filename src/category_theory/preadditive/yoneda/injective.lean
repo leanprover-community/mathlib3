@@ -9,6 +9,9 @@ import algebra.category.Group.epi_mono
 import algebra.category.Module.epi_mono
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An object is injective iff the preadditive yoneda functor on it preserves epimorphisms.
 -/
 

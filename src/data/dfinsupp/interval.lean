@@ -140,7 +140,7 @@ end
 
 end pi
 
-section locally_finite
+section partial_order
 variables [decidable_eq ι] [Π i, decidable_eq (α i)]
 variables [Π i, partial_order (α i)] [Π i, has_zero (α i)] [Π i, locally_finite_order (α i)]
 
@@ -169,7 +169,16 @@ by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
-end locally_finite
+end partial_order
+
+section lattice
+variables [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i, lattice (α i)] [Π i, has_zero (α i)]
+  [Π i, locally_finite_order (α i)] (f g : Π₀ i, α i)
+
+lemma card_uIcc : (uIcc f g).card = ∏ i in f.support ∪ g.support, (uIcc (f i) (g i)).card :=
+by { rw ←support_inf_union_support_sup, exact card_Icc _ _ }
+
+end lattice
 
 section canonically_ordered
 variables [decidable_eq ι] [Π i, decidable_eq (α i)]

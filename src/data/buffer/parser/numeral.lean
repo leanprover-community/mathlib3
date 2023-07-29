@@ -8,6 +8,9 @@ import data.buffer.parser.basic
 /-!
 # Numeral parsers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file expands on the existing `nat : parser ℕ` to provide parsers into any type `α` that
 can be represented by a numeral, which relies on `α` having a 0, 1, and addition operation.
 There are also convenience parsers that ensure that the numeral parsed in is not larger than

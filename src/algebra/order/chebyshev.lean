@@ -10,6 +10,9 @@ import group_theory.perm.cycle.basic
 /-!
 # Chebyshev's sum inequality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Chebyshev sum inequality.
 
 Chebyshev's inequality states `(∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * ∑ i in s, f i * g i`

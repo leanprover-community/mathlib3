@@ -12,6 +12,9 @@ import algebra.star.subalgebra
 /-!
 # Von Neumann algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give the "abstract" and "concrete" definitions of a von Neumann algebra.
 We still have a major project ahead of us to show the equivalence between these definitions!
 

@@ -14,6 +14,9 @@ import tactic.linarith
 /-!
 # `sampleable` Class
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This class permits the creation samples of a given type
 controlling the size of those values using the `gen` monad`. It also
 helps minimize examples by creating smaller versions of given values.

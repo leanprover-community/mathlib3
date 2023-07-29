@@ -15,6 +15,9 @@ import set_theory.cardinal.divisibility
 /-!
 # Cardinality of Fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show all the possible cardinalities of fields. All infinite cardinals can harbour
 a field structure, and so can all types with prime power cardinalities, and this is sharp.
 
@@ -36,8 +39,10 @@ universe u
 /-- A finite field has prime power cardinality. -/
 lemma fintype.is_prime_pow_card_of_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
+  -- TODO: `algebra` version of `char_p.exists`, of type `Σ p, algebra (zmod p) α`
   casesI char_p.exists α with p _,
   haveI hp := fact.mk (char_p.char_is_prime α p),
+  letI : algebra (zmod p) α := zmod.algebra _ _,
   let b := is_noetherian.finset_basis (zmod p) α,
   rw [module.card_fintype b, zmod.card, is_prime_pow_pow_iff],
   { exact hp.1.is_prime_pow },

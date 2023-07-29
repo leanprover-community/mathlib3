@@ -16,7 +16,12 @@ The order is `0 < ε < 1`.  Since `ε ^ 2 = 0`, the product of strictly positive
 
 Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
+
+namespace counterexample
 
 /--  The three element monoid. -/
 @[derive [decidable_eq]]
@@ -85,3 +90,5 @@ end
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo
+
+end counterexample

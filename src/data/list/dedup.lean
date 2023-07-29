@@ -57,7 +57,44 @@ theorem subset_dedup (l : list α) : l ⊆ dedup l :=
 
 theorem nodup_dedup : ∀ l : list α, nodup (dedup l) := pairwise_pw_filter
 
+theorem head_dedup [inhabited α] (l : list α) :
+  l.dedup.head = if l.head ∈ l.tail then l.tail.dedup.head else l.head :=
+match l with
+| [] := rfl
+| (a :: l) := by { by_cases ha : a ∈ l; simp [ha, list.dedup_cons_of_mem] }
+end
+
+theorem tail_dedup [inhabited α] (l : list α) :
+  l.dedup.tail = if l.head ∈ l.tail then l.tail.dedup.tail else l.tail.dedup :=
+match l with
+| [] := rfl
+| (a :: l) := by { by_cases ha : a ∈ l; simp [ha, list.dedup_cons_of_mem] }
+end
+
 theorem dedup_eq_self {l : list α} : dedup l = l ↔ nodup l := pw_filter_eq_self
+
+theorem dedup_eq_cons (l : list α) (a : α) (l' : list α) :
+  l.dedup = a :: l' ↔ a ∈ l ∧ a ∉ l' ∧ l.dedup.tail = l' :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { refine ⟨mem_dedup.1 (h.symm ▸ mem_cons_self _ _), λ ha, _, by rw [h, tail_cons]⟩,
+    have : count a l.dedup ≤ 1 := nodup_iff_count_le_one.1 (nodup_dedup l) a,
+    rw [h, count_cons_self, add_le_iff_nonpos_left] at this,
+    exact (not_le_of_lt (count_pos.2 ha) this) },
+  { have := @cons_head_tail α ⟨a⟩ _ (ne_nil_of_mem (mem_dedup.2 h.1)),
+    have hal : a ∈ l.dedup := mem_dedup.2 h.1,
+    rw [← this, mem_cons_iff, or_iff_not_imp_right] at hal,
+    exact this ▸ h.2.2.symm ▸ (cons_eq_cons.2 ⟨(hal (h.2.2.symm ▸ h.2.1)).symm, rfl⟩) }
+end
+
+@[simp] theorem dedup_eq_nil (l : list α) : l.dedup = [] ↔ l = [] :=
+begin
+  induction l with a l hl,
+  { exact iff.rfl },
+  { by_cases h : a ∈ l,
+    { simp only [list.dedup_cons_of_mem h, hl, list.ne_nil_of_mem h] },
+    { simp only [list.dedup_cons_of_not_mem h, list.cons_ne_nil] } }
+end
 
 protected lemma nodup.dedup {l : list α} (h : l.nodup) : l.dedup = l :=
 list.dedup_eq_self.2 h

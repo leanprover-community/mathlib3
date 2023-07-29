@@ -388,7 +388,7 @@ lemma norm_eq_one_iff {x : ℤ√d} : x.norm.nat_abs = 1 ↔ is_unit x :=
 λ h, let ⟨y, hy⟩ := is_unit_iff_dvd_one.1 h in begin
   have := congr_arg (int.nat_abs ∘ norm) hy,
   rw [function.comp_app, function.comp_app, norm_mul, int.nat_abs_mul,
-    norm_one, int.nat_abs_one, eq_comm, nat.mul_eq_one_iff] at this,
+    norm_one, int.nat_abs_one, eq_comm, mul_eq_one] at this,
   exact this.1
 end⟩
 

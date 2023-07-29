@@ -15,6 +15,9 @@ import tactic.fin_cases
 /-!
 # Affine combinations of points
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines affine combinations of points.
 
 ## Main definitions

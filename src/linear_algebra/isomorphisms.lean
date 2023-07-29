@@ -8,6 +8,9 @@ import linear_algebra.quotient
 /-!
 # Isomorphism theorems for modules.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * The Noether's first, second, and third isomorphism theorems for modules are proved as
   `linear_map.quot_ker_equiv_range`, `linear_map.quotient_inf_equiv_sup_quotient` and
   `submodule.quotient_quotient_equiv_quotient`.

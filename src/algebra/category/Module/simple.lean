@@ -12,6 +12,9 @@ import linear_algebra.finite_dimensional
 /-!
 # Simple objects in the category of `R`-modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove simple modules are exactly simple objects in the category of `R`-modules.
 -/
 

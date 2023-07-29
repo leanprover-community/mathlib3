@@ -3,14 +3,15 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
-import data.polynomial.field_division
+import analysis.calculus.deriv.polynomial
 import topology.algebra.order.extend_from
 import topology.algebra.polynomial
-import topology.local_extr
 
 /-!
 # Local extrema of smooth functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 

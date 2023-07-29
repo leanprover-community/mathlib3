@@ -9,6 +9,9 @@ import category_theory.limits.shapes.images
 /-!
 # The category of commutative additive groups has images.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Note that we don't need to register any of the constructions here as instances, because we get them
 from the fact that `AddCommGroup` is an abelian category.
 -/

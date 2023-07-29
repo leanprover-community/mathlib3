@@ -9,6 +9,9 @@ import ring_theory.ring_hom.finite_type
 /-!
 # Morphisms of finite type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A morphism of schemes `f : X ⟶ Y` is locally of finite type if for each affine `U ⊆ Y` and
 `V ⊆ f ⁻¹' U`, The induced map `Γ(Y, U) ⟶ Γ(X, V)` is of finite type.
 

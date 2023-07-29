@@ -11,6 +11,11 @@ import tactic.ring_exp
 
 # Study of face maps for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+TODO (@joelriou) continue adding the various files referenced below
+
 In this file, we obtain the technical lemmas that are used in the file
 `projections.lean` in order to get basic properties of the endomorphisms
 `P q : K[X] ⟶ K[X]` with respect to face maps (see `homotopies.lean` for the

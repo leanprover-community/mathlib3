@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth, Sébastien Gouëzel
 -/
 import analysis.calculus.cont_diff
-import tactic.ring_exp
 import analysis.normed_space.banach
-import topology.local_homeomorph
 
 /-!
 # Inverse function theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the inverse function theorem. It says that if a map `f : E → F`
 has an invertible strict derivative `f'` at `a`, then it is locally invertible,

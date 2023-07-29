@@ -11,6 +11,9 @@ import topology.metric_space.metrizable_uniformity
 /-!
 # Instances related to the discrete topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that the discrete topology is
 * first-countable,
 * second-countable for an encodable type,

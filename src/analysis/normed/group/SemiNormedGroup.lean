@@ -11,6 +11,9 @@ import category_theory.elementwise
 /-!
 # The category of seminormed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `SemiNormedGroup`, the category of seminormed groups and normed group homs between them,
 as well as `SemiNormedGroup₁`, the subcategory of norm non-increasing morphisms.
 -/

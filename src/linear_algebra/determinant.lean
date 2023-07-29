@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.finite_dimensional
 import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
 import tactic.field_simp
@@ -11,6 +12,9 @@ import linear_algebra.matrix.basis
 
 /-!
 # Determinant of families of vectors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the determinant of an endomorphism, and of a family of vectors
 with respect to some basis. For the determinant of a matrix, see the file
@@ -476,7 +480,7 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
-@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M ι 1 :=
 begin
   ext v,
   exact matrix.det_is_empty,
@@ -554,6 +558,11 @@ lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).det v = b.det (v ∘ e) :=
 by rw [basis.det_apply, basis.to_matrix_reindex', det_reindex_alg_equiv, basis.det_apply]
+
+lemma basis.det_reindex' {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (e : ι ≃ ι') :
+  (b.reindex e).det = b.det.dom_dom_congr e :=
+alternating_map.ext $ λ _, basis.det_reindex _ _ _
 
 lemma basis.det_reindex_symm {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :

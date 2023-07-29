@@ -352,6 +352,52 @@ variables {ι α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
 
+section ite
+variables [has_zero α] {p : Prop} [decidable p] {a b : α}
+
+private lemma ite_pos [has_lt α] (ha : 0 < a) (hb : 0 < b) : 0 < ite p a b :=
+by by_cases p; simp [*]
+
+private lemma ite_nonneg [has_le α] (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ ite p a b :=
+by by_cases p; simp [*]
+
+private lemma ite_nonneg_of_pos_of_nonneg [preorder α] (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ ite p a b :=
+ite_nonneg ha.le hb
+
+private lemma ite_nonneg_of_nonneg_of_pos [preorder α] (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ ite p a b :=
+ite_nonneg ha hb.le
+
+private lemma ite_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : ite p a b ≠ 0 := by by_cases p; simp [*]
+
+private lemma ite_ne_zero_of_pos_of_ne_zero [preorder α] (ha : 0 < a) (hb : b ≠ 0) :
+  ite p a b ≠ 0 :=
+ite_ne_zero ha.ne' hb
+
+private lemma ite_ne_zero_of_ne_zero_of_pos [preorder α] (ha : a ≠ 0) (hb : 0 < b) :
+  ite p a b ≠ 0 :=
+ite_ne_zero ha hb.ne'
+
+end ite
+
+/-- Extension for the `positivity` tactic: the `if then else` of two numbers is
+positive/nonnegative/nonzero if both are. -/
+@[positivity]
+meta def positivity_ite : expr → tactic strictness
+| e@`(@ite %%typ %%p %%hp %%a %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``ite_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``ite_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``ite_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``ite_nonneg [pa, pb]
+  | positive pa, nonzero pb := nonzero <$> to_expr ``(ite_ne_zero_of_pos_of_ne_zero %%pa %%pb)
+  | nonzero pa, positive pb := nonzero <$> to_expr ``(ite_ne_zero_of_ne_zero_of_pos %%pa %%pb)
+  | nonzero pa, nonzero pb := nonzero <$> to_expr ``(ite_ne_zero %%pa %%pb)
+  | sa@_, sb@ _ := positivity_fail e a b sa sb
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `ite p a b`"
+
 section linear_order
 variables [linear_order R] {a b c : R}
 

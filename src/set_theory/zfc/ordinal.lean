@@ -9,6 +9,9 @@ import set_theory.zfc.basic
 /-!
 # Von Neumann ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
 under `∈`. We currently only have an initial development of transitive sets.
 

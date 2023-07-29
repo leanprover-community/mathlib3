@@ -9,6 +9,9 @@ import analysis.special_functions.complex.log
 /-!
 # Maps on the unit circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some basic lemmas about `exp_map_circle` and the restriction of `complex.arg`
 to the unit circle. These two maps define a local equivalence between `circle` and `ℝ`, see
 `circle.arg_local_equiv` and `circle.arg_equiv`, that sends the whole circle to `(-π, π]`.

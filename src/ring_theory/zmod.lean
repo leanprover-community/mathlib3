@@ -10,6 +10,9 @@ import ring_theory.int.basic
 /-!
 # Ring theoretic facts about `zmod n`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We collect a few facts about `zmod n` that need some ring theory to be proved/stated
 
 ## Main statements

@@ -11,6 +11,9 @@ import category_theory.sites.sheafification
 
 # Subsheaf of types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the sub(pre)sheaf of a type valued presheaf.
 
 ## Main results

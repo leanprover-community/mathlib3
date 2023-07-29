@@ -9,6 +9,9 @@ import data.pfun
 /-!
 # The category of types with partial functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `PartialFun`, the category of types equipped with partial functions.
 
 This category is classically equivalent to the category of pointed types. The reason it doesn't hold

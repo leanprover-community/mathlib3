@@ -10,6 +10,9 @@ import tactic.linarith
 /-!
 # IMO 1981 Q3
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine the maximum value of `m ^ 2 + n ^ 2`, where `m` and `n` are integers in
 `{1, 2, ..., 1981}` and `(n ^ 2 - m * n - m ^ 2) ^ 2 = 1`.
 

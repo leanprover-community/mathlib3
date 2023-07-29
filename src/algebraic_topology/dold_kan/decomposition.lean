@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.p_infty
 
 # Decomposition of the Q endomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we obtain a lemma `decomposition_Q` which expresses
 explicitly the projection `(Q q).f (n+1) : X _[n+1] ⟶ X _[n+1]`
 (`X : simplicial_object C` with `C` a preadditive category) as

@@ -10,6 +10,11 @@ import algebraic_topology.dold_kan.functor_n
 
 # Comparison with the normalized Moore complex functor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+TODO (@joelriou) continue adding the various files referenced below
+
 In this file, we show that when the category `A` is abelian,
 there is an isomorphism `N₁_iso_normalized_Moore_complex_comp_to_karoubi` between
 the functor `N₁ : simplicial_object A ⥤ karoubi (chain_complex A ℕ)`

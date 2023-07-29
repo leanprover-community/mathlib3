@@ -12,6 +12,9 @@ import category_theory.concrete_category.elementwise
 
 # Sheafification
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the sheafification of a presheaf over a site `C` with values in `D` whenever
 `D` is a concrete category for which the forgetful functor preserves the appropriate (co)limits
 and reflects isomorphisms.

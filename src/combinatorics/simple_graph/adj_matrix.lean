@@ -11,6 +11,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Adjacency Matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines the adjacency matrix of a graph, and provides theorems connecting graph
 properties to computational properties of the matrix.
 

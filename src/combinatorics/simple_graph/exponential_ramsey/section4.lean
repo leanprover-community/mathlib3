@@ -529,6 +529,7 @@ begin
   linarith
 end
 
+-- l ≥ 4 / μ
 lemma mu_div_two_le_sigma (hμ : 0 < μ) : ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k → ∀ (σ : ℝ), μ - 2 / k ≤ σ → μ / 2 ≤ σ :=
 begin
@@ -544,6 +545,9 @@ begin
   norm_num1,
 end
 
+-- l ≥ 4 / μ
+-- l ≥ 1 / 16
+-- l ≥ (8 / μ) ^ 2.4
 lemma four_one_part_four (hμ : 0 < μ) :
   ∀ᶠ (l : ℕ) in at_top, ∀ (k : ℕ), l ≤ k →
     ∀ (σ : ℝ), μ - 2 / k ≤ σ →
@@ -559,6 +563,7 @@ begin
     eventually_gt_at_top 0]
     with l hl hl'' hl' hl₀ k hlk σ hσ,
   specialize hl' k hlk σ hσ,
+  dsimp at hl hl'',
   rw [mul_div_assoc],
   refine (mul_le_mul_of_nonneg_right hl' (by positivity)).trans' _,
   rw [div_mul_div_comm, ←bit0_eq_two_mul],
@@ -690,6 +695,8 @@ begin
     norm_num }
 end
 
+-- l ≥ 4 / μ
+-- l > 0
 lemma four_one_part_nine (hμ₀ : 0 < μ) :
   ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
     ∀ (σ : ℝ) (b m : ℕ),

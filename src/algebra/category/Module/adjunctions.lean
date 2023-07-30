@@ -3,13 +3,16 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import algebra.category.Module.monoidal
+import algebra.category.Module.monoidal.basic
 import category_theory.monoidal.functorial
-import category_theory.monoidal.types
+import category_theory.monoidal.types.basic
 import linear_algebra.direct_sum.finsupp
 import category_theory.linear.linear_functor
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The functor of forming finitely supported functions on a type with values in a `[ring R]`
 is the left adjoint of
 the forgetful functor from `R`-modules to types.

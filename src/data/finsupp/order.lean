@@ -86,8 +86,18 @@ instance [semilattice_sup α] : semilattice_sup (ι →₀ α) :=
 
 @[simp] lemma sup_apply [semilattice_sup α] {i : ι} {f g : ι →₀ α} : (f ⊔ g) i = f i ⊔ g i := rfl
 
-instance lattice [lattice α] : lattice (ι →₀ α) :=
-{ .. finsupp.semilattice_inf, .. finsupp.semilattice_sup }
+instance [lattice α] : lattice (ι →₀ α) := { ..finsupp.semilattice_inf, ..finsupp.semilattice_sup }
+
+section lattice
+variables [decidable_eq ι] [lattice α] (f g : ι →₀ α)
+
+lemma support_inf_union_support_sup : (f ⊓ g).support ∪ (f ⊔ g).support = f.support ∪ g.support :=
+coe_injective $ compl_injective $ by { ext, simp [inf_eq_and_sup_eq_iff] }
+
+lemma support_sup_union_support_inf : (f ⊔ g).support ∪ (f ⊓ g).support = f.support ∪ g.support :=
+(union_comm _ _).trans $ support_inf_union_support_sup _ _
+
+end lattice
 
 end has_zero
 

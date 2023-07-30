@@ -9,6 +9,9 @@ import topology.order.hom.basic
 /-!
 # Esakia morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines pseudo-epimorphisms and Esakia morphisms.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to

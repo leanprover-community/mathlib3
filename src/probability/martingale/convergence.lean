@@ -11,6 +11,9 @@ import measure_theory.constructions.polish
 
 # Martingale convergence theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The martingale convergence theorems are a collection of theorems characterizing the convergence
 of a martingale provided it satisfies some boundedness conditions. This file contains the
 almost everywhere martingale convergence theorem which provides an almost everywhere limit to

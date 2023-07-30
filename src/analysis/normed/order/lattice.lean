@@ -31,12 +31,35 @@ normed, lattice, ordered, group
 -/
 
 /-!
-### Normed lattice orderd groups
+### Normed lattice ordered groups
 
 Motivated by the theory of Banach Lattices, this section introduces normed lattice ordered groups.
 -/
 
 local notation (name := abs) `|`a`|` := abs a
+
+section solid_norm
+
+/-- Let `α` be an `add_comm_group` with a `lattice` structure. A norm on `α` is *solid* if, for `a`
+and `b` in `α`, with absolute values `|a|` and `|b|` respectively, `|a| ≤ |b|` implies `‖a‖ ≤ ‖b‖`.
+-/
+class has_solid_norm (α : Type*) [normed_add_comm_group α] [lattice α] : Prop :=
+(solid : ∀ ⦃x y : α⦄, |x| ≤ |y| → ‖x‖ ≤ ‖y‖)
+
+variables {α : Type*} [normed_add_comm_group α] [lattice α] [has_solid_norm α]
+
+lemma norm_le_norm_of_abs_le_abs  {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ := has_solid_norm.solid h
+
+/-- If `α` has a solid norm, then the balls centered at the origin of `α` are solid sets. -/
+lemma lattice_ordered_add_comm_group.is_solid_ball (r : ℝ) :
+  lattice_ordered_add_comm_group.is_solid (metric.ball (0 : α) r) :=
+λ _ hx _ hxy, mem_ball_zero_iff.mpr ((has_solid_norm.solid hxy).trans_lt (mem_ball_zero_iff.mp hx))
+
+instance : has_solid_norm ℝ := ⟨λ _ _, id⟩
+
+instance : has_solid_norm ℚ := ⟨λ _ _ _, by simpa only [norm, ← rat.cast_abs, rat.cast_le]⟩
+
+end solid_norm
 
 /--
 Let `α` be a normed commutative group equipped with a partial order covariant with addition, with
@@ -45,16 +68,11 @@ respect which `α` forms a lattice. Suppose that `α` is *solid*, that is to say
 said to be a normed lattice ordered group.
 -/
 class normed_lattice_add_comm_group (α : Type*)
-  extends normed_add_comm_group α, lattice α :=
+  extends normed_add_comm_group α, lattice α, has_solid_norm α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
-(solid : ∀ a b : α, |a| ≤ |b| → ‖a‖ ≤ ‖b‖)
-
-lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ‖a‖ ≤ ‖b‖ :=
-normed_lattice_add_comm_group.solid a b h
 
 instance : normed_lattice_add_comm_group ℝ :=
-{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
-  solid := λ _ _, id, }
+{ add_le_add_left := λ _ _ h _, add_le_add le_rfl h,}
 
 /--
 A normed lattice ordered group is an ordered additive commutative group
@@ -64,7 +82,7 @@ instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
   [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
-open lattice_ordered_comm_group
+open lattice_ordered_comm_group has_solid_norm
 
 lemma dual_solid (a b : α) (h: b⊓-b ≤ a⊓-a) : ‖a‖ ≤ ‖b‖ :=
 begin

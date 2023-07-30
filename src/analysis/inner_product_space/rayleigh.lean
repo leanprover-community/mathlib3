@@ -7,10 +7,13 @@ import analysis.inner_product_space.calculus
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.adjoint
 import analysis.calculus.lagrange_multipliers
-import linear_algebra.eigenspace
+import linear_algebra.eigenspace.basic
 
 /-!
 # The Rayleigh quotient
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Rayleigh quotient of a self-adjoint operator `T` on an inner product space `E` is the function
 `λ x, ⟪T x, x⟫ / ‖x‖ ^ 2`.
@@ -67,7 +70,7 @@ begin
     let c : 𝕜 := ↑‖x‖⁻¹ * r,
     have : c ≠ 0 := by simp [c, hx, hr.ne'],
     refine ⟨c • x, _, _⟩,
-    { field_simp [norm_smul, is_R_or_C.norm_eq_abs, abs_of_nonneg hr.le] },
+    { field_simp [norm_smul, abs_of_pos hr] },
     { rw T.rayleigh_smul x this,
       exact hxT } },
   { rintros ⟨x, hx, hxT⟩,

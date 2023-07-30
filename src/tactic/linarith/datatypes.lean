@@ -369,13 +369,13 @@ Typically `R` and `R'` will be the same, except when `c = 0`, in which case `R'`
 If `c = 1`, `h'` is the same as `h` -- specifically, it does *not* change the type to `1*t R 0`.
 -/
 meta def mk_single_comp_zero_pf (c : ℕ) (h : expr) : tactic (ineq × expr) :=
-do tp ← infer_type h,
+do tp ← infer_type h >>= instantiate_mvars,
   some (iq, e) ← return $ parse_into_comp_and_expr tp,
   if c = 0 then
     do e' ← mk_app ``zero_mul [e], return (ineq.eq, e')
   else if c = 1 then return (iq, h)
   else
-    do tp ← (prod.snd <$> (infer_type h >>= get_rel_sides)) >>= infer_type,
+    do tp ← (prod.snd <$> (infer_type h >>= instantiate_mvars >>= get_rel_sides)) >>= infer_type,
        c ← tp.of_nat c,
        cpos ← to_expr ``(%%c > 0),
        (_, ex) ← solve_aux cpos `[norm_num, done],

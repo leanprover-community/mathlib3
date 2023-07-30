@@ -8,6 +8,9 @@ import analysis.analytic.basic
 /-!
 # Linear functions are analytic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a `continuous_linear_map` defines an analytic function with
 the formal power series `f x = f a + f (x - a)`.
 -/

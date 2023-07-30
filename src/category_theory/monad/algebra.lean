@@ -10,6 +10,9 @@ import category_theory.functor.epi_mono
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Eilenberg-Moore (co)algebras for a (co)monad,
 and provides the category instance for them.
 

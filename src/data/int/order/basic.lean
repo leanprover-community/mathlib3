@@ -525,7 +525,7 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 
 lemma sub_div_of_dvd (a : ℤ) {b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
-  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
+  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right hcb.neg_right],
   congr,
   exact neg_div_of_dvd hcb,
 end

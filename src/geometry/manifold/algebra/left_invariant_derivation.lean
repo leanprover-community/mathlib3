@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
+import ring_theory.derivation.lie
 import geometry.manifold.derivation_bundle
 
 /-!
 
 # Left invariant derivations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the concept of left invariant derivation for a Lie group. The concept is
 analogous to the more classical concept of left invariant vector fields, and it holds that the

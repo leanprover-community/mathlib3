@@ -38,7 +38,7 @@ Appropriate definitions and results are also transported to the additive theory 
 
 -/
 
-open function
+open function mul_opposite
 
 variables {F α β γ : Type*}
 
@@ -108,6 +108,12 @@ attribute [mono] vadd_subset_vadd
 @[to_additive] lemma inter_smul_subset : (s₁ ∩ s₂) • t ⊆ s₁ • t ∩ s₂ • t := image2_inter_subset_left
 @[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
 image2_inter_subset_right
+@[to_additive] lemma inter_smul_union_subset_union :
+  (s₁ ∩ s₂) • (t₁ ∪ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_smul_inter_subset_union :
+  (s₁ ∪ s₂) • (t₁ ∩ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_left _
 @[to_additive] lemma Union_smul_right_image : (⋃ a ∈ t, (• a) '' s) = s • t := Union_image_right _
@@ -142,6 +148,9 @@ image2_Inter₂_subset_left _ _ _
 lemma smul_Inter₂_subset (s : set α) (t : Π i, κ i → set β) :
   s • (⋂ i j, t i j) ⊆ ⋂ i j, s • t i j :=
 image2_Inter₂_subset_right _ _ _
+
+@[to_additive] lemma smul_set_subset_smul {s : set α} : a ∈ s → a • t ⊆ s • t :=
+image_subset_image2_right
 
 @[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
   (⋃ a ∈ s, a • t) = s • t :=
@@ -192,11 +201,21 @@ image_Inter₂_subset _ _
 
 end has_smul_set
 
-variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
+section has_mul
+variables [has_mul α] {s t u : set α} {a : α}
 
-@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
-  (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
+@[to_additive] lemma op_smul_set_subset_mul : a ∈ t → op a • s ⊆ s * t := image_subset_image2_left
+
+@[simp, to_additive] lemma bUnion_op_smul_set (s t : set α) : (⋃ a ∈ t, op a • s) = s * t :=
 Union_image_right _
+
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image2_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image2_subset_iff_right
+
+end has_mul
+
+variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 @[to_additive]
 theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :
@@ -243,6 +262,7 @@ instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [i
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
+@[to_additive]
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (set β) :=
 ⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
@@ -344,6 +364,10 @@ lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = s₁ -ᵥ t ∪ (s₂ -ᵥ t) := ima
 lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = s -ᵥ t₁ ∪ (s -ᵥ t₂) := image2_union_right
 lemma inter_vsub_subset : s₁ ∩ s₂ -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image2_inter_subset_left
 lemma vsub_inter_subset : s -ᵥ t₁ ∩ t₂ ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image2_inter_subset_right
+lemma inter_vsub_union_subset_union : (s₁ ∩ s₂) -ᵥ (t₁ ∪ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_inter_union_subset_union
+lemma union_vsub_inter_subset_union : (s₁ ∪ s₂) -ᵥ (t₁ ∩ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_union_inter_subset_union
 
 lemma Union_vsub_left_image : (⋃ a ∈ s, ((-ᵥ) a) '' t) = s -ᵥ t := Union_image_left _
 lemma Union_vsub_right_image : (⋃ a ∈ t, (-ᵥ a) '' s) = s -ᵥ t := Union_image_right _
@@ -386,6 +410,17 @@ image_comm
   (f : F) (a : α) (s : set α) :
   f '' (a • s) = f a • f '' s :=
 image_comm $ map_mul _ _
+
+section has_smul
+variables[has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
+
+-- TODO: replace hypothesis and conclusion with a typeclass
+@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (a : α) (s : set β) (t : set γ)
+  (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
+  (op a • s) • t = s • a • t :=
+by { ext, simp [mem_smul, mem_smul_set, h] }
+
+end has_smul
 
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
@@ -439,6 +474,15 @@ begin
 end
 
 end smul_with_zero
+
+section semigroup
+variables [semigroup α]
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (a : α) (s : set α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+op_smul_set_smul_eq_smul_smul_set _ _ _ $ λ _ _ _, mul_assoc _ _ _
+
+end semigroup
 
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}

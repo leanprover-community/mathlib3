@@ -9,6 +9,9 @@ import linear_algebra.affine_space.midpoint
 /-!
 # Midpoint of a segment for characteristic zero
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We collect lemmas that require that the underlying ring has characteristic zero.
 
 ## Tags

@@ -9,6 +9,9 @@ import analysis.normed.order.basic
 /-!
 # Asymptotic equivalence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the relation `is_equivalent l u v`, which means that `u-v` is little o of
 `v` along the filter `l`.
 

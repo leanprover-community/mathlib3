@@ -10,6 +10,9 @@ import measure_theory.group.action
 /-!
 # Integration on Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We develop properties of integrals with a group as domain.
 This file contains properties about integrability, Lebesgue integration and Bochner integration.
 -/

@@ -14,6 +14,9 @@ import tactic.linarith
 /-!
 # Cycle Types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the cycle type of a permutation.
 
 ## Main definitions

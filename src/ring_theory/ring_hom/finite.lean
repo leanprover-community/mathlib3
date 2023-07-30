@@ -9,6 +9,9 @@ import ring_theory.ring_hom_properties
 
 # The meta properties of finite ring homomorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 namespace ring_hom

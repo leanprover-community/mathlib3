@@ -10,6 +10,9 @@ import data.mv_polynomial.variables
 
 # Monad operations on `mv_polynomial`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines two monadic operations on `mv_polynomial`. Given `p : mv_polynomial σ R`,
 
 * `mv_polynomial.bind₁` and `mv_polynomial.join₁` operate on the variable type `σ`.
@@ -285,9 +288,8 @@ lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) 
 by rw [bind₂_monomial, f.map_one, one_mul]
 
 section
-open_locale classical
 
-lemma vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+lemma vars_bind₁ [decidable_eq τ] (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (bind₁ f φ).vars ⊆ φ.vars.bUnion (λ i, (f i).vars) :=
 begin
   calc (bind₁ f φ).vars
@@ -320,7 +322,8 @@ end
 lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
   (h : j ∈ (bind₁ f φ).vars) :
   ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
-by simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def] using vars_bind₁ f φ h
+by classical; simpa only [exists_prop, finset.mem_bUnion, mem_support_iff, ne.def]
+                using vars_bind₁ f φ h
 
 instance monad : monad (λ σ, mv_polynomial σ R) :=
 { map := λ α β f p, rename f p,

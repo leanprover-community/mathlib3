@@ -9,6 +9,9 @@ import algebra.direct_sum.basic
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides a set of heterogeneous typeclasses for defining a multiplicative structure
 over `⨁ i, A i` such that `(*) : A i → A j → A (i + j)`; that is to say, `A` forms an
 additively-graded ring. The typeclasses are:

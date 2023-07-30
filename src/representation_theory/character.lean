@@ -10,6 +10,9 @@ import representation_theory.invariants
 /-!
 # Characters of representations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces characters of representation and proves basic lemmas about how characters
 behave under various operations on representations.
 

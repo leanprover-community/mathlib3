@@ -9,6 +9,9 @@ import data.zmod.quotient
 /-!
 # Complements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the complement of a subgroup.
 
 ## Main definitions

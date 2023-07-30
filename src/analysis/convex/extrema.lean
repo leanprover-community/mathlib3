@@ -11,6 +11,9 @@ import topology.metric_space.basic
 /-!
 # Minima and maxima of convex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that if a function `f : E → β` is convex, then a local minimum is also
 a global minimum, and likewise for concave functions.
 -/

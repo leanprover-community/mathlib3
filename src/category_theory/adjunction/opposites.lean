@@ -11,6 +11,9 @@ import category_theory.opposites
 /-!
 # Opposite adjunctions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains constructions to relate adjunctions of functors to adjunctions of their
 opposites.
 These constructions are used to show uniqueness of adjoints (up to natural isomorphism).

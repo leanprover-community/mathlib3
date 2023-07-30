@@ -11,6 +11,9 @@ import data.nat.factorization.basic
 /-!
 # Characteristics of local rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main result
 
 - `char_p_zero_or_prime_power`: In a commutative local ring the characteristics is either

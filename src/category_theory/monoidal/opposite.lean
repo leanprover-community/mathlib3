@@ -8,6 +8,9 @@ import category_theory.monoidal.coherence
 /-!
 # Monoidal opposites
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We write `Cᵐᵒᵖ` for the monoidal opposite of a monoidal category `C`.
 -/
 

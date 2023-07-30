@@ -1526,6 +1526,20 @@ theorem is_normal.eq_iff_zero_and_succ {f g : ordinal.{u} → ordinal.{u}} (hf :
   exact H b hb
 end)⟩
 
+/-- A two-argument version of `ordinal.blsub`.
+
+We don't develop a full API for this, since it's only used in a handful of existence results. -/
+def blsub₂ (o₁ o₂ : ordinal) (op : Π (a < o₁) (b < o₂), ordinal) : ordinal :=
+lsub (λ x : o₁.out.α × o₂.out.α,
+  op (typein (<) x.1) (typein_lt_self _) (typein (<) x.2) (typein_lt_self _))
+
+theorem lt_blsub₂ {o₁ o₂ : ordinal} (op : Π (a < o₁) (b < o₂), ordinal) {a b : ordinal}
+  (ha : a < o₁) (hb : b < o₂) : op a ha b hb < blsub₂ o₁ o₂ op :=
+begin
+  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
+  simp only [typein_enum]
+end
+
 /-! ### Minimum excluded ordinals -/
 
 /-- The minimum excluded ordinal in a family of ordinals. -/
@@ -1831,7 +1845,7 @@ open ordinal
 le_antisymm (ord_le.2 $ le_rfl) $
 le_of_forall_lt $ λ o h, begin
   rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
-  rw [lt_ord, ←lift_card, ←lift_aleph_0.{0 u}, lift_lt, ←typein_enum (<) h'],
+  rw [lt_ord, ←lift_card, lift_lt_aleph_0, ←typein_enum (<) h'],
   exact lt_aleph_0_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
 end
 

@@ -5,10 +5,12 @@ Authors: Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
 import category_theory.full_subcategory
-import data.set.basic
 
 /-!
 # Essential image of a functor
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The essential image `ess_image` of a functor consists of the objects in the target category which
 are isomorphic to an object in the image of the object function.
@@ -61,7 +63,7 @@ hY.imp (λ X, nonempty.map (λ t, h.symm.app X ≪≫ t))
 /-- Isomorphic functors have equal essential images. -/
 lemma ess_image_eq_of_nat_iso {F' : C ⥤ D} (h : F ≅ F') :
   ess_image F = ess_image F' :=
-set.ext $ λ A, ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩
+funext (λ _, propext ⟨ess_image.of_nat_iso h, ess_image.of_nat_iso h.symm⟩)
 
 /-- An object in the image is in the essential image. -/
 lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y, ⟨iso.refl _⟩⟩

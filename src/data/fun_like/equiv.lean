@@ -9,6 +9,9 @@ import data.fun_like.embedding
 /-!
 # Typeclass for a type `F` with an injective map to `A ≃ B`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This typeclass is primarily for use by isomorphisms like `monoid_equiv` and `linear_equiv`.
 
 ## Basic usage of `equiv_like`
@@ -205,5 +208,9 @@ function.surjective.of_comp_iff' (equiv_like.bijective e) f
 @[simp] lemma comp_bijective (f : α → β) (e : F) :
   function.bijective (e ∘ f) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff' f
+
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_dom [subsingleton β] : subsingleton F :=
+⟨λ f g, fun_like.ext f g $ λ x, (right_inv f).injective $ subsingleton.elim _ _⟩
 
 end equiv_like

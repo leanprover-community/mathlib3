@@ -9,6 +9,9 @@ import category_theory.thin
 /-!
 # Wide pullbacks
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the category `wide_pullback_shape`, (resp. `wide_pushout_shape`) which is the category
 obtained from a discrete category of type `J` by adjoining a terminal (resp. initial) element.
 Limits of this shape are wide pullbacks (pushouts).
@@ -67,8 +70,8 @@ instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pul
 
 local attribute [tidy] tactic.case_bash
 
-instance subsingleton_hom (j j' : wide_pullback_shape J) : subsingleton (j ⟶ j') :=
-⟨by tidy⟩
+instance subsingleton_hom : quiver.is_thin (wide_pullback_shape J) :=
+λ _ _, ⟨by tidy⟩
 
 instance category : small_category (wide_pullback_shape J) := thin_category
 
@@ -161,8 +164,8 @@ instance hom.inhabited : inhabited (hom none none) := ⟨hom.id (none : wide_pus
 
 local attribute [tidy] tactic.case_bash
 
-instance subsingleton_hom (j j' : wide_pushout_shape J) : subsingleton (j ⟶ j') :=
-⟨by tidy⟩
+instance subsingleton_hom : quiver.is_thin (wide_pushout_shape J) :=
+λ _ _, ⟨by tidy⟩
 
 instance category : small_category (wide_pushout_shape J) := thin_category
 

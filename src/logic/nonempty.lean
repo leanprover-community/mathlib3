@@ -8,6 +8,9 @@ import logic.basic
 /-!
 # Nonempty types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves a few extra facts about `nonempty`, which is defined in core Lean.
 
 ## Main declarations
@@ -118,6 +121,7 @@ lemma classical.nonempty_pi {ι} {α : ι → Sort*} : nonempty (Π i, α i) ↔
 lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
 ⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
 
-lemma function.surjective.nonempty [h : nonempty β] {f : α → β} (hf : function.surjective f) :
+lemma function.surjective.nonempty {α β : Sort*} [h : nonempty β] {f : α → β}
+  (hf : function.surjective f) :
   nonempty α :=
 let ⟨y⟩ := h, ⟨x, hx⟩ := hf y in ⟨x⟩

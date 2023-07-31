@@ -2,11 +2,13 @@
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Simon Hudon
-
-A tactic pushing negations into an expression
 -/
-
+import tactic.core
 import logic.basic
+
+/-!
+# A tactic pushing negations into an expression
+-/
 
 open tactic expr
 
@@ -206,3 +208,56 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.contrapose],
   tags       := ["logic"] }
+
+
+/-!
+## `#push_neg` command
+A user command to run `push_neg`. Mostly copied from the `#norm_num` and `#simp` commands.
+-/
+
+namespace tactic
+
+open lean.parser
+open interactive.types
+setup_tactic_parser
+
+/--
+The syntax is `#push_neg e`, where `e` is an expression,
+which will print the `push_neg` form of `e`.
+
+`#push_neg` understands local variables, so you can use them to
+introduce parameters.
+-/
+@[user_command] meta def push_neg_cmd (_ : parse $ tk "#push_neg") : lean.parser unit :=
+do
+  e ← texpr,
+
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which
+     `normalize_negations` may be safely called with expected behaviour given the `variables` in the
+     environment. -/
+  (ts, _) ← synthesize_tactic_state_with_variables_as_hyps [e],
+
+  /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
+  result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+       hypotheses added to the `ts : tactic_state` which we are using. -/
+    e ← to_expr e,
+
+    /- Run `push_neg` on the expression. -/
+    (e_neg, _) ← normalize_negations e,
+
+    /- Run a `simp` to change any `¬ a = b` to `a ≠ b`; report the result, or, if the `simp` fails
+    (because no `¬ a = b` appear in the expression), return what `push_neg` gave. -/
+    prod.fst <$> e_neg.simp { eta := ff } failed tt [] [simp_arg_type.expr ``(push_neg.not_eq)]
+    <|> pure e_neg } ts,
+
+  /- Trace the result. -/
+  trace result
+
+add_tactic_doc
+{ name                     := "#push_neg",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.push_neg_cmd],
+  tags                     := ["logic"] }
+
+end tactic

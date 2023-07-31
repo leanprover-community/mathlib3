@@ -3,12 +3,16 @@ Copyright (c) 2022 David Kurniadi Angdinata. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
-
+import algebra.hom.equiv.type_tags
 import data.zmod.quotient
 import ring_theory.dedekind_domain.adic_valuation
+import ring_theory.norm
 
 /-!
 # Selmer groups of fraction fields of Dedekind domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let $K$ be the field of fractions of a Dedekind domain $R$. For any set $S$ of prime ideals in the
 height one spectrum of $R$, and for any natural number $n$, the Selmer group $K(S, n)$ is defined to

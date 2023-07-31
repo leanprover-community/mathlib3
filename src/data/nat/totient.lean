@@ -11,6 +11,9 @@ import data.zmod.basic
 /-!
 # Euler's totient function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines [Euler's totient function](https://en.wikipedia.org/wiki/Euler's_totient_function)
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
@@ -35,6 +38,17 @@ localized "notation (name := nat.totient) `φ` := nat.totient" in nat
 by simp [totient]
 
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
+
+/-- A characterisation of `nat.totient` that avoids `finset`. -/
+lemma totient_eq_card_lt_and_coprime (n : ℕ) : φ n = nat.card {m | m < n ∧ n.coprime m} :=
+begin
+  let e : {m | m < n ∧ n.coprime m} ≃ finset.filter n.coprime (finset.range n) :=
+  { to_fun  := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    inv_fun := λ m, ⟨m, by simpa only [finset.mem_filter, finset.mem_range] using m.property⟩,
+    left_inv  := λ m, by simp only [subtype.coe_mk, subtype.coe_eta],
+    right_inv := λ m, by simp only [subtype.coe_mk, subtype.coe_eta] },
+  rw [totient_eq_card_coprime, card_congr e, card_eq_fintype_card, fintype.card_coe],
+end
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 ((range n).card_filter_le _).trans_eq (card_range n)
@@ -185,8 +199,8 @@ calc φ (p ^ (n + 1))
       exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
   end
 ... = _ :
-have h1 : set.inj_on (* p) (range (p ^ n)),
-  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h1 : function.injective (* p),
+  from mul_left_injective₀ hp.ne_zero,
 have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   from λ a, begin
     simp only [mem_image, mem_range, exists_imp_distrib],
@@ -195,7 +209,7 @@ have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
     exact (mul_lt_mul_right hp.pos).2 h
   end,
 begin
-  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+  rw [card_sdiff h2, card_image_of_inj_on (h1.inj_on _), card_range,
     card_range, ← one_mul (p ^ n), pow_succ, ← tsub_mul,
     one_mul, mul_comm]
 end

@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.trigonometric.complex
-import analysis.special_functions.trigonometric.deriv
 
 /-!
 # Complex trigonometric functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Basic facts and derivatives for the complex trigonometric functions.
 -/
@@ -31,7 +33,7 @@ lemma has_deriv_at_tan {x : ℂ} (h : cos x ≠ 0) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 (has_strict_deriv_at_tan h).has_deriv_at
 
-open_locale topological_space
+open_locale topology
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=

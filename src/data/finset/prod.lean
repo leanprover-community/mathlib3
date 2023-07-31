@@ -8,6 +8,9 @@ import data.finset.card
 /-!
 # Finsets in product types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines finset constructions on the product type `α × β`. Beware not to confuse with the
 `finset.prod` operation which computes the multiplicative product.
 
@@ -71,6 +74,14 @@ product_subset_product hs (subset.refl _)
 lemma product_subset_product_right (ht : t ⊆ t') : s ×ˢ t ⊆ s ×ˢ t' :=
 product_subset_product (subset.refl _) ht
 
+lemma map_swap_product (s : finset α) (t : finset β) :
+  (t ×ˢ s).map ⟨prod.swap, prod.swap_injective⟩ = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
+
+@[simp] lemma image_swap_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  (t ×ˢ s).image prod.swap = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
+
 lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s ×ˢ t = s.bUnion (λa, t.image $ λb, (a, b)) :=
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
@@ -113,9 +124,8 @@ begin
     split; intros h; use h.1,
     simp only [function.comp_app, and_self, h.2, em (q b)],
     cases h.2; { try { simp at h_1 }, simp [h_1] } },
-  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter,
-    simp only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
-     not_mem_empty], intros, assumption }
+  { apply finset.disjoint_filter_filter',
+    exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 lemma empty_product (t : finset β) : (∅ : finset α) ×ˢ t = ∅ := rfl
@@ -159,6 +169,31 @@ by { ext ⟨x, y⟩, simp only [or_and_distrib_right, mem_union, mem_product] }
   s ×ˢ (t ∪ t') = s ×ˢ t ∪ s ×ˢ t' :=
 by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
 
+lemma inter_product [decidable_eq α] [decidable_eq β] :
+  (s ∩ s') ×ˢ t = s ×ˢ t ∩ s' ×ˢ t :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter, mem_product] }
+
+lemma product_inter [decidable_eq α] [decidable_eq β] :
+  s ×ˢ (t ∩ t') = s ×ˢ t ∩ s ×ˢ t' :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter, mem_product] }
+
+lemma product_inter_product [decidable_eq α] [decidable_eq β] :
+  s ×ˢ t ∩ s' ×ˢ t' = (s ∩ s') ×ˢ (t ∩ t') :=
+by { ext ⟨x, y⟩, simp only [and_assoc, and.left_comm, mem_inter, mem_product] }
+
+lemma disjoint_product : disjoint (s ×ˢ t) (s' ×ˢ t') ↔ disjoint s s' ∨ disjoint t t' :=
+by simp_rw [←disjoint_coe, coe_product, set.disjoint_prod]
+
+@[simp] lemma disj_union_product (hs : disjoint s s') :
+  s.disj_union s' hs ×ˢ t = (s ×ˢ t).disj_union (s' ×ˢ t)
+    (disjoint_product.mpr $ or.inl hs) :=
+eq_of_veq $ multiset.add_product _ _ _
+
+@[simp] lemma product_disj_union (ht : disjoint t t') :
+  s ×ˢ t.disj_union t' ht = (s ×ˢ t).disj_union (s ×ˢ t')
+    (disjoint_product.mpr $ or.inr ht) :=
+eq_of_veq $ multiset.product_add _ _ _
+
 end prod
 
 section diag
@@ -172,16 +207,20 @@ def diag := (s ×ˢ s).filter (λ a : α × α, a.fst = a.snd)
 for `a, b ∈ s`. -/
 def off_diag := (s ×ˢ s).filter (λ (a : α × α), a.fst ≠ a.snd)
 
-@[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
+variables {s} {x : α × α}
+
+@[simp] lemma mem_diag : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
 by { simp only [diag, mem_filter, mem_product], split; intros h;
      simp only [h, and_true, eq_self_iff_true, and_self], rw ←h.2, exact h.1 }
 
-@[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
+@[simp] lemma mem_off_diag : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
 by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
 
+variables (s)
+
 @[simp, norm_cast] lemma coe_off_diag : (s.off_diag : set (α × α)) = (s : set α).off_diag :=
-set.ext $ mem_off_diag _
+set.ext $ λ _, mem_off_diag
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
@@ -201,10 +240,10 @@ begin
 end
 
 @[mono] lemma diag_mono : monotone (diag : finset α → finset (α × α)) :=
-λ s t h x hx, (mem_diag _ _).2 $ and.imp_left (@h _) $ (mem_diag _ _).1 hx
+λ s t h x hx, mem_diag.2 $ and.imp_left (@h _) $ mem_diag.1 hx
 
 @[mono] lemma off_diag_mono : monotone (off_diag : finset α → finset (α × α)) :=
-λ s t h x hx, (mem_off_diag _ _).2 $ and.imp (@h _) (and.imp_left $ @h _) $ (mem_off_diag _ _).1 hx
+λ s t h x hx, mem_off_diag.2 $ and.imp (@h _) (and.imp_left $ @h _) $ mem_off_diag.1 hx
 
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
@@ -213,7 +252,8 @@ end
 @[simp] lemma diag_union_off_diag : s.diag ∪ s.off_diag = s ×ˢ s :=
 filter_union_filter_neg_eq _ _
 
-@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag := disjoint_filter_filter_neg _ _
+@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag :=
+disjoint_filter_filter_neg _ _ _
 
 lemma product_sdiff_diag : s ×ˢ s \ s.diag = s.off_diag :=
 by rw [←diag_union_off_diag, union_comm, union_sdiff_self,

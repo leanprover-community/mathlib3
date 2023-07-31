@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import category_theory.skeletal
 import tactic.linarith
+import category_theory.skeletal
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms
 
 /-! # The simplex category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct a skeletal model of the simplex category, with objects `ℕ` and the
 morphism `n ⟶ m` being the monotone maps from `fin (n+1)` to `fin (m+1)`.
@@ -172,11 +175,36 @@ begin
   split_ifs; { simp at *; linarith },
 end
 
+lemma δ_comp_δ' {n} {i : fin (n+2)} {j : fin (n+3)} (H : i.cast_succ < j) :
+  δ i ≫ δ j = δ (j.pred (λ hj, by simpa only [hj, fin.not_lt_zero] using H)) ≫ δ i.cast_succ :=
+begin
+  rw ← δ_comp_δ,
+  { rw fin.succ_pred, },
+  { simpa only [fin.le_iff_coe_le_coe, ← nat.lt_succ_iff, nat.succ_eq_add_one, ← fin.coe_succ,
+      j.succ_pred, fin.lt_iff_coe_lt_coe] using H, },
+end
+
+lemma δ_comp_δ'' {n} {i : fin (n+3)} {j : fin (n+2)} (H : i ≤ j.cast_succ) :
+  δ (i.cast_lt (nat.lt_of_le_of_lt (fin.le_iff_coe_le_coe.mp H) j.is_lt)) ≫ δ j.succ =
+    δ j ≫ δ i :=
+begin
+  rw δ_comp_δ,
+  { refl, },
+  { exact H, },
+end
+
 /-- The special case of the first simplicial identity -/
+@[reassoc]
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
 (δ_comp_δ (le_refl i)).symm
 
+@[reassoc]
+lemma δ_comp_δ_self' {n} {i : fin (n+2)} {j : fin (n+3)} (H : j = i.cast_succ) :
+  δ i ≫ δ j = δ i ≫ δ i.succ :=
+by { subst H, rw δ_comp_δ_self, }
+
 /-- The second simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
@@ -207,6 +235,7 @@ begin
 end
 
 /-- The first part of the third simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
   δ i.cast_succ ≫ σ i = 𝟙 [n] :=
 begin
@@ -220,7 +249,13 @@ begin
   split_ifs; { simp at *; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_self' {n} {j : fin (n+2)} {i : fin (n+1)} (H : j = i.cast_succ) :
+  δ j ≫ σ i = 𝟙 [n] :=
+by { subst H, rw δ_comp_σ_self, }
+
 /-- The second part of the third simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
   δ i.succ ≫ σ i = 𝟙 [n] :=
 begin
@@ -232,7 +267,13 @@ begin
   split_ifs; { simp at *; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_succ' {n} (j : fin (n+2)) (i : fin (n+1)) (H : j = i.succ) :
+  δ j ≫ σ i = 𝟙 [n] :=
+by { subst H, rw δ_comp_σ_succ, }
+
 /-- The fourth simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
   δ i.succ ≫ σ j.cast_succ = σ j ≫ δ i :=
 begin
@@ -270,9 +311,23 @@ begin
   all_goals { simp at h_1 h_2 ⊢; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_of_gt' {n} {i : fin (n+3)} {j : fin (n+2)} (H : j.succ < i) :
+  δ i ≫ σ j = σ (j.cast_lt ((add_lt_add_iff_right 1).mp (lt_of_lt_of_le
+      (by simpa only [fin.val_eq_coe, ← fin.coe_succ]
+        using fin.lt_iff_coe_lt_coe.mp H) i.is_le))) ≫
+    δ (i.pred (λ hi, by simpa only [fin.not_lt_zero, hi] using H)) :=
+begin
+  rw ← δ_comp_σ_of_gt,
+  { simpa only [fin.succ_pred], },
+  { rw [fin.cast_succ_cast_lt, ← fin.succ_lt_succ_iff, fin.succ_pred],
+    exact H, },
+end
+
 local attribute [simp] fin.pred_mk
 
 /-- The fifth simplicial identity -/
+@[reassoc]
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   σ i.cast_succ ≫ σ j = σ j.succ ≫ σ i :=
 begin
@@ -707,12 +762,26 @@ begin
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
 
+lemma len_lt_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
+  (hi' : Δ ≠ Δ') : Δ'.len < Δ.len :=
+begin
+  cases lt_or_eq_of_le (len_le_of_mono hi),
+  { exact h, },
+  { exfalso,
+    exact hi' (by { ext, exact h.symm,}), },
+end
+
 noncomputable instance : split_epi_category simplex_category :=
 skeletal_equivalence.{0}.inverse.split_epi_category_imp_of_is_equivalence
 
 instance : has_strong_epi_mono_factorisations simplex_category :=
 functor.has_strong_epi_mono_factorisations_imp_of_is_equivalence
   simplex_category.skeletal_equivalence.{0}.inverse
+
+instance : has_strong_epi_images simplex_category :=
+  limits.has_strong_epi_images_of_has_strong_epi_mono_factorisations
+
+instance (Δ Δ' : simplex_category) (θ : Δ ⟶ Δ') : epi (factor_thru_image θ) := strong_epi.epi
 
 lemma image_eq {Δ Δ' Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
   {e : Δ ⟶ Δ'} [epi e] {i : Δ' ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
@@ -745,8 +814,7 @@ end epi_mono
 to the category attached to the ordered set `{0, 1, ..., n}` -/
 @[simps obj map]
 def to_Cat : simplex_category ⥤ Cat.{0} :=
-simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder ⋙
-  forget₂ LinearOrder Lattice ⋙ forget₂ Lattice PartialOrder ⋙
-  forget₂ PartialOrder Preorder ⋙ Preorder_to_Cat
+simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinOrd ⋙
+  forget₂ LinOrd Lat ⋙ forget₂ Lat PartOrd ⋙ forget₂ PartOrd Preord ⋙ Preord_to_Cat
 
 end simplex_category

@@ -10,6 +10,9 @@ import linear_algebra.affine_space.affine_subspace
 /-!
 # Convex sets and functions in vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a 𝕜-vector space, we define the following objects and properties.
 * `convex 𝕜 s`: A set `s` is convex if for any two points `x y ∈ s` it includes `segment 𝕜 x y`.
 * `std_simplex 𝕜 ι`: The standard simplex in `ι → 𝕜` (currently requires `fintype ι`). It is the
@@ -149,6 +152,9 @@ convex_iff_pairwise_pos.mpr (h.pairwise _)
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
 subsingleton_singleton.convex
 
+lemma convex_zero : convex 𝕜 (0 : set E) :=
+convex_singleton _
+
 lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
 begin
   rintro p ⟨ap, bp, hap, hbp, habp, rfl⟩ q ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
@@ -186,6 +192,33 @@ hs.linear_preimage $ hf.mk' f
 
 lemma convex.add {t : set E} (hs : convex 𝕜 s) (ht : convex 𝕜 t) : convex 𝕜 (s + t) :=
 by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
+
+variables (𝕜 E)
+
+/-- The convex sets form an additive submonoid under pointwise addition. -/
+def convex_add_submonoid : add_submonoid (set E) :=
+{ carrier := {s : set E | convex 𝕜 s},
+  zero_mem' := convex_zero,
+  add_mem' := λ s t, convex.add }
+
+@[simp, norm_cast]
+lemma coe_convex_add_submonoid : ↑(convex_add_submonoid 𝕜 E) = {s : set E | convex 𝕜 s} := rfl
+
+variables {𝕜 E}
+
+@[simp] lemma mem_convex_add_submonoid {s : set E} :
+  s ∈ convex_add_submonoid 𝕜 E ↔ convex 𝕜 s :=
+iff.rfl
+
+lemma convex_list_sum {l : list (set E)} (h : ∀ i ∈ l, convex 𝕜 i) : convex 𝕜 l.sum :=
+(convex_add_submonoid 𝕜 E).list_sum_mem h
+
+lemma convex_multiset_sum {s : multiset (set E)} (h : ∀ i ∈ s, convex 𝕜 i) : convex 𝕜 s.sum :=
+(convex_add_submonoid 𝕜 E).multiset_sum_mem _ h
+
+lemma convex_sum {ι} {s : finset ι} (t : ι → set E) (h : ∀ i ∈ s, convex 𝕜 (t i)) :
+  convex 𝕜 (∑ i in s, t i) :=
+(convex_add_submonoid 𝕜 E).sum_mem h
 
 lemma convex.vadd (hs : convex 𝕜 s) (z : E) : convex 𝕜 (z +ᵥ s) :=
 by { simp_rw [←image_vadd, vadd_eq_add, ←singleton_add], exact (convex_singleton _).add hs }
@@ -278,8 +311,7 @@ end ordered_cancel_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid β] [module 𝕜 β] [ordered_smul 𝕜 β]
 
-lemma convex_interval (r s : β) : convex 𝕜 (interval r s) :=
-convex_Icc _ _
+lemma convex_uIcc (r s : β) : convex 𝕜 (uIcc r s) := convex_Icc _ _
 
 end linear_ordered_add_comm_monoid
 end module
@@ -513,7 +545,7 @@ hs.convex_of_chain $ is_chain_of_trichotomous s
 
 lemma convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
   convex 𝕜 s ↔ s.ord_connected :=
-by simp_rw [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset]
+by simp_rw [convex_iff_segment_subset, segment_eq_uIcc, ord_connected_iff_uIcc_subset]
 
 alias convex_iff_ord_connected ↔ convex.ord_connected _
 

@@ -3,12 +3,17 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import topology.category.Profinite
+import topology.category.Profinite.basic
 import topology.locally_constant.basic
 import topology.discrete_quotient
+import topology.category.Top.limits.cofiltered
+import topology.category.Top.limits.konig
 
 /-!
 # Cofiltered limits of profinite sets.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some theorems about cofiltered limits of profinite sets.
 

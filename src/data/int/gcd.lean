@@ -9,6 +9,9 @@ import tactic.norm_num
 /-!
 # Extended GCD and divisibility over ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * Given `x y : ℕ`, `xgcd x y` computes the pair of integers `(a, b)` such that
@@ -211,11 +214,11 @@ by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_left }
 theorem gcd_mul_right (i j k : ℤ) : gcd (i * j) (k * j) = gcd i k * nat_abs j :=
 by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_right }
 
-theorem gcd_pos_of_non_zero_left {i : ℤ} (j : ℤ) (i_non_zero : i ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_left (nat_abs j) (nat_abs_pos_of_ne_zero i_non_zero)
+theorem gcd_pos_of_ne_zero_left {i : ℤ} (j : ℤ) (hi : i ≠ 0) : 0 < gcd i j :=
+nat.gcd_pos_of_pos_left _ $ nat_abs_pos_of_ne_zero hi
 
-theorem gcd_pos_of_non_zero_right (i : ℤ) {j : ℤ} (j_non_zero : j ≠ 0) : 0 < gcd i j :=
-nat.gcd_pos_of_pos_right (nat_abs i) (nat_abs_pos_of_ne_zero j_non_zero)
+theorem gcd_pos_of_ne_zero_right (i : ℤ) {j : ℤ} (hj : j ≠ 0) : 0 < gcd i j :=
+nat.gcd_pos_of_pos_right _ $ nat_abs_pos_of_ne_zero hj
 
 theorem gcd_eq_zero_iff {i j : ℤ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
 begin
@@ -336,7 +339,7 @@ theorem gcd_least_linear {a b : ℤ} (ha : a ≠ 0) :
 begin
   simp_rw ←gcd_dvd_iff,
   split,
-  { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_non_zero_left b ha },
+  { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_ne_zero_left b ha },
   { simp only [lower_bounds, and_imp, set.mem_set_of_eq],
     exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
 end
@@ -384,8 +387,7 @@ lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1)
   x ^ m.gcd n = 1 :=
 begin
   cases m, { simp only [hn, nat.gcd_zero_left] },
-  obtain ⟨x, rfl⟩ : is_unit x,
-  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  lift x to Mˣ using is_unit_of_pow_eq_one hm m.succ_ne_zero,
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
@@ -438,7 +440,7 @@ lemma nat_gcd_helper_1 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 
 lemma nat_lcm_helper (x y d m n : ℕ) (hd : nat.gcd x y = d) (d0 : 0 < d)
   (xy : x * y = n) (dm : d * m = n) : nat.lcm x y = m :=
-(nat.mul_right_inj d0).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
+mul_right_injective₀ d0.ne' $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
 
 lemma nat_coprime_helper_zero_left (x : ℕ) (h : 1 < x) : ¬ nat.coprime 0 x :=
 mt (nat.coprime_zero_left _).1 $ ne_of_gt h

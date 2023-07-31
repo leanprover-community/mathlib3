@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.subobject.well_powered
+import category_theory.limits.preserves.finite
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Subobjects in the category of structured arrows
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We compute the subobjects of an object `A` in the category `structured_arrow S T` for `T : C ⥤ D`
 and `S : D` as a subtype of the subobjects of `A.right`. We deduce that `structured_arrow S T` is

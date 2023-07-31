@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.lie.of_associative
-import algebra.ring.basic
 
 /-!
 # Jordan rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `A` be a non-unital, non-associative ring. Then `A` is said to be a (commutative, linear) Jordan
 ring if the multiplication is commutative and satisfies a weak associativity law known as the

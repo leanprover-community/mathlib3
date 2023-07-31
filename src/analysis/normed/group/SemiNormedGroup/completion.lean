@@ -10,6 +10,9 @@ import analysis.normed.group.hom_completion
 /-!
 # Completions of normed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains an API for completions of seminormed groups (basic facts about
 objects and morphisms).
 
@@ -56,7 +59,7 @@ def Completion.incl {V : SemiNormedGroup} : V ⟶ Completion.obj V :=
   map_add' := completion.coe_add,
   bound' := ⟨1, λ v, by simp⟩ }
 
-lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ∥Completion.incl v∥ = ∥v∥ := by simp
+lemma Completion.norm_incl_eq {V : SemiNormedGroup} {v : V} : ‖Completion.incl v‖ = ‖v‖ := by simp
 
 lemma Completion.map_norm_noninc {V W : SemiNormedGroup} {f : V ⟶ W} (hf : f.norm_noninc) :
   (Completion.map f).norm_noninc :=

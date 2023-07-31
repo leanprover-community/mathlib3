@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.morphisms.ring_hom_properties
-import algebraic_geometry.morphisms.quasi_compact
 import ring_theory.ring_hom.finite_type
 
 /-!
 # Morphisms of finite type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A morphism of schemes `f : X ⟶ Y` is locally of finite type if for each affine `U ⊆ Y` and
 `V ⊆ f ⁻¹' U`, The induced map `Γ(Y, U) ⟶ Γ(X, V)` is of finite type.

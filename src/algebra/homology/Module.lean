@@ -6,9 +6,13 @@ Authors: Scott Morrison
 import algebra.homology.homotopy
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
+import category_theory.limits.concrete_category
 
 /-!
 # Complexes of modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide some additional API to work with homological complexes in `Module R`.
 -/

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.hom.equiv.type_tags
 import algebra.module.equiv
 import data.finsupp.defs
 import group_theory.free_abelian_group
@@ -12,6 +13,9 @@ import linear_algebra.dimension
 
 /-!
 # Isomorphism between `free_abelian_group X` and `X →₀ ℤ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we construct the canonical isomorphism between `free_abelian_group X` and `X →₀ ℤ`.
 We use this to transport the notion of `support` from `finsupp` to `free_abelian_group`.

@@ -9,6 +9,9 @@ import data.polynomial.eval
 /-!
 # The Pochhammer polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define and prove some basic relations about
 `pochhammer S n : S[X] := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
@@ -146,7 +149,7 @@ end
 end semiring
 
 section strict_ordered_semiring
-variables {S : Type*} [strict_ordered_semiring S] [nontrivial S]
+variables {S : Type*} [strict_ordered_semiring S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin

@@ -9,6 +9,9 @@ import analysis.normed_space.linear_isometry
 /-!
 # Conformal Linear Maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A continuous linear map between `R`-normed spaces `X` and `Y` `is_conformal_map` if it is
 a nonzero multiple of a linear isometry.
 

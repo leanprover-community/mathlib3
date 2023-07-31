@@ -6,9 +6,13 @@ Authors: Jireh Loreaux
 
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+import algebra.algebra.prod
 
 /-!
 # Morphisms of star algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between `R`-algebras (unital or non-unital) `A` and `B` where both
 `A` and `B` are equipped with a `star` operation. These morphisms, namely `star_alg_hom` and
@@ -71,6 +75,20 @@ class non_unital_star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_p
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.to_star_hom_class
 
+namespace non_unital_star_alg_hom_class
+
+variables {F R A B : Type*} [monoid R]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
+
+instance [non_unital_star_alg_hom_class F R A B] : has_coe_t F (A →⋆ₙₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_star' := map_star f,
+    .. (f : A →ₙₐ[R] B) }}
+
+end non_unital_star_alg_hom_class
+
 namespace non_unital_star_alg_hom
 
 section basic
@@ -96,6 +114,9 @@ instance : has_coe_to_fun (A →⋆ₙₐ[R] B) (λ _, A → B) := fun_like.has_
 
 initialize_simps_projections non_unital_star_alg_hom (to_fun → apply)
 
+@[simp, protected] lemma coe_coe {F : Type*} [non_unital_star_alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →⋆ₙₐ[R] B) = f := rfl
+
 @[simp] lemma coe_to_non_unital_alg_hom {f : A →⋆ₙₐ[R] B} :
   (f.to_non_unital_alg_hom : A → B) = f := rfl
 
@@ -110,6 +131,9 @@ protected def copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : A →
   map_add' := h.symm ▸ map_add f,
   map_mul' := h.symm ▸ map_mul f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →⋆ₙₐ[R] B) : A → B) = f :=
@@ -211,14 +235,25 @@ class star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] star_alg_hom_class.to_star_hom_class
 
+namespace star_alg_hom_class
+
+variables (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
+variables [semiring B] [algebra R B] [has_star B] [hF : star_alg_hom_class F R A B]
+include hF
+
 @[priority 100] /- See note [lower instance priority] -/
-instance star_alg_hom_class.to_non_unital_star_alg_hom_class
-  (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
-  [semiring B] [algebra R B] [has_star B] [star_alg_hom_class F R A B] :
-  non_unital_star_alg_hom_class F R A B :=
+instance to_non_unital_star_alg_hom_class : non_unital_star_alg_hom_class F R A B :=
 { map_smul := map_smul,
   .. star_alg_hom_class.to_alg_hom_class F R A B,
   .. star_alg_hom_class.to_star_hom_class F R A B, }
+
+instance : has_coe_t F (A →⋆ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_star' := map_star f,
+    ..(f : A →ₐ[R] B) } }
+
+end star_alg_hom_class
 
 namespace star_alg_hom
 
@@ -247,6 +282,11 @@ instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 directly. -/
 instance : has_coe_to_fun (A →⋆ₐ[R] B) (λ _, A → B) := fun_like.has_coe_to_fun
 
+@[simp, protected] lemma coe_coe {F : Type*} [star_alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →⋆ₐ[R] B) = f := rfl
+
+initialize_simps_projections star_alg_hom (to_fun → apply)
+
 @[simp] lemma coe_to_alg_hom {f : A →⋆ₐ[R] B} :
   (f.to_alg_hom : A → B) = f := rfl
 
@@ -262,6 +302,9 @@ protected def copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : A →⋆
   map_add' := h.symm ▸ map_add f,
   commutes' := h.symm ▸ alg_hom_class.commutes f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅ h₆) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅, h₆⟩ : A →⋆ₐ[R] B) : A → B) = f :=
@@ -436,3 +479,223 @@ their codomains. -/
   right_inv := λ f, by ext; refl }
 
 end star_alg_hom
+
+/-! ### Star algebra equivalences -/
+
+/-- A *⋆-algebra* equivalence is an equivalence preserving addition, multiplication, scalar
+multiplication and the star operation, which allows for considering both unital and non-unital
+equivalences with a single structure. Currently, `alg_equiv` requires unital algebras, which is
+why this structure does not extend it. -/
+structure star_alg_equiv (R A B : Type*) [has_add A] [has_mul A] [has_smul R A] [has_star A]
+  [has_add B] [has_mul B] [has_smul R B] [has_star B] extends A ≃+* B :=
+(map_star' : ∀ a : A, to_fun (star a) = star (to_fun a))
+(map_smul' : ∀ (r : R) (a : A), to_fun (r • a) = r • to_fun a)
+
+infixr ` ≃⋆ₐ `:25 := star_alg_equiv _
+notation A ` ≃⋆ₐ[`:25 R `] ` B := star_alg_equiv R A B
+
+/-- Reinterpret a star algebra equivalence as a `ring_equiv` by forgetting the interaction with
+the star operation and scalar multiplication. -/
+add_decl_doc star_alg_equiv.to_ring_equiv
+
+/-- `star_alg_equiv_class F R A B` asserts `F` is a type of bundled ⋆-algebra equivalences between
+`A` and `B`.
+
+You should also extend this typeclass when you extend `star_alg_equiv`. -/
+class star_alg_equiv_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
+  (B : out_param Type*) [has_add A] [has_mul A] [has_smul R A] [has_star A] [has_add B] [has_mul B]
+  [has_smul R B] [has_star B] extends ring_equiv_class F A B :=
+(map_star : ∀ (f : F) (a : A), f (star a) = star (f a))
+(map_smul : ∀ (f : F) (r : R) (a : A), f (r • a) = r • f a)
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] star_alg_equiv_class.to_ring_equiv_class
+
+namespace star_alg_equiv_class
+
+@[priority 50] -- See note [lower instance priority]
+instance {F R A B : Type*} [has_add A] [has_mul A] [has_smul R A] [has_star A] [has_add B]
+  [has_mul B] [has_smul R B] [has_star B] [hF : star_alg_equiv_class F R A B] :
+  star_hom_class F A B :=
+{ coe := λ f, f,
+  coe_injective' := fun_like.coe_injective,
+  .. hF }
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] star_alg_equiv_class.star_hom_class
+
+@[priority 50] -- See note [lower instance priority]
+instance {F R A B : Type*} [has_add A] [has_mul A] [has_star A] [has_smul R A] [has_add B]
+  [has_mul B] [has_smul R B] [has_star B] [hF : star_alg_equiv_class F R A B] :
+  smul_hom_class F R A B :=
+{ coe := λ f, f,
+  coe_injective' := fun_like.coe_injective,
+  .. hF }
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] star_alg_equiv_class.smul_hom_class
+
+@[priority 100] -- See note [lower instance priority]
+instance {F R A B : Type*} [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  [has_star A] [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
+  [hF : star_alg_equiv_class F R A B] : non_unital_star_alg_hom_class F R A B :=
+{ coe := λ f, f,
+  coe_injective' := fun_like.coe_injective,
+  map_zero := map_zero,
+  .. hF }
+
+@[priority 100] -- See note [lower instance priority]
+instance (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
+  [semiring B] [algebra R B] [has_star B] [hF : star_alg_equiv_class F R A B] :
+  star_alg_hom_class F R A B :=
+{ coe := λ f, f,
+  coe_injective' := fun_like.coe_injective,
+  map_one := map_one,
+  map_zero := map_zero,
+  commutes := λ f r, by simp only [algebra.algebra_map_eq_smul_one, map_smul, map_one],
+  .. hF}
+
+end star_alg_equiv_class
+
+namespace star_alg_equiv
+
+section basic
+
+variables {F R A B C : Type*}
+  [has_add A] [has_mul A] [has_smul R A] [has_star A]
+  [has_add B] [has_mul B] [has_smul R B] [has_star B]
+  [has_add C] [has_mul C] [has_smul R C] [has_star C]
+
+instance : star_alg_equiv_class (A ≃⋆ₐ[R] B) R A B :=
+{ coe := to_fun,
+  inv := inv_fun,
+  left_inv := left_inv,
+  right_inv := right_inv,
+  coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
+  map_mul := map_mul',
+  map_add := map_add',
+  map_star := map_star',
+  map_smul := map_smul' }
+
+/--  Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
+instance : has_coe_to_fun (A ≃⋆ₐ[R] B) (λ _, A → B) := ⟨star_alg_equiv.to_fun⟩
+
+@[ext]
+lemma ext {f g : A ≃⋆ₐ[R] B} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
+
+lemma ext_iff {f g : A ≃⋆ₐ[R] B} : f = g ↔ ∀ a, f a = g a  := fun_like.ext_iff
+
+/-- Star algebra equivalences are reflexive. -/
+@[refl] def refl : A ≃⋆ₐ[R] A :=
+{ map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..ring_equiv.refl A }
+
+instance : inhabited (A ≃⋆ₐ[R] A) := ⟨refl⟩
+
+@[simp] lemma coe_refl : ⇑(refl : A ≃⋆ₐ[R] A) = id := rfl
+
+/-- Star algebra equivalences are symmetric. -/
+@[symm]
+def symm (e : A ≃⋆ₐ[R] B) : B ≃⋆ₐ[R] A :=
+{ map_star' := λ b, by simpa only [e.left_inv (star (e.inv_fun b)), e.right_inv b]
+    using congr_arg e.inv_fun (e.map_star' (e.inv_fun b)).symm,
+  map_smul' := λ r b, by simpa only [e.left_inv (r • e.inv_fun b), e.right_inv b]
+    using congr_arg e.inv_fun (e.map_smul' r (e.inv_fun b)).symm,
+  ..e.to_ring_equiv.symm, }
+
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (e : A ≃⋆ₐ[R] B) : B → A := e.symm
+
+initialize_simps_projections star_alg_equiv (to_fun → apply, inv_fun → simps.symm_apply)
+
+@[simp] lemma inv_fun_eq_symm {e : A ≃⋆ₐ[R] B} : e.inv_fun = e.symm := rfl
+
+@[simp] lemma symm_symm (e : A ≃⋆ₐ[R] B) : e.symm.symm = e :=
+by { ext, refl, }
+
+lemma symm_bijective : function.bijective (symm : (A ≃⋆ₐ[R] B) → (B ≃⋆ₐ[R] A)) :=
+equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
+
+@[simp] lemma mk_coe' (e : A ≃⋆ₐ[R] B) (f h₁ h₂ h₃ h₄ h₅ h₆) :
+  (⟨f, e, h₁, h₂, h₃, h₄, h₅, h₆⟩ : B ≃⋆ₐ[R] A) = e.symm :=
+symm_bijective.injective $ ext $ λ x, rfl
+
+@[simp] lemma symm_mk (f f') (h₁ h₂ h₃ h₄ h₅ h₆) :
+  (⟨f, f', h₁, h₂, h₃, h₄, h₅, h₆⟩ : A ≃⋆ₐ[R] B).symm =
+  { to_fun := f', inv_fun := f,
+    ..(⟨f, f', h₁, h₂, h₃, h₄, h₅, h₆⟩ : A ≃⋆ₐ[R] B).symm } := rfl
+
+@[simp] lemma refl_symm : (star_alg_equiv.refl : A ≃⋆ₐ[R] A).symm = star_alg_equiv.refl := rfl
+
+-- should be a `simp` lemma, but causes a linter timeout
+lemma to_ring_equiv_symm (f : A ≃⋆ₐ[R] B) : (f : A ≃+* B).symm = f.symm := rfl
+
+@[simp] lemma symm_to_ring_equiv (e : A ≃⋆ₐ[R] B) : (e.symm : B ≃+* A) = (e : A ≃+* B).symm := rfl
+
+/-- Star algebra equivalences are transitive. -/
+@[trans]
+def trans (e₁ : A ≃⋆ₐ[R] B) (e₂ : B ≃⋆ₐ[R] C) : A ≃⋆ₐ[R] C :=
+{ map_smul' := λ r a, show e₂.to_fun (e₁.to_fun (r • a)) = r • e₂.to_fun (e₁.to_fun a),
+    by rw [e₁.map_smul', e₂.map_smul'],
+  map_star' := λ a, show e₂.to_fun (e₁.to_fun (star a)) = star (e₂.to_fun (e₁.to_fun a)),
+    by rw [e₁.map_star', e₂.map_star'],
+  ..(e₁.to_ring_equiv.trans e₂.to_ring_equiv), }
+
+@[simp] lemma apply_symm_apply (e : A ≃⋆ₐ[R] B) : ∀ x, e (e.symm x) = x :=
+  e.to_ring_equiv.apply_symm_apply
+
+@[simp] lemma symm_apply_apply (e : A ≃⋆ₐ[R] B) : ∀ x, e.symm (e x) = x :=
+  e.to_ring_equiv.symm_apply_apply
+
+@[simp] lemma symm_trans_apply (e₁ : A ≃⋆ₐ[R] B) (e₂ : B ≃⋆ₐ[R] C) (x : C) :
+  (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
+
+@[simp] lemma coe_trans (e₁ : A ≃⋆ₐ[R] B) (e₂ : B ≃⋆ₐ[R] C) :
+  ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+@[simp] lemma trans_apply (e₁ : A ≃⋆ₐ[R] B) (e₂ : B ≃⋆ₐ[R] C) (x : A) :
+  (e₁.trans e₂) x = e₂ (e₁ x) := rfl
+
+theorem left_inverse_symm (e : A ≃⋆ₐ[R] B) : function.left_inverse e.symm e := e.left_inv
+
+theorem right_inverse_symm (e : A ≃⋆ₐ[R] B) : function.right_inverse e.symm e := e.right_inv
+
+end basic
+
+section bijective
+
+variables {F G R A B : Type*} [monoid R]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
+variables [hF : non_unital_star_alg_hom_class F R A B] [non_unital_star_alg_hom_class G R B A]
+include hF
+
+/-- If a (unital or non-unital) star algebra morphism has an inverse, it is an isomorphism of
+star algebras. -/
+@[simps] def of_star_alg_hom (f : F) (g : G) (h₁ : ∀ x, g (f x) = x) (h₂ : ∀ x, f (g x) = x) :
+  A ≃⋆ₐ[R] B :=
+{ to_fun    := f,
+  inv_fun   := g,
+  left_inv  := h₁,
+  right_inv := h₂,
+  map_add' := map_add f,
+  map_mul' := map_mul f,
+  map_smul' := map_smul f,
+  map_star' := map_star f }
+
+/-- Promote a bijective star algebra homomorphism to a star algebra equivalence. -/
+noncomputable def of_bijective (f : F) (hf : function.bijective f) : A ≃⋆ₐ[R] B :=
+{ to_fun := f,
+  map_star' := map_star f,
+  map_smul' := map_smul f,
+  .. ring_equiv.of_bijective f (hf : function.bijective (f : A → B)), }
+
+@[simp] lemma coe_of_bijective {f : F} (hf : function.bijective f) :
+  (star_alg_equiv.of_bijective f hf : A → B) = f := rfl
+
+lemma of_bijective_apply {f : F} (hf : function.bijective f) (a : A) :
+  (star_alg_equiv.of_bijective f hf) a = f a := rfl
+
+end bijective
+
+end star_alg_equiv

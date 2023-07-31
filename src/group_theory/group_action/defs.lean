@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
 import algebra.group.type_tags
+import algebra.group.commute
 import algebra.hom.group
 import algebra.opposites
-import logic.embedding
+import logic.embedding.basic
 
 /-!
 # Definitions of group actions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a hierarchy of group action type-classes on top of the previously defined
 notation classes `has_smul` and its additive version `has_vadd`:
@@ -191,38 +195,47 @@ is_scalar_tower.smul_assoc x y z
 @[to_additive]
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `add_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `+ᵥ`. -/
+class is_central_vadd (M α : Type*) [has_vadd M α] [has_vadd Mᵃᵒᵖ α] : Prop :=
+(op_vadd_eq_vadd : ∀ (m : M) (a : α), add_opposite.op m +ᵥ a = m +ᵥ a)
+
 /-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
 equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
 for `•`. -/
+@[to_additive]
 class is_central_scalar (M α : Type*) [has_smul M α] [has_smul Mᵐᵒᵖ α] : Prop :=
 (op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
 
+@[to_additive]
 lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_smul M α] [has_smul Mᵐᵒᵖ α]
   [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
 mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
 
+export is_central_vadd (op_vadd_eq_vadd unop_vadd_eq_vadd)
 export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
 
 -- these instances are very low priority, as there is usually a faster way to find these instances
 
-@[priority 50]
+@[priority 50, to_additive]
 instance smul_comm_class.op_left [has_smul M α] [has_smul Mᵐᵒᵖ α]
   [is_central_scalar M α] [has_smul N α] [smul_comm_class M N α] : smul_comm_class Mᵐᵒᵖ N α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m a, smul_comm]⟩
 
-@[priority 50]
+@[priority 50, to_additive]
 instance smul_comm_class.op_right [has_smul M α] [has_smul N α] [has_smul Nᵐᵒᵖ α]
   [is_central_scalar N α] [smul_comm_class M N α] : smul_comm_class M Nᵐᵒᵖ α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩
 
-@[priority 50]
+@[priority 50, to_additive]
 instance is_scalar_tower.op_left
   [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_smul M N] [has_smul Mᵐᵒᵖ N] [is_central_scalar M N]
   [has_smul N α] [is_scalar_tower M N α] : is_scalar_tower Mᵐᵒᵖ N α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m n, smul_assoc]⟩
 
-@[priority 50]
+@[priority 50, to_additive]
 instance is_scalar_tower.op_right [has_smul M α] [has_smul M N]
   [has_smul N α] [has_smul Nᵐᵒᵖ α] [is_central_scalar N α]
   [is_scalar_tower M N α] : is_scalar_tower M Nᵐᵒᵖ α :=
@@ -272,7 +285,8 @@ by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 This cannot be an instance because it can cause infinite loops whenever the `has_smul` arguments
 are still metavariables.
 -/
-@[priority 100]
+@[priority 100, to_additive "This cannot be an instance because it can cause infinite loops whenever
+the `has_vadd` arguments are still metavariables."]
 lemma comp.smul_comm_class [has_smul β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
@@ -281,7 +295,8 @@ by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 This cannot be an instance because it can cause infinite loops whenever the `has_smul` arguments
 are still metavariables.
 -/
-@[priority 100]
+@[priority 100, to_additive "This cannot be an instance because it can cause infinite loops whenever
+the `has_vadd` arguments are still metavariables."]
 lemma comp.smul_comm_class' [has_smul β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
@@ -487,6 +502,16 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
 @[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_smul M N]
   (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
 ⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
+
+/-- If the multiplicative action of `M` on `N` is compatible with multiplication on `N`, then
+`λ x, x • 1` is a monoid homomorphism from `M` to `N`. -/
+@[to_additive "If the additive action of `M` on `N` is compatible with addition on `N`, then
+`λ x, x +ᵥ 0` is an additive monoid homomorphism from `M` to `N`.", simps]
+def smul_one_hom {M N} [monoid M] [monoid N] [mul_action M N] [is_scalar_tower M N N] :
+  M →* N :=
+{ to_fun := λ x, x • 1,
+  map_one' := one_smul _ _,
+  map_mul' := λ x y, by rw [smul_one_mul, smul_smul] }
 
 end compatible_scalar
 

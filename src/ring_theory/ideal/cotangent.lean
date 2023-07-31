@@ -8,10 +8,12 @@ import algebra.module.torsion
 import algebra.ring.idempotents
 import linear_algebra.finite_dimensional
 import ring_theory.ideal.local_ring
-import ring_theory.nakayama
 
 /-!
 # The module `I ⧸ I ^ 2`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we provide special API support for the module `I ⧸ I ^ 2`. The official
 definition is a quotient module of `I`, but the alternative definition as an ideal of `R ⧸ I ^ 2` is
@@ -36,16 +38,10 @@ instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 
 instance : is_scalar_tower S S' I.cotangent :=
-begin
-  delta cotangent,
-  constructor,
-  intros s s' x,
-  rw [← @is_scalar_tower.algebra_map_smul S' R, ← @is_scalar_tower.algebra_map_smul S' R,
-    ← smul_assoc, ← is_scalar_tower.to_alg_hom_apply S S' R, map_smul],
-  refl
-end
+submodule.quotient.is_scalar_tower _ _
 
-instance [is_noetherian R I] : is_noetherian R I.cotangent := by { delta cotangent, apply_instance }
+instance [is_noetherian R I] : is_noetherian R I.cotangent :=
+submodule.quotient.is_noetherian _
 
 /-- The quotient map from `I` to `I ⧸ I ^ 2`. -/
 @[simps apply (lemmas_only)]

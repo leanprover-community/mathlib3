@@ -11,6 +11,9 @@ import category_theory.category.Quiv
 
 # Construction of the localized category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs the localized category, obtained by formally inverting
 a class of maps `W : morphism_property C` in a category `C`.
 
@@ -28,19 +31,6 @@ in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique func
 `G' : W.localization ⥤ D` such that `Q W ≫ G' = G`. This `G'` is `lift G hG`.
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
 uniqueness is expressed by `uniq`.
-
-TODO:
-1) implement a constructor for `is_localization L W` which would take
-as an input a *strict* universal property (`lift`/`fac`/`uniq`) similar to
-what is obtained here for `W.localization`. (Practically speaking, this is
-the easiest way to show that a functor is a localization.)
-
-2) when we have `is_localization L W`, then show that `D ⥤ E` identifies
-to the full subcategory of `C ⥤ E` consisting of `W`-inverting functors.
-
-3) provide an API for the lifting of functors `C ⥤ E`, for which
-`fac`/`uniq` assertions would be expressed as isomorphisms rather than
-by equalities of functors.
 
 ## References
 

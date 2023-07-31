@@ -3,12 +3,15 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.pow.asymptotics
 import number_theory.liouville.basic
 import topology.instances.irrational
 
 /-!
 # Liouville numbers with a given exponent
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We say that a real number `x` is a Liouville number with exponent `p : ℝ` if there exists a real
 number `C` such that for infinitely many denominators `n` there exists a numerator `m` such that
@@ -34,7 +37,7 @@ Liouville number, irrational, irrationality exponent
 -/
 
 open filter metric real set
-open_locale filter topological_space
+open_locale filter topology
 
 /-- We say that a real number `x` is a Liouville number with exponent `p : ℝ` if there exists a real
 number `C` such that for infinitely many denominators `n` there exists a numerator `m` such that

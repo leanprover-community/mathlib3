@@ -3,6 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
+import data.fintype.prod
+import data.fintype.sigma
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.preserves.shapes.products
@@ -14,6 +16,9 @@ import category_theory.limits.constructions.binary_products
 
 /-!
 # Constructing limits from products and equalizers.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 If a category has all products, and all equalizers, then it has all limits.
 Similarly, if it has all finite products, and all equalizers, then it has all finite limits.

@@ -9,6 +9,9 @@ import category_theory.isomorphism
 /-!
 # The category of functors and natural transformations between two fixed categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the category instance on `C ⥤ D`, with morphisms the natural transformations.
 
 ## Universes
@@ -57,6 +60,9 @@ lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X :=
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
+lemma comp_app_assoc {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) {X' : D}
+  (f : H.obj X ⟶ X') :
+  (α ≫ β).app X ≫ f = α.app X ≫ β.app X ≫ f := by rw [comp_app, assoc]
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=

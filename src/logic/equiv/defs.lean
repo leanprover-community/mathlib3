@@ -9,6 +9,9 @@ import logic.unique
 /-!
 # Equivalence between types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two types:
 
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
@@ -117,10 +120,10 @@ initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm, e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
-@[simp]
+@[simp, transport_simps, mfld_simps]
 lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 
-@[simp]
+@[simp, mfld_simps]
 lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
 protected theorem injective (e : α ≃ β) : injective e := equiv_like.injective e
@@ -136,13 +139,11 @@ e.symm.injective.subsingleton
 lemma subsingleton_congr (e : α ≃ β) : subsingleton α ↔ subsingleton β :=
 ⟨λ h, by exactI e.symm.subsingleton, λ h, by exactI e.subsingleton⟩
 
-instance equiv_subsingleton_cod [subsingleton β] :
-  subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
+instance equiv_subsingleton_cod [subsingleton β] : subsingleton (α ≃ β) :=
+fun_like.subsingleton_cod
 
-instance equiv_subsingleton_dom [subsingleton α] :
-  subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
+instance equiv_subsingleton_dom [subsingleton α] : subsingleton (α ≃ β) :=
+equiv_like.subsingleton_dom
 
 instance perm_unique [subsingleton α] : unique (perm α) :=
 unique_of_subsingleton (equiv.refl α)
@@ -188,10 +189,11 @@ theorem refl_apply (x : α) : equiv.refl α x = x := rfl
 
 theorem trans_apply (f : α ≃ β) (g : β ≃ γ) (a : α) : (f.trans g) a = g (f a) := rfl
 
-@[simp] theorem apply_symm_apply  (e : α ≃ β) (x : β) : e (e.symm x) = x :=
+@[simp, equiv_rw_simp] theorem apply_symm_apply  (e : α ≃ β) (x : β) : e (e.symm x) = x :=
 e.right_inv x
 
-@[simp] theorem symm_apply_apply (e : α ≃ β) (x : α) : e.symm (e x) = x :=
+@[simp, equiv_rw_simp, transport_simps]
+theorem symm_apply_apply (e : α ≃ β) (x : α) : e.symm (e x) = x :=
 e.left_inv x
 
 @[simp] theorem symm_comp_self (e : α ≃ β) : e.symm ∘ e = id := funext e.symm_apply_apply
@@ -207,6 +209,7 @@ e.left_inv x
 
 theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
 
+@[transport_simps]
 theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
   f x = y ↔ x = f.symm y :=
 begin
@@ -233,7 +236,7 @@ lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
 lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 (eq_comm.trans e.symm_apply_eq).trans eq_comm
 
-@[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by { cases e, refl }
+@[simp, equiv_rw_simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by { cases e, refl }
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
 
@@ -410,7 +413,7 @@ A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
 The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
 because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
 -/
-@[congr, simps apply]
+@[congr, simps apply { attrs := [`simp, `transport_simps] }]
 def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
 
@@ -637,7 +640,8 @@ def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*
 (sigma_congr_right F).trans (sigma_congr_left f)
 
 /-- `sigma` type with a constant fiber is equivalent to the product. -/
-@[simps apply symm_apply] def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
+@[simps apply symm_apply { attrs := [`simp, `mfld_simps] }]
+def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 /-- If each fiber of a `sigma` type is equivalent to a fixed type, then the sigma type

@@ -8,6 +8,9 @@ import analysis.normed.group.basic
 /-!
 # Negation on spheres and balls
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `has_involutive_neg` instances for spheres, open balls, and closed balls in a
 semi normed group.
 -/

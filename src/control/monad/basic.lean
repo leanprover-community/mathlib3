@@ -9,6 +9,9 @@ import tactic.basic
 /-!
 # Monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Attributes
 
  * ext
@@ -35,11 +38,7 @@ functor, applicative, monad, simp
 
 -/
 
-mk_simp_attribute monad_norm none with functor_norm
-
 attribute [ext] reader_t.ext state_t.ext except_t.ext option_t.ext
-attribute [functor_norm]   bind_assoc pure_bind bind_pure
-attribute [monad_norm] seq_eq_bind_map
 universes u v
 
 @[monad_norm]

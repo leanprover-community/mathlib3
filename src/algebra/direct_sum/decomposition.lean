@@ -9,6 +9,9 @@ import algebra.module.submodule.basic
 /-!
 # Decompositions of additive monoids, groups, and modules into direct sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `direct_sum.decomposition ℳ`: A typeclass to provide a constructive decomposition from

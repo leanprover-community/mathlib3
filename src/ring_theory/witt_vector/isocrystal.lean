@@ -10,6 +10,9 @@ import ring_theory.witt_vector.frobenius_fraction_field
 
 ## F-isocrystals over a perfect field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `k` is an integral domain, so is `𝕎 k`, and we can consider its field of fractions `K(p, k)`.
 The endomorphism `witt_vector.frobenius` lifts to `φ : K(p, k) → K(p, k)`; if `k` is perfect, `φ` is
 an automorphism.
@@ -183,7 +186,7 @@ begin
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,
   let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V,
-  { refine linear_equiv.of_bijective F₀ _ _,
+  { refine linear_equiv.of_bijective F₀ ⟨_, _⟩,
     { rw ← linear_map.ker_eq_bot,
       exact linear_map.ker_to_span_singleton K(p, k) V hx },
     { rw ← linear_map.range_eq_top,

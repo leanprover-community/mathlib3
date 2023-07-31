@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import control.monad.basic
 import control.uliftable
 import data.bitvec.basic
-import data.int.basic
 import data.stream.defs
 import tactic.norm_num
 
 
 /-!
 # Rand Monad and Random Class
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides tools for formulating computations guided by randomness and for
 defining objects that can be created randomly.

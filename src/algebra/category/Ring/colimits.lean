@@ -5,10 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.category.Ring.basic
 import category_theory.limits.has_limits
-import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of commutative rings has all colimits.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 It is a very uniform approach, that conceivably could be synthesised directly

@@ -9,6 +9,9 @@ import group_theory.group_action.defs
 /-!
 # Pi instances for multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for mul_action and related structures on Pi types.
 
 ## See also
@@ -35,16 +38,20 @@ instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_smul (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
+@[to_additive]
 instance is_scalar_tower {α β : Type*}
   [has_smul α β] [Π i, has_smul β $ f i] [Π i, has_smul α $ f i]
   [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x y (z i)⟩
 
+@[to_additive]
 instance is_scalar_tower' {g : I → Type*} {α : Type*}
   [Π i, has_smul α $ f i] [Π i, has_smul (f i) (g i)] [Π i, has_smul α $ g i]
   [Π i, is_scalar_tower α (f i) (g i)] : is_scalar_tower α (Π i : I, f i) (Π i : I, g i) :=
 ⟨λ x y z, funext $ λ i, smul_assoc x (y i) (z i)⟩
 
+@[to_additive]
 instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
   [Π i, has_smul (f i) (g i)] [Π i, has_smul (g i) (h i)] [Π i, has_smul (f i) (h i)]
   [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
@@ -68,6 +75,7 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
+@[to_additive]
 instance {α : Type*} [Π i, has_smul α $ f i] [Π i, has_smul αᵐᵒᵖ $ f i]
   [∀ i, is_central_scalar α (f i)] : is_central_scalar α (Π i, f i) :=
 ⟨λ r m, funext $ λ i, op_smul_eq_smul _ _⟩

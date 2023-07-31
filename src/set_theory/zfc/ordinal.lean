@@ -9,6 +9,9 @@ import set_theory.zfc.basic
 /-!
 # Von Neumann ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
 under `∈`. We currently only have an initial development of transitive sets.
 
@@ -35,7 +38,7 @@ namespace Set
 /-- A transitive set is one where every element is a subset. -/
 def is_transitive (x : Set) : Prop := ∀ y ∈ x, y ⊆ x
 
-@[simp] theorem empty_is_transitive : is_transitive ∅ := λ y hy, (mem_empty y hy).elim
+@[simp] theorem empty_is_transitive : is_transitive ∅ := λ y hy, (not_mem_empty y hy).elim
 
 theorem is_transitive.subset_of_mem (h : x.is_transitive) : y ∈ x → y ⊆ x := h y
 
@@ -59,6 +62,19 @@ theorem is_transitive.sUnion' (H : ∀ y ∈ x, is_transitive y) : (⋃₀ x).is
   rcases mem_sUnion.1 hy with ⟨w, hw, hw'⟩,
   exact mem_sUnion_of_mem ((H w hw).mem_trans hz hw') hw
 end
+
+protected theorem is_transitive.union (hx : x.is_transitive) (hy : y.is_transitive) :
+  (x ∪ y).is_transitive :=
+begin
+  rw ←sUnion_pair,
+  apply is_transitive.sUnion' (λ z, _),
+  rw mem_pair,
+  rintro (rfl | rfl),
+  assumption'
+end
+
+protected theorem is_transitive.powerset (h : x.is_transitive) : (powerset x).is_transitive :=
+λ y hy z hz, by { rw mem_powerset at ⊢ hy, exact h.subset_of_mem (hy hz) }
 
 theorem is_transitive_iff_sUnion_subset : x.is_transitive ↔ ⋃₀ x ⊆ x :=
 ⟨λ h y hy, by { rcases mem_sUnion.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },

@@ -3,8 +3,8 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import control.traversable.equiv
-import data.vector.basic
+import data.fin.basic
+import data.list.basic
 
 universes u v w
 
@@ -268,34 +268,5 @@ variables {n : ℕ} {α : Type u} {i : fin n} {f : α → α → α} {a₁ a₂ 
 read_foreach
 
 end map₂
-
-end array
-
-namespace equiv
-
-/-- The natural equivalence between length-`n` heterogeneous arrays
-and dependent functions from `fin n`. -/
-def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
-⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
-
-/-- The natural equivalence between length-`n` arrays and functions from `fin n`. -/
-def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
-d_array_equiv_fin _
-
-/-- The natural equivalence between length-`n` vectors and length-`n` arrays. -/
-def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
-(vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
-
-end equiv
-
-namespace array
-open function
-variable {n : ℕ}
-
-instance : traversable (array n) :=
-@equiv.traversable (flip vector n) _ (λ α, equiv.vector_equiv_array α n) _
-
-instance : is_lawful_traversable (array n) :=
-@equiv.is_lawful_traversable (flip vector n) _ (λ α, equiv.vector_equiv_array α n) _ _
 
 end array

@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.fin.vec_notation
 import field_theory.finite.polynomial
 import number_theory.basic
 import ring_theory.witt_vector.witt_polynomial
 
 /-!
 # Witt structure polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the main theorem that makes the whole theory of Witt vectors work.
 Briefly, consider a polynomial `Φ : mv_polynomial idx ℤ` over the integers,

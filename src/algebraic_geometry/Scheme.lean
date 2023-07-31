@@ -9,6 +9,9 @@ import algebra.category.Ring.constructions
 /-!
 # The category of schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A scheme is a locally ringed space such that every point is contained in some open set
 where there is an isomorphism of presheaves between the restriction to that open set,
 and the structure sheaf of `Spec R`, for some commutative ring `R`.
@@ -155,7 +158,11 @@ Spec.LocallyRingedSpace_map_comp f g
 /--
 The spectrum, as a contravariant functor from commutative rings to schemes.
 -/
-@[simps] def Spec : CommRingᵒᵖ ⥤ Scheme :=
+-- TODO: make either `Spec_obj` or `Spec.obj` the simp-normal form. `LocallyRingedSpace_obj` is
+-- the simp-normal form of `toLocallyRingedSpace.obj`, but adding `simps` here without `attrs := []`
+-- for the same effect caused problems in mathlib4.
+@[simps {attrs := []}]
+def Spec : CommRingᵒᵖ ⥤ Scheme :=
 { obj := λ R, Spec_obj (unop R),
   map := λ R S f, Spec_map f.unop,
   map_id' := λ R, by rw [unop_id, Spec_map_id],
@@ -212,7 +219,7 @@ RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
 
 @[simp]
 lemma basic_open_res (i : op U ⟶ op V) :
-  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+  X.basic_open (X.presheaf.map i f) = V ⊓ X.basic_open f :=
 RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
@@ -221,8 +228,9 @@ lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
   X.basic_open (X.presheaf.map i f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i f
 
-lemma basic_open_subset : X.basic_open f ⊆ U :=
-RingedSpace.basic_open_subset _ _
+@[sheaf_restrict]
+lemma basic_open_le : X.basic_open f ≤ U :=
+RingedSpace.basic_open_le _ _
 
 @[simp]
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
@@ -232,7 +240,7 @@ lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
 LocallyRingedSpace.preimage_basic_open f r
 
 @[simp]
-lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ⊥ :=
 LocallyRingedSpace.basic_open_zero _ U
 
 @[simp]

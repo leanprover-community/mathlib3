@@ -11,6 +11,9 @@ import number_theory.bernoulli
 /-!
 # Bernoulli polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The [Bernoulli polynomials](https://en.wikipedia.org/wiki/Bernoulli_polynomials)
 are an important tool obtained from Bernoulli numbers.
 
@@ -196,7 +199,7 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 -- TODO: define exponential generating functions, and use them here
 -- This name should probably be updated afterwards
 
-/-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
+/-- The theorem that $(e^X - 1) * ∑ Bₙ(t)* X^n/n! = Xe^{tX}$ -/
 theorem bernoulli_generating_function (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) =
     power_series.X * rescale t (exp A) :=

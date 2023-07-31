@@ -8,6 +8,9 @@ import data.finset.locally_finite
 /-!
 # Finite intervals of naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that `ℕ` is a `locally_finite_order` and calculates the cardinality of its
 intervals as finsets and fintypes.
 
@@ -62,6 +65,8 @@ lemma Icc_eq_range' : Icc a b = ⟨list.range' a (b + 1 - a), list.nodup_range' 
 lemma Ico_eq_range' : Ico a b = ⟨list.range' a (b - a), list.nodup_range' _ _⟩ := rfl
 lemma Ioc_eq_range' : Ioc a b = ⟨list.range' (a + 1) (b - a), list.nodup_range' _ _⟩ := rfl
 lemma Ioo_eq_range' : Ioo a b = ⟨list.range' (a + 1) (b - a - 1), list.nodup_range' _ _⟩ := rfl
+lemma uIcc_eq_range' :
+  uIcc a b = ⟨list.range' (min a b) (max a b + 1 - min a b), list.nodup_range' _ _⟩ := rfl
 
 lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 
@@ -73,6 +78,18 @@ lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 @[simp] lemma card_Ico : (Ico a b).card = b - a := list.length_range' _ _
 @[simp] lemma card_Ioc : (Ioc a b).card = b - a := list.length_range' _ _
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 := list.length_range' _ _
+
+@[simp] lemma card_uIcc : (uIcc a b).card = (b - a : ℤ).nat_abs + 1 :=
+begin
+  refine (card_Icc _ _).trans (int.coe_nat_inj _),
+  rw [sup_eq_max, inf_eq_min, int.coe_nat_sub],
+  { rw [add_comm, int.coe_nat_add, add_sub_assoc],
+    norm_cast,
+    push_cast,
+    rw [max_sub_min_eq_abs, add_comm] },
+  { exact min_le_max.trans le_self_add }
+end
+
 @[simp] lemma card_Iic : (Iic b).card = b + 1 :=
 by rw [Iic_eq_Icc, card_Icc, bot_eq_zero, tsub_zero]
 
@@ -256,3 +273,42 @@ begin
 end
 
 end finset
+
+section induction
+
+variables {P : ℕ → Prop} (h : ∀ n, P (n + 1) → P n)
+
+include h
+
+lemma nat.decreasing_induction_of_not_bdd_above (hP : ¬ bdd_above {x | P x}) (n : ℕ) : P n :=
+let ⟨m, hm, hl⟩ := not_bdd_above_iff.1 hP n in decreasing_induction h hl.le hm
+
+lemma nat.decreasing_induction_of_infinite (hP : {x | P x}.infinite) (n : ℕ) : P n :=
+nat.decreasing_induction_of_not_bdd_above h (mt bdd_above.finite hP) n
+
+lemma nat.cauchy_induction' (seed : ℕ) (hs : P seed)
+  (hi : ∀ x, seed ≤ x → P x → ∃ y, x < y ∧ P y) (n : ℕ) : P n :=
+begin
+  apply nat.decreasing_induction_of_infinite h (λ hf, _),
+  obtain ⟨m, hP, hm⟩ := hf.exists_maximal_wrt id _ ⟨seed, hs⟩,
+  obtain ⟨y, hl, hy⟩ := hi m (le_of_not_lt $ λ hl, hl.ne $ hm seed hs hl.le) hP,
+  exact hl.ne (hm y hy hl.le),
+end
+
+lemma nat.cauchy_induction (seed : ℕ) (hs : P seed) (f : ℕ → ℕ)
+  (hf : ∀ x, seed ≤ x → P x → x < f x ∧ P (f x)) (n : ℕ) : P n :=
+seed.cauchy_induction' h hs (λ x hl hx, ⟨f x, hf x hl hx⟩) n
+
+lemma nat.cauchy_induction_mul (k seed : ℕ) (hk : 1 < k) (hs : P seed.succ)
+  (hm : ∀ x, seed < x → P x → P (k * x)) (n : ℕ) : P n :=
+begin
+  apply nat.cauchy_induction h _ hs ((*) k) (λ x hl hP, ⟨_, hm x hl hP⟩),
+  convert (mul_lt_mul_right $ seed.succ_pos.trans_le hl).2 hk,
+  rw one_mul,
+end
+
+lemma nat.cauchy_induction_two_mul (seed : ℕ) (hs : P seed.succ)
+  (hm : ∀ x, seed < x → P x → P (2 * x)) (n : ℕ) : P n :=
+nat.cauchy_induction_mul h 2 seed one_lt_two hs hm n
+
+end induction

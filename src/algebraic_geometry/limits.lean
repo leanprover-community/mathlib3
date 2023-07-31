@@ -5,11 +5,12 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.pullbacks
 import algebraic_geometry.AffineScheme
-import category_theory.limits.constructions.finite_products_of_binary_products
-import category_theory.limits.constructions.equalizers
 
 /-!
 # (Co)Limits of Schemes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct various limits and colimits in the category of schemes.
 

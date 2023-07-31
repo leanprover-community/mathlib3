@@ -10,6 +10,9 @@ import algebraic_topology.fundamental_groupoid.product
 /-!
 # Homotopic maps induce naturally isomorphic functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
   - `fundamental_groupoid_functor.homotopic_maps_nat_iso H` The natural isomorphism

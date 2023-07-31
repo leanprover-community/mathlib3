@@ -9,6 +9,9 @@ import ring_theory.noetherian
 /-!
 # Lie submodules of a Lie algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define Lie submodules and Lie ideals, we construct the lattice structure on Lie
 submodules and we use it to define various important operations, notably the Lie span of a subset
 of a Lie module.
@@ -116,7 +119,7 @@ protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
   (S.copy s hs : set M) = s := rfl
 
 lemma copy_eq (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
-coe_submodule_injective (set_like.coe_injective hs)
+set_like.coe_injective hs
 
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
@@ -584,7 +587,7 @@ by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_subm
 lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
 by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
   lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
-  ← submodule.disjoint_iff_comap_eq_bot]
+  ← submodule.disjoint_iff_comap_eq_bot, disjoint_iff]
 
 end lie_submodule
 

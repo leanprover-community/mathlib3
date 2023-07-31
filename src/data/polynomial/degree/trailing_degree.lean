@@ -3,11 +3,14 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.nat.enat
+import data.enat.basic
 import data.polynomial.degree.definitions
 
 /-!
 # Trailing degree of univariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -273,7 +276,7 @@ end
 
 lemma le_trailing_degree_mul : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
-  refine le_min (λ n hn, _),
+  refine finset.le_min (λ n hn, _),
   rw [mem_support_iff, coeff_mul] at hn,
   obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
   refine (add_le_add (min_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))

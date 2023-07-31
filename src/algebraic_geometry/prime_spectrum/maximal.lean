@@ -10,6 +10,9 @@ import ring_theory.localization.as_subring
 /-!
 # Maximal spectrum of a commutative ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The maximal spectrum of a commutative ring is the type of all maximal ideals.
 It is naturally a subset of the prime spectrum endowed with the subspace topology.
 
@@ -43,14 +46,14 @@ variable {R}
 namespace maximal_spectrum
 
 instance [nontrivial R] : nonempty $ maximal_spectrum R :=
-⟨⟨(ideal.exists_maximal R).some, (ideal.exists_maximal R).some_spec⟩⟩
+let ⟨I, hI⟩ := ideal.exists_maximal R in ⟨⟨I, hI⟩⟩
 
 /-- The natural inclusion from the maximal spectrum to the prime spectrum. -/
 def to_prime_spectrum (x : maximal_spectrum R) : prime_spectrum R :=
 ⟨x.as_ideal, x.is_maximal.is_prime⟩
 
 lemma to_prime_spectrum_injective : (@to_prime_spectrum R _).injective :=
-λ ⟨_, _⟩ ⟨_, _⟩ h, by simpa only [maximal_spectrum.mk.inj_eq] using subtype.mk.inj h
+λ ⟨_, _⟩ ⟨_, _⟩ h, by simpa only [mk.inj_eq] using (prime_spectrum.ext_iff _ _).mp h
 
 open prime_spectrum set
 

@@ -6,11 +6,13 @@ Authors: Kenny Lau, Wrenna Robson
 
 import algebra.big_operators.basic
 import linear_algebra.vandermonde
-import logic.lemmas
 import ring_theory.polynomial.basic
 
 /-!
 # Lagrange interpolation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 * In everything that follows, `s : finset ι` is a finite set of indexes, with `v : ι → F` an

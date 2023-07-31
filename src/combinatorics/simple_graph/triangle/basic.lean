@@ -8,6 +8,9 @@ import combinatorics.simple_graph.clique
 /-!
 # Triangles in graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A *triangle* in a simple graph is a `3`-clique, namely a set of three vertices that are
 pairwise adjacent.
 

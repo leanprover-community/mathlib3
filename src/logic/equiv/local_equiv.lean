@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Local equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines equivalences between subsets of given types.
 An element `e` of `local_equiv α β` is made of two maps `e.to_fun` and `e.inv_fun` respectively
 from α to β and from  β to α (just like equivs), which are inverse to each other on the subsets
@@ -64,29 +67,6 @@ If a lemma deals with the intersection of a set with either source or target of 
 then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or `t ∩ e.target`.
 
 -/
-
-mk_simp_attribute mfld_simps "The simpset `mfld_simps` records several simp lemmas that are
-especially useful in manifolds. It is a subset of the whole set of simp lemmas, but it makes it
-possible to have quicker proofs (when used with `squeeze_simp` or `simp only`) while retaining
-readability.
-
-The typical use case is the following, in a file on manifolds:
-If `simp [foo, bar]` is slow, replace it with `squeeze_simp [foo, bar] with mfld_simps` and paste
-its output. The list of lemmas should be reasonable (contrary to the output of
-`squeeze_simp [foo, bar]` which might contain tens of lemmas), and the outcome should be quick
-enough.
-"
-
--- register in the simpset `mfld_simps` several lemmas that are often useful when dealing
--- with manifolds
-attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
-set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_iff set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self
-eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
-not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true prod.map_mk
-set.preimage_inter heq_iff_eq equiv.sigma_equiv_prod_apply equiv.sigma_equiv_prod_symm_apply
-subtype.coe_mk equiv.to_fun_as_coe equiv.inv_fun_as_coe
 
 /-- Common `@[simps]` configuration options used for manifold-related declarations. -/
 def mfld_cfg : simps_cfg := {attrs := [`simp, `mfld_simps], fully_applied := ff}
@@ -220,7 +200,7 @@ def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α)
   left_inv' := λ x, hs ▸ hf ▸ hg ▸ e.left_inv,
   right_inv' := λ x, ht ▸ hf ▸ hg ▸ e.right_inv }
 
-lemma copy_eq_self (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+lemma copy_eq (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   e.copy f hf g hg s hs t ht = e :=
 by { substs f g s t, cases e, refl }
@@ -552,7 +532,7 @@ We modify the source and target to have better definitional behavior. -/
   (univ_inter _)
 
 lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- Precompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/
@@ -562,7 +542,7 @@ We modify the source and target to have better definitional behavior. -/
 
 lemma _root_.equiv.trans_local_equiv_eq_trans (e : α ≃ β) :
   e.trans_local_equiv e' = e.to_local_equiv.trans e' :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
@@ -742,7 +722,7 @@ lemma disjoint_union_eq_piecewise (e e' : local_equiv α β) (hs : disjoint e.so
   [∀ y, decidable (y ∈ e.target)] :
   e.disjoint_union e' hs ht = e.piecewise e' e.source e.target e.is_image_source_target
     (e'.is_image_source_target_of_disjoint _ hs.symm ht.symm) :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 section pi
 

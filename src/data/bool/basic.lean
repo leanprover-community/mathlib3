@@ -7,6 +7,9 @@ Authors: Leonardo de Moura, Jeremy Avigad
 /-!
 # booleans
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves various trivial lemmas about booleans and their
 relation to decidable propositions.
 
@@ -50,7 +53,7 @@ eq_comm.trans of_to_bool_iff
 @[simp] lemma ff_eq_to_bool_iff {p : Prop} [decidable p] : ff = to_bool p ↔ ¬ p :=
 eq_comm.trans (to_bool_ff_iff _)
 
-@[simp] theorem to_bool_not (p : Prop) [decidable p] : to_bool (¬ p) = bnot (to_bool p) :=
+@[simp] theorem to_bool_not (p : Prop) [decidable p] : to_bool (¬ p) = !(to_bool p) :=
 by by_cases p; simp *
 
 @[simp] theorem to_bool_and (p q : Prop) [decidable p] [decidable q] :
@@ -137,9 +140,12 @@ lemma band_bor_distrib_right (a b c : bool) : (a || b) && c = a && c || b && c :
 lemma bor_band_distrib_left (a b c : bool) : a || b && c = (a || b) && (a || c) := by cases a; simp
 lemma bor_band_distrib_right (a b c : bool) : a && b || c = (a || c) && (b || c) := by cases c; simp
 
-@[simp] theorem bnot_false : bnot ff = tt := rfl
+@[simp] theorem bnot_ff : !ff = tt := rfl
 
-@[simp] theorem bnot_true : bnot tt = ff := rfl
+@[simp] theorem bnot_tt : !tt = ff := rfl
+
+lemma eq_bnot_iff : ∀ {a b : bool}, a = !b ↔ a ≠ b := dec_trivial
+lemma bnot_eq_iff : ∀ {a b : bool}, !a = b ↔ a ≠ b := dec_trivial
 
 @[simp] lemma not_eq_bnot : ∀ {a b : bool}, ¬a = !b ↔ a = b := dec_trivial
 @[simp] lemma bnot_not_eq : ∀ {a b : bool}, ¬!a = b ↔ a = b := dec_trivial
@@ -147,11 +153,16 @@ lemma bor_band_distrib_right (a b c : bool) : a && b || c = (a || c) && (b || c)
 lemma ne_bnot {a b : bool} : a ≠ !b ↔ a = b := not_eq_bnot
 lemma bnot_ne {a b : bool} : !a ≠ b ↔ a = b := bnot_not_eq
 
+lemma bnot_ne_self : ∀ b : bool, !b ≠ b := dec_trivial
+lemma self_ne_bnot : ∀ b : bool, b ≠ !b := dec_trivial
+
+lemma eq_or_eq_bnot : ∀ a b, a = b ∨ a = !b := dec_trivial
+
 @[simp] theorem bnot_iff_not : ∀ {b : bool}, !b ↔ ¬b := dec_trivial
 
-theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_trivial
+theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, !a = ff → a = tt := dec_trivial
 
-theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
+theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, !a = tt → a = ff := dec_trivial
 
 @[simp] lemma band_bnot_self : ∀ x, x && !x = ff := dec_trivial
 @[simp] lemma bnot_band_self : ∀ x, !x && x = ff := dec_trivial

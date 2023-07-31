@@ -3,13 +3,14 @@ Copyright (c) 2022 Justin Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justin Thomas
 -/
-import data.set.basic
-import field_theory.minpoly
+import field_theory.minpoly.field
 import ring_theory.principal_ideal_domain
-import ring_theory.polynomial_algebra
 
 /-!
 # Annihilating Ideal
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a commutative ring `R` and an `R`-algebra `A`
 Every element `a : A` defines

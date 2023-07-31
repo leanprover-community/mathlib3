@@ -10,6 +10,9 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Definitions and basic properties of regular monomorphisms and epimorphisms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A regular monomorphism is a morphism that is the equalizer of some parallel pair.
 
 We give the constructions

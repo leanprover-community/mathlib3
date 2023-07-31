@@ -10,6 +10,9 @@ import tactic.tfae
 /-!
 # Inseparable points in a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `specializes` (notation: `x ⤳ y`) : a relation saying that `𝓝 x ≤ 𝓝 y`;
@@ -35,7 +38,7 @@ topological space, separation setoid
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y Z α ι : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [∀ i, topological_space (π i)] {x y z : X} {s : set X} {f : X → Y}
@@ -131,6 +134,8 @@ lemma specializes_rfl : x ⤳ x := le_rfl
 @[refl] lemma specializes_refl (x : X) : x ⤳ x := specializes_rfl
 
 @[trans] lemma specializes.trans : x ⤳ y → y ⤳ z → x ⤳ z := le_trans
+
+lemma specializes_of_eq (e : x = y) : x ⤳ y := e ▸ specializes_refl x
 
 lemma specializes_of_nhds_within (h₁ : 𝓝[s] x ≤ 𝓝[s] y) (h₂ : x ∈ s) : x ⤳ y :=
 specializes_iff_pure.2 $
@@ -256,6 +261,8 @@ namespace inseparable
 
 lemma rfl : x ~ x := refl x
 
+lemma of_eq (e : x = y) : inseparable x y := e ▸ refl x
+
 @[symm] lemma symm (h : x ~ y) : y ~ x := h.symm
 
 @[trans] lemma trans (h₁ : x ~ y) (h₂ : y ~ z) : x ~ z := h₁.trans h₂
@@ -377,5 +384,98 @@ is_open_map_mk.preimage_frontier_eq_frontier_preimage continuous_mk t
 lemma image_mk_closure : mk '' closure s = closure (mk '' s) :=
 (image_closure_subset_closure_image continuous_mk).antisymm $
   is_closed_map_mk.closure_image_subset _
+
+lemma map_prod_map_mk_nhds (x : X) (y : Y) : map (prod.map mk mk) (𝓝 (x, y)) = 𝓝 (mk x, mk y) :=
+by rw [nhds_prod_eq, ← prod_map_map_eq', map_mk_nhds, map_mk_nhds, nhds_prod_eq]
+
+lemma map_mk_nhds_within_preimage (s : set (separation_quotient X)) (x : X) :
+  map mk (𝓝[mk ⁻¹' s] x) = 𝓝[s] (mk x) :=
+by rw [nhds_within, ← comap_principal, filter.push_pull, nhds_within, map_mk_nhds]
+
+/-- Lift a map `f : X → α` such that `inseparable x y → f x = f y` to a map
+`separation_quotient X → α`. -/
+def lift (f : X → α) (hf : ∀ x y, x ~ y → f x = f y) : separation_quotient X → α :=
+λ x, quotient.lift_on' x f hf
+
+@[simp] lemma lift_mk {f : X → α} (hf : ∀ x y, x ~ y → f x = f y) (x : X) :
+  lift f hf (mk x) = f x := rfl
+
+@[simp] lemma lift_comp_mk {f : X → α} (hf : ∀ x y, x ~ y → f x = f y) : lift f hf ∘ mk = f := rfl
+
+@[simp] lemma tendsto_lift_nhds_mk {f : X → α} {hf : ∀ x y, x ~ y → f x = f y} {x : X}
+  {l : filter α} : tendsto (lift f hf) (𝓝 $ mk x) l ↔ tendsto f (𝓝 x) l :=
+by simp only [← map_mk_nhds, tendsto_map'_iff, lift_comp_mk]
+
+@[simp] lemma tendsto_lift_nhds_within_mk {f : X → α} {hf : ∀ x y, x ~ y → f x = f y} {x : X}
+  {s : set (separation_quotient X)} {l : filter α} :
+  tendsto (lift f hf) (𝓝[s] (mk x)) l ↔ tendsto f (𝓝[mk ⁻¹' s] x) l :=
+by simp only [← map_mk_nhds_within_preimage, tendsto_map'_iff, lift_comp_mk]
+
+@[simp] lemma continuous_at_lift {f : X → Y} {hf : ∀ x y, x ~ y → f x = f y} {x : X} :
+  continuous_at (lift f hf) (mk x) ↔ continuous_at f x :=
+tendsto_lift_nhds_mk
+
+@[simp] lemma continuous_within_at_lift {f : X → Y} {hf : ∀ x y, x ~ y → f x = f y}
+  {s : set (separation_quotient X)} {x : X} :
+  continuous_within_at (lift f hf) s (mk x) ↔ continuous_within_at f (mk ⁻¹' s) x :=
+tendsto_lift_nhds_within_mk
+
+@[simp] lemma continuous_on_lift {f : X → Y} {hf : ∀ x y, x ~ y → f x = f y}
+  {s : set (separation_quotient X)} :
+  continuous_on (lift f hf) s ↔ continuous_on f (mk ⁻¹' s) :=
+by simp only [continuous_on, surjective_mk.forall, continuous_within_at_lift, mem_preimage]
+
+@[simp] lemma continuous_lift {f : X → Y} {hf : ∀ x y, x ~ y → f x = f y} :
+  continuous (lift f hf) ↔ continuous f :=
+by simp only [continuous_iff_continuous_on_univ, continuous_on_lift, preimage_univ]
+
+/-- Lift a map `f : X → Y → α` such that `inseparable a b → inseparable c d → f a c = f b d` to a
+map `separation_quotient X → separation_quotient Y → α`. -/
+def lift₂ (f : X → Y → α) (hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d) :
+  separation_quotient X → separation_quotient Y → α :=
+λ x y, quotient.lift_on₂' x y f hf
+
+@[simp] lemma lift₂_mk {f : X → Y → α} (hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d) (x : X)
+  (y : Y) : lift₂ f hf (mk x) (mk y) = f x y :=
+rfl
+
+@[simp] lemma tendsto_lift₂_nhds {f : X → Y → α} {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d}
+  {x : X} {y : Y} {l : filter α} :
+  tendsto (uncurry $ lift₂ f hf) (𝓝 (mk x, mk y)) l ↔ tendsto (uncurry f) (𝓝 (x, y)) l :=
+by { rw [← map_prod_map_mk_nhds, tendsto_map'_iff], refl }
+
+@[simp] lemma tendsto_lift₂_nhds_within {f : X → Y → α}
+  {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d} {x : X} {y : Y}
+  {s : set (separation_quotient X × separation_quotient Y)} {l : filter α} :
+  tendsto (uncurry $ lift₂ f hf) (𝓝[s] (mk x, mk y)) l ↔
+    tendsto (uncurry f) (𝓝[prod.map mk mk ⁻¹' s] (x, y)) l :=
+by { rw [nhds_within, ← map_prod_map_mk_nhds, ← filter.push_pull, comap_principal], refl }
+
+@[simp] lemma continuous_at_lift₂ {f : X → Y → Z} {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d}
+  {x : X} {y : Y} :
+  continuous_at (uncurry $ lift₂ f hf) (mk x, mk y) ↔ continuous_at (uncurry f) (x, y) :=
+tendsto_lift₂_nhds
+
+@[simp] lemma continuous_within_at_lift₂ {f : X → Y → Z}
+  {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d}
+  {s : set (separation_quotient X × separation_quotient Y)} {x : X} {y : Y} :
+  continuous_within_at (uncurry $ lift₂ f hf) s (mk x, mk y) ↔
+    continuous_within_at (uncurry f) (prod.map mk mk ⁻¹' s) (x, y) :=
+tendsto_lift₂_nhds_within
+
+@[simp] lemma continuous_on_lift₂ {f : X → Y → Z}
+  {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d}
+  {s : set (separation_quotient X × separation_quotient Y)} :
+  continuous_on (uncurry $ lift₂ f hf) s ↔ continuous_on (uncurry f) (prod.map mk mk ⁻¹' s) :=
+begin
+  simp_rw [continuous_on, (surjective_mk.prod_map surjective_mk).forall, prod.forall, prod.map,
+    continuous_within_at_lift₂],
+  refl
+end
+
+@[simp] lemma continuous_lift₂ {f : X → Y → Z}
+  {hf : ∀ a b c d, a ~ c → b ~ d → f a b = f c d} :
+  continuous (uncurry $ lift₂ f hf) ↔ continuous (uncurry f) :=
+by simp only [continuous_iff_continuous_on_univ, continuous_on_lift₂, preimage_univ]
 
 end separation_quotient

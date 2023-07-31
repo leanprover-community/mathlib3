@@ -11,6 +11,9 @@ import category_theory.types
 /-!
 # The sheaf condition in terms of unique gluings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide an alternative formulation of the sheaf condition in terms of unique gluings.
 
 We work with sheaves valued in a concrete category `C` admitting all limits, whose forgetful
@@ -97,7 +100,7 @@ For presheaves of types, terms of `pi_opens F U` are just families of sections.
 def pi_opens_iso_sections_family : pi_opens F U ≅ Π i : ι, F.obj (op (U i)) :=
 limits.is_limit.cone_point_unique_up_to_iso
   (limit.is_limit (discrete.functor (λ i : ι, F.obj (op (U i)))))
-  ((types.product_limit_cone (λ i : ι, F.obj (op (U i)))).is_limit)
+  ((types.product_limit_cone.{v v} (λ i : ι, F.obj (op (U i)))).is_limit)
 
 /--
 Under the isomorphism `pi_opens_iso_sections_family`, compatibility of sections is the same

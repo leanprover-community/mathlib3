@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
+import algebra.order.field.power
+import algebra.order.hom.basic
+import data.nat.factorial.basic
 
 /-! # `positivity` tactic
-αᵒᵈ βᵒᵈ
+
 The `positivity` tactic in this file solves goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The
 tactic works recursively according to the syntax of the expression `x`.  For example, a goal of the
 form `0 ≤ 3 * a ^ 2 + b * c` can be solved either
@@ -345,9 +348,55 @@ add_tactic_doc
 
 end interactive
 
-variables {α R : Type*}
+variables {ι α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
+
+section ite
+variables [has_zero α] {p : Prop} [decidable p] {a b : α}
+
+private lemma ite_pos [has_lt α] (ha : 0 < a) (hb : 0 < b) : 0 < ite p a b :=
+by by_cases p; simp [*]
+
+private lemma ite_nonneg [has_le α] (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ ite p a b :=
+by by_cases p; simp [*]
+
+private lemma ite_nonneg_of_pos_of_nonneg [preorder α] (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ ite p a b :=
+ite_nonneg ha.le hb
+
+private lemma ite_nonneg_of_nonneg_of_pos [preorder α] (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ ite p a b :=
+ite_nonneg ha hb.le
+
+private lemma ite_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : ite p a b ≠ 0 := by by_cases p; simp [*]
+
+private lemma ite_ne_zero_of_pos_of_ne_zero [preorder α] (ha : 0 < a) (hb : b ≠ 0) :
+  ite p a b ≠ 0 :=
+ite_ne_zero ha.ne' hb
+
+private lemma ite_ne_zero_of_ne_zero_of_pos [preorder α] (ha : a ≠ 0) (hb : 0 < b) :
+  ite p a b ≠ 0 :=
+ite_ne_zero ha hb.ne'
+
+end ite
+
+/-- Extension for the `positivity` tactic: the `if then else` of two numbers is
+positive/nonnegative/nonzero if both are. -/
+@[positivity]
+meta def positivity_ite : expr → tactic strictness
+| e@`(@ite %%typ %%p %%hp %%a %%b) := do
+  strictness_a ← core a,
+  strictness_b ← core b,
+  match strictness_a, strictness_b with
+  | positive pa, positive pb := positive <$> mk_app ``ite_pos [pa, pb]
+  | positive pa, nonnegative pb := nonnegative <$> mk_app ``ite_nonneg_of_pos_of_nonneg [pa, pb]
+  | nonnegative pa, positive pb := nonnegative <$> mk_app ``ite_nonneg_of_nonneg_of_pos [pa, pb]
+  | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``ite_nonneg [pa, pb]
+  | positive pa, nonzero pb := nonzero <$> to_expr ``(ite_ne_zero_of_pos_of_ne_zero %%pa %%pb)
+  | nonzero pa, positive pb := nonzero <$> to_expr ``(ite_ne_zero_of_ne_zero_of_pos %%pa %%pb)
+  | nonzero pa, nonzero pb := nonzero <$> to_expr ``(ite_ne_zero %%pa %%pb)
+  | sa@_, sb@ _ := positivity_fail e a b sa sb
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `ite p a b`"
 
 section linear_order
 variables [linear_order R] {a b c : R}
@@ -597,6 +646,19 @@ meta def positivity_pow : expr → tactic strictness
         end)
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a ^ n`"
 
+/-- Extension for the `positivity` tactic: raising a positive number in a canonically ordered
+semiring gives a positive number. -/
+@[positivity]
+meta def positivity_canon_pow : expr → tactic strictness
+| `(%%r ^ %%n) := do
+    typ_n ← infer_type n,
+    unify typ_n `(ℕ),
+    positive p ← core r,
+    positive <$> mk_app ``canonically_ordered_comm_semiring.pow_pos [p, n]
+    -- The nonzero never happens because of `tactic.positivity_canon`
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` is not of the form `a ^ n` for `a` in a `canonically_ordered_comm_semiring` and `n : ℕ`"
+
 private alias abs_pos ↔ _ abs_pos_of_ne_zero
 
 /-- Extension for the `positivity` tactic: an absolute value is nonnegative, and is strictly
@@ -704,18 +766,10 @@ meta def positivity_asc_factorial : expr → tactic strictness
 | e := pp e >>= fail ∘ format.bracket "The expression `"
          "` isn't of the form `nat.asc_factorial n k`"
 
-private lemma card_univ_pos (α : Type*) [fintype α] [nonempty α] :
-  0 < (finset.univ : finset α).card :=
-finset.univ_nonempty.card_pos
-
-/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
 @[positivity]
-meta def positivity_finset_card : expr → tactic strictness
-| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
-                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
-                          positive <$> mk_app ``finset.nonempty.card_pos [p]
-| `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
-| e := pp e >>= fail ∘ format.bracket "The expression `"
-    "` isn't of the form `finset.card s` or `fintype.card α`"
+meta def positivity_map : expr → tactic strictness
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+| _ := failed
 
 end tactic

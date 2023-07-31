@@ -9,6 +9,9 @@ import category_theory.types
 /-!
 # `Type u` is well-powered
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 By building a categorical equivalence `mono_over α ≌ set α` for any `α : Type u`,
 we deduce that `subobject α ≃o set α` and that `Type u` is well-powered.
 

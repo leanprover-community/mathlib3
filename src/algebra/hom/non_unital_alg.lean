@@ -3,10 +3,13 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.algebra.basic
+import algebra.algebra.hom
 
 /-!
 # Morphisms of non-unital algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines morphisms between two types, each of which carries:
  * an addition,
@@ -90,6 +93,15 @@ instance {F : Type*} [non_unital_alg_hom_class F R A B] : linear_map_class F R A
 { map_smulₛₗ := distrib_mul_action_hom_class.map_smul,
   ..‹non_unital_alg_hom_class F R A B› }
 
+instance {F R A B : Type*} [monoid R]
+  [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
+  [non_unital_alg_hom_class F R A B] : has_coe_t F (A →ₙₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_smul' := map_smul f,
+    .. (f : A →ₙ+* B) } }
+
 end non_unital_alg_hom_class
 
 namespace non_unital_alg_hom
@@ -105,6 +117,9 @@ instance : has_coe_to_fun (A →ₙₐ[R] B) (λ _, A → B) := ⟨to_fun⟩
 @[simp] lemma to_fun_eq_coe (f : A →ₙₐ[R] B) : f.to_fun = ⇑f := rfl
 
 initialize_simps_projections non_unital_alg_hom (to_fun → apply)
+
+@[simp, protected] lemma coe_coe {F : Type*} [non_unital_alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →ₙₐ[R] B) = f := rfl
 
 lemma coe_injective :
   @function.injective (A →ₙₐ[R] B) (A → B) coe_fn :=

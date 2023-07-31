@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Justus Springer
 -/
 import order.complete_lattice
+import data.fintype.lattice
 import category_theory.limits.shapes.pullbacks
 import category_theory.category.preorder
 import category_theory.limits.shapes.products
@@ -11,6 +12,9 @@ import category_theory.limits.shapes.finite_limits
 
 /-!
 # Limits in lattice categories are given by infimums and supremums.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes w u

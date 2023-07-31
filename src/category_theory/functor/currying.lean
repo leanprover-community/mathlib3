@@ -8,6 +8,9 @@ import category_theory.products.bifunctor
 /-!
 # Curry and uncurry, as functors.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E))` and `uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E)`,
 and verify that they provide an equivalence of categories
 `currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E)`.

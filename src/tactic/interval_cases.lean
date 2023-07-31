@@ -7,6 +7,7 @@ import tactic.fin_cases
 import data.fin.interval -- These imports aren't required to compile this file,
 import data.int.interval -- but they are needed at the use site for the tactic to work
 import data.pnat.interval -- (on values of type fin/int/pnat)
+import data.pnat.basic
 
 /-!
 # Case bash on variables in finite intervals
@@ -46,14 +47,14 @@ return that proof.
 -- We use `expr.to_rat` merely to decide if an `expr` is an explicit number.
 -- It would be more natural to use `expr.to_int`, but that hasn't been implemented.
 meta def gives_upper_bound (n e : expr) : tactic expr :=
-do t ← infer_type e,
+do t ← infer_type e >>= instantiate_mvars,
    match t with
    | `(%%n' < %%b) := do guard (n = n'), b ← b.to_rat, return e
    | `(%%b > %%n') := do guard (n = n'), b ← b.to_rat, return e
    | `(%%n' ≤ %%b) := do
       guard (n = n'),
       b ← b.to_rat,
-      tn ← infer_type n,
+      tn ← infer_type n >>= instantiate_mvars,
       match tn with
       | `(ℕ) := to_expr ``(nat.lt_add_one_iff.mpr %%e)
       | `(ℕ+) := to_expr ``(pnat.lt_add_one_iff.mpr %%e)
@@ -63,7 +64,7 @@ do t ← infer_type e,
    | `(%%b ≥ %%n') := do
       guard (n = n'),
       b ← b.to_rat,
-      tn ← infer_type n,
+      tn ← infer_type n >>= instantiate_mvars,
       match tn with
       | `(ℕ) := to_expr ``(nat.lt_add_one_iff.mpr %%e)
       | `(ℕ+) := to_expr ``(pnat.lt_add_one_iff.mpr %%e)
@@ -79,14 +80,14 @@ for some explicit `b`,
 return that proof.
 -/
 meta def gives_lower_bound (n e : expr) : tactic expr :=
-do t ← infer_type e,
+do t ← infer_type e >>= instantiate_mvars,
    match t with
    | `(%%n' ≥ %%b) := do guard (n = n'), b ← b.to_rat, return e
    | `(%%b ≤ %%n') := do guard (n = n'), b ← b.to_rat, return e
    | `(%%n' > %%b) := do
       guard (n = n'),
       b ← b.to_rat,
-      tn ← infer_type n,
+      tn ← infer_type n >>= instantiate_mvars,
       match tn with
       | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
       | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)
@@ -96,7 +97,7 @@ do t ← infer_type e,
    | `(%%b < %%n') := do
       guard (n = n'),
       b ← b.to_rat,
-      tn ← infer_type n,
+      tn ← infer_type n >>= instantiate_mvars,
       match tn with
       | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
       | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)

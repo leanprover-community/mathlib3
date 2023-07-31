@@ -12,6 +12,9 @@ import category_theory.subobject.comma
 /-!
 # Adjoint functor theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the (general) adjoint functor theorem, in the form:
 * If `G : D ⥤ C` preserves limits and `D` has limits, and satisfies the solution set condition,
   then it has a left adjoint: `is_right_adjoint_of_preserves_limits_of_solution_set_condition`.

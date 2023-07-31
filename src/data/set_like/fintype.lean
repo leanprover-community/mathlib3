@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.set_like.basic
-import data.fintype.basic
+import data.fintype.powerset
 /-!
 # Set-like fintype
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains a fintype instance for set-like objects such as subgroups. If `set_like A B`
 and `fintype B` then `fintype A`.

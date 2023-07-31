@@ -8,11 +8,15 @@ import algebra.homology.additive
 import algebraic_topology.Moore_complex
 import algebra.big_operators.fin
 import category_theory.preadditive.opposite
+import category_theory.idempotents.functor_categories
 import tactic.equiv_rw
 
 /-!
 
 # The alternating face map complex of a simplicial object in a preadditive category
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the alternating face map complex, as a
 functor `alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ`
@@ -34,7 +38,7 @@ when `A` is an abelian category.
 -/
 
 open category_theory category_theory.limits category_theory.subobject
-open category_theory.preadditive category_theory.category
+open category_theory.preadditive category_theory.category category_theory.idempotents
 open opposite
 
 open_locale big_operators
@@ -202,6 +206,15 @@ begin
         functor.map_sum, functor.map_zsmul], },
     { ext n,
       refl, }, },
+end
+
+lemma karoubi_alternating_face_map_complex_d (P : karoubi (simplicial_object C)) (n : ℕ) :
+  (((alternating_face_map_complex.obj (karoubi_functor_category_embedding.obj P)).d (n+1) n).f) =
+    P.p.app (op [n+1]) ≫ ((alternating_face_map_complex.obj P.X).d (n+1) n) :=
+begin
+  dsimp,
+  simpa only [alternating_face_map_complex.obj_d_eq, karoubi.sum_hom,
+    preadditive.comp_sum, karoubi.zsmul_hom, preadditive.comp_zsmul],
 end
 
 namespace alternating_face_map_complex

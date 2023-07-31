@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.localization.integral
 import ring_theory.localization.at_prime
 import order.minimal
 
 /-!
 
 # Minimal primes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We provide various results concerning the minimal primes above an ideal
 

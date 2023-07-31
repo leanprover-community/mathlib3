@@ -11,6 +11,9 @@ import category_theory.abelian.exact
 /-!
 # The category of left R-modules is abelian.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Additionally, two linear maps are exact in the categorical sense iff `range f = ker g`.
 -/
 
@@ -68,8 +71,8 @@ def normal_epi (hf : epi f) : normal_epi f :=
       by { ext, refl } }
 
 /-- The category of R-modules is abelian. -/
-instance : abelian (Module R) :=
-{ has_finite_products := ⟨λ J _, limits.has_limits_of_shape_of_has_limits⟩,
+instance abelian : abelian (Module R) :=
+{ has_finite_products := ⟨λ n, limits.has_limits_of_shape_of_has_limits⟩,
   has_kernels := limits.has_kernels_of_has_equalizers (Module R),
   has_cokernels := has_cokernels_Module,
   normal_mono_of_mono := λ X Y, normal_mono,
@@ -78,7 +81,7 @@ instance : abelian (Module R) :=
 section reflects_limits
 /- We need to put this in this weird spot because we need to know that the category of modules
     is balanced. -/
-    
+
 instance forget_reflects_limits_of_size :
   reflects_limits_of_size.{v v} (forget (Module.{max v w} R)) :=
 reflects_limits_of_reflects_isomorphisms

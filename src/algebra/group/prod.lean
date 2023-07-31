@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.opposite
+import algebra.group_with_zero.units.basic
+import algebra.hom.units
 
 /-!
 # Monoid, group etc structures on `M × N`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
 trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
@@ -46,6 +51,16 @@ lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
 lemma swap_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).swap = p.swap * q.swap := rfl
 @[to_additive]
 lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
+
+@[to_additive]
+lemma one_mk_mul_one_mk [monoid M] [has_mul N] (b₁ b₂ : N) :
+  ((1 : M), b₁) * (1, b₂) = (1, b₁ * b₂) :=
+by rw [mk_mul_mk, mul_one]
+
+@[to_additive]
+lemma mk_one_mul_mk_one [has_mul M] [monoid N] (a₁ a₂ : M) :
+  (a₁, (1 : N)) * (a₂, 1) = (a₁ * a₂, 1) :=
+by rw [mk_mul_mk, mul_one]
 
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
@@ -136,7 +151,7 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
-@[to_additive subtraction_monoid]
+@[to_additive]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
   inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)
@@ -449,6 +464,26 @@ def prod_comm : M × N ≃* N × M :=
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
 variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']
+
+section
+variables (M N M' N')
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[to_additive prod_prod_prod_comm "Four-way commutativity of `prod`.
+The name matches `mul_mul_mul_comm`", simps apply]
+def prod_prod_prod_comm : (M × N) × (M' × N') ≃* (M × M') × (N × N') :=
+{ to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
+  inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),
+  map_mul' := λ mnmn mnmn', rfl,
+  ..equiv.prod_prod_prod_comm M N M' N', }
+
+@[simp, to_additive] lemma prod_prod_prod_comm_to_equiv :
+  (prod_prod_prod_comm M N M' N').to_equiv = equiv.prod_prod_prod_comm M N M' N' := rfl
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm M N M' N').symm = prod_prod_prod_comm M M' N N' := rfl
+
+end
 
 /--Product of multiplicative isomorphisms; the maps come from `equiv.prod_congr`.-/
 @[to_additive prod_congr "Product of additive isomorphisms; the maps come from `equiv.prod_congr`."]

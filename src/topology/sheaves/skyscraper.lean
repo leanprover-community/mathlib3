@@ -3,13 +3,15 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Junyan Xu
 -/
-import algebraic_geometry.sheafed_space
 import topology.sheaves.punit
 import topology.sheaves.stalks
-import category_theory.preadditive.injective
+import topology.sheaves.functors
 
 /-!
 # Skyscraper (pre)sheaves
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A skyscraper (pre)sheaf `𝓕 : (pre)sheaf C X` is the (pre)sheaf with value `A` at point `p₀` that is
 supported only at open sets contain `p₀`, i.e. `𝓕(U) = A` if `p₀ ∈ U` and `𝓕(U) = *` if `p₀ ∉ U`
@@ -211,7 +213,7 @@ def skyscraper_presheaf_stalk_of_not_specializes_is_terminal
   [has_colimits C] {y : X} (h : ¬p₀ ⤳ y) : is_terminal ((skyscraper_presheaf p₀ A).stalk y) :=
 is_terminal.of_iso terminal_is_terminal $ (skyscraper_presheaf_stalk_of_not_specializes _ _ h).symm
 
-lemma skyscraper_presheaf_is_sheaf [has_products.{u} C] : (skyscraper_presheaf p₀ A).is_sheaf :=
+lemma skyscraper_presheaf_is_sheaf : (skyscraper_presheaf p₀ A).is_sheaf :=
 by classical; exact (presheaf.is_sheaf_iso_iff
   (eq_to_iso $ skyscraper_presheaf_eq_pushforward p₀ A)).mpr
   (sheaf.pushforward_sheaf_of_sheaf _ (presheaf.is_sheaf_on_punit_of_is_terminal _
@@ -221,7 +223,7 @@ by classical; exact (presheaf.is_sheaf_iso_iff
 The skyscraper presheaf supported at `p₀` with value `A` is the sheaf that assigns `A` to all opens
 `U` that contain `p₀` and assigns `*` otherwise.
 -/
-def skyscraper_sheaf [has_products.{u} C] : sheaf C X :=
+def skyscraper_sheaf : sheaf C X :=
 ⟨skyscraper_presheaf p₀ A, skyscraper_presheaf_is_sheaf _ _⟩
 
 /--
@@ -229,7 +231,7 @@ Taking skyscraper sheaf at a point is functorial: `c ↦ skyscraper p₀ c` defi
 sending every `f : a ⟶ b` to the natural transformation `α` defined as: `α(U) = f : a ⟶ b` if
 `p₀ ∈ U` and the unique morphism to a terminal object in `C` if `p₀ ∉ U`.
 -/
-def skyscraper_sheaf_functor [has_products.{u} C] : C ⥤ sheaf C X :=
+def skyscraper_sheaf_functor : C ⥤ sheaf C X :=
 { obj := λ c, skyscraper_sheaf p₀ c,
   map := λ a b f, Sheaf.hom.mk $ (skyscraper_presheaf_functor p₀).map f,
   map_id' := λ c, Sheaf.hom.ext _ _ $ (skyscraper_presheaf_functor p₀).map_id _,
@@ -363,7 +365,7 @@ instance [has_colimits C] : is_left_adjoint (presheaf.stalk_functor C p₀) :=
 /--
 Taking stalks of a sheaf is the left adjoint functor to `skyscraper_sheaf_functor`
 -/
-def stalk_skyscraper_sheaf_adjunction [has_colimits C] [has_products.{u} C] :
+def stalk_skyscraper_sheaf_adjunction [has_colimits C] :
   sheaf.forget C X ⋙ presheaf.stalk_functor _ p₀ ⊣ skyscraper_sheaf_functor p₀ :=
 { hom_equiv := λ 𝓕 c,
   ⟨λ f, ⟨to_skyscraper_presheaf p₀ f⟩, λ g, from_stalk p₀ g.1, from_stalk_to_skyscraper p₀,
@@ -377,8 +379,7 @@ def stalk_skyscraper_sheaf_adjunction [has_colimits C] [has_products.{u} C] :
     by { ext1, exact (skyscraper_presheaf_stalk_adjunction p₀).hom_equiv_unit },
   hom_equiv_counit' := λ 𝓐 c f, (skyscraper_presheaf_stalk_adjunction p₀).hom_equiv_counit }
 
-instance [has_colimits C] [has_products.{u} C] :
-  is_right_adjoint (skyscraper_sheaf_functor p₀ : C ⥤ sheaf C X) :=
+instance [has_colimits C] : is_right_adjoint (skyscraper_sheaf_functor p₀ : C ⥤ sheaf C X) :=
 ⟨_, stalk_skyscraper_sheaf_adjunction _⟩
 
 end

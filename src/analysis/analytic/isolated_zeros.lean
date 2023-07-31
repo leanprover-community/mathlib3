@@ -7,12 +7,13 @@ import analysis.analytic.basic
 import analysis.calculus.dslope
 import analysis.calculus.fderiv_analytic
 import analysis.calculus.formal_multilinear_series
-import analysis.complex.basic
-import topology.algebra.infinite_sum
 import analysis.analytic.uniqueness
 
 /-!
 # Principle of isolated zeros
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves the fact that the zeros of a non-constant analytic function of one variable are
 isolated. It also introduces a little bit of API in the `has_fpower_series_at` namespace that is
@@ -31,7 +32,7 @@ useful in this setup.
 open_locale classical
 
 open filter function nat formal_multilinear_series emetric set
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
@@ -59,7 +60,7 @@ begin
       from finset.sum_eq_zero (λ k hk, by simp [ha k (finset.mem_range.mp hk)]),
     have h2 : has_sum (λ m, z ^ (m + n) • a (m + n)) s,
       by simpa [h1] using (has_sum_nat_add_iff' n).mpr hs,
-    convert @has_sum.const_smul E ℕ 𝕜 _ _ _ _ _ _ _ (z⁻¹ ^ n) h2,
+    convert h2.const_smul (z⁻¹ ^ n),
     { field_simp [pow_add, smul_smul] },
     { simp only [inv_pow] } }
 end
@@ -80,7 +81,7 @@ begin
   { have hxx : ∀ (n : ℕ), x⁻¹ * x ^ (n + 1) = x ^ n := λ n, by field_simp [h, pow_succ'],
     suffices : has_sum (λ n, x⁻¹ • x ^ (n + 1) • p.coeff (n + 1)) (x⁻¹ • (f (z₀ + x) - f z₀)),
     { simpa [dslope, slope, h, smul_smul, hxx] using this },
-    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul } }
+    { simpa [hp0] using ((has_sum_nat_add_iff' 1).mpr hx).const_smul x⁻¹ } }
 end
 
 lemma has_fpower_series_iterate_dslope_fslope (n : ℕ) (hp : has_fpower_series_at f p z₀) :
@@ -196,5 +197,16 @@ theorem eq_on_of_preconnected_of_mem_closure (hf : analytic_on 𝕜 f U) (hg : a
   (hU : is_preconnected U) (h₀ : z₀ ∈ U) (hfg : z₀ ∈ closure ({z | f z = g z} \ {z₀})) :
   eq_on f g U :=
 hf.eq_on_of_preconnected_of_frequently_eq hg hU h₀ (mem_closure_ne_iff_frequently_within.mp hfg)
+
+/-- The *identity principle* for analytic functions, global version: if two functions on a normed
+field `𝕜` are analytic everywhere and coincide at points which accumulate to a point `z₀`, then
+they coincide globally.
+For higher-dimensional versions requiring that the functions coincide in a neighborhood of `z₀`,
+see `eq_of_eventually_eq`. -/
+theorem eq_of_frequently_eq [connected_space 𝕜]
+  (hf : analytic_on 𝕜 f univ) (hg : analytic_on 𝕜 g univ)
+  (hfg : ∃ᶠ z in 𝓝[≠] z₀, f z = g z) : f = g :=
+funext (λ x, eq_on_of_preconnected_of_frequently_eq hf hg is_preconnected_univ
+    (mem_univ z₀) hfg (mem_univ x))
 
 end analytic_on

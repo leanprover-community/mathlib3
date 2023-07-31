@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Group.epi_mono
-import algebra.category.Group.Z_Module_equivalence
 import algebra.category.Module.epi_mono
 import algebra.module.injective
 import category_theory.preadditive.injective
@@ -13,6 +12,9 @@ import ring_theory.principal_ideal_domain
 
 /-!
 # Injective objects in the category of abelian groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that divisible groups are injective object in category of (additive) abelian
 groups.

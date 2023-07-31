@@ -10,6 +10,9 @@ import data.nat.parity
 
 # Trails and Eulerian trails
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module contains additional theory about trails, including Eulerian trails (also known
 as Eulerian circuits).
 

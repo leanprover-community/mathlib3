@@ -9,6 +9,9 @@ import probability.martingale.basic
 /-!
 # Centering lemma for stochastic processes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Any `ℕ`-indexed stochastic process which is adapted and integrable can be written as the sum of a
 martingale and a predictable process. This result is also known as **Doob's decomposition theorem**.
 From a process `f`, a filtration `ℱ` and a measure `μ`, we define two processes
@@ -153,7 +156,7 @@ begin
     (hf.adapted.add $ predictable.adapted hg $ hg0.symm ▸ strongly_measurable_zero) $
     λ n, (hf.integrable n).add $ hgint n),
   refine (eventually_eq_iff_sub.2 _).symm,
-  filter_upwards [hhmgle.eq_zero_of_predicatable hhpred n] with ω hω,
+  filter_upwards [hhmgle.eq_zero_of_predictable hhpred n] with ω hω,
   rw [hhdef, pi.sub_apply] at hω,
   rw [hω, pi.sub_apply, martingale_part],
   simp [hg0],

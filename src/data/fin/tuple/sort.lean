@@ -3,14 +3,17 @@ Copyright (c) 2021 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-
-import data.fin.basic
 import data.finset.sort
+import data.list.fin_range
 import data.prod.lex
+import group_theory.perm.basic
 
 /-!
 
 # Sorting tuples by their values
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given an `n`-tuple `f : fin n → α` where `α` is ordered,
 we may want to turn it into a sorted `n`-tuple.
@@ -82,7 +85,7 @@ show graph.proj ∘ ((graph_equiv₁ f) ∘ (graph_equiv₁ f).symm) ∘ (graph_
 
 lemma monotone_proj (f : fin n → α) : monotone (graph.proj : graph f → α) :=
 begin
-  rintro ⟨⟨x, i⟩, hx⟩ ⟨⟨y, j⟩, hy⟩ (h|h),
+  rintro ⟨⟨x, i⟩, hx⟩ ⟨⟨y, j⟩, hy⟩ (_|h),
   { exact le_of_lt ‹_› },
   { simp [graph.proj] },
 end

@@ -6,11 +6,14 @@ Authors: Riccardo Brasca
 
 import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.charpoly.coeff
-import field_theory.minpoly
+import field_theory.minpoly.field
 
 /-!
 
 # Characteristic polynomial
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
 free `R`-module. The proof that `f.charpoly` is the characteristic polynomial of the matrix of `f`

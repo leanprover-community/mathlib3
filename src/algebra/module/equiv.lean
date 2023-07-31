@@ -9,6 +9,9 @@ import algebra.module.linear_map
 /-!
 # (Semi)linear equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
@@ -34,7 +37,6 @@ linear equiv, linear equivalences, linear isomorphism, linear isomorphic
 -/
 
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -238,7 +240,8 @@ variables (e₁₂ : M₁ ≃ₛₗ[σ₁₂] M₂) (e₂₃ : M₂ ≃ₛₗ[σ
 
 include σ₃₁
 /-- Linear equivalences are transitive. -/
--- Note: The linter thinks the `ring_hom_comp_triple` argument is doubled -- it is not.
+-- Note: the `ring_hom_comp_triple σ₃₂ σ₂₁ σ₃₁` is unused, but is convenient to carry around
+-- implicitly for lemmas like `linear_equiv.self_trans_symm`.
 @[trans, nolint unused_arguments]
 def trans : M₁ ≃ₛₗ[σ₁₃] M₃ :=
 { .. e₂₃.to_linear_map.comp e₁₂.to_linear_map,
@@ -264,6 +267,9 @@ rfl
 include σ₃₁
 @[simp] theorem trans_apply (c : M₁) :
   (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃) c = e₂₃ (e₁₂ c) := rfl
+
+theorem coe_trans :
+  (e₁₂.trans e₂₃ : M₁ →ₛₗ[σ₁₃] M₃) = (e₂₃ : M₂ →ₛₗ[σ₂₃] M₃).comp (e₁₂ : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 omit σ₃₁
 
 include σ'
@@ -371,9 +377,6 @@ include module_N₁ module_N₂
 theorem map_smul (e : N₁ ≃ₗ[R₁] N₂) (c : R₁) (x : N₁) :
   e (c • x) = c • e x := map_smulₛₗ e c x
 omit module_N₁ module_N₂
-
-@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
-e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
@@ -514,6 +517,23 @@ instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 { smul_comm := linear_equiv.map_smul }
 
 end automorphisms
+
+section of_subsingleton
+
+variables (M M₂) [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Any two modules that are subsingletons are isomorphic. -/
+@[simps] def of_subsingleton : M ≃ₗ[R] M₂ :=
+{ to_fun := λ _, 0,
+  inv_fun := λ _, 0,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _,
+  .. (0 : M →ₗ[R] M₂)}
+
+@[simp] lemma of_subsingleton_self : of_subsingleton M M = refl R M :=
+by { ext, simp }
+
+end of_subsingleton
 
 end add_comm_monoid
 

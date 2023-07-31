@@ -32,14 +32,15 @@ namespace quiver
 An isomorphism of quivers is given by a pair of prefunctors whose two compositions
 are the identities.
 -/
-structure iso (U V : Type*) [quiver.{u+1} U] [quiver.{v+1} V] extends prefunctor U V :=
+structure iso (U : Type*) (V : Type*) [quiver.{u+1} U] [quiver.{v+1} V] extends prefunctor U V :=
 (inv_prefunctor : V ⥤q U)
 (left_inv : to_prefunctor ⋙q inv_prefunctor = 𝟭q _)
 (right_inv : inv_prefunctor ⋙q to_prefunctor = 𝟭q _)
 
 infix ` ≃q `:60 := iso
 
-variables {U V W Z : Type*} [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W] [quiver.{z+1} Z]
+variables {U : Type*} {V : Type*} {W : Type*} {Z : Type*}
+          [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W] [quiver.{z+1} Z]
 
 instance : has_coe (U ≃q V) (prefunctor U V) := ⟨iso.to_prefunctor⟩
 
@@ -183,4 +184,3 @@ end
 end iso
 
 end quiver
-

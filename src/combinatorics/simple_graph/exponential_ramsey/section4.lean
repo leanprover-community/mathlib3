@@ -1014,7 +1014,7 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_red {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_red (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (red_steps μ k l ini).card ≤ k :=
@@ -1030,7 +1030,7 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_blue_density {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_blue_density (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (big_blue_steps μ k l ini).card + (density_steps μ k l ini).card ≤ l :=
@@ -1050,14 +1050,14 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_degree_density {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_degree (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (degree_steps μ k l ini).card ≤ k + l + 1 :=
 begin
   refine (num_degree_steps_le_add).trans _,
   rw [add_le_add_iff_right, add_assoc],
-  exact add_le_add (four_four_red hk hl h _) (four_four_blue_density hk hl h _),
+  exact add_le_add (four_four_red μ hk hl h _) (four_four_blue_density μ hk hl h _),
 end
 
 end simple_graph

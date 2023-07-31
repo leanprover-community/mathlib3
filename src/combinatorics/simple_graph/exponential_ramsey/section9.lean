@@ -60,25 +60,6 @@ begin
   all_goals {positivity},
 end
 
--- n! = (1 + o(1)) * sqrt (2 π n) * (n / e) ^ n
-
--- n! = 2 ^ o(n)                  * (n / e) ^ n
-
--- l ≤ k
-
--- (k + l)! / (k! l!) = 2 ^ o(k) * (k + l) ^ (k + l) / (k ^ k * l ^ l)
---                    = 2 ^ (f (k + l) - f(k) - f(l)) * ?
---                    = 2 ^ (f (2 k) - 2 f (k))
-
-
--- f k k = o(k)
-
--- (k + l)! / (k! l!) / ((((k + l) ^ (k + l) / (k ^ k * l ^ l))))
--- 2 ^ o(k) ≤ 2 ^ (f (k + l) - f k - f l) ?
-
--- -o(k) ≤ f (k + l) - f k - f l
--- f k + f l - f (k + l) ≤ o(k)
-
 lemma nine_four_log_aux :
   ∃ g : ℕ → ℝ, g =o[at_top] (λ i, (i : ℝ)) ∧
   ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
@@ -187,22 +168,25 @@ end
 --   ∀ ini : book_config χ, p₀ ≤ ini.p →
 --   ∀ i, i ≤ final_step μ k l ini → 1 / (k : ℝ) < p_ i :=
 
-lemma end_ramsey_number (μ p₀ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀ : 0 < p₀) :
-  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
+lemma end_ramsey_number (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ → ∀ n : ℕ,
+  ∀ χ : top_edge_labelling (fin n) (fin 2),
   ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
   ∀ ini : book_config χ, p₀ ≤ ini.p →
   (end_state μ k l ini).X.card ≤ ramsey_number ![k, ⌈(l : ℝ) ^ (3 / 4 : ℝ)⌉₊] :=
 begin
-  filter_upwards [one_div_k_lt_p μ p₀ hμ₀ hμ₁ hp₀, top_adjuster (eventually_gt_at_top 0)] with
-    l hl hl₀ k hlk n χ hχ ini hini,
+  filter_upwards [one_div_k_lt_p μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀, top_adjuster (eventually_gt_at_top 0)] with
+    l hl hl₀ k hlk μ hμl hμu n χ hχ ini hini,
   refine (condition_fails_at_end (hl₀ k hlk).ne' (hl₀ l le_rfl).ne').resolve_right _,
   rw not_le,
-  exact hl k hlk n χ hχ ini hini _ le_rfl,
+  exact hl k hlk μ hμl hμu n χ hχ ini hini _ le_rfl,
 end
 
-lemma end_ramsey_number_pow_is_o (μ p₀ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) (hp₀ : 0 < p₀) :
+lemma end_ramsey_number_pow_is_o :
   ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
-  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
+  ∀ μ₀ μ₁ p₀ : ℝ, 0 < μ₀ → μ₁ < 1 → 0 < p₀ →
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ → ∀ n : ℕ,
+  ∀ χ : top_edge_labelling (fin n) (fin 2),
   ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
   ∀ ini : book_config χ, p₀ ≤ ini.p →
   ((end_state μ k l ini).X.card : ℝ) ≤ 2 ^ f k :=
@@ -218,10 +202,10 @@ begin
     rw [←rpow_add hk],
     norm_num1,
     rw [rpow_one, id.def] },
-  -- have := ceil_eventually_le 2 one_lt_two,
-  filter_upwards [end_ramsey_number μ p₀ hμ₀ hμ₁ hp₀, eventually_ge_at_top 1] with l hl hl₁
-    k hlk n χ hχ ini hini,
-  specialize hl k hlk n χ hχ ini hini,
+  intros μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀,
+  filter_upwards [end_ramsey_number μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀, eventually_ge_at_top 1] with l hl hl₁
+    k hlk μ hμl hμu n χ hχ ini hini,
+  specialize hl k hlk μ hμl hμu n χ hχ ini hini,
   rw [rpow_def_of_pos two_pos, mul_inv_cancel_left₀ (log_pos one_lt_two).ne', mul_left_comm,
     ←rpow_def_of_pos (nat.cast_pos.2 _)],
   swap,

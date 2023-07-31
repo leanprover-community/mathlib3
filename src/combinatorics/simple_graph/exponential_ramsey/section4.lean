@@ -390,9 +390,9 @@ end
 open filter finset real
 
 namespace simple_graph
-variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)} (μ : ℝ)
+variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
 
-lemma four_one_part_one (l k : ℕ) (C : book_config χ)
+lemma four_one_part_one (μ : ℝ) (l k : ℕ) (C : book_config χ)
   (hC : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ)
   (hR : ¬ (∃ m : finset V, χ.monochromatic_of m 0 ∧ k ≤ m.card)) :
   ∃ U : finset V, χ.monochromatic_of U 1 ∧ U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ ∧
@@ -441,7 +441,7 @@ end
 
 
 -- (10)
-lemma four_one_part_two {l : ℕ} {C : book_config χ} {U : finset V}
+lemma four_one_part_two (μ : ℝ) {l : ℕ} {C : book_config χ} {U : finset V}
   (hl : l ≠ 0)
   (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊)
   (hU' : U ⊆ C.X) (hU'' : ∀ x ∈ U, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card) :
@@ -465,7 +465,7 @@ begin
 end
 
 -- (10)
-lemma four_one_part_three {k l : ℕ} {C : book_config χ} {U : finset V}
+lemma four_one_part_three (μ : ℝ) {k l : ℕ} {C : book_config χ} {U : finset V}
   (hμ : 0 ≤ μ) (hk₆ : 6 ≤ k) (hl : 3 ≤ l)
   (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊)
   (hX : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.X.card) :
@@ -512,7 +512,7 @@ begin
   linarith only [hk₆],
 end
 
-variables {k l : ℕ} {C : book_config χ} {U : finset V}
+variables {k l : ℕ} {C : book_config χ} {U : finset V} {μ₀ : ℝ}
 
 lemma ceil_le_two_mul {x : ℝ} (hx : 1 / 2 ≤ x) : (⌈x⌉₊ : ℝ) ≤ 2 * x :=
 begin
@@ -529,27 +529,29 @@ begin
   linarith
 end
 
--- l ≥ 4 / μ
-lemma mu_div_two_le_sigma (hμ : 0 < μ) : ∀ᶠ l : ℕ in at_top,
-  ∀ k, l ≤ k → ∀ (σ : ℝ), μ - 2 / k ≤ σ → μ / 2 ≤ σ :=
+-- l ≥ 4 / μ₀
+lemma mu_div_two_le_sigma (hμ₀ : 0 < μ₀) : ∀ᶠ l : ℕ in at_top,
+  ∀ k, l ≤ k → ∀ (μ : ℝ), μ₀ ≤ μ → ∀ (σ : ℝ), μ - 2 / k ≤ σ → μ / 2 ≤ σ :=
 begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
-  filter_upwards [t.eventually_ge_at_top (4 / μ)] with l hl k hlk σ hσ,
+  filter_upwards [t.eventually_ge_at_top (4 / μ₀)] with l hl k hlk μ hμ σ hσ,
   have hk : 4 / μ ≤ k,
-  { refine hl.trans _, rwa nat.cast_le },
+  { refine (div_le_div_of_le_left (by norm_num1) hμ₀ hμ).trans (hl.trans _),
+    rwa nat.cast_le },
   refine hσ.trans' _,
   rw [le_sub_comm, sub_half],
   refine (div_le_div_of_le_left (by norm_num1) _ hk).trans _,
-  { positivity },
+  { exact div_pos (by norm_num1) (hμ₀.trans_le hμ) },
   rw [div_div_eq_mul_div, bit0_eq_two_mul (2 : ℝ), mul_div_mul_left],
   norm_num1,
 end
 
--- l ≥ 4 / μ
+-- l ≥ 4 / μ₀
 -- l ≥ 1 / 16
--- l ≥ (8 / μ) ^ 2.4
-lemma four_one_part_four (hμ : 0 < μ) :
+-- l ≥ (8 / μ₀) ^ 2.4
+lemma four_one_part_four (hμ₀ : 0 < μ₀) :
   ∀ᶠ (l : ℕ) in at_top, ∀ (k : ℕ), l ≤ k →
+    ∀ (μ : ℝ), μ₀ ≤ μ →
     ∀ (σ : ℝ), μ - 2 / k ≤ σ →
     (⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊ : ℝ) ≤ σ * ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ / 2 :=
 begin
@@ -558,22 +560,23 @@ begin
   have h4 : (0 : ℝ) < 1 / 4, { norm_num1 },
   filter_upwards
     [((tendsto_rpow_at_top h4).comp t).eventually_ge_at_top (1 / 2),
-    ((tendsto_rpow_at_top h3).comp t).eventually_ge_at_top (4 * 2 / μ),
-    mu_div_two_le_sigma μ hμ,
+    ((tendsto_rpow_at_top h3).comp t).eventually_ge_at_top (4 * 2 / μ₀),
+    mu_div_two_le_sigma hμ₀,
     eventually_gt_at_top 0]
-    with l hl hl'' hl' hl₀ k hlk σ hσ,
-  specialize hl' k hlk σ hσ,
+    with l hl hl'' hl' hl₀ k hlk μ hμ σ hσ,
+  specialize hl' k hlk μ hμ σ hσ,
   dsimp at hl hl'',
   rw [mul_div_assoc],
   refine (mul_le_mul_of_nonneg_right hl' (by positivity)).trans' _,
   rw [div_mul_div_comm, ←bit0_eq_two_mul],
   refine (ceil_le_two_mul hl).trans _,
-  rw [le_div_iff', ←mul_assoc, ←div_le_iff' hμ],
+  rw [le_div_iff', ←mul_assoc, ←div_le_iff'],
   rotate,
+  { exact hμ₀.trans_le hμ },
   { norm_num1 },
   refine (nat.le_ceil _).trans' _,
   rw [mul_div_assoc, mul_div_left_comm, ←le_div_iff', ←rpow_sub],
-  { exact hl'' },
+  { exact hl''.trans' (div_le_div_of_le_left (by norm_num1) hμ₀ hμ), },
   { rwa nat.cast_pos },
   refine rpow_pos_of_pos _ _,
   rwa nat.cast_pos,
@@ -627,7 +630,7 @@ begin
   rw [←col_density_mul, ←hσ', hU],
 end
 
-lemma four_one_part_seven {V : Type*} [decidable_eq V] {m b : ℕ} {X U : finset V} {σ : ℝ}
+lemma four_one_part_seven {V : Type*} [decidable_eq V] {m b : ℕ} {X U : finset V} {μ σ : ℝ}
   (hσ : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ ≤ 1) (hμ₀ : 0 < μ)
   (hσ' : μ - 2 / k ≤ σ) (hk : 6 ≤ k) (hm : 3 ≤ m) (hkμ : 4 / μ ≤ k) (hUX : U ⊆ X)
   (hU : U.card = m) (hX : ramsey_number ![k, m] ≤ X.card) :
@@ -667,7 +670,7 @@ begin
   rw [mul_pow, ←rpow_nat_cast (exp _), ←exp_mul, div_mul_eq_mul_div],
 end
 
-lemma four_one_part_eight {m b : ℕ} {U X : finset V} (hU : U.card = m) (hbm : b ≤ m)
+lemma four_one_part_eight {μ : ℝ} {m b : ℕ} {U X : finset V} (hU : U.card = m) (hbm : b ≤ m)
   (h : μ ^ b * X.card / 2 * m.choose b ≤
     ∑ S in powerset_len b U, ((common_blues χ S ∩ (X \ U)).card : ℝ)) :
   ∃ S ⊆ U, S.card = b ∧ μ ^ b * X.card / 2 ≤ (common_blues χ S ∩ (X \ U)).card :=
@@ -685,21 +688,24 @@ end
 
 lemma four_one_part_nine_aux :
   tendsto
-    (λ l, 4 * l ^ -((2 / 3 : ℝ) - 1 / 4 * 2) * (2 / μ) + l ^ -(1 - 1 / 4 : ℝ) * (4 * 2 / μ))
-    at_top (nhds (((4 * 0) * (2 / μ)) + 0 * (4 * 2 / μ))) :=
+    (λ l : ℝ, l ^ -(2 / 3 - 1 / 4 * 2 : ℝ) + l ^ -(1 - 1 / 4 : ℝ))
+    at_top (nhds (0 + 0)) :=
 begin
   refine tendsto.add _ _,
-  { refine ((tendsto_rpow_neg_at_top _).const_mul _).mul_const _,
+  { refine tendsto_rpow_neg_at_top _,
     norm_num },
-  { refine (tendsto_rpow_neg_at_top _).mul_const _,
+  { refine tendsto_rpow_neg_at_top _,
     norm_num }
 end
 
--- l ≥ 4 / μ
+-- l ≥ 4 / μ₀
 -- l > 0
-lemma four_one_part_nine (hμ₀ : 0 < μ) :
-  ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
-    ∀ (σ : ℝ) (b m : ℕ),
+-- l ^ (- 1 / 6) + l ^ (- 3 / 4) ≤ μ₀ * log (3 / 2) / 8
+lemma four_one_part_nine (hμ₀ : 0 < μ₀) :
+  ∀ᶠ (l : ℕ) in at_top,
+  ∀ k, l ≤ k →
+    ∀ (μ σ : ℝ) (b m : ℕ),
+      μ₀ ≤ μ →
       μ - 2 / k ≤ σ →
       (b : ℝ) ≤ σ * m / 2 →
       b = ⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊ →
@@ -707,23 +713,24 @@ lemma four_one_part_nine (hμ₀ : 0 < μ) :
     (1 / 2 : ℝ) ≤ 3 / 4 * exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)) :=
 begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
-  have ineq : 4 * 0 * (2 / μ) + 0 * (4 * 2 / μ) < log (3 / 2),
-  { rw [mul_zero, zero_mul, zero_mul, add_zero],
+  have ineq : 0 + 0 < log (3 / 2) * μ₀ / (4 * 2),
+  { rw [add_zero],
+    refine div_pos (mul_pos _ hμ₀) (by norm_num1),
     refine log_pos _,
     norm_num },
-  have := eventually_le_of_tendsto_lt ineq (four_one_part_nine_aux μ),
+  have := eventually_le_of_tendsto_lt ineq four_one_part_nine_aux,
   have h4 : (0 : ℝ) < 1 / 4, { norm_num1 },
   filter_upwards
     [((tendsto_rpow_at_top h4).comp t).eventually_ge_at_top (1 / 2),
-      mu_div_two_le_sigma μ hμ₀,
+      mu_div_two_le_sigma hμ₀,
       t.eventually_gt_at_top 0,
       eventually_gt_at_top 0,
       t.eventually this
     ] with l hl hl' hl'' hl''' hl'''' --
-    k hlk σ b m hσ hσ' hb hm,
+    k hlk μ σ b m hμ hσ hσ' hb hm,
   suffices : (2 / 3 : ℝ) ≤ exp (- 4 * b / (μ * k) - b ^ 2 / (σ * m)),
   { linarith only [this] },
-  have : μ / 2 ≤ σ := hl' k hlk σ hσ,
+  have : μ / 2 ≤ σ := hl' k hlk μ hμ σ hσ,
   rw ←log_le_iff_le_exp,
   swap,
   { norm_num1 },
@@ -731,6 +738,7 @@ begin
   { rw [hm, nat.ceil_pos],
     positivity },
   rw [neg_mul, neg_div, neg_sub_left, le_neg, ←log_inv, inv_div],
+  have hμ' : 0 < μ := hμ₀.trans_le hμ,
   have : (b : ℝ) ^ 2 / (σ * m) ≤ (b ^ 2) / m * (2 / μ),
   { rw [mul_comm, ←div_div, div_eq_mul_inv _ σ],
     refine mul_le_mul_of_nonneg_left _ (by positivity),
@@ -754,18 +762,21 @@ begin
   { rw [neg_sub, rpow_sub hl'', rpow_one, div_mul_div_comm, mul_comm _ (_ * _ : ℝ), mul_assoc,
       mul_comm μ, hb],
     refine div_le_div (by positivity) (mul_le_mul_of_nonneg_left h' (by positivity))
-      (by positivity) (mul_le_mul_of_nonneg_right _ hμ₀.le),
+      (by positivity) (mul_le_mul_of_nonneg_right _ hμ'.le),
     rwa nat.cast_le },
-  exact (add_le_add_left this _).trans hl'''',
+  refine (add_le_add_left this _).trans _,
+  rw [mul_comm (4 : ℝ), mul_assoc, mul_div_assoc', ←add_mul, ←le_div_iff, div_div_eq_mul_div],
+  swap,
+  { exact div_pos (by norm_num1) hμ' },
+  exact hl''''.trans (div_le_div_of_le (by norm_num1) (mul_le_mul_of_nonneg_left hμ
+    (log_pos (by norm_num1)).le)),
 end
 
 -- lemma 4.1
 -- (9)
-lemma four_one (hμ₀ : 0 < μ) :
-  ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k →
-  ∀ n : ℕ,
-  ∀ χ : top_edge_labelling (fin n) (fin 2),
-  ∀ C : book_config χ,
+lemma four_one (hμ₀ : 0 < μ₀) :
+  ∀ᶠ (l : ℕ) in at_top, ∀ k, l ≤ k → ∀ (μ : ℝ), μ₀ ≤ μ →
+    ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2), ∀ C : book_config χ,
   ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ →
   ¬ (∃ m : finset (fin n), χ.monochromatic_of m 0 ∧ k ≤ m.card) →
   ∃ s t : finset (fin n),
@@ -780,13 +791,13 @@ begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
   have h23 : (0 : ℝ) < 2 / 3 := by norm_num,
   filter_upwards [eventually_ge_at_top 6,
-    four_one_part_four μ hμ₀,
-    four_one_part_nine μ hμ₀,
-    mu_div_two_le_sigma μ hμ₀,
-    t.eventually_ge_at_top (4 / μ),
+    four_one_part_four hμ₀,
+    four_one_part_nine hμ₀,
+    mu_div_two_le_sigma hμ₀,
+    t.eventually_ge_at_top (4 / μ₀),
     ((tendsto_rpow_at_top h23).comp t).eventually_gt_at_top 2]
       with l hl hl' hl₃ hl₄ hl₅ hl₆ --
-    k hlk n χ C hC hR,
+    k hlk μ hμ n χ C hC hR,
   obtain ⟨U, Ublue, Usize, UX, Uneigh⟩ := four_one_part_one μ l k C hC hR,
   set m := ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊,
   have hm : 3 ≤ m,
@@ -794,21 +805,22 @@ begin
     exact hl₆ },
   have hC' : ramsey_number ![k, m] ≤ C.X.card := hC.trans (card_le_of_subset (filter_subset _ _)),
   let σ := blue_density χ U (C.X \ U),
+  have hμ' : 0 < μ := hμ₀.trans_le hμ,
   have h11 : μ - 2 / k ≤ σ,
-  { exact (four_one_part_three μ hμ₀.le (hl.trans hlk) (hl.trans' (by norm_num1)) Usize hC').trans
+  { exact (four_one_part_three μ hμ'.le (hl.trans hlk) (hl.trans' (by norm_num1)) Usize hC').trans
       (four_one_part_two μ (hl.trans_lt' (by norm_num1)).ne' Usize UX Uneigh) },
   -- simp only [←nat.ceil_le],
-  specialize hl' k hlk σ h11,
+  specialize hl' k hlk μ hμ σ h11,
   set b := ⌈(l : ℝ) ^ (1 / 4 : ℝ)⌉₊,
   have hb : b ≠ 0,
   { rw [ne.def, nat.ceil_eq_zero, not_le],
     refine rpow_pos_of_pos _ _,
     rw nat.cast_pos,
     linarith only [hl] },
-  specialize hl₃ k hlk σ b m h11 hl' rfl rfl,
-  have : μ / 2 ≤ σ := hl₄ k hlk σ h11,
+  specialize hl₃ k hlk μ σ b m hμ h11 hl' rfl rfl,
+  have : μ / 2 ≤ σ := hl₄ k hlk μ hμ σ h11,
   have hk : 4 / μ ≤ k,
-  { refine hl₅.trans _,
+  { refine ((div_le_div_of_le_left (by norm_num1) hμ₀ hμ).trans hl₅).trans _,
     rwa nat.cast_le },
   have hσ₀ : 0 < σ := this.trans_lt' (by positivity),
   have hσ₁ : σ ≤ 1,
@@ -819,12 +831,12 @@ begin
     ∑ S in powerset_len b U, ((common_blues χ S ∩ (C.X \ U)).card : ℝ),
   { rw four_one_part_five χ,
     refine (four_one_part_six χ σ Usize hb rfl).trans' _,
-    refine (four_one_part_seven μ hl' hσ₀ hσ₁ hμ₀ h11 (hl.trans hlk) hm hk UX Usize hC').trans' _,
+    refine (four_one_part_seven hl' hσ₀ hσ₁ hμ' h11 (hl.trans hlk) hm hk UX Usize hC').trans' _,
     rw [div_mul_eq_mul_div, div_eq_mul_one_div],
     refine (mul_le_mul_of_nonneg_left hl₃ (by positivity)).trans_eq _,
     simp only [mul_assoc] },
   have hbm : b ≤ m := b_le_m hl' hσ₀.le hσ₁,
-  obtain ⟨S, hSU, hScard, hT⟩ := four_one_part_eight μ Usize hbm h₁,
+  obtain ⟨S, hSU, hScard, hT⟩ := four_one_part_eight Usize hbm h₁,
   refine ⟨S, common_blues χ S ∩ (C.X \ U), _, _, _, _, _, _, _⟩,
   { exact hSU.trans UX },
   { exact (inter_subset_right _ _).trans (sdiff_subset _ _) },
@@ -840,9 +852,10 @@ begin
   rwa hScard
 end
 
-lemma four_one' (hμ₀ : 0 < μ) :
+lemma four_one' (hμ₀ : 0 < μ₀) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ →
   ∀ n : ℕ,
   ∀ χ : top_edge_labelling (fin n) (fin 2),
   ∀ C : book_config χ,
@@ -852,16 +865,17 @@ lemma four_one' (hμ₀ : 0 < μ) :
     (l : ℝ) ^ (1 / 4 : ℝ) ≤ s.card ∧
     (s, t) ∈ book_config.useful_blue_books χ μ C.X :=
 begin
-  filter_upwards [four_one μ hμ₀] with l hl k hlk n χ C h₁ h₂,
-  obtain ⟨s, t, hs, ht, hst, hs', hst', hscard, htcard⟩ := hl k hlk n χ C h₁ h₂,
+  filter_upwards [four_one hμ₀] with l hl k hlk μ hμ n χ C h₁ h₂,
+  obtain ⟨s, t, hs, ht, hst, hs', hst', hscard, htcard⟩ := hl k hlk μ hμ n χ C h₁ h₂,
   refine ⟨s, t, hscard, _⟩,
   rw book_config.mem_useful_blue_books',
   exact ⟨hs, ht, hst, hs', hst', htcard⟩,
 end
 
-lemma four_three_aux (hμ₀ : 0 < μ) :
+lemma four_three_aux (hμ₀ : 0 < μ₀) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ →
   ∀ n : ℕ,
   ∀ χ : top_edge_labelling (fin n) (fin 2),
     ¬ (∃ m : finset (fin n), χ.monochromatic_of m 0 ∧ k ≤ m.card) →
@@ -869,16 +883,17 @@ lemma four_three_aux (hμ₀ : 0 < μ) :
     ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ →
     (l : ℝ) ^ (1 / 4 : ℝ) ≤ (book_config.get_book χ μ C.X).1.card :=
 begin
-  filter_upwards [four_one' μ hμ₀] with l hl k hlk n χ hχ C hC,
-  obtain ⟨s, t, hs, hst⟩ := hl k hlk n χ C hC hχ,
+  filter_upwards [four_one' hμ₀] with l hl k hlk μ hμ n χ hχ C hC,
+  obtain ⟨s, t, hs, hst⟩ := hl k hlk μ hμ n χ C hC hχ,
   refine hs.trans _,
   rw nat.cast_le,
   exact book_config.get_book_max s t hst,
 end
 
-lemma four_three_aux' (hμ₀ : 0 < μ) :
+lemma four_three_aux' (hμ₀ : 0 < μ₀) :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ →
   ∀ n : ℕ,
   ∀ χ : top_edge_labelling (fin n) (fin 2),
     ¬ (∃ m : finset (fin n), χ.monochromatic_of m 0 ∧ k ≤ m.card) →
@@ -888,8 +903,8 @@ lemma four_three_aux' (hμ₀ : 0 < μ) :
     (l : ℝ) ^ (1 / 4 : ℝ) * (big_blue_steps μ k l init ∩ range i).card ≤
       (algorithm μ k l init i).B.card :=
 begin
-  filter_upwards [eventually_gt_at_top 0, four_three_aux μ hμ₀] with
-    l hl₀ hl k hlk n χ hχ init i hi,
+  filter_upwards [eventually_gt_at_top 0, four_three_aux hμ₀] with
+    l hl₀ hl k hlk μ hμ n χ hχ init i hi,
   induction i with i ih,
   { rw [range_zero, inter_empty, card_empty, nat.cast_zero, mul_zero],
     exact nat.cast_nonneg _ },
@@ -909,25 +924,26 @@ begin
     nat.cast_add_one, mul_add_one, card_disjoint_union, nat.cast_add],
   { refine add_le_add ih _,
     rw [big_blue_steps, mem_filter] at h,
-    exact hl k hlk n χ hχ _ h.2.2 },
+    exact hl k hlk μ hμ n χ hχ _ h.2.2 },
   refine disjoint.mono_right book_config.get_book_fst_subset _,
   exact (algorithm μ k l init i).hXB.symm,
 end
 
-lemma four_three (hμ₀ : 0 < μ)  :
+lemma four_three (hμ₀ : 0 < μ₀)  :
   ∀ᶠ l : ℕ in at_top,
   ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ →
   ∀ n : ℕ,
   ∀ χ : top_edge_labelling (fin n) (fin 2),
     ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
   ∀ init : book_config χ,
     ((big_blue_steps μ k l init).card : ℝ) ≤ (l : ℝ) ^ (3 / 4 : ℝ) :=
 begin
-  filter_upwards [four_three_aux' μ hμ₀, eventually_gt_at_top 0] with l hl hl₀ k hlk n χ hχ init,
+  filter_upwards [four_three_aux' hμ₀, eventually_gt_at_top 0] with l hl hl₀ k hlk μ hμ n χ hχ init,
   simp only [fin.exists_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
     exists_or_distrib, not_or_distrib] at hχ,
   obtain ⟨hχr, hχb⟩ := hχ,
-  specialize hl k hlk n χ hχr init (final_step μ k l init) le_rfl,
+  specialize hl k hlk μ hμ n χ hχr init (final_step μ k l init) le_rfl,
   have : big_blue_steps μ k l init ∩ range (final_step μ k l init) = big_blue_steps μ k l init,
   { rw [inter_eq_left_iff_subset, big_blue_steps],
     exact filter_subset _ _ },
@@ -942,7 +958,7 @@ begin
   rwa nat.cast_pos
 end
 
-lemma four_four_red_aux {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_red_aux {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (ini : book_config χ) (i : ℕ) (hi : i ≤ final_step μ k l ini) :
   (red_steps μ k l ini ∩ range i).card ≤ (algorithm μ k l ini i).A.card :=
 begin
@@ -965,7 +981,7 @@ begin
   exact book_config.get_central_vertex_mem_X _ _ _,
 end
 
-lemma four_four_blue_density_aux {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_blue_density_aux {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (ini : book_config χ) (i : ℕ) (hi : i ≤ final_step μ k l ini) :
   ((big_blue_steps μ k l ini ∪ density_steps μ k l ini) ∩ range i).card ≤
     (algorithm μ k l ini i).B.card :=
@@ -998,12 +1014,12 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_red {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_red {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (red_steps μ k l ini).card ≤ k :=
 begin
-  have hl := four_four_red_aux μ hk hl ini (final_step μ k l ini) le_rfl,
+  have hl := four_four_red_aux hk hl ini (final_step μ k l ini) le_rfl,
   have : red_steps μ k l ini ∩ range (final_step μ k l ini) = red_steps μ k l ini,
   { rw [inter_eq_left_iff_subset],
     exact red_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
@@ -1014,12 +1030,12 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_blue_density {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_blue_density {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (big_blue_steps μ k l ini).card + (density_steps μ k l ini).card ≤ l :=
 begin
-  have hl := four_four_blue_density_aux μ hk hl ini (final_step μ k l ini) le_rfl,
+  have hl := four_four_blue_density_aux hk hl ini (final_step μ k l ini) le_rfl,
   have : (big_blue_steps μ k l ini ∪ density_steps μ k l ini) ∩ range (final_step μ k l ini) =
     big_blue_steps μ k l ini ∪ density_steps μ k l ini,
   { rw [inter_eq_left_iff_subset, union_subset_iff],
@@ -1034,14 +1050,14 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_degree_density {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_degree_density {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (degree_steps μ k l ini).card ≤ k + l + 1 :=
 begin
   refine (num_degree_steps_le_add).trans _,
   rw [add_le_add_iff_right, add_assoc],
-  exact add_le_add (four_four_red _ hk hl h _) (four_four_blue_density _ hk hl h _),
+  exact add_le_add (four_four_red hk hl h _) (four_four_blue_density hk hl h _),
 end
 
 end simple_graph

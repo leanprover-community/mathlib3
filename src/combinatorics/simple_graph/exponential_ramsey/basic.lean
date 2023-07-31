@@ -118,43 +118,50 @@ p₀ + ((1 + k^(- 1/4 : ℝ)) ^ h - 1) / k
 lemma q_function_zero {k : ℕ} {p₀ : ℝ} : q_function k p₀ 0 = p₀ :=
 by rw [q_function, pow_zero, sub_self, zero_div, add_zero]
 
--- The bound on h here is about k / ε, which is not good enough in general so I'm not gonna bother
--- exposing it, later I show h ≤ 2 log k / ε works for suff large k, which is what's actually needed
-lemma q_function_above_one {k : ℕ} {p₀ : ℝ} (hk : k ≠ 0) (hp₀ : 0 ≤ p₀) :
-  ∃ h, 1 ≤ h ∧ 1 ≤ q_function k p₀ h :=
+lemma q_function_one {k : ℕ} {p₀ : ℝ} : q_function k p₀ 1 = p₀ + k ^ (- 1 / 4 : ℝ) / k :=
+by rw [q_function, pow_one, add_sub_cancel']
+
+lemma q_increasing {k h₁ h₂ : ℕ} {p₀ : ℝ} (h : h₁ ≤ h₂) :
+  q_function k p₀ h₁ ≤ q_function k p₀ h₂ :=
 begin
-  simp only [q_function],
-  set ε : ℝ := k^(- 1/4 : ℝ),
-  have hε : 0 < ε := real.rpow_pos_of_pos (by positivity) _,
-  have hε' : -2 ≤ ε := hε.le.trans' (by norm_num),
-  let h := ⌈(k : ℝ) / ε⌉₊,
-  refine ⟨h, _, le_add_of_nonneg_of_le hp₀ _⟩,
-  { rw nat.one_le_ceil_iff,
-    positivity },
-  rw one_le_div,
-  swap,
-  { positivity },
-  refine (sub_le_sub_right (one_add_mul_le_pow hε' h) _).trans' _,
-  rw [add_sub_cancel', ←div_le_iff hε],
-  exact nat.le_ceil _,
+  rw [q_function, q_function, add_le_add_iff_left],
+  refine div_le_div_of_le (nat.cast_nonneg _) (sub_le_sub_right (pow_le_pow _ h) _),
+  rw le_add_iff_nonneg_right,
+  exact rpow_nonneg_of_nonneg (nat.cast_nonneg _) _,
 end
 
-lemma q_function_above_p {k : ℕ} {p₀ p : ℝ} (hk : k ≠ 0) (hp₀ : 0 ≤ p₀) (hp₁ : p ≤ 1):
-  ∃ h, 1 ≤ h ∧ p ≤ q_function k p₀ h :=
+lemma q_function_weak_lower {k : ℕ} {p₀ : ℝ} {h : ℕ} :
+  p₀ + h * k ^ (- 1 / 4 : ℝ) / k ≤ q_function k p₀ h :=
 begin
-  obtain ⟨h, h₁, h₂⟩ := q_function_above_one hk hp₀,
-  exact ⟨h, h₁, hp₁.trans h₂⟩,
+  rw [q_function, add_le_add_iff_left],
+  refine div_le_div_of_le (nat.cast_nonneg _) _,
+  refine (sub_le_sub_right (one_add_mul_le_pow _ h) _).trans_eq' _,
+  { exact (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _).trans' (by norm_num) },
+  rw add_sub_cancel'
+end
+
+-- The bound on h here is about k / ε, which is not good enough in general so I'm not gonna bother
+-- exposing it, later I show h ≤ 2 log k / ε works for suff large k, which is what's actually needed
+lemma q_function_above (p₀ c : ℝ) {k : ℕ} (hk : k ≠ 0) :
+  ∃ h, 1 ≤ h ∧ c ≤ q_function k p₀ h :=
+begin
+  refine ⟨max 1 ⌈(c - p₀) * k / k ^ (- 1 / 4 : ℝ)⌉₊, le_max_left _ _, _⟩,
+  refine (q_increasing (le_max_right _ _)).trans' _,
+  refine q_function_weak_lower.trans' _,
+  rw [←sub_le_iff_le_add', mul_div_assoc, ←div_le_iff, div_div_eq_mul_div],
+  { exact nat.le_ceil _ },
+  { positivity },
 end
 
 -- (5)
 noncomputable def height (k : ℕ) (p₀ p : ℝ) : ℕ :=
-if h : k ≠ 0 ∧ 0 ≤ p₀ ∧ p ≤ 1 then nat.find (q_function_above_p h.1 h.2.1 h.2.2) else 1
+if h : k ≠ 0 then nat.find (q_function_above p₀ p h) else 1
 
 lemma one_le_height {k : ℕ} {p₀ p : ℝ} : 1 ≤ height k p₀ p :=
 begin
   rw height,
   split_ifs with h,
-  { exact (nat.find_spec (q_function_above_p h.1 h.2.1 h.2.2)).1 },
+  { exact (nat.find_spec (q_function_above p₀ p h)).1 },
   exact le_rfl
 end
 

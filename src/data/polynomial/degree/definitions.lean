@@ -42,7 +42,7 @@ variables [semiring R] {p q r : R[X]}
 def degree (p : R[X]) : with_bot ℕ := p.support.max
 
 lemma degree_eq_max_degree (p : R[X]) :
-  p.degree = add_monoid_algebra.max_degree (to_finsupp_iso R p) :=
+  p.degree = add_monoid_algebra.max_degree _ (to_finsupp_iso R p) :=
 by { rcases p, refl }
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=

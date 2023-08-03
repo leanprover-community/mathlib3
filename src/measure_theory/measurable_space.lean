@@ -299,7 +299,6 @@ instance : measurable_space empty := ⊤
 instance : measurable_space punit := ⊤ -- this also works for `unit`
 instance : measurable_space bool := ⊤
 instance Prop.measurable_space : measurable_space Prop := ⊤
-instance {α} : measurable_space (set α) := ⊤
 instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
@@ -308,7 +307,6 @@ instance : measurable_singleton_class empty := ⟨λ _, trivial⟩
 instance : measurable_singleton_class punit := ⟨λ _, trivial⟩
 instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
 instance Prop.measurable_singleton_class : measurable_singleton_class Prop := ⟨λ _, trivial⟩
-instance {α} : measurable_singleton_class (set α) := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
@@ -349,6 +347,15 @@ begin
   { convert h.compl,
     rw [← preimage_compl, bool.compl_singleton, bool.bnot_tt] },
   exact h,
+end
+
+lemma measurable_to_prop {f : α → Prop} (h : measurable_set (f⁻¹' {true})) : measurable f :=
+begin
+  refine measurable_to_countable' (λ x, _),
+  by_cases hx : x,
+  { simpa [hx] using h },
+  { simpa only [hx, ←preimage_compl, Prop.compl_singleton, not_true, preimage_singleton_false]
+      using h.compl }
 end
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
@@ -877,21 +884,8 @@ variables {p : α → Prop}
 variables [measurable_space α]
 
 @[simp] lemma measurable_set_set_of : measurable_set {a | p a} ↔ measurable p :=
-begin
-  refine ⟨λ h s _, _, λ h, by simpa using h (measurable_set_singleton true)⟩,
-  by_cases hs₁ : true ∈ s; by_cases hs₀ : false ∈ s,
-  { rw [(_ : s = univ), preimage_univ],
-    { exact measurable_set.univ },
-    { rw [eq_univ_iff_forall, Prop.forall],
-      exact ⟨hs₁, hs₀⟩ } },
-  { rwa [(_ : s = {true}), preimage_singleton_true],
-    { simp [eq_singleton_iff_unique_mem, Prop.forall, hs₁, hs₀] } },
-  { rwa [(_ : s = {false}), preimage_singleton_false, ←compl_set_of, measurable_set.compl_iff],
-    { simp [eq_singleton_iff_unique_mem, Prop.forall, hs₁, hs₀] } },
-  { rw [(_ : s = ∅), preimage_empty],
-    { exact measurable_set.empty },
-    { simp [eq_empty_iff_forall_not_mem, Prop.forall, hs₁, hs₀] } }
-end
+⟨λ h, measurable_to_prop $ by simpa only [preimage_singleton_true], λ h,
+  by simpa using h (measurable_set_singleton true)⟩
 
 @[simp] lemma measurable_mem : measurable (∈ s) ↔ measurable_set s := measurable_set_set_of.symm
 

@@ -901,6 +901,16 @@ by rw [tendsto_uniformly_on_iff_tendsto_uniformly_on_filter,
     uniform_cauchy_seq_on_iff_uniform_cauchy_seq_on_filter,
     seminormed_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_one]
 
+@[to_additive norm_nsmul_le] lemma norm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖ ≤ n * ‖a‖ :=
+begin
+  induction n with n ih, { simp, },
+  simpa only [pow_succ', nat.cast_succ, add_mul, one_mul] using norm_mul_le_of_le ih le_rfl,
+end
+
+@[to_additive nnnorm_nsmul_le] lemma nnnorm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖₊ ≤ n * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_pow_le_mul_norm n a
+
 end seminormed_group
 
 section induced
@@ -1046,16 +1056,6 @@ by { ext c,
 @[simp, to_additive] lemma preimage_mul_sphere (a b : E) (r : ℝ) :
   ((*) b) ⁻¹' sphere a r = sphere (a / b) r :=
 by { ext c, simp only [set.mem_preimage, mem_sphere_iff_norm', div_div_eq_mul_div, mul_comm] }
-
-@[to_additive norm_nsmul_le] lemma norm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖ ≤ n * ‖a‖ :=
-begin
-  induction n with n ih, { simp, },
-  simpa only [pow_succ', nat.cast_succ, add_mul, one_mul] using norm_mul_le_of_le ih le_rfl,
-end
-
-@[to_additive nnnorm_nsmul_le] lemma nnnorm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖₊ ≤ n * ‖a‖₊ :=
-by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
-  using norm_pow_le_mul_norm n a
 
 @[to_additive] lemma pow_mem_closed_ball {n : ℕ} (h : a ∈ closed_ball b r) :
   a^n ∈ closed_ball (b^n) (n • r) :=

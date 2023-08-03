@@ -3,7 +3,6 @@ Copyright (c) 2022 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-import analysis.normed_space.pointwise
 import measure_theory.measure.lebesgue.eq_haar
 
 /-!
@@ -18,55 +17,43 @@ intermediate well-known variants.
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise topology
 
-variables {ι : Type*} [fintype ι] {s : set ℝ} {a : ℝ}
+section seminormed_group
+open topological_space
+variables {G H : Type*} [seminormed_add_group G] [topological_add_group G] [is_R_or_C H] {s : set G}
 
-local notation `ℝⁿ` := ι → ℝ
-
-lemma measurable.exists_zero_nhds_bounded (f : ℝ →+ ℝ) (h : measurable f) :
-  ∃ s, s ∈ 𝓝 (0 : ℝ) ∧ bounded (f '' s) :=
+lemma add_monoid_hom.continuous_of_bounded_nhds_zero (f : G →+ H) (hs : s ∈ 𝓝 (0 : G))
+  (hbounded : bounded (f '' s)) : continuous f :=
 begin
-  obtain ⟨r, hr⟩ := exists_pos_preimage_ball f (0 : ℝ) volume.ne_zero,
-  refine ⟨_, sub_mem_nhds_zero_of_add_haar_pos volume (f ⁻¹' ball 0 r) (h $ measurable_set_ball) hr,
-    _⟩,
-  rw image_sub,
-  exact (bounded_ball.mono $ image_preimage_subset _ _).sub
-    (bounded_ball.mono $ image_preimage_subset _ _),
-end
-
-lemma additive_continuous_at_zero_of_bounded_nhds_zero (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 (0 : ℝ))
-  (hbounded : bounded (f '' s)) : continuous_at f 0 :=
-begin
-  rcases metric.mem_nhds_iff.mp hs with ⟨δ, hδ, hUε⟩,
-  obtain ⟨C, hC⟩ := (bounded_iff_subset_ball _).1 (bounded.mono (image_subset f hUε) hbounded),
-  refine continuous_at_iff.2 (λ ε hε, _),
+  obtain ⟨δ, hδ, hUε⟩ := metric.mem_nhds_iff.mp hs,
+  obtain ⟨C, hC⟩ := (bounded_iff_subset_ball 0).1 (hbounded.mono $ image_subset f hUε),
+  refine continuous_of_continuous_at_zero _ (continuous_at_iff.2 $ λ ε (hε : _ < _), _),
   simp only [gt_iff_lt, dist_zero_right, _root_.map_zero, exists_prop],
-  cases exists_nat_gt (C / ε) with n hn,
-  obtain hC0 | rfl | hC0 := lt_trichotomy C 0,
-  { simp only [closed_ball_eq_empty.mpr hC0, image_subset_iff, preimage_empty] at hC,
-    rw [subset_empty_iff, ball_eq_empty] at hC,
-    linarith },
-  { simp only [closed_ball_zero] at hC,
-    refine ⟨δ, hδ, λ x hxδ, _⟩,
-    rwa [mem_singleton_iff.1 (hC $ mem_image_of_mem f $ mem_ball_zero_iff.2 hxδ), norm_zero] },
-  have hnpos : 0 < (n : ℝ) := (div_pos hC0 hε).trans hn,
-  refine ⟨δ/n, div_pos hδ hnpos, λ x hxδ, _⟩,
-  have h2 : f (n • x) = n • f x := map_nsmul f n x,
-  simp_rw [nsmul_eq_mul, mul_comm (n : ℝ), ←div_eq_iff hnpos.ne'] at h2,
-  rw ←h2,
-  replace hxδ : ‖x * n‖ < δ,
-  { simpa only [norm_mul, real.norm_coe_nat, ←lt_div_iff hnpos] using hxδ },
-  norm_num,
-  rw [div_lt_iff' hnpos, ←mem_ball_zero_iff],
+  obtain ⟨n, hn⟩ := exists_nat_gt (C / ε),
+  obtain hC₀ | hC₀ := le_or_lt C 0,
+  { refine ⟨δ, hδ, λ x hxδ, _⟩,
+    rwa [eq_of_dist_eq_zero (dist_nonneg.antisymm' $ (mem_closed_ball.1 $ hC $ mem_image_of_mem f $
+      mem_ball_zero_iff.2 hxδ).trans hC₀), norm_zero] },
+  have hnpos : 0 < (n : ℝ) := (div_pos hC₀ hε).trans hn,
+  refine ⟨δ / n, div_pos hδ hnpos, λ x hxδ, _⟩,
+  have h2 : f (n • x) = n • f x := map_nsmul f _ _,
+  have hn' : (n : H) ≠ 0 := nat.cast_ne_zero.2 (by { rintro rfl, simpa using hnpos }),
+  simp_rw [nsmul_eq_mul, mul_comm (n : H), ←div_eq_iff hn'] at h2,
+  replace hxδ : ‖n • x‖ < δ,
+  { refine (norm_nsmul_le _ _).trans_lt _,
+    simpa only [norm_mul, real.norm_coe_nat, lt_div_iff hnpos, mul_comm] using hxδ },
+  rw [←h2, norm_div, is_R_or_C.norm_nat_cast, div_lt_iff' hnpos, ←mem_ball_zero_iff],
   rw div_lt_iff hε at hn,
   exact hC.trans (closed_ball_subset_ball hn) (mem_image_of_mem _ $ mem_ball_zero_iff.2 hxδ),
 end
 
-lemma additive_continuous_at_zero (f : ℝ →+ ℝ) (h : measurable f) : continuous_at f 0 :=
-let ⟨s, hs, hbounded⟩ := exists_zero_nhds_bounded f h in
-  additive_continuous_at_zero_of_bounded_nhds_zero f hs hbounded
+end seminormed_group
 
-lemma measurable.continuous_real (f : ℝ →+ ℝ) (h : measurable f) : continuous f :=
-continuous_of_continuous_at_zero f $ additive_continuous_at_zero f h
+variables {ι : Type*} [fintype ι] {s : set ℝ} {a : ℝ}
+
+local notation `ℝⁿ` := ι → ℝ
+
+lemma add_monoid_hom.measurable_of_continuous (f : ℝ →+ ℝ) (h : measurable f) : continuous f :=
+let ⟨s, hs, hbdd⟩ := h.exists_nhds_zero_bounded f in f.continuous_of_bounded_nhds_zero hs hbdd
 
 -- do we want this one and where would it go?
 lemma is_linear_map_iff_apply_eq_apply_one_mul {M : Type*} [comm_semiring M] (f : M →+ M) :
@@ -81,13 +68,12 @@ end
 
 lemma is_linear_rat (f : ℝ →+ ℝ) (q : ℚ) : f q = f 1 * q :=
 begin
-  intro q,
-  have := map_rat_cast_smul f _ _ q 1,
+  have := map_rat_cast_smul f ℚ ℚ q (1 : ℝ),
   simpa [mul_comm] using this,
 end
 
 lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a)
-  (h : bounded (f '' s)) : ∃ (V : set ℝ), V ∈ 𝓝 (0 : ℝ) ∧ bounded (f '' V) :=
+  (h : bounded (f '' s)) : ∃ V, V ∈ 𝓝 (0 : ℝ) ∧ bounded (f '' V) :=
 begin
   rcases metric.mem_nhds_iff.mp hs with ⟨δ, hδ, hδa⟩,
   refine ⟨ball 0 δ, ball_mem_nhds 0 hδ, _⟩,
@@ -118,14 +104,13 @@ begin
   simp only [dist_eq_norm, map_sub, _root_.map_add, _root_.map_zero, sub_zero, add_sub_cancel],
 end
 
-lemma continuous_at.is_linear_real (f : ℝ →+ ℝ) (h : continuous_at f a) : is_linear_map ℝ f :=
-(f.to_real_linear_map $ continuous_of_continuous_at_zero f $
-  (f.continuous_at_iff_continuous_at_zero).mp h).to_linear_map.is_linear
+lemma continuous.is_linear_real (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
+(f.to_real_linear_map h).to_linear_map.is_linear
 
 lemma is_linear_map_real_of_bounded_nhds (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a) (hf : bounded (f '' s)) :
   is_linear_map ℝ f :=
 let ⟨V, hV0, hVb⟩ := additive_is_bounded_of_bounded_on_interval f hs hf in
-  (additive_continuous_at_zero_of_bounded_nhds_zero f hV0 hVb).is_linear_real f
+  (f.continuous_of_bounded_nhds_zero hV0 hVb).is_linear_real f
 
 lemma monotone_on.is_linear_map_real (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a) (hf : monotone_on f s) :
   is_linear_map ℝ f :=

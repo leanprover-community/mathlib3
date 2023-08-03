@@ -10,6 +10,9 @@ import analysis.special_functions.integrals
 /-!
 # Comparing sums and integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 It is often the case that error terms in analysis can be computed by comparing
@@ -49,7 +52,7 @@ begin
   have hint : ∀ (k : ℕ), k < a → interval_integrable f volume (x₀+k) (x₀ + (k + 1 : ℕ)),
   { assume k hk,
     refine (hf.mono _).interval_integrable,
-    rw interval_of_le,
+    rw uIcc_of_le,
     { apply Icc_subset_Icc,
       { simp only [le_add_iff_nonneg_right, nat.cast_nonneg] },
       { simp only [add_le_add_iff_left, nat.cast_le, nat.succ_le_of_lt hk] } },
@@ -91,7 +94,7 @@ begin
   have hint : ∀ (k : ℕ), k < a → interval_integrable f volume (x₀+k) (x₀ + (k + 1 : ℕ)),
   { assume k hk,
     refine (hf.mono _).interval_integrable,
-    rw interval_of_le,
+    rw uIcc_of_le,
     { apply Icc_subset_Icc,
       { simp only [le_add_iff_nonneg_right, nat.cast_nonneg] },
       { simp only [add_le_add_iff_left, nat.cast_le, nat.succ_le_of_lt hk] } },

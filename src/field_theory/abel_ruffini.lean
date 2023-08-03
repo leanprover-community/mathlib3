@@ -6,10 +6,13 @@ Authors: Thomas Browning, Patrick Lutz
 
 import group_theory.solvable
 import field_theory.polynomial_galois_group
-import ring_theory.roots_of_unity
+import ring_theory.roots_of_unity.basic
 
 /-!
 # The Abel-Ruffini Theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves one direction of the Abel-Ruffini theorem, namely that if an element is solvable
 by radicals, then its minimal polynomial has solvable Galois group.
@@ -184,7 +187,7 @@ begin
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
     rw [sub_comp, X_comp, C_comp, mul_sub, ←C_mul, mul_div_cancel' c hb'] },
   rw [key1, hs, multiset_prod_comp, multiset.map_map, key2, multiset.prod_map_mul,
-    multiset.map_const, multiset.prod_repeat, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
+    multiset.map_const, multiset.prod_replicate, hs', ←C_pow, hb, ←mul_assoc, C_mul_C, one_mul],
   all_goals { exact field.to_nontrivial F },
 end
 
@@ -209,8 +212,8 @@ variables (F)
 
 /-- Inductive definition of solvable by radicals -/
 inductive is_solvable_by_rad : E → Prop
-| base (a : F) : is_solvable_by_rad (algebra_map F E a)
-| add (a b : E) : is_solvable_by_rad a → is_solvable_by_rad b → is_solvable_by_rad (a + b)
+| base (α : F) : is_solvable_by_rad (algebra_map F E α)
+| add (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α + β)
 | neg (α : E) : is_solvable_by_rad α → is_solvable_by_rad (-α)
 | mul (α β : E) : is_solvable_by_rad α → is_solvable_by_rad β → is_solvable_by_rad (α * β)
 | inv (α : E) : is_solvable_by_rad α → is_solvable_by_rad α⁻¹
@@ -344,8 +347,8 @@ begin
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],
-  exact gal_is_solvable_of_splits ⟨normal.splits (splitting_field.normal _) _⟩
-    (gal_mul_is_solvable hα hβ),
+  refine gal_is_solvable_of_splits ⟨_⟩ (gal_mul_is_solvable hα hβ),
+  exact normal.splits (splitting_field.normal _) (f ⟨γ, hγ⟩),
 end
 
 /-- An auxiliary induction lemma, which is generalized by `solvable_by_rad.is_solvable`. -/

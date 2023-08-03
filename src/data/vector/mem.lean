@@ -7,6 +7,9 @@ import data.vector.basic
 /-!
 # Theorems about membership of elements in vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains theorems for membership in a `v.to_list` for a vector `v`.
 Having the length available in the type allows some of the lemmas to be
   simpler and more general than the original version for lists.

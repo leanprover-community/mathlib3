@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
+import measure_theory.integral.set_integral
 import measure_theory.measure.regular
 
 /-!
 # McShane integrability vs Bochner integrability
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that any Bochner integrable function is McShane integrable (hence, it is
 Henstock and `⊥` integrable) with the same integral. The proof is based on
@@ -18,7 +22,7 @@ Henstock and `⊥` integrable) with the same integral. The proof is based on
 integral, McShane integral, Bochner integral
 -/
 
-open_locale classical nnreal ennreal topological_space big_operators
+open_locale classical nnreal ennreal topology big_operators
 
 universes u v
 

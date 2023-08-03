@@ -11,6 +11,9 @@ import model_theory.bundled
 /-!
 # Fraïssé Classes and Fraïssé Limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file pertains to the ages of countable first-order structures. The age of a structure is the
 class of all finitely-generated structures that embed into it.
 

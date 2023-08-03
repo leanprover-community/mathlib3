@@ -12,6 +12,9 @@ import category_theory.limits.shapes.types
 /-!
 # Gluing data
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `glue_data` as a family of data needed to glue topological spaces, schemes, etc. We
 provide the API to realize it as a multispan diagram, and also states lemmas about its
 interaction with a functor that preserves certain pullbacks.

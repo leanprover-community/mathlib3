@@ -11,6 +11,9 @@ import algebra.free_monoid.basic
 /-!
 # Adjunctions regarding the category of monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the adjunction between adjoining a unit to a semigroup and the forgetful functor
 from monoids to semigroups.
 

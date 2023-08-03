@@ -5,9 +5,13 @@ Authors: Yury Kudriashov, Malo Jaffré
 -/
 import analysis.convex.function
 import tactic.field_simp
+import tactic.linarith
 
 /-!
 # Slopes of convex functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file relates convexity/concavity of functions in a linearly ordered field and the monotonicity
 of their slopes.
@@ -212,3 +216,146 @@ lemma strict_concave_on_iff_slope_strict_anti_adjacent :
       (f z - f y) / (z - y) < (f y - f x) / (y - x) :=
 ⟨λ h, ⟨h.1, λ x y z, h.slope_anti_adjacent⟩,
   λ h, strict_concave_on_of_slope_strict_anti_adjacent h.1 h.2⟩
+
+lemma convex_on.secant_mono_aux1 (hf : convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (z - x) * f y ≤ (z - y) * f x + (y - x) * f z :=
+begin
+  have hxy' : 0 < y - x := by linarith,
+  have hyz' : 0 < z - y := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw ← le_div_iff' hxz',
+  have ha : 0 ≤ (z - y) / (z - x) := by positivity,
+  have hb : 0 ≤ (y - x) / (z - x) := by positivity,
+  calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _
+  ... ≤ (z - y) / (z - x) * f x + (y - x) / (z - x) * f z : hf.2 hx hz ha hb _
+  ... = ((z - y) * f x + (y - x) * f z) / (z - x) : _,
+  { congr' 1,
+    field_simp [hxy'.ne', hyz'.ne', hxz'.ne'],
+    ring },
+  { field_simp [hxy'.ne', hyz'.ne', hxz'.ne'] },
+  { field_simp [hxy'.ne', hyz'.ne', hxz'.ne'] }
+end
+
+lemma convex_on.secant_mono_aux2 (hf : convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f y - f x) / (y - x) ≤ (f z - f x) / (z - x) :=
+begin
+  have hxy' : 0 < y - x := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw div_le_div_iff hxy' hxz',
+  linarith only [hf.secant_mono_aux1 hx hz hxy hyz],
+end
+
+lemma convex_on.secant_mono_aux3 (hf : convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f z - f x) / (z - x) ≤ (f z - f y) / (z - y) :=
+begin
+  have hyz' : 0 < z - y := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw div_le_div_iff hxz' hyz',
+  linarith only [hf.secant_mono_aux1 hx hz hxy hyz],
+end
+
+lemma convex_on.secant_mono (hf : convex_on 𝕜 s f)
+  {a x y : 𝕜} (ha : a ∈ s) (hx : x ∈ s) (hy : y ∈ s) (hxa : x ≠ a) (hya : y ≠ a) (hxy : x ≤ y) :
+  (f x - f a) / (x - a) ≤ (f y - f a) / (y - a) :=
+begin
+  rcases eq_or_lt_of_le hxy with rfl | hxy,
+  { simp },
+  cases lt_or_gt_of_ne hxa with hxa hxa,
+  { cases lt_or_gt_of_ne hya with hya hya,
+    { convert hf.secant_mono_aux3 hx ha hxy hya using 1;
+      rw ← neg_div_neg_eq;
+      field_simp, },
+    { convert hf.slope_mono_adjacent hx hy hxa hya using 1,
+      rw ← neg_div_neg_eq;
+      field_simp, } },
+  { exact hf.secant_mono_aux2 ha hy hxa hxy, },
+end
+
+lemma strict_convex_on.secant_strict_mono_aux1 (hf : strict_convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (z - x) * f y < (z - y) * f x + (y - x) * f z :=
+begin
+  have hxy' : 0 < y - x := by linarith,
+  have hyz' : 0 < z - y := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw ← lt_div_iff' hxz',
+  have ha : 0 < (z - y) / (z - x) := by positivity,
+  have hb : 0 < (y - x) / (z - x) := by positivity,
+  calc f y = f ((z - y) / (z - x) * x + (y - x) / (z - x) * z) : _
+  ... < (z - y) / (z - x) * f x + (y - x) / (z - x) * f z : hf.2 hx hz (by linarith) ha hb _
+  ... = ((z - y) * f x + (y - x) * f z) / (z - x) : _,
+  { congr' 1,
+    field_simp [hxy'.ne', hyz'.ne', hxz'.ne'],
+    ring },
+  { field_simp [hxy'.ne', hyz'.ne', hxz'.ne'] },
+  { field_simp [hxy'.ne', hyz'.ne', hxz'.ne'] }
+end
+
+lemma strict_convex_on.secant_strict_mono_aux2 (hf : strict_convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f y - f x) / (y - x) < (f z - f x) / (z - x) :=
+begin
+  have hxy' : 0 < y - x := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw div_lt_div_iff hxy' hxz',
+  linarith only [hf.secant_strict_mono_aux1 hx hz hxy hyz],
+end
+
+lemma strict_convex_on.secant_strict_mono_aux3 (hf : strict_convex_on 𝕜 s f)
+  {x y z : 𝕜} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f z - f x) / (z - x) < (f z - f y) / (z - y) :=
+begin
+  have hyz' : 0 < z - y := by linarith,
+  have hxz' : 0 < z - x := by linarith,
+  rw div_lt_div_iff hxz' hyz',
+  linarith only [hf.secant_strict_mono_aux1 hx hz hxy hyz],
+end
+
+lemma strict_convex_on.secant_strict_mono (hf : strict_convex_on 𝕜 s f)
+  {a x y : 𝕜} (ha : a ∈ s) (hx : x ∈ s) (hy : y ∈ s) (hxa : x ≠ a) (hya : y ≠ a) (hxy : x < y) :
+  (f x - f a) / (x - a) < (f y - f a) / (y - a) :=
+begin
+  cases lt_or_gt_of_ne hxa with hxa hxa,
+  { cases lt_or_gt_of_ne hya with hya hya,
+    { convert hf.secant_strict_mono_aux3 hx ha hxy hya using 1;
+      rw ← neg_div_neg_eq;
+      field_simp, },
+    { convert hf.slope_strict_mono_adjacent hx hy hxa hya using 1,
+      rw ← neg_div_neg_eq;
+      field_simp, } },
+  { exact hf.secant_strict_mono_aux2 ha hy hxa hxy, },
+end
+
+lemma strict_concave_on.secant_strict_mono (hf : strict_concave_on 𝕜 s f)
+  {a x y : 𝕜} (ha : a ∈ s) (hx : x ∈ s) (hy : y ∈ s) (hxa : x ≠ a) (hya : y ≠ a) (hxy : x < y) :
+  (f y - f a) / (y - a) < (f x - f a) / (x - a) :=
+begin
+  have key := hf.neg.secant_strict_mono ha hx hy hxa hya hxy,
+  simp only [pi.neg_apply] at key,
+  rw ← neg_lt_neg_iff,
+  convert key using 1; field_simp,
+end
+
+/-- If `f` is convex on a set `s` in a linearly ordered field, and `f x < f y` for two points
+`x < y` in `s`, then `f` is strictly monotone on `s ∩ [y, ∞)`. -/
+lemma convex_on.strict_mono_of_lt (hf : convex_on 𝕜 s f)
+  {x y : 𝕜} (hx : x ∈ s) (hxy : x < y) (hxy' : f x < f y) :
+  strict_mono_on f (s ∩ set.Ici y) :=
+begin
+  intros u hu v hv huv,
+  have step1 : ∀ {z : 𝕜}, z ∈ s ∩ set.Ioi y → f y < f z,
+  { refine λ z hz, hf.lt_right_of_left_lt hx hz.1 _ hxy',
+    rw open_segment_eq_Ioo (hxy.trans hz.2),
+    exact ⟨hxy, hz.2⟩ },
+  rcases eq_or_lt_of_le hu.2 with rfl | hu2,
+  { exact step1 ⟨hv.1, huv⟩ },
+  { refine hf.lt_right_of_left_lt _ hv.1 _ (step1 ⟨hu.1, hu2⟩),
+    { apply hf.1.segment_subset hx hu.1,
+      rw segment_eq_Icc (hxy.le.trans hu.2),
+      exact ⟨hxy.le, hu.2⟩ },
+    { rw open_segment_eq_Ioo (hu2.trans huv),
+      exact ⟨hu2, huv⟩ } },
+end

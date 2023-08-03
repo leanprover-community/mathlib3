@@ -1,5 +1,5 @@
 import tactic.localized
-import algebra.group_power
+import algebra.group_power.lemmas
 
 open tactic
 local infix ` ⊹ `:59 := nat.mul

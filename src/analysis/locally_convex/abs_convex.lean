@@ -10,6 +10,9 @@ import analysis.convex.gauge
 /-!
 # Absolutely convex sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A set is called absolutely convex or disked if it is convex and balanced.
 The importance of absolutely convex sets comes from the fact that every locally convex
 topological vector space has a basis consisting of absolutely convex sets.
@@ -35,7 +38,7 @@ disks, convex, balanced
 
 
 open normed_field set
-open_locale big_operators nnreal pointwise topological_space
+open_locale big_operators nnreal pointwise topology
 
 variables {𝕜 E F G ι : Type*}
 

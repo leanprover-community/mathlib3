@@ -9,6 +9,9 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the quotient of pre-games by the equivalence relation
 `p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
 as well as an instance `partial_order game`.
@@ -124,6 +127,16 @@ instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group_with_one,
   ..game.partial_order }
+
+/-- A small set `s` of games is bounded above. -/
+lemma bdd_above_of_small (s : set game.{u}) [small.{u} s] : bdd_above s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (upper_bound_mem_upper_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
+
+/-- A small set `s` of games is bounded below. -/
+lemma bdd_below_of_small (s : set game.{u}) [small.{u} s] : bdd_below s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (lower_bound_mem_lower_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
 
 end game
 
@@ -590,16 +603,17 @@ noncomputable instance : has_inv pgame :=
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 := if_pos h
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
+by { classical, exact if_pos h }
 
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
 inv_eq_of_equiv_zero (equiv_refl _)
 
 theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
-(if_neg h.lf.not_equiv').trans (if_pos h)
+by { classical, exact (if_neg h.lf.not_equiv').trans (if_pos h) }
 
 theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
-(if_neg h.not_equiv).trans (if_neg h.not_gt)
+by { classical, exact (if_neg h.not_equiv).trans (if_neg h.not_gt) }
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : 1⁻¹ ≡r 1 :=

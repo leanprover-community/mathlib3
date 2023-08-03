@@ -11,6 +11,9 @@ import tactic.derive_fintype
 /-!
 # Sign function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the sign function for types with zero and a decidable less-than relation, and
 proves some basic theorems about it.
 -/

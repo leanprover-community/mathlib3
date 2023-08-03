@@ -10,6 +10,9 @@ import model_theory.finitely_generated
 
 /-!
 # Direct Limits of First-Order Structures
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file constructs the direct limit of a directed system of first-order embeddings.
 
 ## Main Definitions

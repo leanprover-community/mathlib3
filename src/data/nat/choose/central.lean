@@ -10,6 +10,9 @@ import tactic.linarith
 /-!
 # Central binomial coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties of the central binomial coefficients (that is, `nat.choose (2 * n) n`).
 
 ## Main definition and results

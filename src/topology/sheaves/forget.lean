@@ -9,6 +9,9 @@ import topology.sheaves.sheaf_condition.equalizer_products
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `G : C ⥤ D` is a functor which reflects isomorphisms and preserves limits
 (we assume all limits exist in both `C` and `D`),
 then checking the sheaf condition for a presheaf `F : presheaf C X`

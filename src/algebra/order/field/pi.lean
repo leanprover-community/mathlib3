@@ -9,6 +9,9 @@ import data.fintype.lattice
 /-!
 # Lemmas about (finite domain) functions into fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We split this from `algebra.order.field.basic` to avoid importing the finiteness hierarchy there.
 -/
 

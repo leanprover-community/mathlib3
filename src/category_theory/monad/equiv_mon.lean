@@ -11,6 +11,9 @@ import category_theory.monoidal.Mon_
 
 # The equivalence between `Monad C` and `Mon_ (C ⥤ C)`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monad "is just" a monoid in the category of endofunctors.
 
 # Definitions/Theorems

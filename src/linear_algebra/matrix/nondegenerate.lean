@@ -10,6 +10,9 @@ import linear_algebra.matrix.adjugate
 /-!
 # Matrices associated with non-degenerate bilinear forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `matrix.nondegenerate A`: the proposition that when interpreted as a bilinear form, the matrix `A`

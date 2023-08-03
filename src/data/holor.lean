@@ -9,6 +9,9 @@ import algebra.big_operators.basic
 /-!
 # Basic properties of holors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Holors are indexed collections of tensor coefficients. Confusingly,
 they are often called tensors in physics and in the neural network
 community.

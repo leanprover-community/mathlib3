@@ -9,6 +9,7 @@ import data.nat.basic
 import data.stream.init
 import data.seq.computation
 
+namespace stream
 universes u v w
 
 /-
@@ -20,7 +21,7 @@ coinductive seq (α : Type u) : Type u
 /--
 A stream `s : option α` is a sequence if `s.nth n = none` implies `s.nth (n + 1) = none`.
 -/
-def stream.is_seq {α : Type u} (s : stream (option α)) : Prop :=
+def is_seq {α : Type u} (s : stream (option α)) : Prop :=
 ∀ {n : ℕ}, s n = none → s (n + 1) = none
 
 /-- `seq α` is the type of possibly infinite lists (referred here as sequences).
@@ -95,6 +96,7 @@ def head (s : seq α) : option α := nth s 0
 /-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
 def tail (s : seq α) : seq α := ⟨s.1.tail, λ n, by { cases s with f al, exact al }⟩
 
+/-- member definition for `seq`-/
 protected def mem (a : α) (s : seq α) := some a ∈ s.1
 
 instance : has_mem α (seq α) :=
@@ -209,6 +211,7 @@ begin
     apply h1 _ _ (or.inr (IH e)) }
 end
 
+/-- Corecursor over pairs of `option` values-/
 def corec.F (f : β → option (α × β)) : option β → option α × option β
 | none     := (none, none)
 | (some b) := match f b with none := (none, none) | some (a, b') := (some a, some b') end
@@ -252,12 +255,14 @@ section bisim
 
   local infix (name := R) ` ~ `:50 := R
 
+  /-- Bisimilarity relation over `option` of `seq1 α`-/
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true
   | (some (a, s)) (some (a', s')) := a = a' ∧ R s s'
   | _             _               := false
   attribute [simp] bisim_o
 
+  /-- a relation is bisimiar if it meets the `bisim_o` test-/
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
   -- If two streams are bisimilar, then they are equal
@@ -411,62 +416,15 @@ def split_at : ℕ → seq α → list α × seq α
 section zip_with
 
 /-- Combine two sequences with a function -/
-def zip_with (f : α → β → γ) : seq α → seq β → seq γ
-| ⟨f₁, a₁⟩ ⟨f₂, a₂⟩ := ⟨λ n,
-    match f₁ n, f₂ n with
-    | some a, some b := some (f a b)
-    | _, _ := none
-    end,
-  λ n, begin
-    induction h1 : f₁ n,
-    { intro H, simp only [(a₁ h1)], refl },
-    induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
-    { rw (a₂ h2), cases f₁ (n + 1); refl },
-    { rw [h1, h2] at H, contradiction }
-  end⟩
+def zip_with (f : α → β → γ) (s₁ : seq α) (s₂ : seq β) : seq γ :=
+⟨λ n, option.map₂ f (s₁.nth n) (s₂.nth n), λ n hn,
+  option.map₂_eq_none_iff.2 $ (option.map₂_eq_none_iff.1 hn).imp s₁.2 s₂.2⟩
 
 variables {s : seq α} {s' : seq β} {n : ℕ}
 
-lemma zip_with_nth_some {a : α} {b : β} (s_nth_eq_some : s.nth n = some a)
-(s_nth_eq_some' : s'.nth n = some b) (f : α → β → γ) :
-  (zip_with f s s').nth n = some (f a b) :=
-begin
-  cases s with st,
-  have : st n = some a, from s_nth_eq_some,
-  cases s' with st',
-  have : st' n = some b, from s_nth_eq_some',
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none (s_nth_eq_none : s.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s with st,
-  have : st n = none, from s_nth_eq_none,
-  cases s' with st',
-  cases st'_nth_eq : st' n;
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma zip_with_nth_none' (s'_nth_eq_none : s'.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  cases s' with st',
-  have : st' n = none, from s'_nth_eq_none,
-  cases s with st,
-  cases st_nth_eq : st n;
-  simp only [zip_with, seq.nth, *]
-end
-
-lemma nth_zip_with (f : α → β → γ) (s : seq α) (t : seq β) (n : ℕ) :
-  nth (zip_with f s t) n = option.bind (nth s n) (λ x, option.map (f x) (nth t n)) :=
-begin
-  cases hx : nth s n with x,
-  { rw [zip_with_nth_none hx, option.none_bind'] },
-  cases hy : nth t n with y,
-  { rw [zip_with_nth_none' hy, option.some_bind', option.map_none'] },
-  { rw [zip_with_nth_some hx hy, option.some_bind', option.map_some'] }
-end
+@[simp] lemma nth_zip_with (f : α → β → γ) (s s' n) :
+  (zip_with f s s').nth n = option.map₂ f (s.nth n) (s'.nth n) :=
+rfl
 
 end zip_with
 
@@ -474,7 +432,7 @@ end zip_with
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 
 lemma nth_zip (s : seq α) (t : seq β) (n : ℕ) :
-  nth (zip s t) n = option.bind (nth s n) (λ x, option.map (prod.mk x) (nth t n)) :=
+  nth (zip s t) n = option.map₂ prod.mk (nth s n) (nth t n) :=
 nth_zip_with _ _ _ _
 
 /-- Separate a sequence of pairs into two sequences -/
@@ -714,11 +672,11 @@ end seq
 
 namespace seq1
 variables {α : Type u} {β : Type v} {γ : Type w}
-open seq
+open stream.seq
 
 /-- Convert a `seq1` to a sequence. -/
 def to_seq : seq1 α → seq α
-| (a, s) := cons a s
+| (a, s) := seq.cons a s
 
 instance coe_seq : has_coe (seq1 α) (seq α) := ⟨to_seq⟩
 
@@ -732,13 +690,13 @@ theorem map_id : ∀ (s : seq1 α), map id s = s | ⟨a, s⟩ := by simp [map]
 def join : seq1 (seq1 α) → seq1 α
 | ((a, s), S) := match destruct s with
   | none := (a, seq.join S)
-  | some s' := (a, seq.join (cons s' S))
+  | some s' := (a, seq.join (seq.cons s' S))
   end
 
 @[simp] theorem join_nil (a : α) (S) : join ((a, nil), S) = (a, seq.join S) := rfl
 
 @[simp] theorem join_cons (a b : α) (s S) :
-  join ((a, cons b s), S) = (a, seq.join (cons (b, s) S)) :=
+  join ((a, seq.cons b s), S) = (a, seq.join (seq.cons (b, s) S)) :=
 by dsimp [join]; rw [destruct_cons]; refl
 
 /-- The `return` operator for the `seq1` monad,
@@ -773,8 +731,8 @@ end
 @[simp] theorem map_join' (f : α → β) (S) :
   seq.map f (seq.join S) = seq.join (seq.map (map f) S) :=
 begin
-  apply eq_of_bisim (λ s1 s2,
-    ∃ s S, s1 = append s (seq.map f (seq.join S)) ∧
+  apply seq.eq_of_bisim (λ s1 s2,
+    ∃ s S, s1 = seq.append s (seq.map f (seq.join S)) ∧
       s2 = append s (seq.join (seq.map (map f) S))),
   { intros s1 s2 h, exact match s1, s2, h with ._, ._, ⟨s, S, rfl, rfl⟩ := begin
       apply rec_on s; simp,
@@ -792,7 +750,7 @@ end
 @[simp] theorem join_join (SS : seq (seq1 (seq1 α))) :
   seq.join (seq.join SS) = seq.join (seq.map join SS) :=
 begin
-  apply eq_of_bisim (λ s1 s2,
+  apply seq.eq_of_bisim (λ s1 s2,
     ∃ s SS, s1 = seq.append s (seq.join (seq.join SS)) ∧
       s2 = seq.append s (seq.join (seq.map join SS))),
   { intros s1 s2 h, exact match s1, s2, h with ._, ._, ⟨s, SS, rfl, rfl⟩ := begin
@@ -802,7 +760,7 @@ begin
           apply rec_on s; simp,
           { exact ⟨_, _, rfl, rfl⟩ },
           { intros x s,
-            refine ⟨cons x (append s (seq.join S)), SS, _, _⟩; simp } } },
+            refine ⟨seq.cons x (append s (seq.join S)), SS, _, _⟩; simp } } },
       { intros x s, exact ⟨s, SS, rfl, rfl⟩ }
     end end },
   { refine ⟨nil, SS, _, _⟩; simp }
@@ -835,3 +793,4 @@ instance : is_lawful_monad seq1 :=
   bind_assoc := @bind_assoc }
 
 end seq1
+end stream

@@ -10,6 +10,9 @@ import order.filter.curry
 /-!
 # Swapping limits and derivatives via uniform convergence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The purpose of this file is to prove that the derivative of the pointwise limit of a sequence of
 functions is the pointwise limit of the functions' derivatives when the derivatives converge
 _uniformly_. The formal statement appears as `has_fderiv_at_of_tendsto_locally_uniformly_at`.
@@ -93,7 +96,7 @@ uniform convergence, limits of derivatives
 -/
 
 open filter
-open_locale uniformity filter topological_space
+open_locale uniformity filter topology
 
 section limits_of_derivatives
 
@@ -349,8 +352,8 @@ begin
   --   * The `f' n` converge to `g'` at `x`
   conv
   { congr, funext,
-    rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
-      is_R_or_C.of_real_inv, ←norm_smul], },
+    rw [← abs_norm, ← abs_inv, ← @is_R_or_C.norm_of_real 𝕜 _ _,
+      is_R_or_C.of_real_inv, ← norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
   have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
     (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +

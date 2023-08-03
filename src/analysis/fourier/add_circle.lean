@@ -3,18 +3,22 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, David Loeffler
 -/
+import analysis.special_functions.exp_deriv
 import analysis.special_functions.complex.circle
-import topology.instances.add_circle
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.group.integration
 import measure_theory.integral.periodic
 import topology.continuous_function.stone_weierstrass
+import measure_theory.integral.fund_thm_calculus
 
 /-!
 
 # Fourier analysis on the additive circle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic results on Fourier series for functions on the additive circle
 `add_circle T = ℝ / ℤ • T`.
@@ -263,7 +267,7 @@ lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
   (span ℂ (range (@fourier_Lp T _ p _))).topological_closure = ⊤ :=
 begin
-  convert (continuous_map.to_Lp_dense_range ℂ hp (@haar_add_circle T hT) ℂ
+  convert (continuous_map.to_Lp_dense_range ℂ (@haar_add_circle T hT) hp ℂ
     ).topological_closure_map_submodule (span_fourier_closure_eq_top),
   rw [map_span, range_comp],
   simp only [continuous_linear_map.coe_coe],
@@ -358,6 +362,32 @@ lemma fourier_coeff_on.const_mul {a b : ℝ} (f : ℝ → ℂ) (c : ℂ) (n : �
   fourier_coeff_on hab (λ x, c * f x) n = c * fourier_coeff_on hab f n :=
 fourier_coeff_on.const_smul _ _ _ _
 
+include hT
+
+lemma fourier_coeff_lift_Ioc_eq {a : ℝ} (f : ℝ → ℂ) (n : ℤ) :
+  fourier_coeff (add_circle.lift_Ioc T a f) n =
+  fourier_coeff_on (lt_add_of_pos_right a hT.out) f n :=
+begin
+  rw [fourier_coeff_on_eq_integral, fourier_coeff_eq_interval_integral, add_sub_cancel' a T],
+  congr' 1,
+  refine interval_integral.integral_congr_ae (ae_of_all _ (λ x hx, _)),
+  rw lift_Ioc_coe_apply,
+  rwa uIoc_of_le (lt_add_of_pos_right a hT.out).le at hx,
+end
+
+lemma fourier_coeff_lift_Ico_eq {a : ℝ} (f : ℝ → ℂ) (n : ℤ) :
+  fourier_coeff (add_circle.lift_Ico T a f) n =
+  fourier_coeff_on (lt_add_of_pos_right a hT.out) f n :=
+begin
+  rw [fourier_coeff_on_eq_integral, fourier_coeff_eq_interval_integral _ _ a, add_sub_cancel' a T],
+  congr' 1,
+  simp_rw [interval_integral.integral_of_le (lt_add_of_pos_right a hT.out).le,
+    integral_Ioc_eq_integral_Ioo],
+  refine set_integral_congr measurable_set_Ioo (λ x hx, _),
+  dsimp only,
+  rw lift_Ico_coe_apply (Ioo_subset_Ico_self hx),
+end
+
 end fourier_coeff
 
 section fourier_L2
@@ -400,7 +430,7 @@ begin
   { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_basis.repr f),
     norm_num },
   have H₂ : ‖fourier_basis.repr f‖ ^ 2 = ‖f‖ ^ 2 := by simp,
-  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ f f),
+  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
     rw [← H₁, H₂, H₃], },

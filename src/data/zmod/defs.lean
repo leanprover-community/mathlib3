@@ -10,6 +10,9 @@ import data.fintype.lattice
 /-!
 # Definition of `zmod n` + basic results.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the basic details of `zmod n`, including its commutative ring structure.
 
 ## Implementation details
@@ -54,15 +57,27 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin n, a * (b + c) = a * 
   ... ≡ (a * b) % n + (a * c) % n [MOD n] :
         (nat.mod_modeq _ _).symm.add (nat.mod_modeq _ _).symm)
 
+instance (n : ℕ) : distrib (fin n) :=
+{ left_distrib := left_distrib_aux n,
+  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
+  ..fin.add_comm_semigroup n,
+  ..fin.comm_semigroup n }
+
 /-- Commutative ring structure on `fin n`. -/
 instance (n : ℕ) [ne_zero n] : comm_ring (fin n) :=
 { one_mul := fin.one_mul,
   mul_one := fin.mul_one,
-  left_distrib := left_distrib_aux n,
-  right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
   ..fin.add_monoid_with_one,
   ..fin.add_comm_group n,
-  ..fin.comm_semigroup n }
+  ..fin.comm_semigroup n,
+  ..fin.distrib n }
+
+/-- Note this is more general than `fin.comm_ring` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : has_distrib_neg (fin n) :=
+{ neg := has_neg.neg,
+  mul_neg := nat.cases_on n fin_zero_elim $ λ i, mul_neg,
+  neg_mul := nat.cases_on n fin_zero_elim $ λ i, neg_mul,
+  ..fin.has_involutive_neg n }
 
 end fin
 

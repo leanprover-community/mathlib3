@@ -14,6 +14,9 @@ import tactic.by_contra
 /-!
 # IMO 1994 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `m` and `n` be two positive integers.
 Let `a₁, a₂, ..., aₘ` be `m` different numbers from the set `{1, 2, ..., n}`
 such that for any two indices `i` and `j` with `1 ≤ i ≤ j ≤ m` and `aᵢ + aⱼ ≤ n`,
@@ -32,6 +35,8 @@ open_locale big_operators
 
 open finset
 
+namespace imo1994_q1
+
 lemma tedious (m : ℕ) (k : fin (m+1)) : m - (m + (m + 1 - ↑k)) % (m + 1) = ↑k  :=
 begin
   cases k with k hk,
@@ -42,6 +47,10 @@ begin
   rw [fin.coe_mk, this, nat.add_mod_right, nat.mod_eq_of_lt, nat.add_sub_cancel],
   linarith
 end
+
+end imo1994_q1
+
+open imo1994_q1
 
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
   (hrange : ∀ a ∈ A, 0 < a ∧ a ≤ n) (hadd : ∀ (a b ∈ A), a + b ≤ n → a + b ∈ A) :

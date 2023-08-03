@@ -7,6 +7,9 @@ import category_theory.whiskering
 import category_theory.adjunction.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 Given categories `C D E`, functors `F : D ⥤ E` and `G : E ⥤ D` with an adjunction
 `F ⊣ G`, we provide the induced adjunction between the functor categories `C ⥤ D` and `C ⥤ E`,

@@ -5,10 +5,12 @@ Authors: Oliver Nash
 -/
 import dynamics.ergodic.add_circle
 import measure_theory.covering.liminf_limsup
-import data.nat.totient
 
 /-!
 # Well-approximable numbers and Gallagher's ergodic theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Gallagher's ergodic theorem is a result in metric number theory. It thus belongs to that branch of
 mathematics concerning arithmetic properties of real numbers which hold almost eveywhere with
@@ -53,7 +55,7 @@ An elementary (non-measure-theoretic) argument shows that if `¬ hδ` holds then
 -/
 
 open set filter function metric measure_theory
-open_locale measure_theory topological_space pointwise
+open_locale measure_theory topology pointwise
 
 /-- In a seminormed group `A`, given `n : ℕ` and `δ : ℝ`, `approx_order_of A n δ` is the set of
 elements within a distance `δ` of a point of order `n`. -/

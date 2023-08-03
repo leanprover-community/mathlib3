@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.gluing
-import algebraic_geometry.open_immersion
+import algebraic_geometry.open_immersion.basic
 import algebraic_geometry.locally_ringed_space.has_colimits
 
 /-!
 # Gluing Structured spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a family of gluing data of structured spaces (presheafed spaces, sheafed spaces, or locally
 ringed spaces), we may glue them together.
@@ -205,8 +208,8 @@ lemma ι_image_preimage_eq (i j : D.J) (U : opens (D.U i).carrier) :
   (D.f_open j i).open_functor.obj ((opens.map (𝖣 .t j i).base).obj
     ((opens.map (𝖣 .f i j).base).obj U)) :=
 begin
-  dsimp only [opens.map, is_open_map.functor],
-  congr' 1,
+  ext1,
+  dsimp only [opens.map_coe, is_open_map.functor_obj_coe],
   rw [← (show _ = (𝖣 .ι i).base, from 𝖣 .ι_glued_iso_inv (PresheafedSpace.forget _) i),
     ← (show _ = (𝖣 .ι j).base, from 𝖣 .ι_glued_iso_inv (PresheafedSpace.forget _) j),
     coe_comp, coe_comp, set.image_comp, set.preimage_comp, set.preimage_image_eq],
@@ -284,8 +287,9 @@ begin
   rcases j with (⟨j, k⟩|j),
   { refine D.opens_image_preimage_map i j U ≫ (D.f j k).c.app _ ≫
       (D.V (j, k)).presheaf.map (eq_to_hom _),
-    dsimp only [functor.op, opens.map, unop_op],
-    congr' 2,
+    rw [functor.op_obj],
+    congr' 1, ext1,
+    dsimp only [functor.op_obj, opens.map_coe, unop_op, is_open_map.functor_obj_coe],
     rw set.preimage_preimage,
     change (D.f j k ≫ 𝖣 .ι j).base ⁻¹' _ = _,
     congr' 3,

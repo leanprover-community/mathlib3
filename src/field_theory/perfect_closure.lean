@@ -9,6 +9,9 @@ import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v

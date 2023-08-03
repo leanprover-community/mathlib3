@@ -10,6 +10,9 @@ import category_theory.limits.shapes.pullbacks
 /-!
 # Constructing pullbacks from binary products and equalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a category as binary products and equalizers, then it has pullbacks.
 Also, if a category has binary coproducts and coequalizers, then it has pushouts
 -/

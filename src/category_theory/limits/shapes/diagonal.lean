@@ -10,6 +10,9 @@ import category_theory.limits.shapes.comm_sq
 /-!
 # The diagonal object of a morphism.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide various API and isomorphisms considering the diagonal object `Δ_{Y/X} := pullback f f`
 of a morphism `f : X ⟶ Y`.
 

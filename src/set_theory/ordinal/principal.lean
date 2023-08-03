@@ -9,6 +9,9 @@ import set_theory.ordinal.fixed_point
 /-!
 ### Principal ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define principal or indecomposable ordinals, and we prove the standard properties about them.
 
 ### Main definitions and results
@@ -82,31 +85,21 @@ nfp_le $ λ n, (ho.iterate_lt hao n).le
 
 /-! ### Principal ordinals are unbounded -/
 
-/-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. This is
-essentially a two-argument version of `ordinal.blsub`. -/
-def blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
-lsub (λ x : o.out.α × o.out.α, op (typein (<) x.1) (typein (<) x.2))
-
-theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
-  (hb : b < o) : op a b < blsub₂ op o :=
-begin
-  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
-  simp only [typein_enum]
-end
-
 theorem principal_nfp_blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) :
-  principal op (nfp (blsub₂.{u u} op) o) :=
+  principal op (nfp (λ o', blsub₂.{u u u} o' o' (λ a _ b _, op a b)) o) :=
 λ a b ha hb, begin
   rw lt_nfp at *,
   cases ha with m hm,
   cases hb with n hn,
-  cases le_total ((blsub₂.{u u} op)^[m] o) ((blsub₂.{u u} op)^[n] o) with h h,
+  cases le_total
+    ((λ o', blsub₂.{u u u} o' o' (λ a _ b _, op a b))^[m] o)
+    ((λ o', blsub₂.{u u u} o' o' (λ a _ b _, op a b))^[n] o) with h h,
   { use n + 1,
     rw function.iterate_succ',
-    exact lt_blsub₂ op (hm.trans_le h) hn },
+    exact lt_blsub₂ _ (hm.trans_le h) hn },
   { use m + 1,
     rw function.iterate_succ',
-    exact lt_blsub₂ op hm (hn.trans_le h) },
+    exact lt_blsub₂ _ hm (hn.trans_le h) }
 end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) :

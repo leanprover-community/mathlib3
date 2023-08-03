@@ -3,11 +3,14 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import measure_theory.integral.set_integral
 import analysis.calculus.mean_value
+import measure_theory.integral.set_integral
 
 /-!
 # Derivatives of integrals depending on parameters
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A parametric integral is a function with shape `f = λ x : H, ∫ a : α, F x a ∂μ` for some
 `F : H → α → E`, where `H` and `E` are normed spaces and `α` is a measured space with measure `μ`.
@@ -54,7 +57,7 @@ integral, derivative
 noncomputable theory
 
 open topological_space measure_theory filter metric
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
           {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]

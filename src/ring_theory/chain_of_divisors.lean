@@ -12,6 +12,9 @@ import algebra.gcd_monoid.basic
 
 # Chains of divisors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The results in this file show that in the monoid `associates M` of a `unique_factorization_monoid`
 `M`, an element `a` is an n-th prime power iff its set of divisors is a strictly increasing chain
 of length `n + 1`, meaning that we can find a strictly increasing bijection between `fin (n + 1)`
@@ -146,14 +149,14 @@ lemma element_of_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn
 begin
   classical,
   let i := (normalized_factors r).card,
-  have hi : normalized_factors r = multiset.repeat (c 1) i,
-  { apply multiset.eq_repeat_of_mem,
+  have hi : normalized_factors r = multiset.replicate i (c 1),
+  { apply multiset.eq_replicate_of_mem,
     intros b hb,
     refine eq_second_of_chain_of_prime_dvd hn h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
       (dvd_of_mem_normalized_factors hb) },
   have H : r = (c 1)^i,
   { have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
-    rw [associated_iff_eq, hi, multiset.prod_repeat] at this,
+    rw [associated_iff_eq, hi, multiset.prod_replicate] at this,
     rw this },
 
   refine ⟨⟨i, _⟩, H⟩,

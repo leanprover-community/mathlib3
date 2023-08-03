@@ -313,10 +313,10 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
 
-lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
-  ∀ (n : ℕ), pairwise r (repeat x n)
+lemma pairwise_replicate {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
+  ∀ (n : ℕ), pairwise r (replicate n x)
 | 0 := by simp
-| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
+| (n+1) := by simp [hx, mem_replicate, pairwise_replicate n]
 
 /-! ### Pairwise filtering -/
 

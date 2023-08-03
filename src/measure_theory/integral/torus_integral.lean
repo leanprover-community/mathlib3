@@ -3,10 +3,14 @@ Copyright (c) 2022 Cuma Kökmen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Cuma Kökmen, Yury Kudryashov
 -/
+import measure_theory.constructions.prod.integral
 import measure_theory.integral.circle_integral
 
 /-!
 # Integral over a torus in `ℂⁿ`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the integral of a function `f : ℂⁿ → E` over a torus
 `{z : ℂⁿ | ∀ i, z i ∈ metric.sphere (c i) (R i)}`. In order to do this, we define

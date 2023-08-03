@@ -9,12 +9,15 @@ import topology.metric_space.hausdorff_distance
 /-!
 # Properties of pointwise addition of sets in normed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We explore the relationships between pointwise addition of sets in normed groups, and the norm.
 Notably, we show that the sum of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {E : Type*}
 
@@ -122,8 +125,19 @@ lemma closed_ball_one_mul_singleton : closed_ball 1 δ * {x} = closed_ball x δ 
 @[to_additive]
 lemma closed_ball_one_div_singleton : closed_ball 1 δ / {x} = closed_ball x⁻¹ δ := by simp
 
-@[simp, to_additive] lemma smul_closed_ball_one : x • closed_ball 1 δ = closed_ball x δ :=
+-- This is the `to_additive` version of the below, but it will later follow as a special case of
+-- `vadd_closed_ball` for `normed_add_torsor`s, so we give it higher simp priority.
+-- (There is no `normed_mul_torsor`, hence the asymmetry between additive and multiplicative
+-- versions.)
+@[simp, priority 1100] lemma vadd_closed_ball_zero {E : Type*} [seminormed_add_comm_group E] (δ : ℝ)
+  (x : E) :
+  x +ᵥ metric.closed_ball 0 δ = metric.closed_ball x δ :=
+by { ext, simp [mem_vadd_set_iff_neg_vadd_mem, neg_add_eq_sub, dist_eq_norm_sub] }
+
+@[simp] lemma smul_closed_ball_one : x • closed_ball 1 δ = closed_ball x δ :=
 by { ext, simp [mem_smul_set_iff_inv_smul_mem, inv_mul_eq_div, dist_eq_norm_div] }
+
+attribute [to_additive] smul_closed_ball_one
 
 @[to_additive] lemma mul_ball_one : s * ball 1 δ = thickening δ s :=
 begin

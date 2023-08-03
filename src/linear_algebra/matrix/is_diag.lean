@@ -10,6 +10,9 @@ import data.matrix.kronecker
 /-!
 # Diagonal matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition and basic results about diagonal matrices.
 
 ## Main results

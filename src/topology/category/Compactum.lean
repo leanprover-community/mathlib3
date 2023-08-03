@@ -15,6 +15,9 @@ import data.set.constructions
 
 # Compacta and Compact Hausdorff Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Recall that, given a monad `M` on `Type*`, an *algebra* for `M` consists of the following data:
 - A type `X : Type*`
 - A "structure" map `M X → X`.
@@ -72,7 +75,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 universe u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
-open_locale classical topological_space
+open_locale classical topology
 
 local notation `β` := of_type_monad ultrafilter
 

@@ -13,6 +13,9 @@ import order.galois_connection
 /-!
 # Subgroupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines subgroupoids as `structure`s containing the subsets of arrows and their
 stability under composition and inversion.
 Also defined are:

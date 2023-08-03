@@ -76,6 +76,16 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 @[norm_cast] lemma abs_coe_nat (n : ℕ) : |(n : ℤ)| = n := abs_of_nonneg (coe_nat_nonneg n)
 
+theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ}, m.sign = n.sign → (m + n).sign = n.sign :=
+begin
+  have : (1 : ℤ) ≠ -1 := dec_trivial,
+  rintro ((_ | m) | m) ((_ | n) | n);
+  simp [this, this.symm],
+  rw int.sign_eq_one_iff_pos,
+  apply int.add_pos;
+  { exact zero_lt_one.trans_le (le_add_of_nonneg_left $ coe_zero_le _) }
+end
+
 /-! ### succ and pred -/
 
 theorem lt_succ_self (a : ℤ) : a < succ a :=
@@ -346,6 +356,7 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
+/-- See also `int.div_mod_equiv` for a similar statement as an `equiv`. -/
 protected theorem div_mod_unique {a b r q : ℤ} (h : 0 < b) :
   a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b :=
 begin
@@ -514,7 +525,7 @@ theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 
 lemma sub_div_of_dvd (a : ℤ) {b c : ℤ} (hcb : c ∣ b) : (a - b) / c = a / c - b / c :=
 begin
-  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right ((dvd_neg c b).mpr hcb)],
+  rw [sub_eq_add_neg, sub_eq_add_neg, int.add_div_of_dvd_right hcb.neg_right],
   congr,
   exact neg_div_of_dvd hcb,
 end

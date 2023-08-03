@@ -11,6 +11,9 @@ import algebra.algebra.prod
 /-!
 # Morphisms of star algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines morphisms between `R`-algebras (unital or non-unital) `A` and `B` where both
 `A` and `B` are equipped with a `star` operation. These morphisms, namely `star_alg_hom` and
 `non_unital_star_alg_hom` are direct extensions of their non-`star`red counterparts with a field
@@ -279,7 +282,7 @@ instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 directly. -/
 instance : has_coe_to_fun (A →⋆ₐ[R] B) (λ _, A → B) := fun_like.has_coe_to_fun
 
-@[simp, protected] lemma coe_coe {F : Type} [star_alg_hom_class F R A B] (f : F) :
+@[simp, protected] lemma coe_coe {F : Type*} [star_alg_hom_class F R A B] (f : F) :
   ⇑(f : A →⋆ₐ[R] B) = f := rfl
 
 initialize_simps_projections star_alg_hom (to_fun → apply)

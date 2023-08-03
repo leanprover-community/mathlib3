@@ -62,13 +62,13 @@ begin
 end
 
 lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : |a| = b) : a = b ∨ a = -b :=
-by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
+by simpa only [← h, eq_comm, neg_eq_iff_eq_neg] using abs_choice a
 
 lemma abs_eq_abs {a b : α} : |a| = |b| ↔ a = b ∨ a = -b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
-    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
+    simpa only [neg_eq_iff_eq_neg, neg_inj, or.comm] using abs_choice b },
   { cases h; simp only [h, abs_neg] },
 end
 

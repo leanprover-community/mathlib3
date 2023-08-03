@@ -10,6 +10,9 @@ import analysis.complex.cauchy_integral
 /-!
 # Removable singularity theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove Riemann's removable singularity theorem: if `f : ℂ → E` is complex
 differentiable in a punctured neighborhood of a point `c` and is bounded in a punctured neighborhood
 of `c` (or, more generally, $f(z) - f(c)=o((z-c)^{-1})$), then it has a limit at `c` and the
@@ -17,7 +20,7 @@ function `function.update f c (lim (𝓝[≠] c) f)` is complex differentiable i
 -/
 
 open topological_space metric set filter asymptotics function
-open_locale topological_space filter nnreal real
+open_locale topology filter nnreal real
 
 universe u
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]

@@ -10,6 +10,9 @@ import category_theory.limits.shapes.kernel_pair
 
 # Adhesive categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 - `category_theory.is_pushout.is_van_kampen`: A convenience formulation for a pushout being
   a van Kampen colimit.

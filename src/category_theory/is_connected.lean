@@ -11,6 +11,9 @@ import category_theory.category.ulift
 /-!
 # Connected category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define a connected category as a _nonempty_ category for which every functor
 to a discrete category is isomorphic to the constant functor.
 

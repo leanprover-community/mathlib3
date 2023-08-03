@@ -9,6 +9,9 @@ import algebra.continued_fractions.basic
 /-!
 # Computable Continued Fractions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We formalise the standard computation of (regular) continued fractions for linear ordered floor
@@ -31,8 +34,7 @@ For an example, refer to `int_fract_pair.stream`.
 - `generalized_continued_fraction.int_fract_pair.stream`: computes the stream of integer and
   fractional parts of a given value as described in the summary.
 - `generalized_continued_fraction.of`: computes the generalised continued fraction of a value `v`.
-  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational
-  (those proofs will be added in a future commit).
+  In fact, it computes a regular continued fraction that terminates if and only if `v` is rational.
 
 ## Implementation Notes
 
@@ -132,6 +134,7 @@ protected def stream (v : K) : stream $ option (int_fract_pair K)
 | (n + 1) := (stream n).bind $ λ ap_n,
   if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
 
+
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at
 position `n`, we also return `none` at `n + 1`.
@@ -148,10 +151,11 @@ This is just an intermediate representation and users should not (need to) direc
 it. The setup of rewriting/simplification lemmas that make the definitions easy to use is done in
 `algebra.continued_fractions.computation.translations`.
 -/
-protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
+protected def seq1 (v : K) : stream.seq1 $ int_fract_pair K :=
 ⟨ int_fract_pair.of v,--the head
-  seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
-  -- head create a sequence from `int_fract_pair.stream`
+  stream.seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in
+  -- the head
+  -- create a sequence from `int_fract_pair.stream`
   ⟨ int_fract_pair.stream v, -- the underlying stream
     @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
 

@@ -9,6 +9,9 @@ import tactic.ring
 /-!
 # Counting on ℕ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `count` function, which gives, for any predicate on the natural numbers,
 "how many numbers under `k` satisfy this predicate?".
 We then prove several expected lemmas about `count`, relating it to the cardinality of other
@@ -102,9 +105,9 @@ lemma count_strict_mono {m n : ℕ} (hm : p m) (hmn : m < n) : count p m < count
 
 lemma count_injective {m n : ℕ} (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
 begin
-  by_contra,
+  by_contra' h : m ≠ n,
   wlog hmn : m < n,
-  { exact ne.lt_or_lt h },
+  { exact this hn hm heq.symm h.symm (h.lt_or_lt.resolve_left hmn) },
   { simpa [heq] using count_strict_mono hm hmn }
 end
 

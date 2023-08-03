@@ -65,7 +65,7 @@ meta def entries.head (es : entries) : option entry := es.l.head'
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do
   fmt ← do
-  { let margin := string.join (list.repeat " │" en.depth),
+  { let margin := string.join (list.replicate en.depth " │"),
     let margin := match en.status with
       | status.sintro := " ├" ++ margin
       | status.intro := " │" ++ margin ++ " ┌"

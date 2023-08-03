@@ -6,10 +6,14 @@ Authors: Patrick Stevens, Bolton Bailey
 import data.nat.choose.factorization
 import data.nat.prime_norm_num
 import number_theory.primorial
-import analysis.convex.specific_functions
+import analysis.convex.specific_functions.basic
+import analysis.convex.specific_functions.deriv
 
 /-!
 # Bertrand's Postulate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains a proof of Bertrand's postulate: That between any positive number and its
 double there is a prime.
@@ -156,7 +160,7 @@ begin
   rw [central_binom_factorization_small n n_big no_prime, ← this,
     ← finset.prod_filter_mul_prod_filter_not S (≤ sqrt (2 * n))],
   apply mul_le_mul',
-  { refine (finset.prod_le_prod'' (λ p hp, (_ : f p ≤ 2 * n))).trans _,
+  { refine (finset.prod_le_prod' (λ p hp, (_ : f p ≤ 2 * n))).trans _,
     { exact pow_factorization_choose_le (mul_pos two_pos n_pos) },
     have : (finset.Icc 1 (sqrt (2 * n))).card = sqrt (2 * n),
     { rw [card_Icc, nat.add_sub_cancel] },

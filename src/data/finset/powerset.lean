@@ -8,6 +8,9 @@ import data.multiset.powerset
 
 /-!
 # The powerset of a finset
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset

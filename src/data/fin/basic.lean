@@ -12,6 +12,9 @@ import order.hom.set
 /-!
 # The finite type with `n` elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `fin n` is the type whose elements are natural numbers smaller than `n`.
 This file expands on the development in the core library.
 
@@ -420,6 +423,11 @@ by rcases n with _|_|n; simp [is_empty.subsingleton, unique.subsingleton, not_su
 
 section monoid
 
+instance add_comm_semigroup (n : ℕ) : add_comm_semigroup (fin n) :=
+{ add := (+),
+  add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
+  add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+
 @[simp] protected lemma add_zero [ne_zero n] (k : fin n) : k + 0 = k :=
 by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
@@ -428,11 +436,10 @@ by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
 
 instance add_comm_monoid (n : ℕ) [ne_zero n] : add_comm_monoid (fin n) :=
 { add := (+),
-  add_assoc := by simp [eq_iff_veq, add_def, add_assoc],
   zero := 0,
   zero_add := fin.zero_add,
   add_zero := fin.add_zero,
-  add_comm := by simp [eq_iff_veq, add_def, add_comm] }
+  ..fin.add_comm_semigroup n }
 
 instance [ne_zero n] : add_monoid_with_one (fin n) :=
 { one := 1,
@@ -1360,6 +1367,24 @@ instance (n : ℕ) [ne_zero n] : add_comm_group (fin n) :=
   ..fin.add_comm_monoid n,
   ..fin.has_neg n }
 
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : has_involutive_neg (fin n) :=
+{ neg := has_neg.neg,
+  neg_neg := nat.cases_on n fin_zero_elim (λ i, neg_neg) }
+
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : is_cancel_add (fin n) :=
+{ add_left_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_left_cancel),
+  add_right_cancel := nat.cases_on n fin_zero_elim (λ i _ _ _, add_right_cancel) }
+
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : add_left_cancel_semigroup (fin n) :=
+{ ..fin.add_comm_semigroup n, .. fin.is_cancel_add n }
+
+/-- Note this is more general than `fin.add_comm_group` as it applies (vacuously) to `fin 0` too. -/
+instance (n : ℕ) : add_right_cancel_semigroup (fin n) :=
+{ ..fin.add_comm_semigroup n, .. fin.is_cancel_add n }
+
 protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
 protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
@@ -1866,14 +1891,9 @@ def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : ne_zero m] :
+@[simp] lemma coe_of_nat_eq_mod (m n : ℕ) [ne_zero m] :
   ((n : fin m) : ℕ) = n % m :=
 rfl
-
-@[simp]
-lemma coe_of_nat_eq_mod (m n : ℕ) :
-  ((n : fin (succ m)) : ℕ) = n % succ m :=
-by rw [← of_nat_eq_coe]; refl
 
 section mul
 

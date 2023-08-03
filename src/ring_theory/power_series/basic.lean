@@ -15,6 +15,9 @@ import tactic.linarith
 /-!
 # Formal power series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (multivariate) formal power series
 and develops the basic properties of these objects.
 
@@ -542,8 +545,8 @@ end
 
 end trunc
 
-section comm_semiring
-variable [comm_semiring R]
+section semiring
+variable [semiring R]
 
 lemma X_pow_dvd_iff {s : σ} {n : ℕ} {φ : mv_power_series σ R} :
   (X s : mv_power_series σ R)^n ∣ φ ↔ ∀ m : σ →₀ ℕ, m s < n → coeff R m φ = 0 :=
@@ -585,7 +588,8 @@ begin
   { exact h m (hm.symm ▸ zero_lt_one) },
   { exact h m (nat.eq_zero_of_le_zero $ nat.le_of_succ_le_succ hm) }
 end
-end comm_semiring
+
+end semiring
 
 section ring
 variables [ring R]
@@ -885,8 +889,6 @@ variables (φ ψ)
 section algebra
 
 variables (A : Type*) [comm_semiring A] [algebra R A]
-
-lemma algebra_map_apply (r : R) : algebra_map R (mv_polynomial σ A) r = C (algebra_map R A r) := rfl
 
 /--
 The coercion from multivariable polynomials to multivariable power series
@@ -1241,11 +1243,6 @@ by { ext, simp [coeff_X, apply_ite f] }
 
 end map
 
-end semiring
-
-section comm_semiring
-variables [comm_semiring R]
-
 lemma X_pow_dvd_iff {n : ℕ} {φ : power_series R} :
   (X : power_series R)^n ∣ φ ↔ ∀ m, m < n → coeff R m φ = 0 :=
 begin
@@ -1263,6 +1260,11 @@ begin
   { exact h 0 zero_lt_one },
   { intros m hm, rwa nat.eq_zero_of_le_zero (nat.le_of_succ_le_succ hm) }
 end
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R]
 
 open finset nat
 

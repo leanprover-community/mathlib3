@@ -9,6 +9,9 @@ import data.set.sigma
 /-!
 # Finite sets in a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few `finset` constructions on `Σ i, α i`.
 
 ## Main declarations

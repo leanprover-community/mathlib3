@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import topology.metric_space.lipschitz
-import analysis.special_functions.pow
+import analysis.special_functions.pow.continuity
 
 /-!
 # Hölder continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define Hölder continuity on a set and on the whole space. We also prove some basic
 properties of Hölder continuous functions.
@@ -35,7 +38,7 @@ Hölder continuity, Lipschitz continuity
 variables {X Y Z : Type*}
 
 open filter set
-open_locale nnreal ennreal topological_space
+open_locale nnreal ennreal topology
 
 section emetric
 

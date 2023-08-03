@@ -9,6 +9,9 @@ import analysis.special_functions.log.basic
 /-!
 # Inverse of the sinh function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that sinh is bijective and hence has an
 inverse, arsinh.
 
@@ -37,7 +40,7 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 noncomputable theory
 
 open function filter set
-open_locale topological_space
+open_locale topology
 
 namespace real
 

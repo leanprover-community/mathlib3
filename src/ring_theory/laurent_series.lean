@@ -9,6 +9,9 @@ import ring_theory.localization.fraction_ring
 /-!
 # Laurent Series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * Defines `laurent_series` as an abbreviation for `hahn_series ℤ`.
 * Provides a coercion `power_series R` into `laurent_series R` given by
@@ -135,14 +138,13 @@ rfl
     { rintro rfl,
       exact ⟨1, rfl⟩ },
     { rintro ⟨⟨_, n, rfl⟩, hc⟩,
-      rw [← sub_eq_zero, ← sub_mul, power_series.ext_iff] at hc,
+      rw [← sub_eq_zero, ← mul_sub, power_series.ext_iff] at hc,
       rw [← sub_eq_zero, power_series.ext_iff],
       intro m,
       have h := hc (m + n),
-      rw [linear_map.map_zero, subtype.coe_mk, power_series.X_pow_eq, power_series.monomial,
-        power_series.coeff, finsupp.single_add, mv_power_series.coeff_add_mul_monomial,
-        mul_one] at h,
-      exact h } end) }
+      rwa [linear_map.map_zero, subtype.coe_mk, power_series.X_pow_eq, power_series.monomial,
+        add_comm m, power_series.coeff, finsupp.single_add, mv_power_series.coeff_add_monomial_mul,
+        one_mul] at h } end) }
 
 instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
 is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _

@@ -9,6 +9,9 @@ import category_theory.limits.shapes.binary_products
 /-!
 # Pullbacks
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define a category `walking_cospan` (resp. `walking_span`), which is the index category
 for the given data for a pullback (resp. pushout) diagram. Convenience methods `cospan f g`
 and `span f g` construct functors from the walking (co)span, hitting the given morphisms.

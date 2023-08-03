@@ -111,10 +111,6 @@ variables {H : Type*} [measurable_space H] [seminormed_group H] [opens_measurabl
 
 open metric
 
-instance ae_ne_bot.to_ne_zero {α : Type*} [measurable_space α] [nonempty α] {μ : measure α}
-  [μ.ae.ne_bot] : ne_zero μ :=
-⟨ae_ne_bot.1 ‹_›⟩
-
 @[to_additive]
 lemma _root_.measurable.exists_nhds_one_bounded (f : G →* H) (h : measurable f)
   (μ : measure G . volume_tac) [μ.is_haar_measure] :

@@ -2329,6 +2329,8 @@ by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
 @[simp] lemma ae_ne_bot : μ.ae.ne_bot ↔ μ ≠ 0 :=
 ne_bot_iff.trans (not_congr ae_eq_bot)
 
+instance ae_ne_bot.to_ne_zero [μ.ae.ne_bot] : ne_zero μ := ⟨ae_ne_bot.1 ‹_›⟩
+
 @[simp] lemma ae_zero {m0 : measurable_space α} : (0 : measure α).ae = ⊥ := ae_eq_bot.2 rfl
 
 @[mono] lemma ae_mono (h : μ ≤ ν) : μ.ae ≤ ν.ae := h.absolutely_continuous.ae_le

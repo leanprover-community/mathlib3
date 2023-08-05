@@ -36,7 +36,7 @@ abelian is studied, it is shown that it decomposes as a direct sum of the
 normalized subcomplex and of the degenerate subcomplex. The crucial observation
 is that in this decomposition, the projection on the normalized subcomplex can
 be defined in each degree using simplicial operators. Then, the definition
-of this projection `P_infty : K[X] ⟶ K[X]` can be carried for any
+of this projection `P_infty : K[X] ⟶ K[X]` can be carried out for any
 `X : simplicial_object C` when `C` is a preadditive category.
 
 The construction of the endomorphism `P_infty` is done in the files

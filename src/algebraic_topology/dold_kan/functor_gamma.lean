@@ -27,6 +27,8 @@ By construction, `Γ₀.obj K` is a split simplicial object whose splitting is `
 We also construct `Γ₂ : karoubi (chain_complex C ℕ) ⥤ karoubi (simplicial_object C)`
 which shall be an equivalence for any additive category `C`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 noncomputable theory

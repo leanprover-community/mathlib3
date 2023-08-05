@@ -30,6 +30,8 @@ By passing to the limit, these endomorphisms `P q` shall be used in `p_infty.lea
 in order to define `P_infty : K[X] ⟶ K[X]`, see `equivalence.lean` for the general
 strategy of proof of the Dold-Kan equivalence.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 open category_theory category_theory.category category_theory.limits

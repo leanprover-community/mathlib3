@@ -66,7 +66,7 @@ In `degeneracies.lean`, we show that `P_infty` vanishes on the image of degenera
 operators, which is one of the key properties that makes it possible to contruct
 the isomorphism `N₂Γ₂ : Γ₂ ⋙ N₂ ≅ 𝟭 (karoubi (chain_complex C ℕ))`.
 
-The rest of the proof follows the strategy in the original paper by Dold. We show
+The rest of the proof follows the strategy in the [original paper by Dold][dold1958]. We show
 that the functor `N₂` reflects isomorphisms in `n_reflects_iso.lean`: this relies on a
 decomposition of the identity of `X _[n]` using `P_infty.f n` and degeneracies obtained in
 `decomposition.lean`. Then, in `n_comp_gamma.lean`, we construct a natural transformation

@@ -42,7 +42,7 @@ of this projection `P_infty : K[X] ⟶ K[X]` can be carried out for any
 The construction of the endomorphism `P_infty` is done in the files
 `homotopies.lean`, `faces.lean`, `projections.lean` and `p_infty.lean`.
 Eventually, as we would also like to show that the inclusion of the normalized
-Moore complex is an homotopy equivalence (cf. file `homotopy_equivalence.lean`),
+Moore complex is a homotopy equivalence (cf. file `homotopy_equivalence.lean`),
 this projection `P_infty` needs to be homotopic to the identity. In our
 construction, we get this for free because `P_infty` is obtained by altering
 the identity endomorphism by null homotopic maps. More details about this

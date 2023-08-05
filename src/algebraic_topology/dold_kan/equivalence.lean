@@ -115,10 +115,8 @@ TODO: dualise all of this as `cosimplicial_object A ⥤ cochain_complex A ℕ`. 
 what is the best way to do this. The exact design may be decided when it is needed.)
 
 ## References
-* Albrecht Dold, Homology of Symmetric Products and Other Functors of Complexes,
-Annals of Mathematics, Second Series, Vol. 68 No. 1 (Jul. 1958), pp. 54-80.
-* Paul G. Goerss, John F. Jardine, Simplicial Homotopy Theory, Modern Birkhäuser Classics,
-Reprint of the 1999 edition.
+* [Albrecht Dold, Homology of Symmetric Products and Other Functors of Complexes][dold1958]
+* [Paul G. Goerss, John F. Jardine, Simplicial Homotopy Theory][goerss-jardine-2009]
 
 -/
 

@@ -71,7 +71,7 @@ that the functor `N₂` reflects isomorphisms in `n_reflects_iso.lean`: this rel
 decomposition of the identity of `X _[n]` using `P_infty.f n` and degeneracies obtained in
 `decomposition.lean`. Then, in `n_comp_gamma.lean`, we construct a natural transformation
 `Γ₂N₂.trans : N₂ ⋙ Γ₂ ⟶ 𝟭 (karoubi (simplicial_object C))`. It is shown that it is an
-isomorphism using the fact thet `N₂` reflects isomorphisms, and because we can show
+isomorphism using the fact that `N₂` reflects isomorphisms, and because we can show
 that the composition `N₂ ⟶ N₂ ⋙ Γ₂ ⋙ N₂ ⟶ N₂` is the identity (see `identity_N₂`). The fact
 that `N₂` is defined as a formal direct factor makes the proof easier because we only
 have to compare endomorphisms of an alternating face map complex `K[X]` and we do not

@@ -102,7 +102,7 @@ obtained in `normalized.lean`.
 
 TODO: Show functoriality properties of the three equivalences above. More precisely,
 for example in the case of abelian categories `A` and `B`, if `F : A ⥤ B` is an
-additive functor, we can show that the functor `N` for `A` and `B` are compatible
+additive functor, we can show that the functors `N` for `A` and `B` are compatible
 with the functors `simplicial_object A ⥤ simplicial_object B` and
 `chain_complex A ℕ ⥤ chain_complex B ℕ` induced by `F`. (Note that this does not
 require that `F` is an exact functor!)

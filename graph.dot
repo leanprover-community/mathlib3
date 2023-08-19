@@ -1,0 +1,626 @@
+strict digraph "" {
+	comm_monoid_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_monoid_with_zero -> monoid_with_zero;
+	comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_monoid_with_zero -> comm_monoid;
+	comm_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_semiring -> comm_monoid_with_zero;
+	non_unital_comm_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_semiring -> non_unital_comm_semiring;
+	comm_semiring -> comm_monoid;
+	semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_semiring -> semiring;
+	semifield	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	semifield -> comm_semiring;
+	comm_group_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	semifield -> comm_group_with_zero;
+	division_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	semifield -> division_semiring;
+	division_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	div_inv_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	division_monoid -> div_inv_monoid;
+	div_inv_one_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	division_monoid -> div_inv_one_monoid;
+	has_involutive_inv	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	division_monoid -> has_involutive_inv;
+	group_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	group_with_zero -> division_monoid;
+	group_with_zero -> monoid_with_zero;
+	cancel_monoid_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	group_with_zero -> cancel_monoid_with_zero;
+	group_with_zero -> div_inv_monoid;
+	add_left_cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_left_cancel_monoid -> add_monoid;
+	add_left_cancel_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_left_cancel_monoid -> add_left_cancel_semigroup;
+	add_cancel_comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_cancel_comm_monoid -> add_left_cancel_monoid;
+	add_comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_cancel_comm_monoid -> add_comm_monoid;
+	add_cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_cancel_comm_monoid -> add_cancel_monoid;
+	comm_group	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	group	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_group -> group;
+	division_comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_group -> division_comm_monoid;
+	comm_group -> comm_monoid;
+	cancel_comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_group -> cancel_comm_monoid;
+	add_zero_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_monoid -> add_zero_class;
+	add_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_monoid -> add_semigroup;
+	monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid_with_zero -> monoid;
+	semigroup_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid_with_zero -> semigroup_with_zero;
+	mul_zero_one_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid_with_zero -> mul_zero_one_class;
+	cancel_monoid_with_zero -> monoid_with_zero;
+	sub_neg_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	sub_neg_monoid -> add_monoid;
+	has_neg	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	sub_neg_monoid -> has_neg;
+	non_unital_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_comm_semiring -> non_unital_semiring;
+	comm_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_comm_semiring -> comm_semigroup;
+	non_unital_comm_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_comm_ring -> non_unital_comm_semiring;
+	non_unital_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_comm_ring -> non_unital_ring;
+	non_unital_comm_ring -> comm_semigroup;
+	add_monoid_with_one	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_monoid_with_one -> add_monoid;
+	has_one	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_monoid_with_one -> has_one;
+	group -> division_monoid;
+	group -> div_inv_monoid;
+	cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	group -> cancel_monoid;
+	neg_zero_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	has_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	neg_zero_class -> has_zero;
+	neg_zero_class -> has_neg;
+	has_distrib_neg	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	has_distrib_neg -> neg_zero_class;
+	has_involutive_neg	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	has_distrib_neg -> has_involutive_neg;
+	add_comm_monoid_with_one	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_monoid_with_one -> add_monoid_with_one;
+	add_comm_monoid_with_one -> add_comm_monoid;
+	add_comm_group_with_one	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_group_with_one -> add_comm_monoid_with_one;
+	add_comm_group	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_group_with_one -> add_comm_group;
+	add_group_with_one	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_group_with_one -> add_group_with_one;
+	sub_neg_zero_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	sub_neg_zero_monoid -> sub_neg_monoid;
+	sub_neg_zero_monoid -> neg_zero_class;
+	is_domain	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	is_domain -> cancel_monoid_with_zero;
+	cancel_comm_monoid_with_zero	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	is_domain -> cancel_comm_monoid_with_zero;
+	has_add	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_zero_class -> has_add;
+	add_zero_class -> has_zero;
+	mul_one_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid -> mul_one_class;
+	semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	monoid -> semigroup;
+	ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	ring -> add_comm_group_with_one;
+	ring -> monoid;
+	distrib	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	ring -> distrib;
+	ring -> semiring;
+	ring -> non_unital_ring;
+	non_assoc_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	ring -> non_assoc_ring;
+	division_comm_monoid -> division_monoid;
+	division_comm_monoid -> comm_monoid;
+	comm_group_with_zero -> comm_monoid_with_zero;
+	comm_group_with_zero -> group_with_zero;
+	comm_group_with_zero -> division_comm_monoid;
+	comm_group_with_zero -> cancel_comm_monoid_with_zero;
+	comm_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	comm_ring -> comm_semiring;
+	comm_ring -> non_unital_comm_ring;
+	comm_ring -> ring;
+	comm_ring -> comm_monoid;
+	has_mul	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	mul_one_class -> has_mul;
+	mul_one_class -> has_one;
+	add_comm_monoid -> add_monoid;
+	add_comm_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_monoid -> add_comm_semigroup;
+	add_comm_group -> add_cancel_comm_monoid;
+	add_comm_group -> add_comm_monoid;
+	add_group	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_group -> add_group;
+	subtraction_comm_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_comm_group -> subtraction_comm_monoid;
+	comm_monoid -> monoid;
+	comm_monoid -> comm_semigroup;
+	distrib -> has_add;
+	distrib -> has_mul;
+	non_unital_non_assoc_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_non_assoc_semiring -> add_comm_monoid;
+	non_unital_non_assoc_semiring -> distrib;
+	mul_zero_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_non_assoc_semiring -> mul_zero_class;
+	division_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	division_ring -> ring;
+	division_ring -> div_inv_monoid;
+	division_ring -> division_semiring;
+	mul_zero_class -> has_zero;
+	mul_zero_class -> has_mul;
+	non_assoc_semiring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_assoc_semiring -> add_comm_monoid_with_one;
+	non_assoc_semiring -> non_unital_non_assoc_semiring;
+	non_assoc_semiring -> mul_zero_one_class;
+	semiring -> monoid_with_zero;
+	semiring -> non_assoc_semiring;
+	semiring -> non_unital_semiring;
+	semigroup -> has_mul;
+	semigroup_with_zero -> mul_zero_class;
+	semigroup_with_zero -> semigroup;
+	mul_zero_one_class -> mul_one_class;
+	mul_zero_one_class -> mul_zero_class;
+	field	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	field -> semifield;
+	field -> comm_ring;
+	field -> division_ring;
+	non_unital_semiring -> non_unital_non_assoc_semiring;
+	non_unital_semiring -> semigroup_with_zero;
+	non_unital_ring -> non_unital_semiring;
+	non_unital_non_assoc_ring	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	non_unital_ring -> non_unital_non_assoc_ring;
+	add_semigroup -> has_add;
+	div_inv_monoid -> monoid;
+	has_inv	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		rank=0,
+		shape=plaintext,
+		typ=class,
+		width=0];
+	div_inv_monoid -> has_inv;
+	cancel_comm_monoid -> comm_monoid;
+	left_cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	cancel_comm_monoid -> left_cancel_monoid;
+	cancel_comm_monoid -> cancel_monoid;
+	cancel_comm_monoid_with_zero -> comm_monoid_with_zero;
+	cancel_comm_monoid_with_zero -> cancel_monoid_with_zero;
+	comm_semigroup -> semigroup;
+	add_group -> sub_neg_monoid;
+	subtraction_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_group -> subtraction_monoid;
+	add_group -> add_cancel_monoid;
+	subtraction_monoid -> sub_neg_monoid;
+	subtraction_monoid -> sub_neg_zero_monoid;
+	subtraction_monoid -> has_involutive_neg;
+	subtraction_comm_monoid -> add_comm_monoid;
+	subtraction_comm_monoid -> subtraction_monoid;
+	has_involutive_neg -> has_neg;
+	add_comm_semigroup -> add_semigroup;
+	left_cancel_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	left_cancel_semigroup -> semigroup;
+	left_cancel_monoid -> monoid;
+	left_cancel_monoid -> left_cancel_semigroup;
+	non_assoc_ring -> add_comm_group_with_one;
+	non_assoc_ring -> non_assoc_semiring;
+	non_assoc_ring -> non_unital_non_assoc_ring;
+	div_inv_one_monoid -> div_inv_monoid;
+	inv_one_class	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	div_inv_one_monoid -> inv_one_class;
+	right_cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	right_cancel_monoid -> monoid;
+	right_cancel_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	right_cancel_monoid -> right_cancel_semigroup;
+	cancel_monoid -> left_cancel_monoid;
+	cancel_monoid -> right_cancel_monoid;
+	add_group_with_one -> add_monoid_with_one;
+	add_group_with_one -> add_group;
+	non_unital_non_assoc_ring -> add_comm_group;
+	non_unital_non_assoc_ring -> non_unital_non_assoc_semiring;
+	add_right_cancel_monoid	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_right_cancel_monoid -> add_monoid;
+	add_right_cancel_semigroup	[fontname=inconsolata,
+		height=0,
+		margin="0.1,0.1",
+		shape=plaintext,
+		typ=class,
+		width=0];
+	add_right_cancel_monoid -> add_right_cancel_semigroup;
+	add_cancel_monoid -> add_left_cancel_monoid;
+	add_cancel_monoid -> add_right_cancel_monoid;
+	add_left_cancel_semigroup -> add_semigroup;
+	inv_one_class -> has_one;
+	inv_one_class -> has_inv;
+	has_involutive_inv -> has_inv;
+	division_semiring -> group_with_zero;
+	division_semiring -> semiring;
+	add_right_cancel_semigroup -> add_semigroup;
+	right_cancel_semigroup -> semigroup;
+	{rank=same; has_one; has_zero; has_add; has_neg; has_inv; has_mul }
+}

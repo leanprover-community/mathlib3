@@ -1,0 +1,2297 @@
+{
+  "module.to_mul_action_with_zero": { class: "mul_action_with_zero", inputs: [
+"module", 
+] },
+  "add_subgroup.normal_of_characteristic": { class: "add_subgroup.normal", inputs: [
+"add_subgroup.characteristic", 
+] },
+  "group_seminorm_class.to_mul_le_add_hom_class": { class: "mul_le_add_hom_class", inputs: [
+"group_seminorm_class", 
+] },
+  "linear_ordered_comm_monoid_with_zero.to_comm_monoid_with_zero": { class: "comm_monoid_with_zero", inputs: [
+"linear_ordered_comm_monoid_with_zero", 
+] },
+  "ne_zero.of_gt'": { class: "ne_zero", inputs: [
+"fact", 
+] },
+  "is_modular_lattice.to_is_lower_modular_lattice": { class: "is_lower_modular_lattice", inputs: [
+"is_modular_lattice", 
+] },
+  "semifield.to_comm_semiring": { class: "comm_semiring", inputs: [
+"semifield", 
+] },
+  "preorder.to_has_lt": { class: "has_lt", inputs: [
+"preorder", 
+] },
+  "pos_mul_mono_rev.to_pos_mul_reflect_lt": { class: "pos_mul_reflect_lt", inputs: [
+"pos_mul_mono_rev", 
+] },
+  "set.ord_connected_range": { class: "set.ord_connected", inputs: [
+] },
+  "coe_base_aux": { class: "has_coe_t_aux", inputs: [
+"has_coe", 
+] },
+  "group_with_zero.to_division_monoid": { class: "division_monoid", inputs: [
+"group_with_zero", 
+] },
+  "canonically_ordered_comm_semiring.to_ordered_comm_monoid": { class: "ordered_comm_monoid", inputs: [
+"canonically_ordered_comm_semiring", 
+] },
+  "ne_zero.bit0": { class: "ne_zero", inputs: [
+"ne_zero", 
+] },
+  "gcd_monoid.gcd.is_commutative": { class: "is_commutative", inputs: [
+] },
+  "add_cancel_comm_monoid.to_add_left_cancel_monoid": { class: "add_left_cancel_monoid", inputs: [
+"add_cancel_comm_monoid", 
+] },
+  "biheyting_algebra.to_has_hnot": { class: "has_hnot", inputs: [
+"biheyting_algebra", 
+] },
+  "set.ord_connected_Ioc": { class: "set.ord_connected", inputs: [
+] },
+  "right_cancel_semigroup.to_is_right_cancel_mul": { class: "is_right_cancel_mul", inputs: [
+] },
+  "ordered_comm_group.to_comm_group": { class: "comm_group", inputs: [
+"ordered_comm_group", 
+] },
+  "add_left_cancel_monoid.to_add_monoid": { class: "add_monoid", inputs: [
+"add_left_cancel_monoid", 
+] },
+  "add_comm_semigroup.is_central_vadd": { class: "is_central_vadd", inputs: [
+] },
+  "ring_norm_class.to_add_group_norm_class": { class: "add_group_norm_class", inputs: [
+"ring_norm_class", 
+] },
+  "ordered_comm_semiring.to_comm_semiring": { class: "comm_semiring", inputs: [
+"ordered_comm_semiring", 
+] },
+  "is_cancel_mul.to_is_left_cancel_mul": { class: "is_left_cancel_mul", inputs: [
+"is_cancel_mul", 
+] },
+  "cancel_monoid_with_zero.to_monoid_with_zero": { class: "monoid_with_zero", inputs: [
+"cancel_monoid_with_zero", 
+] },
+  "sub_neg_monoid.to_has_sub": { class: "has_sub", inputs: [
+"sub_neg_monoid", 
+] },
+  "linear_ordered_comm_group_with_zero.to_linear_ordered_comm_monoid_with_zero": { class: "linear_ordered_comm_monoid_with_zero", inputs: [
+"linear_ordered_comm_group_with_zero", 
+] },
+  "non_unital_comm_ring.to_non_unital_comm_semiring": { class: "non_unital_comm_semiring", inputs: [
+"non_unital_comm_ring", 
+] },
+  "add_monoid_with_one.to_has_nat_cast": { class: "has_nat_cast", inputs: [
+"add_monoid_with_one", 
+] },
+  "group.to_division_monoid": { class: "division_monoid", inputs: [
+"group", 
+] },
+  "add_group_norm_class.to_add_group_seminorm_class": { class: "add_group_seminorm_class", inputs: [
+"add_group_norm_class", 
+] },
+  "ordered_add_comm_group.to_ordered_cancel_add_comm_monoid": { class: "ordered_cancel_add_comm_monoid", inputs: [
+"ordered_add_comm_group", 
+] },
+  "unique.inhabited": { class: "inhabited", inputs: [
+"unique", 
+] },
+  "alternative.to_applicative": { class: "applicative", inputs: [
+"alternative", 
+] },
+  "set.ord_connected_Ioo": { class: "set.ord_connected", inputs: [
+] },
+  "interactive.with_desc.reflectable": { class: "lean.parser.reflectable", inputs: [
+"lean.parser.reflectable", 
+] },
+  "monad_reader_trans": { class: "monad_reader", inputs: [
+"monad_reader", 
+"has_monad_lift", 
+] },
+  "mul_distrib_mul_action.to_mul_action": { class: "mul_action", inputs: [
+"mul_distrib_mul_action", 
+] },
+  "generalized_boolean_algebra.to_has_bot": { class: "has_bot", inputs: [
+"generalized_boolean_algebra", 
+] },
+  "mul_zero_class.neg_zero_class": { class: "neg_zero_class", inputs: [
+"has_distrib_neg", 
+] },
+  "add_comm_group_with_one.to_add_comm_monoid_with_one": { class: "add_comm_monoid_with_one", inputs: [
+"add_comm_group_with_one", 
+] },
+  "is_preorder.to_is_trans": { class: "is_trans", inputs: [
+"is_preorder", 
+] },
+  "sub_neg_zero_monoid.to_neg_zero_class": { class: "neg_zero_class", inputs: [
+"sub_neg_zero_monoid", 
+] },
+  "set.ord_connected_uIoc": { class: "set.ord_connected", inputs: [
+] },
+  "comm_group_with_zero.normalized_gcd_monoid": { class: "normalized_gcd_monoid", inputs: [
+"decidable_eq", 
+] },
+  "is_domain.to_is_cancel_mul_zero": { class: "is_cancel_mul_zero", inputs: [
+"is_domain", 
+] },
+  "star_semigroup.to_has_involutive_star": { class: "has_involutive_star", inputs: [
+"star_semigroup", 
+] },
+  "has_monad_lift_t_trans": { class: "has_monad_lift_t", inputs: [
+"has_monad_lift_t", 
+"has_monad_lift", 
+] },
+  "group_with_zero.no_zero_divisors": { class: "no_zero_divisors", inputs: [
+] },
+  "inf_hom_class.to_order_hom_class": { class: "order_hom_class", inputs: [
+"inf_hom_class", 
+] },
+  "lattice.to_semilattice_inf": { class: "semilattice_inf", inputs: [
+"lattice", 
+] },
+  "lattice_hom_class.to_sup_hom_class": { class: "sup_hom_class", inputs: [
+"lattice_hom_class", 
+] },
+  "mul_equiv_class.monoid_hom_class": { class: "monoid_hom_class", inputs: [
+"mul_equiv_class", 
+] },
+  "add_zero_class.to_has_add": { class: "has_add", inputs: [
+"add_zero_class", 
+] },
+  "equiv_like.to_embedding_like": { class: "embedding_like", inputs: [
+"equiv_like", 
+] },
+  "add_submonoid_with_one_class.to_one_mem_class": { class: "one_mem_class", inputs: [
+"add_submonoid_with_one_class", 
+] },
+  "mul_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"mul_hom_class", 
+] },
+  "ordered_add_comm_monoid.to_partial_order": { class: "partial_order", inputs: [
+"ordered_add_comm_monoid", 
+] },
+  "star_add_monoid.to_has_involutive_star": { class: "has_involutive_star", inputs: [
+"star_add_monoid", 
+] },
+  "ring.to_monoid": { class: "monoid", inputs: [
+"ring", 
+] },
+  "generalized_coheyting_algebra.to_has_bot": { class: "has_bot", inputs: [
+"generalized_coheyting_algebra", 
+] },
+  "linear_ordered_comm_monoid_with_zero.to_zero_le_one_class": { class: "zero_le_one_class", inputs: [
+] },
+  "sup_bot_hom_class.to_bot_hom_class": { class: "bot_hom_class", inputs: [
+"sup_bot_hom_class", 
+] },
+  "linear_ordered_comm_semiring.to_linear_ordered_semiring": { class: "linear_ordered_semiring", inputs: [
+"linear_ordered_comm_semiring", 
+] },
+  "is_well_founded.is_irrefl": { class: "is_irrefl", inputs: [
+"is_well_founded", 
+] },
+  "comm_group_with_zero.to_division_comm_monoid": { class: "division_comm_monoid", inputs: [
+"comm_group_with_zero", 
+] },
+  "ordered_comm_ring.to_comm_ring": { class: "comm_ring", inputs: [
+"ordered_comm_ring", 
+] },
+  "neg_zero_class.to_has_zero": { class: "has_zero", inputs: [
+"neg_zero_class", 
+] },
+  "add_group_seminorm_class.to_nonneg_hom_class": { class: "nonneg_hom_class", inputs: [
+"add_group_seminorm_class", 
+] },
+  "inf_is_idempotent": { class: "is_idempotent", inputs: [
+] },
+  "generalized_heyting_algebra.to_order_top": { class: "order_top", inputs: [
+] },
+  "monoid.to_mul_one_class": { class: "mul_one_class", inputs: [
+"monoid", 
+] },
+  "nonarchimedean_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"nonarchimedean_hom_class", 
+] },
+  "is_well_order.is_asymm": { class: "is_asymm", inputs: [
+"is_well_order", 
+] },
+  "add_comm_group.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"add_comm_group", 
+] },
+  "order_iso_class.to_inf_top_hom_class": { class: "inf_top_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "ordered_comm_monoid.to_comm_monoid": { class: "comm_monoid", inputs: [
+"ordered_comm_monoid", 
+] },
+  "ring_hom_inv_pair.triples": { class: "ring_hom_comp_triple", inputs: [
+"ring_hom_inv_pair", 
+] },
+  "is_simple_order.to_nontrivial": { class: "nontrivial", inputs: [
+"is_simple_order", 
+] },
+  "star_ring.to_star_semigroup": { class: "star_semigroup", inputs: [
+"star_ring", 
+] },
+  "ring_hom_comp_triple.right_ids": { class: "ring_hom_comp_triple", inputs: [
+] },
+  "monad_reader_adapter_trans": { class: "monad_reader_adapter", inputs: [
+"monad_reader_adapter", 
+"monad_functor", 
+] },
+  "coe_to_lift": { class: "has_lift_t", inputs: [
+"has_coe_t", 
+] },
+  "is_coatomistic.is_coatomic": { class: "is_coatomic", inputs: [
+"is_coatomistic", 
+] },
+  "min_idem": { class: "is_idempotent", inputs: [
+] },
+  "comm_group.to_group": { class: "group", inputs: [
+"comm_group", 
+] },
+  "biheyting_algebra.to_coheyting_algebra": { class: "coheyting_algebra", inputs: [
+"biheyting_algebra", 
+] },
+  "generalized_coheyting_algebra.to_has_sdiff": { class: "has_sdiff", inputs: [
+"generalized_coheyting_algebra", 
+] },
+  "non_unital_non_assoc_semiring.to_distrib": { class: "distrib", inputs: [
+"non_unital_non_assoc_semiring", 
+] },
+  "division_ring.to_nontrivial": { class: "nontrivial", inputs: [
+"division_ring", 
+] },
+  "complete_semilattice_Sup.to_has_Sup": { class: "has_Sup", inputs: [
+"complete_semilattice_Sup", 
+] },
+  "non_unital_non_assoc_semiring.to_mul_zero_class": { class: "mul_zero_class", inputs: [
+"non_unital_non_assoc_semiring", 
+] },
+  "is_asymm_of_is_trans_of_is_irrefl": { class: "is_asymm", inputs: [
+"is_trans", 
+"is_irrefl", 
+] },
+  "mul_one_class.to_is_left_id": { class: "is_left_id", inputs: [
+] },
+  "is_empty.subsingleton": { class: "subsingleton", inputs: [
+"is_empty", 
+] },
+  "rel_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"rel_hom_class", 
+] },
+  "left_cancel_semigroup.to_is_left_cancel_mul": { class: "is_left_cancel_mul", inputs: [
+] },
+  "neg_zero_class.to_has_neg": { class: "has_neg", inputs: [
+"neg_zero_class", 
+] },
+  "is_well_order.is_trichotomous": { class: "is_trichotomous", inputs: [
+"is_well_order", 
+] },
+  "bounded_order.to_order_bot": { class: "order_bot", inputs: [
+"bounded_order", 
+] },
+  "is_absolute_value.abs_is_absolute_value": { class: "is_absolute_value", inputs: [
+] },
+  "linear_ordered_add_comm_monoid_with_top.to_linear_ordered_add_comm_monoid": { class: "linear_ordered_add_comm_monoid", inputs: [
+"linear_ordered_add_comm_monoid_with_top", 
+] },
+  "semiring.to_non_assoc_semiring": { class: "non_assoc_semiring", inputs: [
+"semiring", 
+] },
+  "ne_zero.char_zero": { class: "ne_zero", inputs: [
+"ne_zero", 
+"char_zero", 
+] },
+  "is_atomistic.is_atomic": { class: "is_atomic", inputs: [
+"is_atomistic", 
+] },
+  "is_strict_weak_order.to_is_incomp_trans": { class: "is_incomp_trans", inputs: [
+"is_strict_weak_order", 
+] },
+  "smul_zero_class.to_has_smul": { class: "has_smul", inputs: [
+"smul_zero_class", 
+] },
+  "strict_ordered_semiring.to_nontrivial": { class: "nontrivial", inputs: [
+"strict_ordered_semiring", 
+] },
+  "coframe.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"order.coframe", 
+] },
+  "semigroup_has_dvd": { class: "has_dvd", inputs: [
+"semigroup", 
+] },
+  "subring_class.to_subsemiring_class": { class: "subsemiring_class", inputs: [
+"subring_class", 
+] },
+  "heyting_algebra.to_has_compl": { class: "has_compl", inputs: [
+"heyting_algebra", 
+] },
+  "ordered_add_comm_group.to_partial_order": { class: "partial_order", inputs: [
+"ordered_add_comm_group", 
+] },
+  "monoid_with_zero.to_semigroup_with_zero": { class: "semigroup_with_zero", inputs: [
+"monoid_with_zero", 
+] },
+  "monoid_with_zero.to_mul_zero_one_class": { class: "mul_zero_one_class", inputs: [
+"monoid_with_zero", 
+] },
+  "bounded_lattice_hom_class.to_sup_bot_hom_class": { class: "sup_bot_hom_class", inputs: [
+"bounded_lattice_hom_class", 
+] },
+  "mul_zero_class.to_has_mul": { class: "has_mul", inputs: [
+"mul_zero_class", 
+] },
+  "distrib_mul_action_hom_class.to_add_monoid_hom_class": { class: "add_monoid_hom_class", inputs: [
+"distrib_mul_action_hom_class", 
+] },
+  "ordered_comm_ring.to_ordered_ring": { class: "ordered_ring", inputs: [
+"ordered_comm_ring", 
+] },
+  "subsemiring_class.to_add_submonoid_class": { class: "add_submonoid_class", inputs: [
+"subsemiring_class", 
+] },
+  "has_involutive_star.to_has_star": { class: "has_star", inputs: [
+"has_involutive_star", 
+] },
+  "submultiplicative_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"submultiplicative_hom_class", 
+] },
+  "ring_hom_surjective.ids": { class: "ring_hom_surjective", inputs: [
+] },
+  "is_partial_order.to_is_preorder": { class: "is_preorder", inputs: [
+"is_partial_order", 
+] },
+  "add_zero_class.to_is_left_id": { class: "is_left_id", inputs: [
+] },
+  "linear_ordered_field.to_field": { class: "field", inputs: [
+"linear_ordered_field", 
+] },
+  "mul_equiv_class.mul_hom_class": { class: "mul_hom_class", inputs: [
+"mul_equiv_class", 
+] },
+  "is_strict_weak_order_of_is_strict_total_order": { class: "is_strict_weak_order", inputs: [
+"is_strict_total_order", 
+] },
+  "group_with_zero.to_cancel_monoid_with_zero": { class: "cancel_monoid_with_zero", inputs: [
+"group_with_zero", 
+] },
+  "strict_ordered_comm_ring.to_comm_ring": { class: "comm_ring", inputs: [
+"strict_ordered_comm_ring", 
+] },
+  "sup_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"sup_hom_class", 
+] },
+  "is_partial_order.to_is_antisymm": { class: "is_antisymm", inputs: [
+"is_partial_order", 
+] },
+  "is_scalar_tower.to_smul_comm_class'": { class: "smul_comm_class", inputs: [
+"is_scalar_tower", 
+] },
+  "distrib_lattice.to_lattice": { class: "lattice", inputs: [
+"distrib_lattice", 
+] },
+  "non_unital_ring.to_non_unital_semiring": { class: "non_unital_semiring", inputs: [
+"non_unital_ring", 
+] },
+  "complete_linear_order.to_linear_order": { class: "linear_order", inputs: [
+"complete_linear_order", 
+] },
+  "add_monoid.to_add_semigroup": { class: "add_semigroup", inputs: [
+"add_monoid", 
+] },
+  "heyting_algebra.to_bounded_order": { class: "bounded_order", inputs: [
+] },
+  "coheyting_algebra.to_bounded_order": { class: "bounded_order", inputs: [
+] },
+  "ne_zero.mul": { class: "ne_zero", inputs: [
+"no_zero_divisors", 
+"ne_zero", 
+"ne_zero", 
+] },
+  "ring_seminorm_class.to_nonneg_hom_class": { class: "nonneg_hom_class", inputs: [
+"ring_seminorm_class", 
+] },
+  "strict_ordered_comm_semiring.to_strict_ordered_semiring": { class: "strict_ordered_semiring", inputs: [
+"strict_ordered_comm_semiring", 
+] },
+  "canonically_linear_ordered_monoid.to_linear_order": { class: "linear_order", inputs: [
+"canonically_linear_ordered_monoid", 
+] },
+  "canonically_ordered_monoid.to_order_bot": { class: "order_bot", inputs: [
+] },
+  "add_subgroup.top_characteristic": { class: "add_subgroup.characteristic", inputs: [
+] },
+  "subgroup_class.to_submonoid_class": { class: "submonoid_class", inputs: [
+"subgroup_class", 
+] },
+  "absolute_value.is_absolute_value": { class: "is_absolute_value", inputs: [
+] },
+  "linear_ordered_comm_semiring.to_linear_ordered_cancel_add_comm_monoid": { class: "linear_ordered_cancel_add_comm_monoid", inputs: [
+"linear_ordered_comm_semiring", 
+] },
+  "linear_ordered_add_comm_group.to_linear_order": { class: "linear_order", inputs: [
+"linear_ordered_add_comm_group", 
+] },
+  "linear_ordered_comm_monoid.to_linear_order": { class: "linear_order", inputs: [
+"linear_ordered_comm_monoid", 
+] },
+  "order.coframe.to_complete_lattice": { class: "complete_lattice", inputs: [
+"order.coframe", 
+] },
+  "strict_ordered_semiring.to_char_zero": { class: "char_zero", inputs: [
+] },
+  "ordered_comm_semiring.to_ordered_semiring": { class: "ordered_semiring", inputs: [
+"ordered_comm_semiring", 
+] },
+  "conditionally_complete_linear_order.to_conditionally_complete_lattice": { class: "conditionally_complete_lattice", inputs: [
+"conditionally_complete_linear_order", 
+] },
+  "comm_monoid_with_zero.to_comm_monoid": { class: "comm_monoid", inputs: [
+"comm_monoid_with_zero", 
+] },
+  "is_scalar_tower.left": { class: "is_scalar_tower", inputs: [
+] },
+  "ring_hom_class.to_monoid_with_zero_hom_class": { class: "monoid_with_zero_hom_class", inputs: [
+"ring_hom_class", 
+] },
+  "is_simple_order.is_atomistic": { class: "is_atomistic", inputs: [
+"is_simple_order", 
+] },
+  "mul_ring_norm_class.to_mul_ring_seminorm_class": { class: "mul_ring_seminorm_class", inputs: [
+"mul_ring_norm_class", 
+] },
+  "div_inv_monoid.to_monoid": { class: "monoid", inputs: [
+"div_inv_monoid", 
+] },
+  "equiv.arrow_congr.is_right_cancel": { class: "is_right_cancel", inputs: [
+"is_right_cancel", 
+] },
+  "comm_group.to_cancel_comm_monoid": { class: "cancel_comm_monoid", inputs: [
+"comm_group", 
+] },
+  "add_subgroup_class.to_add_submonoid_class": { class: "add_submonoid_class", inputs: [
+"add_subgroup_class", 
+] },
+  "order_iso_class.to_bounded_order_hom_class": { class: "bounded_order_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "semilinear_map_class.distrib_mul_action_hom_class": { class: "distrib_mul_action_hom_class", inputs: [
+"linear_map_class", 
+] },
+  "add_submonoid_class.to_zero_mem_class": { class: "zero_mem_class", inputs: [
+"add_submonoid_class", 
+] },
+  "linear_ordered_add_comm_group_with_top.to_sub_neg_monoid": { class: "sub_neg_monoid", inputs: [
+"linear_ordered_add_comm_group_with_top", 
+] },
+  "unique.subsingleton": { class: "subsingleton", inputs: [
+"unique", 
+] },
+  "comm_ring.to_ring": { class: "ring", inputs: [
+"comm_ring", 
+] },
+  "ne_zero.coe_trans": { class: "ne_zero", inputs: [
+"ne_zero", 
+] },
+  "algebra.to_module": { class: "module", inputs: [
+"algebra", 
+] },
+  "linear_ordered_comm_group.to_no_min_order": { class: "no_min_order", inputs: [
+"nontrivial", 
+] },
+  "cancel_comm_monoid_with_zero.to_comm_monoid_with_zero": { class: "comm_monoid_with_zero", inputs: [
+"cancel_comm_monoid_with_zero", 
+] },
+  "linear_ordered_ring.to_linear_order": { class: "linear_order", inputs: [
+"linear_ordered_ring", 
+] },
+  "subadditive_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"subadditive_hom_class", 
+] },
+  "ordered_semiring.to_mul_pos_mono": { class: "mul_pos_mono", inputs: [
+] },
+  "monad.to_has_bind": { class: "has_bind", inputs: [
+"monad", 
+] },
+  "cancel_monoid_with_zero.to_no_zero_divisors": { class: "no_zero_divisors", inputs: [
+] },
+  "conditionally_complete_linear_order_bot.to_has_bot": { class: "has_bot", inputs: [
+"conditionally_complete_linear_order_bot", 
+] },
+  "order_iso_class.to_top_hom_class": { class: "top_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "is_strict_weak_order.to_is_strict_order": { class: "is_strict_order", inputs: [
+"is_strict_weak_order", 
+] },
+  "distrib.to_has_mul": { class: "has_mul", inputs: [
+"distrib", 
+] },
+  "ring.to_add_comm_group_with_one": { class: "add_comm_group_with_one", inputs: [
+"ring", 
+] },
+  "linear_ordered_add_comm_group.to_linear_ordered_cancel_add_comm_monoid": { class: "linear_ordered_cancel_add_comm_monoid", inputs: [
+"linear_ordered_add_comm_group", 
+] },
+  "subgroup.normal_comap": { class: "subgroup.normal", inputs: [
+"subgroup.normal", 
+] },
+  "ordered_add_comm_monoid.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"ordered_add_comm_monoid", 
+] },
+  "group.covconv_swap": { class: "contravariant_class", inputs: [
+"covariant_class", 
+] },
+  "has_bot_nonempty": { class: "nonempty", inputs: [
+"has_bot", 
+] },
+  "monad_state_adapter_trans": { class: "monad_state_adapter", inputs: [
+"monad_state_adapter", 
+"monad_functor", 
+] },
+  "add_subgroup_class.to_neg_mem_class": { class: "neg_mem_class", inputs: [
+"add_subgroup_class", 
+] },
+  "mul_ring_seminorm_class.to_add_group_seminorm_class": { class: "add_group_seminorm_class", inputs: [
+"mul_ring_seminorm_class", 
+] },
+  "division_ring.to_div_inv_monoid": { class: "div_inv_monoid", inputs: [
+"division_ring", 
+] },
+  "linear_order.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"linear_order", 
+] },
+  "ring.to_semiring": { class: "semiring", inputs: [
+"ring", 
+] },
+  "ring_equiv_class.to_ring_hom_class": { class: "ring_hom_class", inputs: [
+"ring_equiv_class", 
+] },
+  "bihimp_is_assoc": { class: "is_associative", inputs: [
+] },
+  "linear_ordered_comm_group.to_ordered_comm_group": { class: "ordered_comm_group", inputs: [
+"linear_ordered_comm_group", 
+] },
+  "is_simple_order.is_coatomistic": { class: "is_coatomistic", inputs: [
+"is_simple_order", 
+] },
+  "is_domain.to_no_zero_divisors": { class: "no_zero_divisors", inputs: [
+"is_domain", 
+] },
+  "distrib_lattice.is_modular_lattice": { class: "is_modular_lattice", inputs: [
+] },
+  "ordered_semiring.to_semiring": { class: "semiring", inputs: [
+"ordered_semiring", 
+] },
+  "strict_ordered_semiring.to_ordered_cancel_add_comm_monoid": { class: "ordered_cancel_add_comm_monoid", inputs: [
+"strict_ordered_semiring", 
+] },
+  "ring_hom_inv_pair.triples₂": { class: "ring_hom_comp_triple", inputs: [
+"ring_hom_inv_pair", 
+] },
+  "star_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"star_hom_class", 
+] },
+  "strict_ordered_comm_ring.to_strict_ordered_comm_semiring": { class: "strict_ordered_comm_semiring", inputs: [
+"strict_ordered_comm_ring", 
+] },
+  "frame.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"order.frame", 
+] },
+  "reflect_univ.imax": { class: "reflected_univ", inputs: [
+"reflected_univ", 
+"reflected_univ", 
+] },
+  "comm_monoid.to_comm_semigroup": { class: "comm_semigroup", inputs: [
+"comm_monoid", 
+] },
+  "add_comm_monoid.to_add_monoid": { class: "add_monoid", inputs: [
+"add_comm_monoid", 
+] },
+  "ring.to_non_unital_ring": { class: "non_unital_ring", inputs: [
+"ring", 
+] },
+  "add_comm_group.to_add_group": { class: "add_group", inputs: [
+"add_comm_group", 
+] },
+  "generalized_coheyting_algebra.to_lattice": { class: "lattice", inputs: [
+"generalized_coheyting_algebra", 
+] },
+  "add_group.covconv_swap": { class: "contravariant_class", inputs: [
+"covariant_class", 
+] },
+  "subgroup.normal_inf_normal": { class: "subgroup.normal", inputs: [
+"subgroup.normal", 
+"subgroup.normal", 
+] },
+  "normalized_gcd_monoid.to_gcd_monoid": { class: "gcd_monoid", inputs: [
+"normalized_gcd_monoid", 
+] },
+  "add_zero_class.to_has_zero": { class: "has_zero", inputs: [
+"add_zero_class", 
+] },
+  "is_scalar_tower.right": { class: "is_scalar_tower", inputs: [
+] },
+  "ne_zero.pow": { class: "ne_zero", inputs: [
+"no_zero_divisors", 
+"ne_zero", 
+] },
+  "zero_le_one_class.ne_zero.three": { class: "ne_zero", inputs: [
+"zero_le_one_class", 
+"ne_zero", 
+"covariant_class", 
+] },
+  "is_well_order.is_irrefl": { class: "is_irrefl", inputs: [
+"is_well_order", 
+] },
+  "conditionally_complete_linear_order_bot.to_conditionally_complete_linear_order": { class: "conditionally_complete_linear_order", inputs: [
+"conditionally_complete_linear_order_bot", 
+] },
+  "finite.finite.to_well_founded_lt": { class: "well_founded_lt", inputs: [
+"finite", 
+] },
+  "canonically_ordered_add_monoid.to_ordered_add_comm_monoid": { class: "ordered_add_comm_monoid", inputs: [
+"canonically_ordered_add_monoid", 
+] },
+  "smul_with_zero.to_smul_zero_class": { class: "smul_zero_class", inputs: [
+"smul_with_zero", 
+] },
+  "is_lawful_traversable.to_is_lawful_functor": { class: "is_lawful_functor", inputs: [
+"is_lawful_traversable", 
+] },
+  "set.ord_connected_univ": { class: "set.ord_connected", inputs: [
+] },
+  "ordered_add_comm_group.to_add_comm_group": { class: "add_comm_group", inputs: [
+"ordered_add_comm_group", 
+] },
+  "ring_norm_class.to_ring_seminorm_class": { class: "ring_seminorm_class", inputs: [
+"ring_norm_class", 
+] },
+  "is_preorder.to_is_refl": { class: "is_refl", inputs: [
+"is_preorder", 
+] },
+  "subtraction_comm_monoid.to_subtraction_monoid": { class: "subtraction_monoid", inputs: [
+"subtraction_comm_monoid", 
+] },
+  "semilattice_sup.to_has_sup": { class: "has_sup", inputs: [
+"semilattice_sup", 
+] },
+  "ne_zero.one": { class: "ne_zero", inputs: [
+"nontrivial", 
+] },
+  "is_comm_applicative.to_is_lawful_applicative": { class: "is_lawful_applicative", inputs: [
+"is_comm_applicative", 
+] },
+  "monoid_hom_class.to_one_hom_class": { class: "one_hom_class", inputs: [
+"monoid_hom_class", 
+] },
+  "mul_action.to_has_smul": { class: "has_smul", inputs: [
+"mul_action", 
+] },
+  "add_monoid_hom_class.to_add_hom_class": { class: "add_hom_class", inputs: [
+"add_monoid_hom_class", 
+] },
+  "canonically_linear_ordered_add_monoid.semilattice_sup": { class: "semilattice_sup", inputs: [
+"canonically_linear_ordered_add_monoid", 
+] },
+  "ring_hom_class.to_monoid_hom_class": { class: "monoid_hom_class", inputs: [
+"ring_hom_class", 
+] },
+  "add_semigroup.to_is_associative": { class: "is_associative", inputs: [
+] },
+  "lattice.to_semilattice_sup": { class: "semilattice_sup", inputs: [
+"lattice", 
+] },
+  "add_comm_group.to_division_add_comm_monoid": { class: "subtraction_comm_monoid", inputs: [
+"add_comm_group", 
+] },
+  "subgroup.center_characteristic": { class: "subgroup.characteristic", inputs: [
+] },
+  "right_cancel_monoid.to_has_faithful_smul": { class: "has_faithful_smul", inputs: [
+] },
+  "subtraction_monoid.to_has_involutive_neg": { class: "has_involutive_neg", inputs: [
+"subtraction_monoid", 
+] },
+  "generalized_boolean_algebra.to_generalized_coheyting_algebra": { class: "generalized_coheyting_algebra", inputs: [
+"generalized_boolean_algebra", 
+] },
+  "set.ord_connected_image": { class: "set.ord_connected", inputs: [
+"set.ord_connected", 
+] },
+  "linear_ordered_field.to_linear_ordered_semifield": { class: "linear_ordered_semifield", inputs: [
+"linear_ordered_field", 
+] },
+  "zero_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"zero_hom_class", 
+] },
+  "monoid.to_mul_action": { class: "mul_action", inputs: [
+] },
+  "add_comm_semigroup.to_add_semigroup": { class: "add_semigroup", inputs: [
+"add_comm_semigroup", 
+] },
+  "invertible.star": { class: "invertible", inputs: [
+"invertible", 
+] },
+  "bounded_order.to_order_top": { class: "order_top", inputs: [
+"bounded_order", 
+] },
+  "embedding_like.to_fun_like": { class: "fun_like", inputs: [
+"embedding_like", 
+] },
+  "traversable.to_functor": { class: "functor", inputs: [
+"traversable", 
+] },
+  "division_ring.is_domain": { class: "is_domain", inputs: [
+] },
+  "complete_semilattice_Inf.to_has_Inf": { class: "has_Inf", inputs: [
+"complete_semilattice_Inf", 
+] },
+  "conditionally_complete_lattice.to_has_Inf": { class: "has_Inf", inputs: [
+"conditionally_complete_lattice", 
+] },
+  "finite.prop": { class: "finite", inputs: [
+] },
+  "ordered_cancel_comm_monoid.to_partial_order": { class: "partial_order", inputs: [
+"ordered_cancel_comm_monoid", 
+] },
+  "complete_distrib_lattice.to_coframe": { class: "order.coframe", inputs: [
+"complete_distrib_lattice", 
+] },
+  "semilattice_inf.to_has_inf": { class: "has_inf", inputs: [
+"semilattice_inf", 
+] },
+  "comm_semiring.to_non_unital_comm_semiring": { class: "non_unital_comm_semiring", inputs: [
+"comm_semiring", 
+] },
+  "semigroup.to_has_mul": { class: "has_mul", inputs: [
+"semigroup", 
+] },
+  "distrib.right_distrib_class": { class: "right_distrib_class", inputs: [
+] },
+  "sup_is_idempotent": { class: "is_idempotent", inputs: [
+] },
+  "bounded_lattice_hom_class.to_lattice_hom_class": { class: "lattice_hom_class", inputs: [
+"bounded_lattice_hom_class", 
+] },
+  "left_cancel_monoid.to_left_cancel_semigroup": { class: "left_cancel_semigroup", inputs: [
+"left_cancel_monoid", 
+] },
+  "non_assoc_ring.to_add_comm_group_with_one": { class: "add_comm_group_with_one", inputs: [
+"non_assoc_ring", 
+] },
+  "linear_map.is_scalar_tower.compatible_smul": { class: "linear_map.compatible_smul", inputs: [
+"is_scalar_tower", 
+"is_scalar_tower", 
+] },
+  "reflect_univ.zero": { class: "reflected_univ", inputs: [
+] },
+  "linear_ordered_add_comm_monoid_with_top.to_order_top": { class: "order_top", inputs: [
+] },
+  "comm_group_with_zero.to_cancel_comm_monoid_with_zero": { class: "cancel_comm_monoid_with_zero", inputs: [
+"comm_group_with_zero", 
+] },
+  "mul_ring_norm_class.to_add_group_norm_class": { class: "add_group_norm_class", inputs: [
+"mul_ring_norm_class", 
+] },
+  "linear_ordered_add_comm_monoid.to_ordered_add_comm_monoid": { class: "ordered_add_comm_monoid", inputs: [
+"linear_ordered_add_comm_monoid", 
+] },
+  "is_cancel_mul_zero.to_is_right_cancel_mul_zero": { class: "is_right_cancel_mul_zero", inputs: [
+"is_cancel_mul_zero", 
+] },
+  "coheyting_algebra.to_has_hnot": { class: "has_hnot", inputs: [
+"coheyting_algebra", 
+] },
+  "boolean_algebra.to_has_sdiff": { class: "has_sdiff", inputs: [
+"boolean_algebra", 
+] },
+  "bounded_order_hom_class.to_top_hom_class": { class: "top_hom_class", inputs: [
+"bounded_order_hom_class", 
+] },
+  "conditionally_complete_lattice.to_has_Sup": { class: "has_Sup", inputs: [
+"conditionally_complete_lattice", 
+] },
+  "subtraction_comm_monoid.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"subtraction_comm_monoid", 
+] },
+  "monoid_hom_class.to_mul_hom_class": { class: "mul_hom_class", inputs: [
+"monoid_hom_class", 
+] },
+  "subgroup.normal_core_normal": { class: "subgroup.normal", inputs: [
+] },
+  "invertible_pow": { class: "invertible", inputs: [
+"invertible", 
+] },
+  "mul_one_class.to_is_right_id": { class: "is_right_id", inputs: [
+] },
+  "bounded_lattice_hom_class.to_bounded_order_hom_class": { class: "bounded_order_hom_class", inputs: [
+"bounded_lattice_hom_class", 
+] },
+  "linear_ordered_ring.to_linear_ordered_add_comm_group": { class: "linear_ordered_add_comm_group", inputs: [
+"linear_ordered_ring", 
+] },
+  "ordered_cancel_comm_monoid.to_cancel_comm_monoid": { class: "cancel_comm_monoid", inputs: [
+"ordered_cancel_comm_monoid", 
+] },
+  "div_inv_monoid.to_has_div": { class: "has_div", inputs: [
+"div_inv_monoid", 
+] },
+  "equiv_functor.of_is_lawful_functor": { class: "equiv_functor", inputs: [
+"is_lawful_functor", 
+] },
+  "nonneg_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"nonneg_hom_class", 
+] },
+  "division_monoid.to_div_inv_one_monoid": { class: "div_inv_one_monoid", inputs: [
+"division_monoid", 
+] },
+  "mul_zero_class.to_has_zero": { class: "has_zero", inputs: [
+"mul_zero_class", 
+] },
+  "lift_trans": { class: "has_lift_t", inputs: [
+"has_lift_t", 
+"has_lift", 
+] },
+  "sup_hom_class.to_order_hom_class": { class: "order_hom_class", inputs: [
+"sup_hom_class", 
+] },
+  "alternative.to_has_orelse": { class: "has_orelse", inputs: [
+"alternative", 
+] },
+  "subgroup.normal_of_comm": { class: "subgroup.normal", inputs: [
+] },
+  "field.to_comm_ring": { class: "comm_ring", inputs: [
+"field", 
+] },
+  "mul_pos_strict_mono.to_mul_pos_mono": { class: "mul_pos_mono", inputs: [
+"mul_pos_strict_mono", 
+] },
+  "right_cancel_monoid.to_monoid": { class: "monoid", inputs: [
+"right_cancel_monoid", 
+] },
+  "is_strict_order.to_is_irrefl": { class: "is_irrefl", inputs: [
+"is_strict_order", 
+] },
+  "normalized_gcd_monoid.to_normalization_monoid": { class: "normalization_monoid", inputs: [
+"normalized_gcd_monoid", 
+] },
+  "add_subgroup.subgroup.centralizer.characteristic": { class: "add_subgroup.characteristic", inputs: [
+"add_subgroup.characteristic", 
+] },
+  "applicative.to_has_seq_right": { class: "has_seq_right", inputs: [
+"applicative", 
+] },
+  "set.ord_connected_Ico": { class: "set.ord_connected", inputs: [
+] },
+  "set.ord_connected_Icc": { class: "set.ord_connected", inputs: [
+] },
+  "add_semigroup.to_has_add": { class: "has_add", inputs: [
+"add_semigroup", 
+] },
+  "comm_monoid_with_zero.to_monoid_with_zero": { class: "monoid_with_zero", inputs: [
+"comm_monoid_with_zero", 
+] },
+  "inf_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"inf_hom_class", 
+] },
+  "inf_is_commutative": { class: "is_commutative", inputs: [
+] },
+  "equiv.arrow_congr.is_left_cancel": { class: "is_left_cancel", inputs: [
+"is_left_cancel", 
+] },
+  "monad_functor_t_trans": { class: "monad_functor_t", inputs: [
+"monad_functor_t", 
+"monad_functor", 
+] },
+  "add_monoid.to_add_zero_class": { class: "add_zero_class", inputs: [
+"add_monoid", 
+] },
+  "heyting_algebra.to_has_bot": { class: "has_bot", inputs: [
+"heyting_algebra", 
+] },
+  "linear_ordered_ring.to_linear_ordered_semiring": { class: "linear_ordered_semiring", inputs: [
+"linear_ordered_ring", 
+] },
+  "add_subgroup.center_characteristic": { class: "add_subgroup.characteristic", inputs: [
+] },
+  "has_neg.to_has_abs": { class: "has_abs", inputs: [
+"has_neg", 
+"has_sup", 
+] },
+  "ordered_semiring.to_ordered_add_comm_monoid": { class: "ordered_add_comm_monoid", inputs: [
+"ordered_semiring", 
+] },
+  "semilattice_sup.to_partial_order": { class: "partial_order", inputs: [
+"semilattice_sup", 
+] },
+  "is_linear_order.to_is_partial_order": { class: "is_partial_order", inputs: [
+"is_linear_order", 
+] },
+  "linear_ordered_cancel_add_comm_monoid.to_ordered_cancel_add_comm_monoid": { class: "ordered_cancel_add_comm_monoid", inputs: [
+"linear_ordered_cancel_add_comm_monoid", 
+] },
+  "strict_ordered_semiring.to_mul_pos_strict_mono": { class: "mul_pos_strict_mono", inputs: [
+] },
+  "subgroup.normal_of_characteristic": { class: "subgroup.normal", inputs: [
+"subgroup.characteristic", 
+] },
+  "strict_ordered_semiring.to_ordered_semiring": { class: "ordered_semiring", inputs: [
+"strict_ordered_semiring", 
+] },
+  "fintype.of_is_empty": { class: "fintype", inputs: [
+"is_empty", 
+] },
+  "sup_is_associative": { class: "is_associative", inputs: [
+] },
+  "subgroup_class.to_inv_mem_class": { class: "inv_mem_class", inputs: [
+"subgroup_class", 
+] },
+  "nontrivial.to_nonempty": { class: "nonempty", inputs: [
+"nontrivial", 
+] },
+  "subsingleton.to_countable": { class: "countable", inputs: [
+"subsingleton", 
+] },
+  "add_subgroup.normal_comap": { class: "add_subgroup.normal", inputs: [
+"add_subgroup.normal", 
+] },
+  "coheyting_algebra.to_generalized_coheyting_algebra": { class: "generalized_coheyting_algebra", inputs: [
+"coheyting_algebra", 
+] },
+  "cancel_comm_monoid.to_comm_monoid": { class: "comm_monoid", inputs: [
+"cancel_comm_monoid", 
+] },
+  "vadd_comm_class_self": { class: "vadd_comm_class", inputs: [
+] },
+  "add_equiv_class.add_monoid_hom_class": { class: "add_monoid_hom_class", inputs: [
+"add_equiv_class", 
+] },
+  "ring.to_non_assoc_ring": { class: "non_assoc_ring", inputs: [
+"ring", 
+] },
+  "monoid_with_zero_hom_class.to_monoid_hom_class": { class: "monoid_hom_class", inputs: [
+"monoid_with_zero_hom_class", 
+] },
+  "non_assoc_ring.to_non_assoc_semiring": { class: "non_assoc_semiring", inputs: [
+"non_assoc_ring", 
+] },
+  "is_cancel_mul_zero.to_is_left_cancel_mul_zero": { class: "is_left_cancel_mul_zero", inputs: [
+"is_cancel_mul_zero", 
+] },
+  "max_idem": { class: "is_idempotent", inputs: [
+] },
+  "group_seminorm_class.to_nonneg_hom_class": { class: "nonneg_hom_class", inputs: [
+"group_seminorm_class", 
+] },
+  "inf_top_hom_class.to_inf_hom_class": { class: "inf_hom_class", inputs: [
+"inf_top_hom_class", 
+] },
+  "mul_semiring_action_hom_class.to_distrib_mul_action_hom_class": { class: "distrib_mul_action_hom_class", inputs: [
+"mul_semiring_action_hom_class", 
+] },
+  "is_equiv.to_is_symm": { class: "is_symm", inputs: [
+"is_equiv", 
+] },
+  "subsingleton_prop": { class: "subsingleton", inputs: [
+] },
+  "linear_ordered_comm_ring.to_strict_ordered_comm_ring": { class: "strict_ordered_comm_ring", inputs: [
+"linear_ordered_comm_ring", 
+] },
+  "coheyting_algebra.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"coheyting_algebra", 
+] },
+  "linear_ordered_ring.no_zero_divisors": { class: "no_zero_divisors", inputs: [
+] },
+  "add_monoid.to_add_action": { class: "add_action", inputs: [
+] },
+  "ring_hom_class.to_non_unital_ring_hom_class": { class: "non_unital_ring_hom_class", inputs: [
+"ring_hom_class", 
+] },
+  "ring_hom_inv_pair.star_ring_end.ring_hom_inv_pair": { class: "ring_hom_inv_pair", inputs: [
+] },
+  "sub_neg_zero_monoid.to_sub_neg_monoid": { class: "sub_neg_monoid", inputs: [
+"sub_neg_zero_monoid", 
+] },
+  "algebra.to_has_smul": { class: "has_smul", inputs: [
+"algebra", 
+] },
+  "add_monoid_with_one.to_has_one": { class: "has_one", inputs: [
+"add_monoid_with_one", 
+] },
+  "semigroup.is_scalar_tower": { class: "is_scalar_tower", inputs: [
+] },
+  "conditionally_complete_linear_order.to_linear_order": { class: "linear_order", inputs: [
+"conditionally_complete_linear_order", 
+] },
+  "add_group_seminorm_class.to_add_le_add_hom_class": { class: "subadditive_hom_class", inputs: [
+"add_group_seminorm_class", 
+] },
+  "group.has_exists_mul_of_le": { class: "has_exists_mul_of_le", inputs: [
+] },
+  "mul_action_with_zero.to_mul_action": { class: "mul_action", inputs: [
+"mul_action_with_zero", 
+] },
+  "group.covconv": { class: "contravariant_class", inputs: [
+"covariant_class", 
+] },
+  "mul_semiring_action.to_mul_distrib_mul_action": { class: "mul_distrib_mul_action", inputs: [
+"mul_semiring_action", 
+] },
+  "is_nonstrict_strict_order.to_is_irrefl": { class: "is_irrefl", inputs: [
+"is_nonstrict_strict_order", 
+] },
+  "coe_sort_trans": { class: "has_coe_to_sort", inputs: [
+"has_coe_to_sort", 
+"has_coe_t_aux", 
+] },
+  "boolean_algebra.to_has_bot": { class: "has_bot", inputs: [
+"boolean_algebra", 
+] },
+  "cancel_monoid_with_zero.to_has_faithful_smul": { class: "has_faithful_smul", inputs: [
+"nontrivial", 
+] },
+  "mul_zero_one_class.to_mul_zero_class": { class: "mul_zero_class", inputs: [
+"mul_zero_one_class", 
+] },
+  "algebra_map.has_lift_t": { class: "has_lift_t", inputs: [
+"algebra", 
+] },
+  "semiring.to_non_unital_semiring": { class: "non_unital_semiring", inputs: [
+"semiring", 
+] },
+  "cancel_comm_monoid.to_cancel_monoid": { class: "cancel_monoid", inputs: [
+"cancel_comm_monoid", 
+] },
+  "linear_order.to_partial_order": { class: "partial_order", inputs: [
+"linear_order", 
+] },
+  "monad.to_applicative": { class: "applicative", inputs: [
+"monad", 
+] },
+  "semifield.to_comm_group_with_zero": { class: "comm_group_with_zero", inputs: [
+"semifield", 
+] },
+  "field.is_domain": { class: "is_domain", inputs: [
+] },
+  "add_group_with_one.to_add_monoid_with_one": { class: "add_monoid_with_one", inputs: [
+"add_group_with_one", 
+] },
+  "non_unital_ring.to_non_unital_non_assoc_ring": { class: "non_unital_non_assoc_ring", inputs: [
+"non_unital_ring", 
+] },
+  "is_upper_modular_lattice.to_is_weak_upper_modular_lattice": { class: "is_weak_upper_modular_lattice", inputs: [
+"is_upper_modular_lattice", 
+] },
+  "has_distrib_neg.to_has_involutive_neg": { class: "has_involutive_neg", inputs: [
+"has_distrib_neg", 
+] },
+  "add_action.regular.is_pretransitive": { class: "add_action.is_pretransitive", inputs: [
+] },
+  "nonempty_of_inhabited": { class: "nonempty", inputs: [
+"inhabited", 
+] },
+  "set.ord_connected_Ioi": { class: "set.ord_connected", inputs: [
+] },
+  "non_assoc_semiring.to_non_unital_non_assoc_semiring": { class: "non_unital_non_assoc_semiring", inputs: [
+"non_assoc_semiring", 
+] },
+  "non_unital_comm_ring.to_comm_semigroup": { class: "comm_semigroup", inputs: [
+"non_unital_comm_ring", 
+] },
+  "monad_fail_lift": { class: "monad_fail", inputs: [
+"monad", 
+"monad_fail", 
+"has_monad_lift", 
+] },
+  "semigroup_with_zero.to_mul_zero_class": { class: "mul_zero_class", inputs: [
+"semigroup_with_zero", 
+] },
+  "encodable.countable": { class: "countable", inputs: [
+"encodable", 
+] },
+  "sub_neg_monoid.to_add_monoid": { class: "add_monoid", inputs: [
+"sub_neg_monoid", 
+] },
+  "linear_ordered_comm_monoid.to_ordered_comm_monoid": { class: "ordered_comm_monoid", inputs: [
+"linear_ordered_comm_monoid", 
+] },
+  "has_Sup_to_nonempty": { class: "nonempty", inputs: [
+"has_Sup", 
+] },
+  "set.ord_connected_Iic": { class: "set.ord_connected", inputs: [
+] },
+  "set.ord_connected_Iio": { class: "set.ord_connected", inputs: [
+] },
+  "reflect_univ.succ": { class: "reflected_univ", inputs: [
+"reflected_univ", 
+] },
+  "equiv.arrow_congr.is_idempotent": { class: "is_idempotent", inputs: [
+"is_idempotent", 
+] },
+  "division_comm_monoid.to_comm_monoid": { class: "comm_monoid", inputs: [
+"division_comm_monoid", 
+] },
+  "is_strict_order.to_is_trans": { class: "is_trans", inputs: [
+"is_strict_order", 
+] },
+  "ordered_semiring.to_pos_mul_mono": { class: "pos_mul_mono", inputs: [
+] },
+  "subgroup.normal_closure_normal": { class: "subgroup.normal", inputs: [
+] },
+  "generalized_boolean_algebra.to_order_bot": { class: "order_bot", inputs: [
+] },
+  "has_top_nonempty": { class: "nonempty", inputs: [
+"has_top", 
+] },
+  "group_with_zero.to_no_zero_smul_divisors": { class: "no_zero_smul_divisors", inputs: [
+] },
+  "has_inv.to_has_abs": { class: "has_abs", inputs: [
+"has_inv", 
+"has_sup", 
+] },
+  "linear_ordered_comm_group_with_zero.to_comm_group_with_zero": { class: "comm_group_with_zero", inputs: [
+"linear_ordered_comm_group_with_zero", 
+] },
+  "partial_order.to_preorder": { class: "preorder", inputs: [
+"partial_order", 
+] },
+  "is_well_order.to_is_trichotomous": { class: "is_trichotomous", inputs: [
+"is_well_order", 
+] },
+  "no_zero_divisors.to_is_cancel_mul_zero": { class: "is_cancel_mul_zero", inputs: [
+"no_zero_divisors", 
+] },
+  "module.to_distrib_mul_action": { class: "distrib_mul_action", inputs: [
+"module", 
+] },
+  "field.to_division_ring": { class: "division_ring", inputs: [
+"field", 
+] },
+  "add_equiv_class.to_equiv_like": { class: "equiv_like", inputs: [
+"add_equiv_class", 
+] },
+  "generalized_heyting_algebra.to_lattice": { class: "lattice", inputs: [
+"generalized_heyting_algebra", 
+] },
+  "set_like.has_mem": { class: "has_mem", inputs: [
+"set_like", 
+] },
+  "canonically_ordered_comm_semiring.to_comm_semiring": { class: "comm_semiring", inputs: [
+"canonically_ordered_comm_semiring", 
+] },
+  "applicative.to_functor": { class: "functor", inputs: [
+"applicative", 
+] },
+  "generalized_heyting_algebra.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"generalized_heyting_algebra", 
+] },
+  "smul_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"smul_hom_class", 
+] },
+  "mul_zero_class.to_smul_with_zero": { class: "smul_with_zero", inputs: [
+] },
+  "complete_boolean_algebra.to_complete_distrib_lattice": { class: "complete_distrib_lattice", inputs: [
+"complete_boolean_algebra", 
+] },
+  "infinite.nontrivial": { class: "nontrivial", inputs: [
+"infinite", 
+] },
+  "non_unital_non_assoc_ring.to_non_unital_non_assoc_semiring": { class: "non_unital_non_assoc_semiring", inputs: [
+"non_unital_non_assoc_ring", 
+] },
+  "add_group.to_has_ordered_sub": { class: "has_ordered_sub", inputs: [
+"covariant_class", 
+] },
+  "ordered_comm_monoid.to_partial_order": { class: "partial_order", inputs: [
+"ordered_comm_monoid", 
+] },
+  "mul_action.regular.is_pretransitive": { class: "mul_action.is_pretransitive", inputs: [
+] },
+  "is_well_founded.is_asymm": { class: "is_asymm", inputs: [
+"is_well_founded", 
+] },
+  "ordered_cancel_add_comm_monoid.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"ordered_cancel_add_comm_monoid", 
+] },
+  "is_per.to_is_symm": { class: "is_symm", inputs: [
+"is_per", 
+] },
+  "order.frame.to_complete_lattice": { class: "complete_lattice", inputs: [
+"order.frame", 
+] },
+  "set_like.partial_order": { class: "partial_order", inputs: [
+"set_like", 
+] },
+  "linear_ordered_semiring.to_linear_ordered_add_comm_monoid": { class: "linear_ordered_add_comm_monoid", inputs: [
+"linear_ordered_semiring", 
+] },
+  "is_linear_order.to_is_total": { class: "is_total", inputs: [
+"is_linear_order", 
+] },
+  "strict_ordered_ring.to_ordered_add_comm_group": { class: "ordered_add_comm_group", inputs: [
+"strict_ordered_ring", 
+] },
+  "semilinear_equiv_class.semilinear_map_class": { class: "semilinear_map_class", inputs: [
+"semilinear_equiv_class", 
+] },
+  "comm_group.to_division_comm_monoid": { class: "division_comm_monoid", inputs: [
+"comm_group", 
+] },
+  "is_cancel_add.to_is_left_cancel_add": { class: "is_left_cancel_add", inputs: [
+"is_cancel_add", 
+] },
+  "has_zero.nonempty": { class: "nonempty", inputs: [
+"has_zero", 
+] },
+  "cancel_monoid.to_right_cancel_monoid": { class: "right_cancel_monoid", inputs: [
+"cancel_monoid", 
+] },
+  "canonically_ordered_monoid.to_ordered_comm_monoid": { class: "ordered_comm_monoid", inputs: [
+"canonically_ordered_monoid", 
+] },
+  "strict_ordered_comm_ring.to_strict_ordered_ring": { class: "strict_ordered_ring", inputs: [
+"strict_ordered_comm_ring", 
+] },
+  "symm_diff_is_comm": { class: "is_commutative", inputs: [
+] },
+  "add_left_cancel_semigroup.to_is_left_cancel_add": { class: "is_left_cancel_add", inputs: [
+] },
+  "div_inv_one_monoid.to_div_inv_monoid": { class: "div_inv_monoid", inputs: [
+"div_inv_one_monoid", 
+] },
+  "monad_state_trans": { class: "monad_state", inputs: [
+"monad_state", 
+"has_monad_lift", 
+] },
+  "add_cancel_monoid.to_add_right_cancel_monoid": { class: "add_right_cancel_monoid", inputs: [
+"add_cancel_monoid", 
+] },
+  "subring_class.add_subgroup_class": { class: "add_subgroup_class", inputs: [
+"subring_class", 
+] },
+  "add_left_cancel_semigroup.to_add_semigroup": { class: "add_semigroup", inputs: [
+"add_left_cancel_semigroup", 
+] },
+  "linear_ordered_add_comm_group.to_no_max_order": { class: "no_max_order", inputs: [
+"nontrivial", 
+] },
+  "is_cancel_add.to_is_right_cancel_add": { class: "is_right_cancel_add", inputs: [
+"is_cancel_add", 
+] },
+  "group.to_cancel_monoid": { class: "cancel_monoid", inputs: [
+"group", 
+] },
+  "inv_one_class.to_has_one": { class: "has_one", inputs: [
+"inv_one_class", 
+] },
+  "comm_ring.to_comm_monoid": { class: "comm_monoid", inputs: [
+"comm_ring", 
+] },
+  "ring_equiv_class.to_mul_equiv_class": { class: "mul_equiv_class", inputs: [
+"ring_equiv_class", 
+] },
+  "sup_is_commutative": { class: "is_commutative", inputs: [
+] },
+  "semilinear_map_class.add_monoid_hom_class": { class: "add_monoid_hom_class", inputs: [
+"semilinear_map_class", 
+] },
+  "complete_boolean_algebra.to_boolean_algebra": { class: "boolean_algebra", inputs: [
+"complete_boolean_algebra", 
+] },
+  "comm_group_with_zero.to_group_with_zero": { class: "group_with_zero", inputs: [
+"comm_group_with_zero", 
+] },
+  "comm_semiring.to_comm_monoid_with_zero": { class: "comm_monoid_with_zero", inputs: [
+"comm_semiring", 
+] },
+  "boolean_algebra.to_bounded_order": { class: "bounded_order", inputs: [
+] },
+  "add_cancel_comm_monoid.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"add_cancel_comm_monoid", 
+] },
+  "coe_trans": { class: "has_coe_t", inputs: [
+"has_coe_t", 
+"has_coe", 
+] },
+  "is_well_order.to_is_well_founded": { class: "is_well_founded", inputs: [
+"is_well_order", 
+] },
+  "sub_neg_monoid.to_has_neg": { class: "has_neg", inputs: [
+"sub_neg_monoid", 
+] },
+  "linear_ordered_semiring.to_mul_pos_reflect_lt": { class: "mul_pos_reflect_lt", inputs: [
+] },
+  "has_Inf_to_nonempty": { class: "nonempty", inputs: [
+"has_Inf", 
+] },
+  "monoid_hom.normal_ker": { class: "subgroup.normal", inputs: [
+] },
+  "order_iso_class.to_bot_hom_class": { class: "bot_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "applicative.to_has_pure": { class: "has_pure", inputs: [
+"applicative", 
+] },
+  "canonically_linear_ordered_add_monoid.to_linear_order": { class: "linear_order", inputs: [
+"canonically_linear_ordered_add_monoid", 
+] },
+  "ring_hom_comp_triple.ids": { class: "ring_hom_comp_triple", inputs: [
+] },
+  "mul_semiring_action.to_distrib_mul_action": { class: "distrib_mul_action", inputs: [
+"mul_semiring_action", 
+] },
+  "add_group_with_one.to_add_group": { class: "add_group", inputs: [
+"add_group_with_one", 
+] },
+  "canonically_ordered_comm_semiring.to_ordered_comm_semiring": { class: "ordered_comm_semiring", inputs: [
+"canonically_ordered_comm_semiring", 
+] },
+  "distrib_smul.to_smul_zero_class": { class: "smul_zero_class", inputs: [
+"distrib_smul", 
+] },
+  "bounded_lattice_hom_class.to_inf_top_hom_class": { class: "inf_top_hom_class", inputs: [
+"bounded_lattice_hom_class", 
+] },
+  "is_well_order.to_is_trans": { class: "is_trans", inputs: [
+"is_well_order", 
+] },
+  "finite.of_subsingleton": { class: "finite", inputs: [
+"subsingleton", 
+] },
+  "add_subgroup.normal_inf_normal": { class: "add_subgroup.normal", inputs: [
+"add_subgroup.normal", 
+"add_subgroup.normal", 
+] },
+  "linear_ordered_semiring.to_pos_mul_reflect_lt": { class: "pos_mul_reflect_lt", inputs: [
+] },
+  "order_iso_class.to_bounded_lattice_hom_class": { class: "bounded_lattice_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "comm_monoid.to_monoid": { class: "monoid", inputs: [
+"comm_monoid", 
+] },
+  "boolean_algebra.to_generalized_boolean_algebra": { class: "generalized_boolean_algebra", inputs: [
+"boolean_algebra", 
+] },
+  "applicative.to_has_seq": { class: "has_seq", inputs: [
+"applicative", 
+] },
+  "inv_one_class.to_has_inv": { class: "has_inv", inputs: [
+"inv_one_class", 
+] },
+  "comm_semigroup.is_central_scalar": { class: "is_central_scalar", inputs: [
+] },
+  "canonically_linear_ordered_monoid.to_canonically_ordered_monoid": { class: "canonically_ordered_monoid", inputs: [
+"canonically_linear_ordered_monoid", 
+] },
+  "non_unital_comm_semiring.to_comm_semigroup": { class: "comm_semigroup", inputs: [
+"non_unital_comm_semiring", 
+] },
+  "equiv.arrow_congr.is_associative": { class: "is_associative", inputs: [
+"is_associative", 
+] },
+  "linear_ordered_cancel_comm_monoid.to_linear_ordered_comm_monoid": { class: "linear_ordered_comm_monoid", inputs: [
+"linear_ordered_cancel_comm_monoid", 
+] },
+  "distrib.left_distrib_class": { class: "left_distrib_class", inputs: [
+] },
+  "linear_ordered_comm_ring.to_linear_ordered_ring": { class: "linear_ordered_ring", inputs: [
+"linear_ordered_comm_ring", 
+] },
+  "has_involutive_inv.to_has_inv": { class: "has_inv", inputs: [
+"has_involutive_inv", 
+] },
+  "linear_ordered_ring.is_domain": { class: "is_domain", inputs: [
+] },
+  "ordered_cancel_add_comm_monoid.to_partial_order": { class: "partial_order", inputs: [
+"ordered_cancel_add_comm_monoid", 
+] },
+  "canonically_ordered_monoid.has_exists_mul_of_le": { class: "has_exists_mul_of_le", inputs: [
+] },
+  "group_with_zero.to_nontrivial": { class: "nontrivial", inputs: [
+"group_with_zero", 
+] },
+  "order_iso_class.to_lattice_hom_class": { class: "lattice_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "generalized_heyting_algebra.to_has_himp": { class: "has_himp", inputs: [
+"generalized_heyting_algebra", 
+] },
+  "non_assoc_semiring.to_mul_zero_one_class": { class: "mul_zero_one_class", inputs: [
+"non_assoc_semiring", 
+] },
+  "ring_hom_inv_pair.ids": { class: "ring_hom_inv_pair", inputs: [
+] },
+  "mul_one_class.to_has_one": { class: "has_one", inputs: [
+"mul_one_class", 
+] },
+  "lean.parser.reflectable.has_reflect": { class: "lean.parser.reflectable", inputs: [
+"has_reflect", 
+] },
+  "has_well_founded_of_has_sizeof": { class: "has_well_founded", inputs: [
+"has_sizeof", 
+] },
+  "lift_base": { class: "has_lift_t", inputs: [
+"has_lift", 
+] },
+  "set.ord_connected_empty": { class: "set.ord_connected", inputs: [
+] },
+  "pos_mul_strict_mono.to_pos_mul_mono_rev": { class: "pos_mul_mono_rev", inputs: [
+"pos_mul_strict_mono", 
+] },
+  "comm_ring.to_comm_semiring": { class: "comm_semiring", inputs: [
+"comm_ring", 
+] },
+  "ordered_cancel_comm_monoid.to_comm_monoid": { class: "comm_monoid", inputs: [
+"ordered_cancel_comm_monoid", 
+] },
+  "is_well_order.is_strict_total_order": { class: "is_strict_total_order", inputs: [
+"is_well_order", 
+] },
+  "add_group.to_subtraction_monoid": { class: "subtraction_monoid", inputs: [
+"add_group", 
+] },
+  "add_monoid_hom.normal_ker": { class: "add_subgroup.normal", inputs: [
+] },
+  "is_modular_lattice.to_is_upper_modular_lattice": { class: "is_upper_modular_lattice", inputs: [
+"is_modular_lattice", 
+] },
+  "no_zero_divisors.to_no_zero_smul_divisors": { class: "no_zero_smul_divisors", inputs: [
+"no_zero_divisors", 
+] },
+  "linear_ordered_add_comm_group.to_ordered_add_comm_group": { class: "ordered_add_comm_group", inputs: [
+"linear_ordered_add_comm_group", 
+] },
+  "canonically_ordered_add_monoid.to_zero_le_one_class": { class: "zero_le_one_class", inputs: [
+] },
+  "is_simple_order.is_atomic": { class: "is_atomic", inputs: [
+"is_simple_order", 
+] },
+  "semigroup.to_is_associative": { class: "is_associative", inputs: [
+] },
+  "linear_ordered_cancel_add_comm_monoid.to_linear_ordered_add_comm_monoid": { class: "linear_ordered_add_comm_monoid", inputs: [
+"linear_ordered_cancel_add_comm_monoid", 
+] },
+  "left_cancel_semigroup.to_semigroup": { class: "semigroup", inputs: [
+"left_cancel_semigroup", 
+] },
+  "add_semigroup.vadd_assoc_class": { class: "vadd_assoc_class", inputs: [
+] },
+  "monoid.to_semigroup": { class: "semigroup", inputs: [
+"monoid", 
+] },
+  "comm_semigroup.to_is_commutative": { class: "is_commutative", inputs: [
+] },
+  "non_unital_semiring.to_semigroup_with_zero": { class: "semigroup_with_zero", inputs: [
+"non_unital_semiring", 
+] },
+  "strict_ordered_comm_semiring.to_ordered_comm_semiring": { class: "ordered_comm_semiring", inputs: [
+"strict_ordered_comm_semiring", 
+] },
+  "ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid": { class: "ordered_add_comm_monoid", inputs: [
+"ordered_cancel_add_comm_monoid", 
+] },
+  "comm_semiring.to_comm_monoid": { class: "comm_monoid", inputs: [
+"comm_semiring", 
+] },
+  "is_symm_op_of_is_commutative": { class: "is_symm_op", inputs: [
+"is_commutative", 
+] },
+  "no_min_order.to_no_bot_order": { class: "no_bot_order", inputs: [
+"no_min_order", 
+] },
+  "linear_ordered_comm_group.to_no_max_order": { class: "no_max_order", inputs: [
+"nontrivial", 
+] },
+  "division_ring.to_ring": { class: "ring", inputs: [
+"division_ring", 
+] },
+  "division_monoid.to_div_inv_monoid": { class: "div_inv_monoid", inputs: [
+"division_monoid", 
+] },
+  "linear_ordered_semifield.to_linear_ordered_comm_semiring": { class: "linear_ordered_comm_semiring", inputs: [
+"linear_ordered_semifield", 
+] },
+  "add_subgroup.map_is_commutative": { class: "add_subgroup.is_commutative", inputs: [
+"add_subgroup.is_commutative", 
+] },
+  "is_scalar_tower.to_smul_comm_class": { class: "smul_comm_class", inputs: [
+"is_scalar_tower", 
+] },
+  "complete_lattice.to_lattice": { class: "lattice", inputs: [
+"complete_lattice", 
+] },
+  "submonoid_class.to_one_mem_class": { class: "one_mem_class", inputs: [
+"submonoid_class", 
+] },
+  "lean.parser.reflectable.cast": { class: "lean.parser.reflectable", inputs: [
+] },
+  "ring_equiv_class.to_non_unital_ring_hom_class": { class: "non_unital_ring_hom_class", inputs: [
+"ring_equiv_class", 
+] },
+  "non_unital_semiring.to_non_unital_non_assoc_semiring": { class: "non_unital_non_assoc_semiring", inputs: [
+"non_unital_semiring", 
+] },
+  "add_group_with_one.to_has_int_cast": { class: "has_int_cast", inputs: [
+"add_group_with_one", 
+] },
+  "non_unital_non_assoc_ring.to_has_distrib_neg": { class: "has_distrib_neg", inputs: [
+] },
+  "add_comm_group_with_one.to_add_group_with_one": { class: "add_group_with_one", inputs: [
+"add_comm_group_with_one", 
+] },
+  "is_well_order.is_trans": { class: "is_trans", inputs: [
+"is_well_order", 
+] },
+  "canonically_ordered_comm_semiring.to_no_zero_divisors": { class: "no_zero_divisors", inputs: [
+] },
+  "semifield.to_division_semiring": { class: "division_semiring", inputs: [
+"semifield", 
+] },
+  "finite.of_fintype": { class: "finite", inputs: [
+"fintype", 
+] },
+  "is_empty.to_encodable": { class: "encodable", inputs: [
+"is_empty", 
+] },
+  "is_total_preorder.to_is_trans": { class: "is_trans", inputs: [
+"is_total_preorder", 
+] },
+  "strict_ordered_ring.to_nontrivial": { class: "nontrivial", inputs: [
+"strict_ordered_ring", 
+] },
+  "biheyting_algebra.to_heyting_algebra": { class: "heyting_algebra", inputs: [
+"biheyting_algebra", 
+] },
+  "add_cancel_comm_monoid.to_cancel_add_monoid": { class: "add_cancel_monoid", inputs: [
+"add_cancel_comm_monoid", 
+] },
+  "add_cancel_monoid.to_add_left_cancel_monoid": { class: "add_left_cancel_monoid", inputs: [
+"add_cancel_monoid", 
+] },
+  "has_monad_lift_t_refl": { class: "has_monad_lift_t", inputs: [
+] },
+  "comm_semigroup.to_semigroup": { class: "semigroup", inputs: [
+"comm_semigroup", 
+] },
+  "ordered_comm_group.to_partial_order": { class: "partial_order", inputs: [
+"ordered_comm_group", 
+] },
+  "generalized_coheyting_algebra.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"generalized_coheyting_algebra", 
+] },
+  "subgroup.subgroup.centralizer.characteristic": { class: "subgroup.characteristic", inputs: [
+"subgroup.characteristic", 
+] },
+  "is_per.to_is_trans": { class: "is_trans", inputs: [
+"is_per", 
+] },
+  "subring_class.to_neg_mem_class": { class: "neg_mem_class", inputs: [
+"subring_class", 
+] },
+  "complete_semilattice_Inf.to_partial_order": { class: "partial_order", inputs: [
+"complete_semilattice_Inf", 
+] },
+  "order_bot.to_has_bot": { class: "has_bot", inputs: [
+"order_bot", 
+] },
+  "non_unital_comm_ring.to_non_unital_ring": { class: "non_unital_ring", inputs: [
+"non_unital_comm_ring", 
+] },
+  "add_comm_group.to_cancel_add_comm_monoid": { class: "add_cancel_comm_monoid", inputs: [
+"add_comm_group", 
+] },
+  "comm_group_with_zero.to_comm_monoid_with_zero": { class: "comm_monoid_with_zero", inputs: [
+"comm_group_with_zero", 
+] },
+  "add_right_cancel_monoid.to_has_faithful_vadd": { class: "has_faithful_vadd", inputs: [
+] },
+  "boolean_algebra.to_has_top": { class: "has_top", inputs: [
+"boolean_algebra", 
+] },
+  "monad_functor_t_refl": { class: "monad_functor_t", inputs: [
+] },
+  "semigroup_with_zero.to_semigroup": { class: "semigroup", inputs: [
+"semigroup_with_zero", 
+] },
+  "is_lawful_monad.to_is_lawful_applicative": { class: "is_lawful_applicative", inputs: [
+"is_lawful_monad", 
+] },
+  "linear_order.to_lattice": { class: "lattice", inputs: [
+"linear_order", 
+] },
+  "ordered_ring.to_ordered_add_comm_group": { class: "ordered_add_comm_group", inputs: [
+"ordered_ring", 
+] },
+  "is_lower_modular_lattice.to_is_weak_lower_modular_lattice": { class: "is_weak_lower_modular_lattice", inputs: [
+"is_lower_modular_lattice", 
+] },
+  "complete_lattice.to_bounded_order": { class: "bounded_order", inputs: [
+] },
+  "add_group.to_sub_neg_monoid": { class: "sub_neg_monoid", inputs: [
+"add_group", 
+] },
+  "vadd_assoc_class.left": { class: "vadd_assoc_class", inputs: [
+] },
+  "non_unital_ring_hom_class.to_add_monoid_hom_class": { class: "add_monoid_hom_class", inputs: [
+"non_unital_ring_hom_class", 
+] },
+  "linear_ordered_add_comm_group_with_top.to_linear_ordered_add_comm_monoid_with_top": { class: "linear_ordered_add_comm_monoid_with_top", inputs: [
+"linear_ordered_add_comm_group_with_top", 
+] },
+  "linear_ordered_add_comm_group.to_no_min_order": { class: "no_min_order", inputs: [
+"nontrivial", 
+] },
+  "star_semigroup.to_star_module": { class: "star_module", inputs: [
+] },
+  "order_iso_class.to_sup_bot_hom_class": { class: "sup_bot_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "strict_ordered_semiring.to_semiring": { class: "semiring", inputs: [
+"strict_ordered_semiring", 
+] },
+  "normalization_monoid_of_unique_units": { class: "normalization_monoid", inputs: [
+"unique", 
+] },
+  "cancel_monoid_with_zero.to_is_cancel_mul_zero": { class: "is_cancel_mul_zero", inputs: [
+] },
+  "bot_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"bot_hom_class", 
+] },
+  "mul_ring_seminorm_class.to_monoid_with_zero_hom_class": { class: "monoid_with_zero_hom_class", inputs: [
+"mul_ring_seminorm_class", 
+] },
+  "no_max_order.to_no_top_order": { class: "no_top_order", inputs: [
+"no_max_order", 
+] },
+  "unique.fintype": { class: "fintype", inputs: [
+"unique", 
+] },
+  "distrib.to_has_add": { class: "has_add", inputs: [
+"distrib", 
+] },
+  "division_ring.to_division_semiring": { class: "division_semiring", inputs: [
+"division_ring", 
+] },
+  "mul_ring_seminorm_class.to_ring_seminorm_class": { class: "ring_seminorm_class", inputs: [
+"mul_ring_seminorm_class", 
+] },
+  "complete_semilattice_Sup.to_partial_order": { class: "partial_order", inputs: [
+"complete_semilattice_Sup", 
+] },
+  "strict_ordered_ring.to_ordered_ring": { class: "ordered_ring", inputs: [
+"strict_ordered_ring", 
+] },
+  "has_involutive_neg.to_has_neg": { class: "has_neg", inputs: [
+"has_involutive_neg", 
+] },
+  "add_submonoid_class.to_add_mem_class": { class: "add_mem_class", inputs: [
+"add_submonoid_class", 
+] },
+  "group_with_zero.to_monoid_with_zero": { class: "monoid_with_zero", inputs: [
+"group_with_zero", 
+] },
+  "default_has_sizeof": { class: "has_sizeof", inputs: [
+] },
+  "semilinear_map_class.to_add_hom_class": { class: "add_hom_class", inputs: [
+"semilinear_map_class", 
+] },
+  "boolean_algebra.to_has_compl": { class: "has_compl", inputs: [
+"boolean_algebra", 
+] },
+  "non_assoc_ring.to_non_unital_non_assoc_ring": { class: "non_unital_non_assoc_ring", inputs: [
+"non_assoc_ring", 
+] },
+  "gcd_monoid.gcd.is_associative": { class: "is_associative", inputs: [
+] },
+  "mul_zero_one_class.to_mul_one_class": { class: "mul_one_class", inputs: [
+"mul_zero_one_class", 
+] },
+  "semilattice_inf.to_partial_order": { class: "partial_order", inputs: [
+"semilattice_inf", 
+] },
+  "canonically_ordered_add_monoid.to_order_bot": { class: "order_bot", inputs: [
+] },
+  "add_left_cancel_monoid.to_add_left_cancel_semigroup": { class: "add_left_cancel_semigroup", inputs: [
+"add_left_cancel_monoid", 
+] },
+  "bounded_order_hom_class.to_bot_hom_class": { class: "bot_hom_class", inputs: [
+"bounded_order_hom_class", 
+] },
+  "mul_semiring_action_hom_class.to_ring_hom_class": { class: "ring_hom_class", inputs: [
+"mul_semiring_action_hom_class", 
+] },
+  "set.ord_connected_preimage": { class: "set.ord_connected", inputs: [
+"set.ord_connected", 
+] },
+  "canonically_linear_ordered_add_monoid.to_canonically_ordered_add_monoid": { class: "canonically_ordered_add_monoid", inputs: [
+"canonically_linear_ordered_add_monoid", 
+] },
+  "is_total_preorder.to_is_total": { class: "is_total", inputs: [
+"is_total_preorder", 
+] },
+  "strict_ordered_ring.to_ring": { class: "ring", inputs: [
+"strict_ordered_ring", 
+] },
+  "gcd_monoid.lcm.is_associative": { class: "is_associative", inputs: [
+] },
+  "has_mul.to_has_smul": { class: "has_smul", inputs: [
+"has_mul", 
+] },
+  "conditionally_complete_lattice.to_lattice": { class: "lattice", inputs: [
+"conditionally_complete_lattice", 
+] },
+  "add_right_cancel_semigroup.to_add_semigroup": { class: "add_semigroup", inputs: [
+"add_right_cancel_semigroup", 
+] },
+  "coe_base": { class: "has_coe_t", inputs: [
+"has_coe", 
+] },
+  "complete_linear_order.to_conditionally_complete_linear_order_bot": { class: "conditionally_complete_linear_order_bot", inputs: [
+"complete_linear_order", 
+] },
+  "canonically_ordered_monoid.to_has_bot": { class: "has_bot", inputs: [
+"canonically_ordered_monoid", 
+] },
+  "sup_bot_hom_class.to_sup_hom_class": { class: "sup_hom_class", inputs: [
+"sup_bot_hom_class", 
+] },
+  "add_group.to_cancel_add_monoid": { class: "add_cancel_monoid", inputs: [
+"add_group", 
+] },
+  "linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid": { class: "ordered_cancel_comm_monoid", inputs: [
+"linear_ordered_cancel_comm_monoid", 
+] },
+  "division_monoid.to_has_involutive_inv": { class: "has_involutive_inv", inputs: [
+"division_monoid", 
+] },
+  "is_total.to_is_refl": { class: "is_refl", inputs: [
+"is_total", 
+] },
+  "is_domain.to_cancel_monoid_with_zero": { class: "cancel_monoid_with_zero", inputs: [
+"is_domain", 
+] },
+  "monoid_with_zero.to_monoid": { class: "monoid", inputs: [
+"monoid_with_zero", 
+] },
+  "ring_hom_surjective.inv_pair": { class: "ring_hom_surjective", inputs: [
+"ring_hom_inv_pair", 
+] },
+  "cancel_monoid.to_is_cancel_mul": { class: "is_cancel_mul", inputs: [
+] },
+  "complete_linear_order.to_complete_lattice": { class: "complete_lattice", inputs: [
+"complete_linear_order", 
+] },
+  "bihimp_is_comm": { class: "is_commutative", inputs: [
+] },
+  "canonically_linear_ordered_monoid.semilattice_sup": { class: "semilattice_sup", inputs: [
+"canonically_linear_ordered_monoid", 
+] },
+  "Prop.countable": { class: "countable", inputs: [
+] },
+  "subtraction_monoid.to_sub_neg_zero_monoid": { class: "sub_neg_zero_monoid", inputs: [
+"subtraction_monoid", 
+] },
+  "generalized_coheyting_algebra.to_order_bot": { class: "order_bot", inputs: [
+] },
+  "field.to_semifield": { class: "semifield", inputs: [
+"field", 
+] },
+  "algebra.to_smul_comm_class": { class: "smul_comm_class", inputs: [
+] },
+  "has_add.to_has_vadd": { class: "has_vadd", inputs: [
+"has_add", 
+] },
+  "add_comm_group_with_one.to_add_comm_group": { class: "add_comm_group", inputs: [
+"add_comm_group_with_one", 
+] },
+  "comm_group.to_comm_monoid": { class: "comm_monoid", inputs: [
+"comm_group", 
+] },
+  "distrib_mul_action_hom_class.to_smul_hom_class": { class: "smul_hom_class", inputs: [
+"distrib_mul_action_hom_class", 
+] },
+  "is_simple_order.is_coatomic": { class: "is_coatomic", inputs: [
+"is_simple_order", 
+] },
+  "gcd_monoid.lcm.is_commutative": { class: "is_commutative", inputs: [
+] },
+  "generalized_boolean_algebra.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"generalized_boolean_algebra", 
+] },
+  "subsemiring_class.add_submonoid_with_one_class": { class: "add_submonoid_with_one_class", inputs: [
+"subsemiring_class", 
+] },
+  "comm_ring.to_non_unital_comm_ring": { class: "non_unital_comm_ring", inputs: [
+"comm_ring", 
+] },
+  "add_zero_class.to_is_right_id": { class: "is_right_id", inputs: [
+] },
+  "add_right_cancel_semigroup.to_is_right_cancel_add": { class: "is_right_cancel_add", inputs: [
+] },
+  "preorder.to_has_le": { class: "has_le", inputs: [
+"preorder", 
+] },
+  "add_comm_monoid_with_one.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"add_comm_monoid_with_one", 
+] },
+  "distrib_mul_action.to_mul_action": { class: "mul_action", inputs: [
+"distrib_mul_action", 
+] },
+  "mul_equiv_class.to_monoid_with_zero_hom_class": { class: "monoid_with_zero_hom_class", inputs: [
+"mul_equiv_class", 
+] },
+  "is_total.to_is_directed": { class: "is_directed", inputs: [
+"is_total", 
+] },
+  "is_order_connected_of_is_strict_total_order": { class: "is_order_connected", inputs: [
+"is_strict_total_order", 
+] },
+  "add_monoid_with_one.to_add_monoid": { class: "add_monoid", inputs: [
+"add_monoid_with_one", 
+] },
+  "group_norm_class.to_group_seminorm_class": { class: "group_seminorm_class", inputs: [
+"group_norm_class", 
+] },
+  "linear_ordered_add_comm_group_with_top.to_nontrivial": { class: "nontrivial", inputs: [
+"linear_ordered_add_comm_group_with_top", 
+] },
+  "biheyting_algebra.to_has_sdiff": { class: "has_sdiff", inputs: [
+"biheyting_algebra", 
+] },
+  "ring_seminorm_class.to_submultiplicative_hom_class": { class: "submultiplicative_hom_class", inputs: [
+"ring_seminorm_class", 
+] },
+  "complete_lattice.to_complete_semilattice_Sup": { class: "complete_semilattice_Sup", inputs: [
+"complete_lattice", 
+] },
+  "has_one.nonempty": { class: "nonempty", inputs: [
+"has_one", 
+] },
+  "subgroup.map_is_commutative": { class: "subgroup.is_commutative", inputs: [
+"subgroup.is_commutative", 
+] },
+  "linear_ordered_add_comm_monoid.to_linear_order": { class: "linear_order", inputs: [
+"linear_ordered_add_comm_monoid", 
+] },
+  "non_assoc_semiring.to_add_comm_monoid_with_one": { class: "add_comm_monoid_with_one", inputs: [
+"non_assoc_semiring", 
+] },
+  "strict_ordered_comm_semiring.to_comm_semiring": { class: "comm_semiring", inputs: [
+"strict_ordered_comm_semiring", 
+] },
+  "inf_is_associative": { class: "is_associative", inputs: [
+] },
+  "boolean_algebra.to_distrib_lattice": { class: "distrib_lattice", inputs: [
+"boolean_algebra", 
+] },
+  "mul_le_add_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"mul_le_add_hom_class", 
+] },
+  "add_submonoid_with_one_class.to_add_submonoid_class": { class: "add_submonoid_class", inputs: [
+"add_submonoid_with_one_class", 
+] },
+  "strict_ordered_ring.to_strict_ordered_semiring": { class: "strict_ordered_semiring", inputs: [
+"strict_ordered_ring", 
+] },
+  "heyting_algebra.to_generalized_heyting_algebra": { class: "generalized_heyting_algebra", inputs: [
+"heyting_algebra", 
+] },
+  "strict_ordered_comm_ring.to_ordered_comm_ring": { class: "ordered_comm_ring", inputs: [
+"strict_ordered_comm_ring", 
+] },
+  "subsemiring_class.to_submonoid_class": { class: "submonoid_class", inputs: [
+"subsemiring_class", 
+] },
+  "semiring.to_module": { class: "module", inputs: [
+] },
+  "invertible.ne_zero": { class: "ne_zero", inputs: [
+"nontrivial", 
+"invertible", 
+] },
+  "add_group.has_exists_add_of_le": { class: "has_exists_add_of_le", inputs: [
+] },
+  "subgroup.bot_characteristic": { class: "subgroup.characteristic", inputs: [
+] },
+  "pos_mul_strict_mono.to_pos_mul_mono": { class: "pos_mul_mono", inputs: [
+"pos_mul_strict_mono", 
+] },
+  "add_group.covconv": { class: "contravariant_class", inputs: [
+"covariant_class", 
+] },
+  "canonically_ordered_add_monoid.to_has_bot": { class: "has_bot", inputs: [
+"canonically_ordered_add_monoid", 
+] },
+  "subgroup.top_characteristic": { class: "subgroup.characteristic", inputs: [
+] },
+  "coheyting_algebra.to_has_top": { class: "has_top", inputs: [
+"coheyting_algebra", 
+] },
+  "subtraction_monoid.to_sub_neg_monoid": { class: "sub_neg_monoid", inputs: [
+"subtraction_monoid", 
+] },
+  "complete_lattice.to_has_top": { class: "has_top", inputs: [
+"complete_lattice", 
+] },
+  "is_empty.is_well_order": { class: "is_well_order", inputs: [
+"is_empty", 
+] },
+  "ordered_comm_ring.to_ordered_comm_semiring": { class: "ordered_comm_semiring", inputs: [
+"ordered_comm_ring", 
+] },
+  "mul_action_with_zero.to_smul_with_zero": { class: "smul_with_zero", inputs: [
+"mul_action_with_zero", 
+] },
+  "set.ord_connected_singleton": { class: "set.ord_connected", inputs: [
+] },
+  "applicative.to_has_seq_left": { class: "has_seq_left", inputs: [
+"applicative", 
+] },
+  "ordered_ring.to_ordered_semiring": { class: "ordered_semiring", inputs: [
+"ordered_ring", 
+] },
+  "is_cancel_mul.to_is_right_cancel_mul": { class: "is_right_cancel_mul", inputs: [
+"is_cancel_mul", 
+] },
+  "generalized_boolean_algebra.to_has_sdiff": { class: "has_sdiff", inputs: [
+"generalized_boolean_algebra", 
+] },
+  "smul_comm_class_self": { class: "smul_comm_class", inputs: [
+] },
+  "has_to_format_to_has_to_tactic_format": { class: "has_to_tactic_format", inputs: [
+"has_to_format", 
+] },
+  "div_inv_one_monoid.to_inv_one_class": { class: "inv_one_class", inputs: [
+"div_inv_one_monoid", 
+] },
+  "linear_ordered_comm_semiring.to_strict_ordered_comm_semiring": { class: "strict_ordered_comm_semiring", inputs: [
+"linear_ordered_comm_semiring", 
+] },
+  "mul_one_class.to_has_mul": { class: "has_mul", inputs: [
+"mul_one_class", 
+] },
+  "decidable_eq_of_subsingleton": { class: "decidable_eq", inputs: [
+"subsingleton", 
+] },
+  "monad_except_adapter_trans": { class: "monad_except_adapter", inputs: [
+"monad_except_adapter", 
+"monad_functor", 
+] },
+  "is_equiv.to_is_preorder": { class: "is_preorder", inputs: [
+"is_equiv", 
+] },
+  "linear_ordered_semifield.to_semifield": { class: "semifield", inputs: [
+"linear_ordered_semifield", 
+] },
+  "set.ord_connected_Ici": { class: "set.ord_connected", inputs: [
+] },
+  "division_comm_monoid.to_division_monoid": { class: "division_monoid", inputs: [
+"division_comm_monoid", 
+] },
+  "complete_lattice.to_complete_semilattice_Inf": { class: "complete_semilattice_Inf", inputs: [
+"complete_lattice", 
+] },
+  "star_ring.to_star_add_monoid": { class: "star_add_monoid", inputs: [
+"star_ring", 
+] },
+  "comm_semiring.to_semiring": { class: "semiring", inputs: [
+"comm_semiring", 
+] },
+  "order_iso_class.to_order_hom_class": { class: "order_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "ordered_semiring.zero_le_one_class": { class: "zero_le_one_class", inputs: [
+] },
+  "complete_lattice.to_has_bot": { class: "has_bot", inputs: [
+"complete_lattice", 
+] },
+  "add_right_cancel_monoid.to_add_right_cancel_semigroup": { class: "add_right_cancel_semigroup", inputs: [
+"add_right_cancel_monoid", 
+] },
+  "no_zero_smul_divisors.algebra.no_zero_smul_divisors": { class: "no_zero_smul_divisors", inputs: [
+"nontrivial", 
+"no_zero_divisors", 
+] },
+  "subgroup.center.is_commutative": { class: "subgroup.is_commutative", inputs: [
+] },
+  "linear_ordered_comm_ring.to_linear_ordered_comm_semiring": { class: "linear_ordered_comm_semiring", inputs: [
+"linear_ordered_comm_ring", 
+] },
+  "order_top.to_has_top": { class: "has_top", inputs: [
+"order_top", 
+] },
+  "canonically_ordered_comm_semiring.to_canonically_ordered_add_monoid": { class: "canonically_ordered_add_monoid", inputs: [
+"canonically_ordered_comm_semiring", 
+] },
+  "semilinear_equiv_class.to_add_equiv_class": { class: "add_equiv_class", inputs: [
+"semilinear_equiv_class", 
+] },
+  "zero_le_one_class.ne_zero.four": { class: "ne_zero", inputs: [
+"zero_le_one_class", 
+"ne_zero", 
+"covariant_class", 
+] },
+  "non_unital_ring_hom_class.to_mul_hom_class": { class: "mul_hom_class", inputs: [
+"non_unital_ring_hom_class", 
+] },
+  "semiring.to_monoid_with_zero": { class: "monoid_with_zero", inputs: [
+"semiring", 
+] },
+  "coe_trans_aux": { class: "has_coe_t_aux", inputs: [
+"has_coe_t_aux", 
+"has_coe", 
+] },
+  "canonically_ordered_add_monoid.has_exists_add_of_le": { class: "has_exists_add_of_le", inputs: [
+] },
+  "reflect_univ.max": { class: "reflected_univ", inputs: [
+"reflected_univ", 
+"reflected_univ", 
+] },
+  "add_comm_monoid.to_add_comm_semigroup": { class: "add_comm_semigroup", inputs: [
+"add_comm_monoid", 
+] },
+  "linear_ordered_semifield.to_densely_ordered": { class: "densely_ordered", inputs: [
+] },
+  "lattice_hom_class.to_inf_hom_class": { class: "inf_hom_class", inputs: [
+"lattice_hom_class", 
+] },
+  "is_domain.to_cancel_comm_monoid_with_zero": { class: "cancel_comm_monoid_with_zero", inputs: [
+"is_domain", 
+] },
+  "order_iso_class.to_sup_hom_class": { class: "sup_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "linear_ordered_comm_monoid_with_zero.to_linear_ordered_comm_monoid": { class: "linear_ordered_comm_monoid", inputs: [
+"linear_ordered_comm_monoid_with_zero", 
+] },
+  "boolean_algebra.to_biheyting_algebra": { class: "biheyting_algebra", inputs: [
+"boolean_algebra", 
+] },
+  "non_unital_comm_semiring.to_non_unital_semiring": { class: "non_unital_semiring", inputs: [
+"non_unital_comm_semiring", 
+] },
+  "submonoid_class.to_mul_mem_class": { class: "mul_mem_class", inputs: [
+"submonoid_class", 
+] },
+  "ordered_cancel_add_comm_monoid.to_cancel_add_comm_monoid": { class: "add_cancel_comm_monoid", inputs: [
+"ordered_cancel_add_comm_monoid", 
+] },
+  "symm_diff_is_assoc": { class: "is_associative", inputs: [
+] },
+  "right_cancel_monoid.to_right_cancel_semigroup": { class: "right_cancel_semigroup", inputs: [
+"right_cancel_monoid", 
+] },
+  "add_action.to_has_vadd": { class: "has_vadd", inputs: [
+"add_action", 
+] },
+  "conditionally_complete_linear_order_bot.to_order_bot": { class: "order_bot", inputs: [
+] },
+  "setoid_has_equiv": { class: "has_equiv", inputs: [
+"setoid", 
+] },
+  "ordered_comm_group.to_ordered_cancel_comm_monoid": { class: "ordered_cancel_comm_monoid", inputs: [
+"ordered_comm_group", 
+] },
+  "cancel_comm_monoid.to_left_cancel_monoid": { class: "left_cancel_monoid", inputs: [
+"cancel_comm_monoid", 
+] },
+  "ring.to_distrib": { class: "distrib", inputs: [
+"ring", 
+] },
+  "group_with_zero.to_div_inv_monoid": { class: "div_inv_monoid", inputs: [
+"group_with_zero", 
+] },
+  "complete_distrib_lattice.to_frame": { class: "order.frame", inputs: [
+"complete_distrib_lattice", 
+] },
+  "top_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"top_hom_class", 
+] },
+  "invertible_inv_of": { class: "invertible", inputs: [
+] },
+  "finite.finite.to_well_founded_gt": { class: "well_founded_gt", inputs: [
+"finite", 
+] },
+  "one_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"one_hom_class", 
+] },
+  "division_semiring.to_group_with_zero": { class: "group_with_zero", inputs: [
+"division_semiring", 
+] },
+  "generalized_heyting_algebra.to_has_top": { class: "has_top", inputs: [
+"generalized_heyting_algebra", 
+] },
+  "add_comm_semigroup.to_is_commutative": { class: "is_commutative", inputs: [
+] },
+  "set.ord_connected_uIcc": { class: "set.ord_connected", inputs: [
+] },
+  "group.to_div_inv_monoid": { class: "div_inv_monoid", inputs: [
+"group", 
+] },
+  "linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid": { class: "linear_ordered_cancel_comm_monoid", inputs: [
+"linear_ordered_comm_group", 
+] },
+  "algebra.id": { class: "algebra", inputs: [
+] },
+  "complete_lattice.to_conditionally_complete_lattice": { class: "conditionally_complete_lattice", inputs: [
+"complete_lattice", 
+] },
+  "is_strict_total_order.to_is_trichotomous": { class: "is_trichotomous", inputs: [
+"is_strict_total_order", 
+] },
+  "char_zero.ne_zero.two": { class: "ne_zero", inputs: [
+"char_zero", 
+] },
+  "order_iso_class.to_equiv_like": { class: "equiv_like", inputs: [
+"order_iso_class", 
+] },
+  "add_equiv_class.add_hom_class": { class: "add_hom_class", inputs: [
+"add_equiv_class", 
+] },
+  "div_inv_monoid.to_has_inv": { class: "has_inv", inputs: [
+"div_inv_monoid", 
+] },
+  "ring_equiv_class.to_add_equiv_class": { class: "add_equiv_class", inputs: [
+"ring_equiv_class", 
+] },
+  "finite.to_countable": { class: "countable", inputs: [
+"finite", 
+] },
+  "mul_pos_mono_rev.to_mul_pos_reflect_lt": { class: "mul_pos_reflect_lt", inputs: [
+"mul_pos_mono_rev", 
+] },
+  "order_iso_class.to_inf_hom_class": { class: "inf_hom_class", inputs: [
+"order_iso_class", 
+] },
+  "zero_le_one_class.ne_zero.two": { class: "ne_zero", inputs: [
+"zero_le_one_class", 
+"ne_zero", 
+"covariant_class", 
+] },
+  "linear_ordered_add_comm_monoid_with_top.to_has_top": { class: "has_top", inputs: [
+"linear_ordered_add_comm_monoid_with_top", 
+] },
+  "add_monoid_hom_class.to_zero_hom_class": { class: "zero_hom_class", inputs: [
+"add_monoid_hom_class", 
+] },
+  "boolean_algebra.to_complemented_lattice": { class: "complemented_lattice", inputs: [
+] },
+  "add_hom_class.to_fun_like": { class: "fun_like", inputs: [
+"add_hom_class", 
+] },
+  "linear_ordered_semiring.to_strict_ordered_semiring": { class: "strict_ordered_semiring", inputs: [
+"linear_ordered_semiring", 
+] },
+  "division_ring.to_has_rat_cast": { class: "has_rat_cast", inputs: [
+"division_ring", 
+] },
+  "is_domain.to_nontrivial": { class: "nontrivial", inputs: [
+"is_domain", 
+] },
+  "ring_hom_class.to_add_monoid_hom_class": { class: "add_monoid_hom_class", inputs: [
+"ring_hom_class", 
+] },
+  "add_subgroup.bot_characteristic": { class: "add_subgroup.characteristic", inputs: [
+] },
+  "cancel_comm_monoid_with_zero.to_cancel_monoid_with_zero": { class: "cancel_monoid_with_zero", inputs: [
+"cancel_comm_monoid_with_zero", 
+] },
+  "ring_seminorm_class.to_add_group_seminorm_class": { class: "add_group_seminorm_class", inputs: [
+"ring_seminorm_class", 
+] },
+  "non_unital_non_assoc_ring.to_add_comm_group": { class: "add_comm_group", inputs: [
+"non_unital_non_assoc_ring", 
+] },
+  "set.ord_connected_Inter'": { class: "set.ord_connected", inputs: [
+] },
+  "add_right_cancel_monoid.to_add_monoid": { class: "add_monoid", inputs: [
+"add_right_cancel_monoid", 
+] },
+  "linear_ordered_field.to_linear_ordered_comm_ring": { class: "linear_ordered_comm_ring", inputs: [
+"linear_ordered_field", 
+] },
+  "linear_ordered_comm_ring.to_comm_monoid": { class: "comm_monoid", inputs: [
+"linear_ordered_comm_ring", 
+] },
+  "is_total_preorder_is_preorder": { class: "is_preorder", inputs: [
+"is_total_preorder", 
+] },
+  "linear_ordered_comm_group.to_linear_order": { class: "linear_order", inputs: [
+"linear_ordered_comm_group", 
+] },
+  "non_unital_non_assoc_semiring.to_add_comm_monoid": { class: "add_comm_monoid", inputs: [
+"non_unital_non_assoc_semiring", 
+] },
+  "is_strict_total_order.to_is_strict_order": { class: "is_strict_order", inputs: [
+"is_strict_total_order", 
+] },
+  "right_cancel_semigroup.to_semigroup": { class: "semigroup", inputs: [
+"right_cancel_semigroup", 
+] },
+  "inf_top_hom_class.to_top_hom_class": { class: "top_hom_class", inputs: [
+"inf_top_hom_class", 
+] },
+  "linear_ordered_ring.to_strict_ordered_ring": { class: "strict_ordered_ring", inputs: [
+"linear_ordered_ring", 
+] },
+  "add_subgroup.normal_of_comm": { class: "add_subgroup.normal", inputs: [
+] },
+  "cancel_monoid.to_left_cancel_monoid": { class: "left_cancel_monoid", inputs: [
+"cancel_monoid", 
+] },
+  "distrib_mul_action.to_distrib_smul": { class: "distrib_smul", inputs: [
+"distrib_mul_action", 
+] },
+  "strict_ordered_semiring.to_no_max_order": { class: "no_max_order", inputs: [
+] },
+  "strict_ordered_semiring.to_pos_mul_strict_mono": { class: "pos_mul_strict_mono", inputs: [
+] },
+  "set.ord_connected.inter'": { class: "set.ord_connected", inputs: [
+"set.ord_connected", 
+"set.ord_connected", 
+] },
+  "left_cancel_monoid.to_monoid": { class: "monoid", inputs: [
+"left_cancel_monoid", 
+] },
+  "mul_pos_strict_mono.to_mul_pos_mono_rev": { class: "mul_pos_mono_rev", inputs: [
+"mul_pos_strict_mono", 
+] },
+  "ordered_cancel_comm_monoid.to_ordered_comm_monoid": { class: "ordered_comm_monoid", inputs: [
+"ordered_cancel_comm_monoid", 
+] },
+  "add_group_seminorm_class.to_zero_hom_class": { class: "zero_hom_class", inputs: [
+"add_group_seminorm_class", 
+] },
+  "is_lawful_applicative.to_is_lawful_functor": { class: "is_lawful_functor", inputs: [
+"is_lawful_applicative", 
+] },
+  "add_comm_monoid_with_one.to_add_monoid_with_one": { class: "add_monoid_with_one", inputs: [
+"add_comm_monoid_with_one", 
+] },
+  "add_cancel_monoid.to_is_cancel_add": { class: "is_cancel_add", inputs: [
+] },
+  "mul_equiv_class.to_equiv_like": { class: "equiv_like", inputs: [
+"mul_equiv_class", 
+] },
+  "add_group_seminorm_class.to_subadditive_hom_class": { class: "subadditive_hom_class", inputs: [
+"add_group_seminorm_class", 
+] },
+  "mul_ring_norm_class.to_ring_norm_class": { class: "ring_norm_class", inputs: [
+"mul_ring_norm_class", 
+] },
+  "monoid_with_zero.to_mul_action_with_zero": { class: "mul_action_with_zero", inputs: [
+] },
+  "monoid_with_zero_hom_class.to_zero_hom_class": { class: "zero_hom_class", inputs: [
+"monoid_with_zero_hom_class", 
+] },
+  "division_semiring.to_semiring": { class: "semiring", inputs: [
+"division_semiring", 
+] },
+  "ordered_ring.to_ring": { class: "ring", inputs: [
+"ordered_ring", 
+] },
+  "boolean_algebra.to_has_himp": { class: "has_himp", inputs: [
+"boolean_algebra", 
+] },
+}

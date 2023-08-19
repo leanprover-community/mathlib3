@@ -1,0 +1,206 @@
+{
+  "preorder.to_has_lt": { class: "has_lt", inputs: [
+"preorder", 
+] },
+  "coe_base_aux": { class: "has_coe_t_aux", inputs: [
+"has_coe", 
+] },
+  "alternative.to_applicative": { class: "applicative", inputs: [
+"alternative", 
+] },
+  "interactive.with_desc.reflectable": { class: "lean.parser.reflectable", inputs: [
+"lean.parser.reflectable", 
+] },
+  "monad_reader_trans": { class: "monad_reader", inputs: [
+"monad_reader", 
+"has_monad_lift", 
+] },
+  "is_preorder.to_is_trans": { class: "is_trans", inputs: [
+"is_preorder", 
+] },
+  "has_monad_lift_t_trans": { class: "has_monad_lift_t", inputs: [
+"has_monad_lift_t", 
+"has_monad_lift", 
+] },
+  "monad_reader_adapter_trans": { class: "monad_reader_adapter", inputs: [
+"monad_reader_adapter", 
+"monad_functor", 
+] },
+  "coe_to_lift": { class: "has_lift_t", inputs: [
+"has_coe_t", 
+] },
+  "is_asymm_of_is_trans_of_is_irrefl": { class: "is_asymm", inputs: [
+"is_trans", 
+"is_irrefl", 
+] },
+  "is_strict_weak_order.to_is_incomp_trans": { class: "is_incomp_trans", inputs: [
+"is_strict_weak_order", 
+] },
+  "is_partial_order.to_is_preorder": { class: "is_preorder", inputs: [
+"is_partial_order", 
+] },
+  "is_partial_order.to_is_antisymm": { class: "is_antisymm", inputs: [
+"is_partial_order", 
+] },
+  "monad.to_has_bind": { class: "has_bind", inputs: [
+"monad", 
+] },
+  "is_strict_weak_order.to_is_strict_order": { class: "is_strict_order", inputs: [
+"is_strict_weak_order", 
+] },
+  "monad_state_adapter_trans": { class: "monad_state_adapter", inputs: [
+"monad_state_adapter", 
+"monad_functor", 
+] },
+  "is_preorder.to_is_refl": { class: "is_refl", inputs: [
+"is_preorder", 
+] },
+  "is_comm_applicative.to_is_lawful_applicative": { class: "is_lawful_applicative", inputs: [
+"is_comm_applicative", 
+] },
+  "lift_trans": { class: "has_lift_t", inputs: [
+"has_lift_t", 
+"has_lift", 
+] },
+  "alternative.to_has_orelse": { class: "has_orelse", inputs: [
+"alternative", 
+] },
+  "is_strict_order.to_is_irrefl": { class: "is_irrefl", inputs: [
+"is_strict_order", 
+] },
+  "applicative.to_has_seq_right": { class: "has_seq_right", inputs: [
+"applicative", 
+] },
+  "monad_functor_t_trans": { class: "monad_functor_t", inputs: [
+"monad_functor_t", 
+"monad_functor", 
+] },
+  "is_linear_order.to_is_partial_order": { class: "is_partial_order", inputs: [
+"is_linear_order", 
+] },
+  "is_equiv.to_is_symm": { class: "is_symm", inputs: [
+"is_equiv", 
+] },
+  "subsingleton_prop": { class: "subsingleton", inputs: [
+] },
+  "coe_sort_trans": { class: "has_coe_to_sort", inputs: [
+"has_coe_to_sort", 
+"has_coe_t_aux", 
+] },
+  "linear_order.to_partial_order": { class: "partial_order", inputs: [
+"linear_order", 
+] },
+  "monad.to_applicative": { class: "applicative", inputs: [
+"monad", 
+] },
+  "nonempty_of_inhabited": { class: "nonempty", inputs: [
+"inhabited", 
+] },
+  "monad_fail_lift": { class: "monad_fail", inputs: [
+"monad", 
+"monad_fail", 
+"has_monad_lift", 
+] },
+  "is_strict_order.to_is_trans": { class: "is_trans", inputs: [
+"is_strict_order", 
+] },
+  "partial_order.to_preorder": { class: "preorder", inputs: [
+"partial_order", 
+] },
+  "applicative.to_functor": { class: "functor", inputs: [
+"applicative", 
+] },
+  "is_per.to_is_symm": { class: "is_symm", inputs: [
+"is_per", 
+] },
+  "is_linear_order.to_is_total": { class: "is_total", inputs: [
+"is_linear_order", 
+] },
+  "monad_state_trans": { class: "monad_state", inputs: [
+"monad_state", 
+"has_monad_lift", 
+] },
+  "coe_trans": { class: "has_coe_t", inputs: [
+"has_coe_t", 
+"has_coe", 
+] },
+  "applicative.to_has_pure": { class: "has_pure", inputs: [
+"applicative", 
+] },
+  "applicative.to_has_seq": { class: "has_seq", inputs: [
+"applicative", 
+] },
+  "lean.parser.reflectable.has_reflect": { class: "lean.parser.reflectable", inputs: [
+"has_reflect", 
+] },
+  "has_well_founded_of_has_sizeof": { class: "has_well_founded", inputs: [
+"has_sizeof", 
+] },
+  "lift_base": { class: "has_lift_t", inputs: [
+"has_lift", 
+] },
+  "is_symm_op_of_is_commutative": { class: "is_symm_op", inputs: [
+"is_commutative", 
+] },
+  "lean.parser.reflectable.cast": { class: "lean.parser.reflectable", inputs: [
+] },
+  "is_total_preorder.to_is_trans": { class: "is_trans", inputs: [
+"is_total_preorder", 
+] },
+  "has_monad_lift_t_refl": { class: "has_monad_lift_t", inputs: [
+] },
+  "is_per.to_is_trans": { class: "is_trans", inputs: [
+"is_per", 
+] },
+  "monad_functor_t_refl": { class: "monad_functor_t", inputs: [
+] },
+  "is_lawful_monad.to_is_lawful_applicative": { class: "is_lawful_applicative", inputs: [
+"is_lawful_monad", 
+] },
+  "default_has_sizeof": { class: "has_sizeof", inputs: [
+] },
+  "is_total_preorder.to_is_total": { class: "is_total", inputs: [
+"is_total_preorder", 
+] },
+  "coe_base": { class: "has_coe_t", inputs: [
+"has_coe", 
+] },
+  "preorder.to_has_le": { class: "has_le", inputs: [
+"preorder", 
+] },
+  "applicative.to_has_seq_left": { class: "has_seq_left", inputs: [
+"applicative", 
+] },
+  "has_to_format_to_has_to_tactic_format": { class: "has_to_tactic_format", inputs: [
+"has_to_format", 
+] },
+  "decidable_eq_of_subsingleton": { class: "decidable_eq", inputs: [
+"subsingleton", 
+] },
+  "monad_except_adapter_trans": { class: "monad_except_adapter", inputs: [
+"monad_except_adapter", 
+"monad_functor", 
+] },
+  "is_equiv.to_is_preorder": { class: "is_preorder", inputs: [
+"is_equiv", 
+] },
+  "coe_trans_aux": { class: "has_coe_t_aux", inputs: [
+"has_coe_t_aux", 
+"has_coe", 
+] },
+  "setoid_has_equiv": { class: "has_equiv", inputs: [
+"setoid", 
+] },
+  "is_strict_total_order.to_is_trichotomous": { class: "is_trichotomous", inputs: [
+"is_strict_total_order", 
+] },
+  "is_total_preorder_is_preorder": { class: "is_preorder", inputs: [
+"is_total_preorder", 
+] },
+  "is_strict_total_order.to_is_strict_order": { class: "is_strict_order", inputs: [
+"is_strict_total_order", 
+] },
+  "is_lawful_applicative.to_is_lawful_functor": { class: "is_lawful_functor", inputs: [
+"is_lawful_applicative", 
+] },
+}

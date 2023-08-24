@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.hom.group
-import logic.equiv.basic
+import logic.equiv.defs
+import data.finite.defs
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define two type tags:
 
@@ -16,6 +20,10 @@ We define two type tags:
   multiplicative structure on `multiplicative α`.
 
 We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+
+## See also
+
+This file is similar to `order.synonym`.
 -/
 
 universes u v
@@ -65,6 +73,12 @@ end multiplicative
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
 
+instance [finite α] : finite (additive α) := finite.of_equiv α (by refl)
+instance [finite α] : finite (multiplicative α) := finite.of_equiv α (by refl)
+
+instance [infinite α] : infinite (additive α) := by tauto
+instance [infinite α] : infinite (multiplicative α) := by tauto
+
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial
 
@@ -109,21 +123,35 @@ instance [add_comm_semigroup α] : comm_semigroup (multiplicative α) :=
 { mul_comm := @add_comm _ _,
   ..multiplicative.semigroup }
 
+instance [has_mul α] [is_left_cancel_mul α] : is_left_cancel_add (additive α) :=
+{ add_left_cancel := @mul_left_cancel α _ _ }
+
+instance [has_add α] [is_left_cancel_add α] : is_left_cancel_mul (multiplicative α) :=
+{ mul_left_cancel := @add_left_cancel α _ _ }
+
+instance [has_mul α] [is_right_cancel_mul α] : is_right_cancel_add (additive α) :=
+{ add_right_cancel := @mul_right_cancel α _ _ }
+
+instance [has_add α] [is_right_cancel_add α] : is_right_cancel_mul (multiplicative α) :=
+{ mul_right_cancel := @add_right_cancel α _ _ }
+
+instance [has_mul α] [is_cancel_mul α] : is_cancel_add (additive α) :=
+{ ..additive.is_left_cancel_add, ..additive.is_right_cancel_add }
+
+instance [has_add α] [is_cancel_add α] : is_cancel_mul (multiplicative α) :=
+{ ..multiplicative.is_left_cancel_mul, ..multiplicative.is_right_cancel_mul }
+
 instance [left_cancel_semigroup α] : add_left_cancel_semigroup (additive α) :=
-{ add_left_cancel := @mul_left_cancel _ _,
-  ..additive.add_semigroup }
+{ ..additive.add_semigroup, ..additive.is_left_cancel_add }
 
 instance [add_left_cancel_semigroup α] : left_cancel_semigroup (multiplicative α) :=
-{ mul_left_cancel := @add_left_cancel _ _,
-  ..multiplicative.semigroup }
+{ ..multiplicative.semigroup, ..multiplicative.is_left_cancel_mul }
 
 instance [right_cancel_semigroup α] : add_right_cancel_semigroup (additive α) :=
-{ add_right_cancel := @mul_right_cancel _ _,
-  ..additive.add_semigroup }
+{ ..additive.add_semigroup, ..additive.is_right_cancel_add }
 
 instance [add_right_cancel_semigroup α] : right_cancel_semigroup (multiplicative α) :=
-{ mul_right_cancel := @add_right_cancel _ _,
-  ..multiplicative.semigroup }
+{ ..multiplicative.semigroup, ..multiplicative.is_right_cancel_mul }
 
 instance [has_one α] : has_zero (additive α) := ⟨additive.of_mul 1⟩
 
@@ -227,6 +255,14 @@ rfl
   (x - y).to_mul = x.to_mul / y.to_mul :=
 rfl
 
+instance [has_involutive_inv α] : has_involutive_neg (additive α) :=
+{ neg_neg := @inv_inv _ _,
+  ..additive.has_neg }
+
+instance [has_involutive_neg α] : has_involutive_inv (multiplicative α) :=
+{ inv_inv := @neg_neg _ _,
+  ..multiplicative.has_inv }
+
 instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
 { sub_eq_add_neg := @div_eq_mul_inv α _,
   zsmul := @div_inv_monoid.zpow α _,
@@ -242,6 +278,22 @@ instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
   zpow_succ' := sub_neg_monoid.zsmul_succ',
   zpow_neg' := sub_neg_monoid.zsmul_neg',
   .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
+
+instance [division_monoid α] : subtraction_monoid (additive α) :=
+{ neg_add_rev := @mul_inv_rev _ _,
+  neg_eq_of_add := @inv_eq_of_mul_eq_one_right _ _,
+  .. additive.sub_neg_monoid, .. additive.has_involutive_neg }
+
+instance [subtraction_monoid α] : division_monoid (multiplicative α) :=
+{ mul_inv_rev := @neg_add_rev _ _,
+  inv_eq_of_mul := @neg_eq_of_add_eq_zero_right _ _,
+  .. multiplicative.div_inv_monoid, .. multiplicative.has_involutive_inv }
+
+instance [division_comm_monoid α] : subtraction_comm_monoid (additive α) :=
+{ .. additive.subtraction_monoid, .. additive.add_comm_semigroup }
+
+instance [subtraction_comm_monoid α] : division_comm_monoid (multiplicative α) :=
+{ .. multiplicative.division_monoid, .. multiplicative.comm_semigroup }
 
 instance [group α] : add_group (additive α) :=
 { add_left_neg := @mul_left_inv α _,

@@ -9,6 +9,9 @@ import order.filter.at_top_bot
 /-!
 # Indicator function and filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Properties of indicator functions involving `=ᶠ` and `≤ᶠ`.
 
 ## Tags
@@ -85,6 +88,16 @@ begin
   rw Union_eq_Union_finset s,
   refine monotone.tendsto_indicator (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
   exact λ t₁ t₂, bUnion_subset_bUnion_left
+end
+
+lemma filter.eventually_eq.support [has_zero β] {f g : α → β} {l : filter α}
+  (h : f =ᶠ[l] g) :
+  function.support f =ᶠ[l] function.support g :=
+begin
+  filter_upwards [h] with x hx,
+  rw eq_iff_iff,
+  change f x ≠ 0 ↔ g x ≠ 0,
+  rw hx,
 end
 
 lemma filter.eventually_eq.indicator [has_zero β] {l : filter α} {f g : α → β} {s : set α}

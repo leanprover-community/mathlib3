@@ -8,6 +8,9 @@ import order.chain
 /-!
 # Zorn's lemmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves several formulations of Zorn's Lemma.
 
 ## Variants
@@ -129,6 +132,13 @@ begin
       exact ⟨z, ⟨hzs, (hcs hy).2.trans $ hz _ hy⟩, hz⟩ } }
 end
 
+lemma zorn_nonempty_Ici₀ (a : α)
+  (ih : ∀ c ⊆ Ici a, is_chain (≤) c → ∀ y ∈ c, ∃ ub, a ≤ ub ∧ ∀ z ∈ c, z ≤ ub) (x : α)
+  (hax : a ≤ x) :
+  ∃ m, x ≤ m ∧ ∀ z, m ≤ z → z ≤ m :=
+let ⟨m, hma, hxm, hm⟩ := zorn_nonempty_preorder₀ (Ici a) (by simpa using ih) x hax in
+  ⟨m, hxm, λ z hmz, hm _ (hax.trans $ hxm.trans hmz) hmz⟩
+
 end preorder
 
 section partial_order
@@ -168,13 +178,12 @@ zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 lemma zorn_superset (S : set (set α))
   (h : ∀ c ⊆ S, is_chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
   ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-@zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS hc.symm
+@zorn_partial_order₀ (set α)ᵒᵈ _ S $ λ c cS hc, h c cS hc.symm
 
 lemma zorn_superset_nonempty (S : set (set α))
   (H : ∀ c ⊆ S, is_chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
-@zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
-  hc.symm ⟨y, yc⟩) _ hx
+@zorn_nonempty_partial_order₀ (set α)ᵒᵈ _ S (λ c cS hc y yc, H _ cS hc.symm ⟨y, yc⟩) _ hx
 
 /-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
 -/

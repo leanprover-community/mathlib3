@@ -3,11 +3,14 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.star.basic
-import analysis.special_functions.pow
+import algebra.char_p.invertible
+import data.real.sqrt
 
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We establish a version of the Clauser-Horne-Shimony-Holt (CHSH) inequality
 (which is a generalization of Bell's inequality).
@@ -79,7 +82,7 @@ the `Aᵢ` commute with the `Bⱼ`.
 The physical interpretation is that `A₀` and `A₁` are a pair of boolean observables which
 are spacelike separated from another pair `B₀` and `B₁` of boolean observables.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure is_CHSH_tuple {R} [monoid R] [star_semigroup R] (A₀ A₁ B₀ B₁ : R) :=
 (A₀_inv : A₀^2 = 1) (A₁_inv : A₁^2 = 1) (B₀_inv : B₀^2 = 1) (B₁_inv : B₁^2 = 1)
 (A₀_sa : star A₀ = A₀) (A₁_sa : star A₁ = A₁) (B₀_sa : star B₀ = B₀) (B₁_sa : star B₁ = B₁)
@@ -130,7 +133,7 @@ begin
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa, mul_comm B₀, mul_comm B₁], },
     rw idem',
     conv_rhs { congr, skip, congr, rw ←sa, },
-    convert smul_le_smul_of_nonneg (star_mul_self_nonneg : 0 ≤ star P * P) _,
+    convert smul_le_smul_of_nonneg (star_mul_self_nonneg P) _,
     { simp, },
     { apply_instance, },
     { norm_num, } },
@@ -161,8 +164,7 @@ begin
     simp only [← pow_mul]; norm_num,
 end
 
-lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv₀], norm_num, }
+lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) := by { rw ←mul_inv, norm_num }
 
 end tsirelson_inequality
 open tsirelson_inequality
@@ -219,11 +221,11 @@ begin
     have P2_nonneg : 0 ≤ P^2,
     { rw [sq],
       conv { congr, skip, congr, rw ←P_sa, },
-      convert (star_mul_self_nonneg : 0 ≤ star P * P), },
+      convert (star_mul_self_nonneg P), },
     have Q2_nonneg : 0 ≤ Q^2,
     { rw [sq],
       conv { congr, skip, congr, rw ←Q_sa, },
-      convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
+      convert (star_mul_self_nonneg Q), },
     convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)
       (le_of_lt (show 0 < √2⁻¹, by norm_num)), -- `norm_num` can't directly show `0 ≤ √2⁻¹`
     simp, },

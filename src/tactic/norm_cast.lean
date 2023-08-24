@@ -61,9 +61,6 @@ when_tracing `norm_cast $ do
 a ← pp a,
 trace ("[norm_cast] " ++ msg ++ a : format)
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
-to move casts toward the leaf nodes of the expression."
-
 /--
 `label` is a type used to classify `norm_cast` lemmas.
 * elim lemma:   LHS has 0 head coes and ≥ 1 internal coe
@@ -270,7 +267,7 @@ The `norm_cast` attribute.
     param ← get_label_param norm_cast_attr decl,
     match param with
     | some l :=
-      when (l ≠ elim) $ simp_attr.push_cast.set decl () tt
+      when (l ≠ elim) $ simp_attr.push_cast.set decl () tt prio
     | none := do
       e ← mk_const decl,
       ty ← infer_type e,
@@ -532,7 +529,7 @@ A small variant of `push_cast` suited for non-interactive use.
 -/
 meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
 do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e
+   (e, prf, _) ← simplify (s.erase [`nat.cast_succ]) [] e
                   {fail_if_unchanged := ff} `eq tactic.assumption,
    return (e, prf)
 
@@ -780,17 +777,3 @@ add_tactic_doc
   category   := doc_category.attr,
   decl_names := [``norm_cast.norm_cast_attr],
   tags       := ["coercions", "simplification"] }
-
--- Lemmas defined in core.
-attribute [norm_cast]
-  int.nat_abs_of_nat
-  int.coe_nat_sub
-  int.coe_nat_mul
-  int.coe_nat_zero
-  int.coe_nat_one
-  int.coe_nat_add
-
--- Lemmas about nat.succ need to get a low priority, so that they are tried last.
--- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
--- Rewriting would then produce really wrong terms.
-attribute [norm_cast, priority 500] int.coe_nat_succ

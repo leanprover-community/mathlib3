@@ -5,11 +5,13 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!
 # Constructions relating polynomial functions and continuous functions.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -61,7 +63,7 @@ variables {α : Type*} [topological_space α]
 begin
   apply polynomial.induction_on' g,
   { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply f x n], },
+  { intros n a, simp [pi.pow_apply], },
 end
 
 end
@@ -74,7 +76,7 @@ noncomputable theory
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(R, R)`.
+The algebra map from `R[X]` to continuous functions `C(R, R)`.
 -/
 @[simps]
 def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
@@ -86,7 +88,7 @@ def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
   commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
+The algebra map from `R[X]` to continuous functions `C(X, R)`, for any subset `X` of `R`.
 -/
 @[simps]
 def to_continuous_map_on_alg_hom (X : set R) : R[X] →ₐ[R] C(X, R)  :=
@@ -136,9 +138,9 @@ open continuous_map
 
 /-- The preimage of polynomials on `[0,1]` under the pullback map by `x ↦ (b-a) * x + a`
 is the polynomials on `[a,b]`. -/
-lemma polynomial_functions.comap'_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
-  (polynomial_functions I).comap'
-    (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
+lemma polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
+  (polynomial_functions I).comap
+    (comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,
@@ -155,7 +157,7 @@ begin
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
         smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
         polynomial.eval_comp, polynomial.to_continuous_map_on_alg_hom_apply,
-        polynomial.to_continuous_map_on_to_fun, polynomial.to_continuous_map_to_fun],
+        polynomial.to_continuous_map_on_apply, polynomial.to_continuous_map_apply],
       convert w ⟨_, _⟩; clear w,
       { -- why does `comm_ring.add` appear here!?
         change x = (Icc_homeo_I a b h).symm ⟨_ + _, _⟩,

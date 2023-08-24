@@ -10,6 +10,9 @@ import topology.sets.compacts
 /-!
 # Closed subsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the metric and emetric space structure on the types of closed subsets and nonempty
 compact subsets of a metric or emetric space.
 
@@ -23,7 +26,7 @@ always finite in this context.
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topology ennreal
 
 universe u
 open classical set function topological_space filter
@@ -188,12 +191,13 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     i.e., for all ε>0, there is a finite set which is ε-dense.
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
-  refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _))
+  refine is_compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _))
     is_closed_univ,
   rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
   rcases emetric.totally_bounded_iff.1
-    (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos with ⟨s, fs, hs⟩,
-  -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
+    (is_compact_iff_totally_bounded_is_complete.1 (@is_compact_univ α _ _)).1 δ δpos
+    with ⟨s, fs, hs⟩,
+  -- s : set α,  fs : s.finite,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
   have main : ∀ u : set α, ∃v ⊆ s, Hausdorff_edist u v ≤ δ,
   { assume u,
@@ -211,12 +215,13 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   let F := {f : closeds α | (f : set α) ⊆ s},
   refine ⟨F, _, λ u _, _⟩,
   -- `F` is finite
-  { apply @finite_of_finite_image _ _ F coe,
-    { exact set_like.coe_injective.inj_on F },
-    { refine fs.finite_subsets.subset (λb, _),
+  { apply @finite.of_finite_image _ _ F coe,
+    { apply fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
-      rwa hx' at hx }},
+      rwa hx' at hx },
+    { exact set_like.coe_injective.inj_on F } },
+
   -- `F` is ε-dense
   { obtain ⟨t0, t0s, Dut0⟩ := main u,
     have : is_closed t0 := (fs.subset t0s).is_compact.is_closed,
@@ -236,7 +241,7 @@ instance nonempty_compacts.emetric_space : emetric_space (nonempty_compacts α) 
   edist_triangle      := λs t u, Hausdorff_edist_triangle,
   eq_of_edist_eq_zero := λ s t h, nonempty_compacts.ext $ begin
     have : closure (s : set α) = closure t := Hausdorff_edist_zero_iff_closure_eq_closure.1 h,
-    rwa [s.compact.is_closed.closure_eq, t.compact.is_closed.closure_eq] at this,
+    rwa [s.is_compact.is_closed.closure_eq, t.is_compact.is_closed.closure_eq] at this,
   end }
 
 /-- `nonempty_compacts.to_closeds` is a uniform embedding (as it is an isometry) -/
@@ -253,7 +258,7 @@ begin
   { ext s,
     refine ⟨_, λ h, ⟨⟨⟨s, h.2⟩, h.1⟩, closeds.ext rfl⟩⟩,
     rintro ⟨s, hs, rfl⟩,
-    exact ⟨s.nonempty, s.compact⟩ },
+    exact ⟨s.nonempty, s.is_compact⟩ },
   rw this,
   refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
   { -- take a set set t which is nonempty and at a finite distance of s
@@ -261,16 +266,16 @@ begin
     rw edist_comm at Dst,
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
-  { refine compact_iff_totally_bounded_complete.2 ⟨_, s.closed.is_complete⟩,
+  { refine is_compact_iff_totally_bounded_is_complete.2 ⟨_, s.closed.is_complete⟩,
     refine totally_bounded_iff.2 (λε (εpos : 0 < ε), _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
     rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos.ne') with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
-    rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2)
+    rcases totally_bounded_iff.1 (is_compact_iff_totally_bounded_is_complete.1 ht.2).1 (ε/2)
       (ennreal.half_pos εpos.ne') with ⟨u, fu, ut⟩,
     refine ⟨u, ⟨fu, λx hx, _⟩⟩,
-    -- u : set α,  fu : finite u,  ut : t ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
+    -- u : set α,  fu : u.finite,  ut : t ⊆ ⋃ (y : α) (H : y ∈ u), eball y (ε / 2)
     -- then s is covered by the union of the balls centered at u of radius ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨z, hz, Dxz⟩,
     rcases mem_Union₂.1 (ut hz) with ⟨y, hy, Dzy⟩,
@@ -311,10 +316,10 @@ begin
     approximations in `s` of the centers of these balls give the required finite approximation
     of `t`. -/
     rcases exists_countable_dense α with ⟨s, cs, s_dense⟩,
-    let v0 := {t : set α | finite t ∧ t ⊆ s},
+    let v0 := {t : set α | t.finite ∧ t ⊆ s},
     let v : set (nonempty_compacts α) := {t : nonempty_compacts α | (t : set α) ∈ v0},
     refine  ⟨⟨v, _, _⟩⟩,
-    { have : countable v0, from countable_set_of_finite_subset cs,
+    { have : v0.countable, from countable_set_of_finite_subset cs,
       exact this.preimage set_like.coe_injective },
     { refine λt, mem_closure_iff.2 (λε εpos, _),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
@@ -329,12 +334,12 @@ begin
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
 
       -- cover `t` with finitely many balls. Their centers form a set `a`
-      have : totally_bounded (t : set α) := t.compact.totally_bounded,
+      have : totally_bounded (t : set α) := t.is_compact.totally_bounded,
       rcases totally_bounded_iff.1 this (δ/2) δpos' with ⟨a, af, ta⟩,
-      -- a : set α,  af : finite a,  ta : t ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
+      -- a : set α,  af : a.finite,  ta : t ⊆ ⋃ (y : α) (H : y ∈ a), eball y (δ / 2)
       -- replace each center by a nearby approximation in `s`, giving a new set `b`
       let b := F '' a,
-      have : finite b := af.image _,
+      have : b.finite := af.image _,
       have tb : ∀ x ∈ t, ∃ y ∈ b, edist x y < δ,
       { assume x hx,
         rcases mem_Union₂.1 (ta hx) with ⟨z, za, Dxz⟩,
@@ -344,7 +349,7 @@ begin
              ... = δ : ennreal.add_halves _ },
       -- keep only the points in `b` that are close to point in `t`, yielding a new set `c`
       let c := {y ∈ b | ∃ x ∈ t, edist x y < δ},
-      have : finite c := ‹finite b›.subset (λx hx, hx.1),
+      have : c.finite := ‹b.finite›.subset (λx hx, hx.1),
       -- points in `t` are well approximated by points in `c`
       have tc : ∀ x ∈ t, ∃ y ∈ c, edist x y ≤ δ,
       { assume x hx,
@@ -366,17 +371,17 @@ begin
       have hc : c.nonempty,
         from nonempty_of_Hausdorff_edist_ne_top t.nonempty (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨⟨c, ‹finite c›.is_compact⟩, hc⟩,
+      let d : nonempty_compacts α := ⟨⟨c, ‹c.finite›.is_compact⟩, hc⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,
         rw ← yx,
         exact (Fspec y).1 },
-      have : d ∈ v := ⟨‹finite c›, this⟩,
+      have : d ∈ v := ⟨‹c.finite›, this⟩,
       -- we have proved that `d` is a good approximation of `t` as requested
       exact ⟨d, ‹d ∈ v›, Dtc⟩ },
   end,
-  apply uniform_space.second_countable_of_separable,
+  exact uniform_space.second_countable_of_separable (nonempty_compacts α),
 end
 
 end --section
@@ -391,7 +396,7 @@ variables {α : Type u} [metric_space α]
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
 emetric_space.to_metric_space $ λ x y, Hausdorff_edist_ne_top_of_nonempty_of_bounded
-  x.nonempty y.nonempty x.compact.bounded y.compact.bounded
+  x.nonempty y.nonempty x.is_compact.bounded y.is_compact.bounded
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/
 lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :

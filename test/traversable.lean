@@ -46,6 +46,11 @@ inductive my_tree (α : Type)
 | leaf : my_tree
 | node : my_tree → my_tree → α → my_tree
 
+@[derive [traversable,is_lawful_traversable]]
+inductive my_tree' (α : Type)
+| leaf : my_tree'
+| node : my_tree' → α → my_tree' → my_tree'
+
 section
 open my_tree (hiding traverse)
 

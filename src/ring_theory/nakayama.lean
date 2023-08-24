@@ -3,10 +3,13 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.noetherian
 import ring_theory.jacobson_ideal
+
 /-!
 # Nakayama's lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some alternative statements of Nakayama's Lemma as found in
 [Stacks: Nakayama's Lemma](https://stacks.math.columbia.edu/tag/00DV).
@@ -52,8 +55,8 @@ begin
   intros n hn,
   cases submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul I N hN hIN with r hr,
   cases exists_mul_sub_mem_of_sub_one_mem_jacobson r (hIjac hr.1) with s hs,
-  have : n = (-(r * s - 1) • n),
-  { rw [neg_sub, sub_smul, mul_comm, mul_smul, hr.2 n hn, one_smul, smul_zero, sub_zero] },
+  have : n = (-(s * r - 1) • n),
+  { rw [neg_sub, sub_smul, mul_smul, hr.2 n hn, one_smul, smul_zero, sub_zero] },
   rw this,
   exact submodule.smul_mem_smul (submodule.neg_mem _ hs) hn
 end

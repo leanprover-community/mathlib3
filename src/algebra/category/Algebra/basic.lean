@@ -5,11 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import algebra.free_algebra
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import algebra.category.Module.basic
 
 /-!
 # Category instance for algebras over a commutative ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the bundled category `Algebra` of algebras over a fixed commutative ring `R ` along
 with the forgetful functors to `Ring` and `Module`. We furthermore show that the functor associating

@@ -10,6 +10,9 @@ import data.finset.option
 /-!
 # Lemmas about products and sums over finite sets in `option α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove formulas for products and sums over `finset.insert_none s` and
 `finset.erase_none s`.
 -/
@@ -26,11 +29,11 @@ variables {α M : Type*} [comm_monoid M]
 by simp [insert_none]
 
 @[to_additive] lemma prod_erase_none (f : α → M) (s : finset (option α)) :
-  ∏ x in s.erase_none, f x = ∏ x in s, option.elim x 1 f :=
+  ∏ x in s.erase_none, f x = ∏ x in s, option.elim 1 f x :=
 by classical;
-calc ∏ x in s.erase_none, f x = ∏ x in s.erase_none.map embedding.some, option.elim x 1 f :
-  (prod_map s.erase_none embedding.some (λ x, option.elim x 1 f)).symm
-... = ∏ x in s.erase none, option.elim x 1 f : by rw map_some_erase_none
-... = ∏ x in s, option.elim x 1 f : prod_erase _ rfl
+calc ∏ x in s.erase_none, f x = ∏ x in s.erase_none.map embedding.some, option.elim 1 f x :
+  (prod_map s.erase_none embedding.some $ option.elim 1 f).symm
+... = ∏ x in s.erase none, option.elim 1 f x : by rw map_some_erase_none
+... = ∏ x in s, option.elim 1 f x : prod_erase _ rfl
 
 end finset

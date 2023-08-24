@@ -3,12 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.order.module
 import linear_algebra.affine_space.affine_map
 import tactic.field_simp
 
 /-!
 # Slope of a function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the slope of a function `f : k → PE` taking values in an affine space over
 `k` and prove some basic theorems about `slope`. The `slope` function naturally appears in the Mean
@@ -34,7 +36,10 @@ lemma slope_fun_def (f : k → PE) : slope f = λ a b, (b - a)⁻¹ • (f b -�
 omit E
 
 lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=
-div_eq_inv_mul.symm
+(div_eq_inv_mul _ _).symm
+
+lemma slope_fun_def_field (f : k → k) (a : k) : slope f a = λ b, (f b - f a) / (b - a) :=
+(div_eq_inv_mul _ _).symm
 
 @[simp] lemma slope_same (f : k → PE) (a : k) : (slope f a a : E) = 0 :=
 by rw [slope, sub_self, inv_zero, zero_smul]

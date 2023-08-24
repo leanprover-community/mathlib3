@@ -3,12 +3,15 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import topology.category.Top.basic
-import topology.algebra.ring
+import topology.algebra.ring.basic
 
 /-!
 # Category of topological commutative rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the category `TopCommRing` of topological commutative rings together with the relevant
 forgetful functors to topological spaces and commutative rings.

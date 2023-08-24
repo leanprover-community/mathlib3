@@ -5,11 +5,13 @@ Authors: Floris van Doorn
 -/
 import tactic.interval_cases
 import algebra.big_operators.order
-import algebra.big_operators.enat
 import data.nat.multiplicity
 
 /-!
 # IMO 2019 Q4
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Find all pairs `(k, n)` of positive integers such that
 ```
@@ -27,20 +29,22 @@ individually.
 open_locale nat big_operators
 open finset multiplicity nat (hiding zero_le prime)
 
-theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
+namespace imo2019_q4
+
+theorem upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin
   have prime_2 : prime (2 : ℤ),
   { exact prime_iff_prime_int.mp prime_two },
   have h2 : n * (n - 1) / 2 < k,
   { suffices : multiplicity 2 (k! : ℤ) = (n * (n - 1) / 2 : ℕ),
-    { rw [← enat.coe_lt_coe, ← this], change multiplicity ((2 : ℕ) : ℤ) _ < _,
+    { rw [← part_enat.coe_lt_coe, ← this], change multiplicity ((2 : ℕ) : ℤ) _ < _,
       simp_rw [int.coe_nat_multiplicity, multiplicity_two_factorial_lt hk.lt.ne.symm] },
-    rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, ← sum_nat_coe_enat],
+    rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, nat.cast_sum],
     apply sum_congr rfl, intros i hi,
     rw [multiplicity_sub_of_gt, multiplicity_pow_self_of_prime prime_2],
     rwa [multiplicity_pow_self_of_prime prime_2, multiplicity_pow_self_of_prime prime_2,
-      enat.coe_lt_coe, ←mem_range] },
+      part_enat.coe_lt_coe, ←mem_range] },
   rw [←not_le], intro hn,
   apply ne_of_lt _ h.symm,
   suffices : (∏ i in range n, 2 ^ n : ℤ) < ↑k!,
@@ -68,6 +72,8 @@ begin
   convert add_le_add_left (add_le_add_left h5 (2 * n')) (n' * n') using 1, ring
 end
 
+end imo2019_q4
+
 theorem imo2019_q4 {k n : ℕ} (hk : k > 0) (hn : n > 0) :
   (k! : ℤ) = (∏ i in range n, (2 ^ n - 2 ^ i)) ↔ (k, n) = (1, 1) ∨ (k, n) = (3, 2) :=
 begin
@@ -77,10 +83,10 @@ begin
     norm_num [prod_range_succ, succ_mul] },
   intro h,
   /- We know that n < 6. -/
-  have := imo2019_q4_upper_bound hk h,
+  have := imo2019_q4.upper_bound hk h,
   interval_cases n,
   /- n = 1 -/
-  { left, congr, norm_num at h, norm_cast at h, rw [factorial_eq_one] at h, apply antisymm h,
+  { left, congr, norm_num at h, rw [factorial_eq_one] at h, apply antisymm h,
     apply succ_le_of_lt hk },
   /- n = 2 -/
   { right, congr, norm_num [prod_range_succ] at h, norm_cast at h, rw [← factorial_inj],

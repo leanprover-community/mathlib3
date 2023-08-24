@@ -11,6 +11,9 @@ import combinatorics.quiver.path
 /-!
 # Arborescences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A quiver `V` is an arborescence (or directed rooted tree) when we have a root vertex `root : V` such
 that for every `b : V` there is a unique path from `root` to `b`.
 
@@ -58,7 +61,7 @@ noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
 { root := r,
   unique_path := λ b, ⟨classical.inhabited_of_nonempty
     begin
-      rcases (show ∃ n, height b < n, from ⟨_, lt_add_one _⟩) with ⟨n, hn⟩,
+      rcases (show ∃ n, height b < n, from ⟨_, nat.lt.base _⟩) with ⟨n, hn⟩,
       induction n with n ih generalizing b,
       { exact false.elim (nat.not_lt_zero _ hn) },
       rcases root_or_arrow b with ⟨⟨⟩⟩ | ⟨a, ⟨e⟩⟩,
@@ -108,9 +111,9 @@ arborescence_mk r (λ a, (shortest_path r a).length)
 (by { rintros a b c ⟨e, p, h⟩ ⟨f, q, j⟩, cases h.symm.trans j, split; refl })
 begin
   intro b,
-  rcases hp : shortest_path r b with (_ | ⟨a, _, p, e⟩),
+  rcases hp : shortest_path r b with (_ | ⟨p, e⟩),
   { exact or.inl rfl },
-  { exact or.inr ⟨a, ⟨⟨e, p, hp⟩⟩⟩ }
+  { exact or.inr ⟨_, ⟨⟨e, p, hp⟩⟩⟩ }
 end
 
 end geodesic_subtree

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 
 Extends the theory on functors, applicatives and monads.
 -/
+import tactic.mk_simp_attribute
 
 universes u v w
 variables {α β γ : Type u}
@@ -13,9 +14,6 @@ notation a ` $< `:1 f:1 := f a
 
 section functor
 variables {f : Type u → Type v} [functor f] [is_lawful_functor f]
-
-run_cmd mk_simp_attr `functor_norm
-run_cmd tactic.add_doc_string `simp_attr.functor_norm "Simp set for functor_norm"
 
 @[functor_norm] theorem functor.map_map (m : α → β) (g : β → γ) (x : f α) :
   g <$> (m <$> x) = (g ∘ m) <$> x :=
@@ -85,6 +83,7 @@ lemma seq_bind_eq (x : m α) {g : β → m γ} {f : α → β} : (f <$> x) >>= g
 show bind (f <$> x) g = bind x (g ∘ f),
 by rw [← bind_pure_comp_eq_map, bind_assoc]; simp [pure_bind]
 
+@[monad_norm]
 lemma seq_eq_bind_map {x : m α} {f : m (α → β)} : f <*> x = (f >>= (<$> x)) :=
 (bind_map_eq_seq f x).symm
 

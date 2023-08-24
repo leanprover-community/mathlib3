@@ -9,6 +9,9 @@ import category_theory.endomorphism
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the bundled categories:
 * `Group`
 * `AddGroup`
@@ -74,6 +77,9 @@ by { ext1, apply w }
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
 
+@[to_additive] instance : has_coe Group.{u} Mon.{u} :=
+{ coe := (forget₂ Group Mon).obj, }
+
 end Group
 
 /-- The category of commutative groups and group morphisms. -/
@@ -134,9 +140,15 @@ by { ext1, apply w }
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _
 
+@[to_additive] instance : has_coe CommGroup.{u} Group.{u} :=
+{ coe := (forget₂ CommGroup Group).obj, }
+
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
+
+@[to_additive] instance : has_coe CommGroup.{u} CommMon.{u} :=
+{ coe := (forget₂ CommGroup CommMon).obj, }
 
 end CommGroup
 

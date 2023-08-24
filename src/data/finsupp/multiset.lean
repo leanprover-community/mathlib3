@@ -3,10 +3,14 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import data.finsupp.basic
 import data.finsupp.order
 
 /-!
 # Equivalence between `multiset` and `ℕ`-valued finitely supported functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines `finsupp.to_multiset` the equivalence between `α →₀ ℕ` and `multiset α`, along
 with `multiset.to_finsupp` the reverse equivalence and `finsupp.order_iso_multiset` the equivalence
@@ -89,7 +93,7 @@ begin
   { rw [to_multiset_zero, multiset.to_finset_zero, support_zero] },
   { assume a n f ha hn ih,
     rw [to_multiset_add, multiset.to_finset_add, ih, to_multiset_single, support_add_eq,
-      support_single_ne_zero hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
+      support_single_ne_zero _ hn, multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton],
     refine disjoint.mono_left support_single_subset _,
     rwa [finset.disjoint_singleton_left] }
 end

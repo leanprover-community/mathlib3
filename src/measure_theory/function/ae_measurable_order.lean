@@ -3,10 +3,13 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # Measurability criterion for ennreal-valued functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Consider a function `f : α → ℝ≥0∞`. If the level sets `{f < p}` and `{q < f}` have measurable
 supersets which are disjoint up to measure zero when `p` and `q` are finite numbers satisfying
@@ -30,7 +33,7 @@ theorem measure_theory.ae_measurable_of_exist_almost_disjoint_supersets
   {α : Type*} {m : measurable_space α} (μ : measure α)
   {β : Type*} [complete_linear_order β] [densely_ordered β] [topological_space β]
   [order_topology β] [second_countable_topology β] [measurable_space β] [borel_space β]
-  (s : set β) (s_count : countable s) (s_dense : dense s) (f : α → β)
+  (s : set β) (s_count : s.countable) (s_dense : dense s) (f : α → β)
   (h : ∀ (p ∈ s) (q ∈ s), p < q → ∃ u v, measurable_set u ∧ measurable_set v ∧
     {x | f x < p} ⊆ u ∧ {x | q < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
   ae_measurable f μ :=
@@ -61,7 +64,7 @@ begin
       refine (measure_Union_le _).trans _,
       apply ennreal.tsum_le_tsum (λ p, _),
       apply measure_Union_le _,
-      exact (s_count.mono (inter_subset_left _ _)).to_encodable,
+      exact (s_count.mono (inter_subset_left _ _)).to_subtype,
     end
     ... ≤ ∑' (p : s) (q : s ∩ Ioi p), μ (u p q ∩ v p q) : begin
       apply ennreal.tsum_le_tsum (λ p, _),
@@ -77,7 +80,7 @@ begin
       change μ _ = 0,
       convert this,
       ext y,
-      simp only [not_exists, exists_prop, mem_set_of_eq, mem_compl_eq, not_not_mem] },
+      simp only [not_exists, exists_prop, mem_set_of_eq, mem_compl_iff, not_not_mem] },
     filter_upwards [this] with x hx,
     apply (infi_eq_of_forall_ge_of_forall_gt_exists_lt _ _).symm,
     { assume i,
@@ -109,7 +112,7 @@ theorem ennreal.ae_measurable_of_exist_almost_disjoint_supersets
     {x | f x < p} ⊆ u ∧ {x | (q : ℝ≥0∞) < f x} ⊆ v ∧ μ (u ∩ v) = 0) :
   ae_measurable f μ :=
 begin
-  obtain ⟨s, s_count, s_dense, s_zero, s_top⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+  obtain ⟨s, s_count, s_dense, s_zero, s_top⟩ : ∃ s : set ℝ≥0∞, s.countable ∧ dense s ∧
     0 ∉ s ∧ ∞ ∉ s := ennreal.exists_countable_dense_no_zero_top,
   have I : ∀ x ∈ s, x ≠ ∞ := λ x xs hx, s_top (hx ▸ xs),
   apply measure_theory.ae_measurable_of_exist_almost_disjoint_supersets μ s s_count s_dense _,

@@ -3,17 +3,49 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.set.basic
+import data.set.image
 
 /-!
 # Sets in sigma types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `set.sigma`, the indexed sum of sets.
 -/
 
 namespace set
 variables {ι ι' : Type*} {α β : ι → Type*} {s s₁ s₂ : set ι} {t t₁ t₂ : Π i, set (α i)}
-  {u : set (Σ i, α i)} {x : Σ i, α i} {i : ι} {a : α i}
+  {u : set (Σ i, α i)} {x : Σ i, α i} {i j : ι} {a : α i}
+
+@[simp] theorem range_sigma_mk (i : ι) :
+  range (sigma.mk i : α i → sigma α) = sigma.fst ⁻¹' {i} :=
+begin
+  apply subset.antisymm,
+  { rintros _ ⟨b, rfl⟩, simp },
+  { rintros ⟨x, y⟩ (rfl|_),
+    exact mem_range_self y }
+end
+
+theorem preimage_image_sigma_mk_of_ne (h : i ≠ j) (s : set (α j)) :
+  sigma.mk i ⁻¹' (sigma.mk j '' s) = ∅ :=
+by { ext x, simp [h.symm] }
+
+lemma image_sigma_mk_preimage_sigma_map_subset {β : ι' → Type*} (f : ι → ι')
+  (g : Π i, α i → β (f i)) (i : ι) (s : set (β (f i))) :
+  sigma.mk i '' (g i ⁻¹' s) ⊆ sigma.map f g ⁻¹' (sigma.mk (f i) '' s) :=
+image_subset_iff.2 $ λ x hx, ⟨g i x, hx, rfl⟩
+
+lemma image_sigma_mk_preimage_sigma_map {β : ι' → Type*} {f : ι → ι'} (hf : function.injective f)
+  (g : Π i, α i → β (f i)) (i : ι) (s : set (β (f i))) :
+  sigma.mk i '' (g i ⁻¹' s) = sigma.map f g ⁻¹' (sigma.mk (f i) '' s) :=
+begin
+  refine (image_sigma_mk_preimage_sigma_map_subset f g i s).antisymm _,
+  rintro ⟨j, x⟩ ⟨y, hys, hxy⟩,
+  simp only [hf.eq_iff, sigma.map] at hxy,
+  rcases hxy with ⟨rfl, hxy⟩, rw [heq_iff_eq] at hxy, subst y,
+  exact ⟨x, hys, rfl⟩
+end
 
 /-- Indexed sum of sets. `s.sigma t` is the set of dependent pairs `⟨i, a⟩` such that `i ∈ s` and
 `a ∈ t i`.-/
@@ -38,7 +70,7 @@ lemma exists_sigma_iff {p : (Σ i, α i) → Prop} :
   (∃ x ∈ s.sigma t, p x) ↔ ∃ (i ∈ s) (a ∈ t i), p ⟨i, a⟩ :=
 ⟨λ ⟨⟨i, a⟩, ha, h⟩, ⟨i, ha.1, a, ha.2, h⟩, λ ⟨i, hi, a, ha, h⟩, ⟨⟨i, a⟩, ⟨hi, ha⟩, h⟩⟩
 
-@[simp] lemma sigma_empty : s.sigma (λ _, (∅ : set (α i))) = ∅ := ext $ λ _, and_false _
+@[simp] lemma sigma_empty : s.sigma (λ i, (∅ : set (α i))) = ∅ := ext $ λ _, and_false _
 @[simp] lemma empty_sigma : (∅ : set ι).sigma t = ∅ := ext $ λ _, false_and _
 lemma univ_sigma_univ : (@univ ι).sigma (λ _, @univ (α i)) = univ := ext $ λ _, true_and _
 @[simp] lemma sigma_univ : s.sigma (λ _, univ : Π i, set (α i)) = sigma.fst ⁻¹' s :=

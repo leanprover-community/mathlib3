@@ -5,12 +5,15 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.group.ext
 import category_theory.simple
-import category_theory.linear
+import category_theory.linear.basic
 import category_theory.endomorphism
-import algebra.algebra.spectrum
+import field_theory.is_alg_closed.spectrum
 
 /-!
 # Schur's lemma
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We first prove the part of Schur's Lemma that holds in any preadditive category with kernels,
 that any nonzero morphism between simple objects
 is an isomorphism.
@@ -28,6 +31,11 @@ open category_theory.limits
 variables {C : Type*} [category C]
 variables [preadditive C]
 
+-- See also `epi_of_nonzero_to_simple`, which does not require `preadditive C`.
+lemma mono_of_nonzero_from_simple [has_kernels C] {X Y : C} [simple X] {f : X ⟶ Y} (w : f ≠ 0) :
+  mono f :=
+preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w)
+
 /--
 The part of **Schur's lemma** that holds in any preadditive category with kernels:
 that a nonzero morphism between simple objects is an isomorphism.
@@ -35,7 +43,7 @@ that a nonzero morphism between simple objects is an isomorphism.
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
-  haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
+  haveI := mono_of_nonzero_from_simple w,
   exact is_iso_of_mono_of_nonzero w
 end
 
@@ -118,8 +126,7 @@ lemma finrank_endomorphism_eq_one
   finrank 𝕜 (X ⟶ X) = 1 :=
 begin
   have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
-  apply finrank_eq_one (𝟙 X),
-  { exact id_nonzero, },
+  refine finrank_eq_one (𝟙 X) id_nonzero _,
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
@@ -175,11 +182,11 @@ lemma finrank_hom_simple_simple_le_one
 begin
   cases subsingleton_or_nontrivial (X ⟶ Y) with h,
   { resetI,
-    convert zero_le_one,
-    exact finrank_zero_of_subsingleton, },
+    rw finrank_zero_of_subsingleton,
+    exact zero_le_one },
   { obtain ⟨f, nz⟩ := (nontrivial_iff_exists_ne 0).mp h,
     haveI fi := (is_iso_iff_nonzero f).mpr nz,
-    apply finrank_le_one f,
+    refine finrank_le_one f _,
     intro g,
     obtain ⟨c, w⟩ := endomorphism_simple_eq_smul_id 𝕜 (g ≫ inv f),
     exact ⟨c, by simpa using w =≫ f⟩, },
@@ -212,6 +219,17 @@ begin
   interval_cases finrank 𝕜 (X ⟶ Y) with h',
   { exact h', },
   { exact false.elim (h h'), },
+end
+
+open_locale classical
+
+lemma finrank_hom_simple_simple
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
+  finrank 𝕜 (X ⟶ Y) = if nonempty (X ≅ Y) then 1 else 0 :=
+begin
+  split_ifs,
+  exact (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y).2 h,
+  exact (finrank_hom_simple_simple_eq_zero_iff 𝕜 X Y).2 (not_nonempty_iff.mp h),
 end
 
 end category_theory

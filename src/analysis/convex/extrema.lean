@@ -11,6 +11,9 @@ import topology.metric_space.basic
 /-!
 # Minima and maxima of convex functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that if a function `f : E → β` is convex, then a local minimum is also
 a global minimum, and likewise for concave functions.
 -/
@@ -21,7 +24,7 @@ variables {E β : Type*} [add_comm_group E] [topological_space E]
   {s : set E}
 
 open set filter function
-open_locale classical topological_space
+open_locale classical topology
 
 /--
 Helper lemma for the more general case: `is_min_on.of_is_local_min_on_of_convex_on`.
@@ -74,8 +77,7 @@ end
 lemma is_max_on.of_is_local_max_on_of_concave_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmax: is_local_max_on f s a) (h_conc : concave_on ℝ s f) :
   is_max_on f s a :=
-@is_min_on.of_is_local_min_on_of_convex_on
-  _ (order_dual β) _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
+@is_min_on.of_is_local_min_on_of_convex_on _ βᵒᵈ _ _ _ _ _ _ _ _ s f a a_in_s h_localmax h_conc
 
 /-- A local minimum of a convex function is a global minimum. -/
 lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}
@@ -86,4 +88,4 @@ lemma is_min_on.of_is_local_min_of_convex_univ {f : E → β} {a : E}
 /-- A local maximum of a concave function is a global maximum. -/
 lemma is_max_on.of_is_local_max_of_convex_univ {f : E → β} {a : E}
   (h_local_max : is_local_max f a) (h_conc : concave_on ℝ univ f) : ∀ x, f x ≤ f a :=
-@is_min_on.of_is_local_min_of_convex_univ _ (order_dual β) _ _ _ _ _ _ _ _ f a h_local_max h_conc
+@is_min_on.of_is_local_min_of_convex_univ _ βᵒᵈ _ _ _ _ _ _ _ _ f a h_local_max h_conc

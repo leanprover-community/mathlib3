@@ -11,6 +11,9 @@ import ring_theory.witt_vector.is_poly
 /-!
 ## The Verschiebung operator
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## References
 
 * [Hazewinkel, *Witt Vectors*][Haze09]
@@ -167,9 +170,7 @@ begin
       simp only [←aeval_verschiebung_poly, coeff_mk],
       funext k,
       exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-    { rw [ghost_component_verschiebung],
-      congr' 1,
-      exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl } }
+    { rw [ghost_component_verschiebung], refl } }
 end
 
 end witt_vector

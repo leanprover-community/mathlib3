@@ -11,6 +11,9 @@ import analysis.convex.basic
 /-!
 # Homotopy between paths
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define a `homotopy` between two `path`s. In addition, we define a relation
 `homotopic` on `path`s, and prove that it is an equivalence relation.
 

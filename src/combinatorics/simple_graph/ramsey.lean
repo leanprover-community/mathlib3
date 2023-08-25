@@ -8,7 +8,7 @@ import data.dfinsupp.well_founded
 import tactic.fin_cases
 import data.fin.vec_notation
 import algebra.big_operators.fin
-import number_theory.legendre_symbol.quadratic_char
+import number_theory.legendre_symbol.quadratic_char.gauss_sum
 import field_theory.finite.basic
 import data.fin.tuple.sort
 import algebra.char_p.pi

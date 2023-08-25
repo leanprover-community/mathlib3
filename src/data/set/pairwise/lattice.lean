@@ -9,19 +9,22 @@ import data.set.pairwise.basic
 /-!
 # Relations holding pairwise
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove many facts about `pairwise` and the set lattice.
 -/
 
-open set function
+open function set order
 
-variables {α β γ ι ι' : Type*} {r p q : α → α → Prop}
+variables {α β γ ι ι' : Type*} {κ : Sort*} {r p q : α → α → Prop}
 
 section pairwise
 variables {f g : ι → α} {s t u : set α} {a b : α}
 
 namespace set
 
-lemma pairwise_Union {f : ι → set α} (h : directed (⊆) f) :
+lemma pairwise_Union {f : κ → set α} (h : directed (⊆) f) :
   (⋃ n, f n).pairwise r ↔ ∀ n, (f n).pairwise r :=
 begin
   split,
@@ -57,7 +60,7 @@ pairwise_sUnion h
 end partial_order_bot
 
 section complete_lattice
-variables [complete_lattice α]
+variables [complete_lattice α] {s : set ι} {t : set ι'}
 
 /-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
 can use `set.pairwise_disjoint.bUnion_finset`. -/
@@ -75,7 +78,40 @@ begin
   { exact (hs hc hd $ ne_of_apply_ne _ hcd).mono (le_supr₂ a ha) (le_supr₂ b hb) }
 end
 
+/-- If the suprema of columns are pairwise disjoint and suprema of rows as well, then everything is
+pairwise disjoint. Not to be confused with `set.pairwise_disjoint.prod`. -/
+lemma pairwise_disjoint.prod_left {f : ι × ι' → α}
+  (hs : s.pairwise_disjoint $ λ i, ⨆ i' ∈ t, f (i, i'))
+  (ht : t.pairwise_disjoint $ λ i', ⨆ i ∈ s, f (i, i')) :
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f :=
+begin
+  rintro ⟨i, i'⟩ hi ⟨j, j'⟩ hj h,
+  rw mem_prod at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { refine (ht hi.2 hj.2 $ (prod.mk.inj_left _).ne_iff.1 h).mono _ _,
+    { convert le_supr₂ i hi.1, refl },
+    { convert le_supr₂ i hj.1, refl } },
+  { refine (hs hi.1 hj.1 hij).mono _ _,
+    { convert le_supr₂ i' hi.2, refl },
+    { convert le_supr₂ j' hj.2, refl } }
+end
+
 end complete_lattice
+
+section frame
+variables [frame α]
+
+lemma pairwise_disjoint_prod_left {s : set ι} {t : set ι'} {f : ι × ι' → α} :
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f ↔ s.pairwise_disjoint (λ i, ⨆ i' ∈ t, f (i, i')) ∧
+    t.pairwise_disjoint (λ i', ⨆ i ∈ s, f (i, i')) :=
+begin
+  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod_left h.2⟩);
+    simp_rw [function.on_fun, supr_disjoint_iff, disjoint_supr_iff]; intros i' hi' j' hj',
+  { exact h (mk_mem_prod hi hi') (mk_mem_prod hj hj') (ne_of_apply_ne prod.fst hij) },
+  { exact h (mk_mem_prod hi' hi) (mk_mem_prod hj' hj) (ne_of_apply_ne prod.snd hij) }
+end
+
+end frame
 
 lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pairwise_disjoint f) :
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=

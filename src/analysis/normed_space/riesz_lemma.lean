@@ -9,6 +9,9 @@ import topology.metric_space.hausdorff_distance
 /-!
 # Applications of the Hausdorff distance in normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Riesz's lemma, stated for a normed space over a normed field: for any
 closed proper subspace `F` of `E`, there is a nonzero `x` such that `‖x - F‖`
 is at least `r * ‖x‖` for any `r < 1`. This is `riesz_lemma`.

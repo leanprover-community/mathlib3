@@ -9,6 +9,9 @@ import ring_theory.localization.basic
 
 /-!  # Laurent polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce Laurent polynomials over a semiring `R`.  Mathematically, they are expressions of the
 form
 $$

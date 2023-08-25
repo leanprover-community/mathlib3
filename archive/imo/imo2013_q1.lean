@@ -13,6 +13,9 @@ import tactic.field_simp
 /-!
 # IMO 2013 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Prove that for any pair of positive integers k and n, there exist k positive integers
 m₁, m₂, ..., mₖ (not necessarily different) such that
 
@@ -26,6 +29,8 @@ We prove a slightly more general version where k does not need to be strictly po
 -/
 
 open_locale big_operators
+
+namespace imo2013_q1
 
 lemma arith_lemma (k n : ℕ) : 0 < 2 * n + 2^k.succ :=
 calc 0 < 2                : zero_lt_two
@@ -42,6 +47,10 @@ begin
   intros i hi,
   simp [finset.mem_range.mp hi]
 end
+
+end imo2013_q1
+
+open imo2013_q1
 
 theorem imo2013_q1 (n : ℕ+) (k : ℕ) :
     (∃ m : ℕ → ℕ+, (1 : ℚ) + (2^k - 1) / n = (∏ i in finset.range k, (1 + 1 / m i))) :=

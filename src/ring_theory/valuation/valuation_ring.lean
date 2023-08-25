@@ -7,12 +7,15 @@ import ring_theory.valuation.integers
 import ring_theory.ideal.local_ring
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 import ring_theory.bezout
 import tactic.field_simp
 
 /-!
 # Valuation Rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A valuation ring is a domain such that for every pair of elements `a b`, either `a` divides
 `b` or vice-versa.

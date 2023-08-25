@@ -41,7 +41,7 @@ variables {α β : Type*}
 
 namespace set
 section lattice
-variables [lattice α] {a a₁ a₂ b b₁ b₂ c x : α}
+variables [lattice α] [lattice β] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `uIcc a b` is the set of elements lying between `a` and `b`, with `a` and `b` included.
 Note that we define it more generally in a lattice as `set.Icc (a ⊓ b) (a ⊔ b)`. In a product type,
@@ -96,6 +96,16 @@ lemma bdd_below_bdd_above_iff_subset_uIcc (s : set α) :
 bdd_below_bdd_above_iff_subset_Icc.trans
   ⟨λ ⟨a, b, h⟩, ⟨a, b, λ x hx, Icc_subset_uIcc (h hx)⟩, λ ⟨a, b, h⟩, ⟨_, _, h⟩⟩
 
+section prod
+
+@[simp] lemma uIcc_prod_uIcc (a₁ a₂ : α) (b₁ b₂ : β) :
+  [a₁, a₂] ×ˢ [b₁, b₂] = [(a₁, b₁), (a₂, b₂)] :=
+Icc_prod_Icc _ _ _ _
+
+lemma uIcc_prod_eq (a b : α × β) : [a, b] = [a.1, b.1] ×ˢ [a.2, b.2] := by simp
+
+end prod
+
 end lattice
 
 open_locale interval
@@ -119,7 +129,30 @@ by simpa only [uIcc_comm] using uIcc_injective_right a
 end distrib_lattice
 
 section linear_order
-variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a a₁ a₂ b b₁ b₂ c d x : α}
+variables [linear_order α]
+
+section lattice
+variables [lattice β] {f : α → β} {s : set α} {a b : α}
+
+lemma _root_.monotone_on.image_uIcc_subset (hf : monotone_on f (uIcc a b)) :
+  f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+hf.image_Icc_subset.trans $
+  by rw [hf.map_sup left_mem_uIcc right_mem_uIcc, hf.map_inf left_mem_uIcc right_mem_uIcc, uIcc]
+
+lemma _root_.antitone_on.image_uIcc_subset (hf : antitone_on f (uIcc a b)) :
+  f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+hf.image_Icc_subset.trans $
+  by rw [hf.map_sup left_mem_uIcc right_mem_uIcc, hf.map_inf left_mem_uIcc right_mem_uIcc, uIcc]
+
+lemma _root_.monotone.image_uIcc_subset (hf : monotone f) : f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+(hf.monotone_on _).image_uIcc_subset
+
+lemma _root_.antitone.image_uIcc_subset (hf : antitone f) : f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+(hf.antitone_on _).image_uIcc_subset
+
+end lattice
+
+variables [linear_order β] {f : α → β} {s : set α} {a a₁ a₂ b b₁ b₂ c d x : α}
 
 lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
 

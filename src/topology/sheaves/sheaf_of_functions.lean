@@ -9,6 +9,9 @@ import topology.sheaves.sheaf_condition.unique_gluing
 /-!
 # Sheaf conditions for presheaves of (continuous) functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that
 * `Top.presheaf.to_Type_is_sheaf`: not-necessarily-continuous functions into a type form a sheaf
 * `Top.presheaf.to_Types_is_sheaf`: in fact, these may be dependent functions into a type family

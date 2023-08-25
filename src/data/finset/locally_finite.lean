@@ -259,6 +259,9 @@ lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := by simpa [←coe_subset] using se
 lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
 let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha hx
 
+lemma _root_.set.infinite.not_bdd_below {s : set α} : s.infinite → ¬ bdd_below s :=
+mt bdd_below.finite
+
 variables [fintype α]
 
 lemma filter_lt_eq_Ioi [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a := by { ext, simp }
@@ -272,6 +275,9 @@ variables [locally_finite_order_bot α] {a : α}
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := by simpa [←coe_subset] using set.Iio_subset_Iic_self
 
 lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
+
+lemma _root_.set.infinite.not_bdd_above {s : set α} : s.infinite → ¬ bdd_above s :=
+mt bdd_above.finite
 
 variables [fintype α]
 
@@ -504,6 +510,28 @@ end
 
 end locally_finite_order
 
+section locally_finite_order_bot
+variables [locally_finite_order_bot α] {s : set α}
+
+lemma _root_.set.infinite.exists_gt (hs : s.infinite) : ∀ a, ∃ b ∈ s, a < b :=
+not_bdd_above_iff.1 hs.not_bdd_above
+
+lemma _root_.set.infinite_iff_exists_gt [nonempty α] : s.infinite ↔ ∀ a, ∃ b ∈ s, a < b :=
+⟨set.infinite.exists_gt, set.infinite_of_forall_exists_gt⟩
+
+end locally_finite_order_bot
+
+section locally_finite_order_top
+variables [locally_finite_order_top α] {s : set α}
+
+lemma _root_.set.infinite.exists_lt (hs : s.infinite) : ∀ a, ∃ b ∈ s, b < a :=
+not_bdd_below_iff.1 hs.not_bdd_below
+
+lemma _root_.set.infinite_iff_exists_lt [nonempty α] : s.infinite ↔ ∀ a, ∃ b ∈ s, b < a :=
+⟨set.infinite.exists_lt, set.infinite_of_forall_exists_lt⟩
+
+end locally_finite_order_top
+
 variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot α]
 
 lemma Ioi_disj_union_Iio (a : α) :
@@ -536,8 +564,11 @@ lemma Icc_subset_uIcc' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_su
 @[simp] lemma left_mem_uIcc : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
 @[simp] lemma right_mem_uIcc : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
 
-lemma mem_uIcc_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] := Icc_subset_uIcc $ mem_Icc.2 ⟨ha, hb⟩
-lemma mem_uIcc_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] := Icc_subset_uIcc' $ mem_Icc.2 ⟨hb, ha⟩
+lemma mem_uIcc_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] :=
+Icc_subset_uIcc $ mem_Icc.2 ⟨ha, hb⟩
+
+lemma mem_uIcc_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
+Icc_subset_uIcc' $ mem_Icc.2 ⟨hb, ha⟩
 
 lemma uIcc_subset_uIcc (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 by { rw mem_uIcc at h₁ h₂, exact Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2) }
@@ -548,11 +579,15 @@ by { rw mem_Icc at ha hb, exact Icc_subset_Icc (le_inf ha.1 hb.1) (sup_le ha.2 h
 lemma uIcc_subset_uIcc_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 ⟨λ h, ⟨h left_mem_uIcc, h right_mem_uIcc⟩, λ h, uIcc_subset_uIcc h.1 h.2⟩
 
-lemma uIcc_subset_uIcc_iff_le' : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
+lemma uIcc_subset_uIcc_iff_le' :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
 Icc_subset_Icc_iff inf_le_sup
 
-lemma uIcc_subset_uIcc_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] := uIcc_subset_uIcc h right_mem_uIcc
-lemma uIcc_subset_uIcc_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] := uIcc_subset_uIcc left_mem_uIcc h
+lemma uIcc_subset_uIcc_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
+uIcc_subset_uIcc h right_mem_uIcc
+
+lemma uIcc_subset_uIcc_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
+uIcc_subset_uIcc left_mem_uIcc h
 
 end lattice
 

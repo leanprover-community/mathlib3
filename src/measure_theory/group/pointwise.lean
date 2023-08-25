@@ -8,6 +8,9 @@ import measure_theory.group.arithmetic
 /-!
 # Pointwise set operations on `measurable_set`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the following fact: if `s` is a measurable set, then so is
 `a • s`. Note that the pointwise product of two measurable sets need not be measurable, so there is
 no `measurable_set.mul` etc.

@@ -227,7 +227,7 @@ def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →�
 
 lemma coe_prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
   ⇑(f.prod_map g) = prod.map f g := rfl
-  
+
 @[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
   f.prod_map g x = (f x.1, g x.2) := rfl
 
@@ -558,6 +558,28 @@ def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid 
 { to_fun := prod.swap,
   map_smul' := λ r ⟨m, n⟩, rfl,
   ..add_equiv.prod_comm }
+
+section
+variables (R M M₂ M₃ M₄)
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm : ((M × M₂) × (M₃ × M₄)) ≃ₗ[R] (M × M₃) × (M₂ × M₄) :=
+{ to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
+  inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),
+  map_smul' := λ c mnmn, rfl,
+  ..add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ }
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm R M M₂ M₃ M₄).symm = prod_prod_prod_comm R M M₃ M₂ M₄ := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_add_equiv :
+  (prod_prod_prod_comm R M M₂ M₃ M₄).to_add_equiv = add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ := rfl
+
+end
 
 section
 

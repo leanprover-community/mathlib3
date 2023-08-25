@@ -10,6 +10,9 @@ import linear_algebra.dual
 /-!
 # The coevaluation map on finite dimensional vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a finite dimensional vector space `V` over a field `K` this describes the canonical linear map
 from `K` to `V ⊗ dual K V` which corresponds to the identity function on `V`.
 

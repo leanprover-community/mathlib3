@@ -3,12 +3,16 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import data.set.intervals.monotone
 import probability.process.hitting_time
 import probability.martingale.basic
 
 /-!
 
 # Doob's upcrossing estimate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a discrete real-valued submartingale $(f_n)_{n \in \mathbb{N}}$, denoting $U_N(a, b)$ the
 number of times $f_n$ crossed from below $a$ to above $b$ before time $N$, Doob's upcrossing

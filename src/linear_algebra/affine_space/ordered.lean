@@ -12,6 +12,9 @@ import tactic.field_simp
 /-!
 # Ordered modules as affine spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some theorems about `slope` and `line_map` in the case when the module `E`
 acting on the codomain `PE` of a function is an ordered module over its domain `k`. We also prove
 inequalities that can be used to link convexity of a function on an interval to monotonicity of the

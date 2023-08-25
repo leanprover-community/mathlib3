@@ -11,6 +11,9 @@ import category_theory.monad.algebra
 /-!
 # Special coequalizers associated to a monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Associated to a monad `T : C ⥤ C` we have important coequalizer constructions:
 Any algebra is a coequalizer (in the category of algebras) of free algebras. Furthermore, this
 coequalizer is reflexive.

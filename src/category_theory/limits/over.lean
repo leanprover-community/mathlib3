@@ -13,6 +13,9 @@ import category_theory.limits.comma
 /-!
 # Limits and colimits in the over and under categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that the forgetful functor `forget X : over X ⥤ C` creates colimits, and hence `over X` has
 any colimits that `C` has (as well as the dual that `forget X : under X ⟶ C` creates limits).
 

@@ -12,6 +12,9 @@ import linear_algebra.matrix.general_linear_group
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
 `analysis.complex.upper_half_plane`). We then define the standard fundamental domain
 (`modular_group.fd`, `𝒟`) for this action and show

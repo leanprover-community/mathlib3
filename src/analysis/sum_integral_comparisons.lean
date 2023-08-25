@@ -10,6 +10,9 @@ import analysis.special_functions.integrals
 /-!
 # Comparing sums and integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 It is often the case that error terms in analysis can be computed by comparing

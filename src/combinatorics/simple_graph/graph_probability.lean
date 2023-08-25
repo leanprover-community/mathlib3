@@ -481,7 +481,7 @@ begin
       refine div_le_self (by positivity) _,
       rw [nat.one_le_cast, nat.succ_le_iff],
       exact nat.factorial_pos _ },
-    { refine (pow_le_pow_of_le_left (by linarith) (one_sub_le_exp_minus_of_pos hp.le) _).trans _,
+    { refine (pow_le_pow_of_le_left (by linarith) (one_sub_le_exp_minus_of_nonneg hp.le) _).trans _,
       rw [←rpow_nat_cast, ←exp_one_rpow, ←rpow_mul (exp_pos _).le, exp_one_rpow, exp_le_exp,
         mul_div_assoc],
       refine mul_le_mul_of_nonpos_left _ (by simpa using hp.le),
@@ -547,7 +547,7 @@ begin
   refine mul_le_mul_of_nonneg_right _ (by positivity),
   refine mul_le_mul_of_nonneg_right _ (by positivity),
   refine mul_le_mul_of_nonneg_left _ (by positivity),
-  refine (one_sub_le_exp_minus_of_pos _).trans_eq _,
+  refine (one_sub_le_exp_minus_of_nonneg _).trans_eq _,
   { refine div_nonneg (log_nonneg (by norm_num1)) (nat.cast_nonneg _) },
   rw [rpow_def_of_pos, neg_div, mul_neg, mul_one_div],
   norm_num1

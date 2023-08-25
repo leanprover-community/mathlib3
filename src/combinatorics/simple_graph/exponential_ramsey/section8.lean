@@ -793,27 +793,59 @@ begin
   exact (hk₀ _ hlk).ne'
 end
 
+lemma one_div_sq_le_beta (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ → ∀ n : ℕ,
+  ∀ χ : top_edge_labelling (fin n) (fin 2),
+  ∀ (ini : book_config χ), p₀ ≤ ini.p →
+  (1 : ℝ) / k ^ 2 ≤ beta μ k l ini :=
+begin
+  filter_upwards [five_three_right μ₁ p₀ hμ₁ hp₀, top_adjuster (eventually_gt_at_top 0),
+    eventually_ge_at_top (⌈sqrt (1 / μ₀)⌉₊),
+    blue_X_ratio_pos μ₁ p₀ hμ₁ hp₀] with
+    l hβ hl hlμ hβ₀
+    k hlk μ hμl hμu n χ ini hini,
+  specialize hβ k hlk μ hμu n χ ini hini,
+  specialize hβ₀ k hlk μ hμu n χ ini hini,
+  specialize hl k hlk,
+  rw beta,
+  split_ifs,
+  { refine hμl.trans' _,
+    rw [one_div_le, ←sqrt_le_left, ←nat.ceil_le],
+    { exact hlμ.trans hlk },
+    { exact nat.cast_nonneg _ },
+    { positivity },
+    { exact hμ₀ } },
+  have : (moderate_steps μ k l ini).nonempty,
+  { rwa nonempty_iff_ne_empty },
+  rw [←div_eq_mul_inv, div_le_div_iff, one_mul],
+  rotate,
+  { positivity },
+  { refine sum_pos _ this,
+    intros i hi,
+    rw one_div_pos,
+    exact hβ₀ i (filter_subset _ _ hi) },
+  rw ←nsmul_eq_mul,
+  refine sum_le_card_nsmul _ _ _ _,
+  intros i hi,
+  rw [one_div_le],
+  { exact hβ i (filter_subset _ _ hi) },
+  { exact hβ₀ i (filter_subset _ _ hi) },
+  { positivity }
+end
+
 lemma beta_pos (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
   ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ → ∀ n : ℕ,
   ∀ χ : top_edge_labelling (fin n) (fin 2),
   ∀ (ini : book_config χ), p₀ ≤ ini.p →
   0 < beta μ k l ini :=
 begin
-  filter_upwards [blue_X_ratio_pos μ₁ p₀ hμ₁ hp₀] with l hβ
+  filter_upwards [one_div_sq_le_beta μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀,
+    top_adjuster (eventually_gt_at_top 0)] with l hβ hl
     k hlk μ hμl hμu n χ ini hini,
-  specialize hβ k hlk μ hμu n χ ini hini,
-  rw [beta],
-  split_ifs,
-  { exact hμ₀.trans_le hμl },
-  have : (moderate_steps μ k l ini).nonempty,
-  { rwa nonempty_iff_ne_empty },
-  refine mul_pos _ _,
-  { rwa [nat.cast_pos, card_pos] },
-  rw [inv_pos],
-  refine sum_pos _ this,
-  intros i hi,
-  rw one_div_pos,
-  exact hβ i (filter_subset _ _ hi)
+  specialize hβ k hlk μ hμl hμu n χ ini hini,
+  refine hβ.trans_lt' _,
+  specialize hl k hlk,
+  positivity
 end
 
 lemma eight_five (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :

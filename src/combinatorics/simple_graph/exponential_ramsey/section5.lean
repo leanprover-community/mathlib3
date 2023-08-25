@@ -22,8 +22,9 @@ open_locale exponential_ramsey
 
 open filter finset nat
 
-lemma top_adjuster {p : ℕ → Prop} (h : ∀ᶠ k : ℕ in at_top, p k) :
-  ∀ᶠ l : ℕ in at_top, ∀ k : ℕ, l ≤ k → p k :=
+lemma top_adjuster {α : Type*} [semilattice_sup α] [nonempty α] {p : α → Prop}
+  (h : ∀ᶠ k : α in at_top, p k) :
+  ∀ᶠ l : α in at_top, ∀ k : α, l ≤ k → p k :=
 begin
   rw eventually_at_top at h ⊢,
   obtain ⟨n, hn⟩ := h,

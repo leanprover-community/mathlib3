@@ -514,7 +514,7 @@ end
 
 variables {k l : ℕ} {C : book_config χ} {U : finset V} {μ₀ : ℝ}
 
-lemma ceil_le_two_mul {x : ℝ} (hx : 1 / 2 ≤ x) : (⌈x⌉₊ : ℝ) ≤ 2 * x :=
+lemma ceil_lt_two_mul {x : ℝ} (hx : 1 / 2 < x) : (⌈x⌉₊ : ℝ) < 2 * x :=
 begin
   cases lt_or_le x 1,
   { have : ⌈x⌉₊ = 1,
@@ -525,8 +525,16 @@ begin
       norm_num },
     rw [this, nat.cast_one],
     linarith },
-  refine (nat.ceil_lt_add_one _).le.trans _;
-  linarith
+  refine (nat.ceil_lt_add_one _).trans_le _,
+  { linarith },
+  { linarith },
+end
+
+lemma ceil_le_two_mul {x : ℝ} (hx : 1 / 2 ≤ x) : (⌈x⌉₊ : ℝ) ≤ 2 * x :=
+begin
+  rcases eq_or_lt_of_le hx with rfl | hx',
+  { norm_num },
+  exact (ceil_lt_two_mul hx').le
 end
 
 -- l ≥ 4 / μ₀
@@ -1013,17 +1021,23 @@ begin
   exact book_config.get_central_vertex_mem_X _ _ _,
 end
 
+lemma t_le_A_card (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (ini : book_config χ) :
+  (red_steps μ k l ini).card ≤ (end_state μ k l ini).A.card :=
+begin
+  have hl := four_four_red_aux hk hl ini (final_step μ k l ini) le_rfl,
+  have : red_steps μ k l ini ∩ range (final_step μ k l ini) = red_steps μ k l ini,
+  { rw [inter_eq_left_iff_subset],
+    exact red_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
+  rwa [this] at hl,
+end
+
 -- observation 4.4
 lemma four_four_red (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (red_steps μ k l ini).card ≤ k :=
 begin
-  have hl := four_four_red_aux hk hl ini (final_step μ k l ini) le_rfl,
-  have : red_steps μ k l ini ∩ range (final_step μ k l ini) = red_steps μ k l ini,
-  { rw [inter_eq_left_iff_subset],
-    exact red_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
-  rw [this] at hl,
+  have hl := t_le_A_card μ hk hl ini,
   simp only [fin.exists_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
     exists_or_distrib, not_or_distrib, not_exists, not_and, not_le] at h,
   exact hl.trans (h.1 _ (end_state μ k l ini).red_A).le,

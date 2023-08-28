@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2022 Yaël Dillies, Antoine Labelle. All rights reserved.
+Copyright (c) 2023 Yaël Dillies, Antoine Labelle, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Antoine Labelle
+Authors: Yaël Dillies, Antoine Labelle, Kyle Miller
 -/
 import category_theory.limits.shapes.terminal
+import data.sym.sym2
 
 /-!
 # Indexed multigraphs
@@ -30,29 +31,24 @@ open category_theory category_theory.limits
 
 universes u v
 
-/-- A multigraph is a type of vertices `V`, a type of edges `E`, two maps `E → V` representing the
+variables {α β : Type*}
+
+/-- A multigraph is a type of vertices `α`, a type of edges `E`, two maps `E → α` representing the
 edges ends, and an involution of the edges that respects the ends.
 
 This definition allows *half-loops*, edges from a vertex `v` to itself that are fixed under the
 edges involution. -/
 @[nolint check_univs]
-structure multigraph :=
-(V : Type u)
+structure multigraph (α : Type u) :=
 (E : Type v)
-(fst snd : E → V)
-(inv : E → E)
-(inv_fst : ∀ e, fst (inv e) = snd e . obviously)
-(inv_snd : ∀ e, snd (inv e) = fst e . obviously)
-(inv_inv : ∀ e, inv (inv e) = e . obviously)
+(edge_verts : E → sym2 α)
+(edges : sym2 α → set E)
+(mem_edges_iff : ∀ z e, e ∈ edges z ↔ edge_verts e = z)
 
 namespace multigraph
-variables {G H I : multigraph.{u v}}
+variables {G H I : multigraph α}
 
-attribute [simp] inv_fst inv_snd inv_inv
-
-instance : has_coe_to_sort multigraph Type* := ⟨V⟩
-
-attribute [protected] V E
+attribute [protected] E
 
 /-- `multigraph.inv` as a permutation of the edges. -/
 @[simps] def inv_equiv : equiv.perm G.E := ⟨G.inv, G.inv, G.inv_inv, G.inv_inv⟩
@@ -61,8 +57,8 @@ attribute [protected] V E
 vertices/edges of `H` that preserve the endpoints and involution of edges. Use `G ⟶ H` instead of
 `G.hom H`. -/
 @[nolint has_nonempty_instance]
-structure hom (G H : multigraph) :=
-(to_fun : G → H)
+structure map (G : multigraph α) (H : multigraph β) :=
+(to_fun : α → β)
 (map : G.E → H.E)
 (fst_map' : ∀ e, H.fst (map e) = to_fun (G.fst e) . obviously)
 (snd_map' : ∀ e, H.snd (map e) = to_fun (G.snd e) . obviously)
@@ -102,23 +98,23 @@ instance : large_category multigraph :=
 @[simp] lemma map_comp (f : G ⟶ H) (g : H ⟶ I) : (f ≫ g).map = g.map ∘ f.map := rfl
 
 /-- Construct a multigraph isomorphism from isomorphisms of the vertices and edges. -/
-def iso.mk (eV : G ≃ H) (eE : G.E ≃ H.E) (fst_map : ∀ e, H.fst (eE e) = eV (G.fst e))
-  (snd_map : ∀ e, H.snd (eE e) = eV (G.snd e)) (inv_map : ∀ e, H.inv (eE e) = eE (G.inv e)) :
+def iso.mk (eα : G ≃ H) (eE : G.E ≃ H.E) (fst_map : ∀ e, H.fst (eE e) = eα (G.fst e))
+  (snd_map : ∀ e, H.snd (eE e) = eα (G.snd e)) (inv_map : ∀ e, H.inv (eE e) = eE (G.inv e)) :
   G ≅ H :=
-{ hom := { to_fun := eV,
+{ hom := { to_fun := eα,
            map := eE,
            fst_map' := fst_map,
            snd_map' := snd_map,
            inv_map := inv_map },
-  inv := { to_fun := eV.symm,
+  inv := { to_fun := eα.symm,
            map := eE.symm,
-           fst_map' := λ e, eV.eq_symm_apply.2 $ by rw [←fst_map, eE.apply_symm_apply],
-           snd_map' := λ e, eV.eq_symm_apply.2 $ by rw [←snd_map, eE.apply_symm_apply],
+           fst_map' := λ e, eα.eq_symm_apply.2 $ by rw [←fst_map, eE.apply_symm_apply],
+           snd_map' := λ e, eα.eq_symm_apply.2 $ by rw [←snd_map, eE.apply_symm_apply],
            inv_map := λ e, eE.eq_symm_apply.2 $ by rw [←inv_map, eE.apply_symm_apply] } }
 
 /-- The multigraph with vertices `X` and a single loop at each vertex. -/
 @[simps] def discrete (X : Type*) : multigraph :=
-{ V := X, E := X, fst := id, snd := id, inv := id }
+{ α := X, E := X, fst := id, snd := id, inv := id }
 
 instance : inhabited multigraph := ⟨discrete punit⟩
 

@@ -53,9 +53,8 @@ def to_dfinsupp : multiset α →+ Π₀ a : α, ℕ :=
 @[simp] lemma to_dfinsupp_apply (s : multiset α) (a : α) :
   s.to_dfinsupp a = s.count a := rfl
 
-@[simp] lemma to_dfinsupp_support (s : multiset α) :
-  s.to_dfinsupp.support = s.to_finset :=
-(finset.filter_eq_self _).mpr (λ x hx, count_ne_zero.mpr $ multiset.mem_to_finset.1 hx)
+@[simp] lemma to_dfinsupp_support (s : multiset α) : s.to_dfinsupp.support = s.to_finset :=
+finset.filter_true_of_mem $ λ x hx, count_ne_zero.mpr $ multiset.mem_to_finset.1 hx
 
 @[simp] lemma to_dfinsupp_replicate (a : α) (n : ℕ) :
   to_dfinsupp (multiset.replicate n a) = dfinsupp.single a n :=

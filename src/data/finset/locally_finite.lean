@@ -199,16 +199,16 @@ end
 
 lemma Icc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
   (Icc a b).filter (< c) = Icc a b :=
-(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Icc.1 hx).2 h)
+filter_true_of_mem $ λ x hx, (mem_Icc.1 hx).2.trans_lt h
 
 lemma Ioc_filter_lt_of_lt_right {a b c : α} [decidable_pred (< c)] (h : b < c) :
   (Ioc a b).filter (< c) = Ioc a b :=
-(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Ioc.1 hx).2 h)
+filter_true_of_mem $ λ x hx, (mem_Ioc.1 hx).2.trans_lt h
 
 lemma Iic_filter_lt_of_lt_right {α} [preorder α] [locally_finite_order_bot α]
     {a c : α} [decidable_pred (< c)] (h : a < c) :
   (Iic a).filter (< c) = Iic a :=
-(finset.filter_eq_self _).2 (λ x hx, lt_of_le_of_lt (mem_Iic.1 hx) h)
+filter_true_of_mem $ λ x hx, (mem_Iic.1 hx).trans_lt h
 
 variables (a b) [fintype α]
 

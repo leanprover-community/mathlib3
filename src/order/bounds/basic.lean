@@ -1191,3 +1191,32 @@ end
 lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
   is_glb s p ↔ is_glb (prod.fst '' s) p.1 ∧ is_glb (prod.snd '' s) p.2 :=
 @is_lub_prod αᵒᵈ βᵒᵈ _ _ _ _
+
+section scott_continuous
+variables [preorder α] [preorder β] {f : α → β} {a : α}
+
+/-- A function between preorders is said to be Scott continuous if it preserves `is_lub` on directed
+sets. It can be shown that a function is Scott continuous if and only if it is continuous wrt the
+Scott topology.
+
+The dual notion
+
+```lean
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
+```
+
+does not appear to play a significant role in the literature, so is omitted here.
+-/
+def scott_continuous (f : α → β) : Prop :=
+∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
+
+protected lemma scott_continuous.monotone (h : scott_continuous f) : monotone f :=
+begin
+  refine λ a b hab, (h (insert_nonempty _ _) (directed_on_pair le_refl hab) _).1
+    (mem_image_of_mem _ $ mem_insert _ _),
+  rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
+    inter_eq_self_of_subset_right (Ici_subset_Ici.2 hab)],
+  exact is_least_Ici,
+end
+
+end scott_continuous

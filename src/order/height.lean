@@ -11,6 +11,9 @@ import tactic.tfae
 
 # Maximal length of chains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas to work with the maximal length of strictly descending finite
 sequences (chains) in a partial order.
 

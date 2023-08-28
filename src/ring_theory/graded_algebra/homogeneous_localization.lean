@@ -9,6 +9,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Homogeneous Localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Notation
 - `ι` is a commutative monoid;
 - `R` is a commutative semiring;

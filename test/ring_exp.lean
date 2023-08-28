@@ -79,6 +79,10 @@ by ring_exp_eq
 -- power does not have to be a syntactic match to `monoid.has_pow`
 example {α} [comm_ring α] (x : ℕ → α) : (x ^ 2 * x) = x ^ 3 := by ring_exp
 
+-- Powers in the exponent get evaluated correctly.
+example (X : ℤ) : (X^5 + 1) * (X^2^3 + X) = X^13 + X^8 + X^6 + X :=
+by ring_exp
+
 end exponentiation
 
 section power_of_sum

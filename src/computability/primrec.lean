@@ -10,6 +10,9 @@ import logic.function.iterate
 /-!
 # The primitive recursive functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The primitive recursive functions are the least collection of functions
 `nat → nat` which are closed under projections (using the mkpair
 pairing function), composition, zero, successor, and primitive recursion

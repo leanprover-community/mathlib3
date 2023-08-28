@@ -8,6 +8,9 @@ import linear_algebra.affine_space.affine_equiv
 /-!
 # Affine spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines affine subspaces (over modules) and the affine span of a set of points.
 
 ## Main definitions

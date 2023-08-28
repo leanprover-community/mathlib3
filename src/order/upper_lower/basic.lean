@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Sara Rousta
 import data.set_like.basic
 import data.set.intervals.ord_connected
 import data.set.intervals.order_iso
+import tactic.by_contra
 
 /-!
 # Up-sets and down-sets
@@ -135,10 +136,10 @@ iff.rfl
 @[simp] lemma is_upper_set_preimage_to_dual_iff {s : set αᵒᵈ} :
   is_upper_set (to_dual ⁻¹' s) ↔ is_lower_set s := iff.rfl
 
-alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.of_dual
-alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
-alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
-alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
+alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.to_dual
+alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.to_dual
+alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.of_dual
+alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.of_dual
 
 end has_le
 
@@ -265,6 +266,24 @@ alias is_upper_set_iff_Ioi_subset ↔ is_upper_set.Ioi_subset _
 alias is_lower_set_iff_Iio_subset ↔ is_lower_set.Iio_subset _
 
 end partial_order
+
+section linear_order
+variables [linear_order α] {s t : set α}
+
+lemma is_upper_set.total (hs : is_upper_set s) (ht : is_upper_set t) : s ⊆ t ∨ t ⊆ s :=
+begin
+  by_contra' h,
+  simp_rw set.not_subset at h,
+  obtain ⟨⟨a, has, hat⟩, b, hbt, hbs⟩ := h,
+  obtain hab | hba := le_total a b,
+  { exact hbs (hs hab has) },
+  { exact hat (ht hba hbt) }
+end
+
+lemma is_lower_set.total (hs : is_lower_set s) (ht : is_lower_set t) : s ⊆ t ∨ t ⊆ s :=
+hs.to_dual.total ht.to_dual
+
+end linear_order
 
 /-! ### Bundled upper/lower sets -/
 
@@ -518,6 +537,32 @@ end lower_set
   map_rel_iff' := λ _ _, upper_set.compl_le_compl }
 
 end has_le
+
+section linear_order
+variables [linear_order α]
+
+instance upper_set.is_total_le : is_total (upper_set α) (≤) := ⟨λ s t, t.upper.total s.upper⟩
+instance lower_set.is_total_le : is_total (lower_set α) (≤) := ⟨λ s t, s.lower.total t.lower⟩
+
+noncomputable instance : complete_linear_order (upper_set α) :=
+{ le_total := is_total.total,
+  decidable_le := classical.dec_rel _,
+  decidable_eq := classical.dec_rel _,
+  decidable_lt := classical.dec_rel _,
+  max_def := by classical; exact sup_eq_max_default,
+  min_def := by classical; exact inf_eq_min_default,
+  ..upper_set.complete_distrib_lattice }
+
+noncomputable instance : complete_linear_order (lower_set α) :=
+{ le_total := is_total.total,
+  decidable_le := classical.dec_rel _,
+  decidable_eq := classical.dec_rel _,
+  decidable_lt := classical.dec_rel _,
+  max_def := by classical; exact sup_eq_max_default,
+  min_def := by classical; exact inf_eq_min_default,
+  ..lower_set.complete_distrib_lattice }
+
+end linear_order
 
 /-! #### Map -/
 
@@ -838,6 +883,25 @@ begin
   rw ←h,
   exact (upper_set.upper _).ord_connected.inter (lower_set.lower _).ord_connected,
 end
+
+@[simp] lemma upper_bounds_lower_closure :
+  upper_bounds (lower_closure s : set α) = upper_bounds s :=
+(upper_bounds_mono_set subset_lower_closure).antisymm $ λ a ha b ⟨c, hc, hcb⟩, hcb.trans $ ha hc
+
+@[simp] lemma lower_bounds_upper_closure :
+  lower_bounds (upper_closure s : set α) = lower_bounds s :=
+(lower_bounds_mono_set subset_upper_closure).antisymm $ λ a ha b ⟨c, hc, hcb⟩, (ha hc).trans hcb
+
+@[simp] lemma bdd_above_lower_closure : bdd_above (lower_closure s : set α) ↔ bdd_above s :=
+by simp_rw [bdd_above, upper_bounds_lower_closure]
+
+@[simp] lemma bdd_below_upper_closure : bdd_below (upper_closure s : set α) ↔ bdd_below s :=
+by simp_rw [bdd_below, lower_bounds_upper_closure]
+
+alias bdd_above_lower_closure ↔ bdd_above.of_lower_closure bdd_above.lower_closure
+alias bdd_below_upper_closure ↔ bdd_below.of_upper_closure bdd_below.upper_closure
+
+attribute [protected] bdd_above.lower_closure bdd_below.upper_closure
 
 end closure
 

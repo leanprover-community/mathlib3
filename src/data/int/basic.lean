@@ -86,6 +86,9 @@ namespace int
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
+@[simp] theorem sign_coe_add_one (n : ℕ) : int.sign (n + 1) = 1 := rfl
+@[simp] theorem sign_neg_succ_of_nat (n : ℕ) : int.sign -[1+ n] = -1 := rfl
+
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
@@ -182,6 +185,8 @@ end
 variables {a b : ℤ} {n : ℕ}
 
 attribute [simp] nat_abs_of_nat nat_abs_zero nat_abs_one
+
+lemma nat_abs_surjective : nat_abs.surjective := λ n, ⟨n, nat_abs_of_nat n⟩
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin

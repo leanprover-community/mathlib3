@@ -11,6 +11,9 @@ import algebra.free_algebra
 /-!
 # Characteristics of algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we describe the characteristic of `R`-algebras.
 
 In particular we are interested in the characteristic of free algebras over `R`

@@ -8,6 +8,9 @@ import linear_algebra.matrix.hermitian
 
 /-! # Spectral theory of hermitian matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the spectral theorem for matrices. The proof of the spectral theorem is based on
 the spectral theorem for linear maps (`diagonalization_basis_apply_self_apply`).
 
@@ -99,8 +102,8 @@ begin
     simp_rw [mul_vec_single, mul_one, orthonormal_basis.coe_to_basis_repr_apply,
       orthonormal_basis.repr_reindex],
     refl },
-  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
-    rw [basis.to_matrix_apply,
+  { simp only [diagonal_mul, (∘), eigenvalues],
+    rw [eigenvector_basis, basis.to_matrix_apply,
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.repr_reindex,
       eigenvalues₀, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single] }
 end

@@ -6,10 +6,14 @@ Authors: Patrick Stevens, Bolton Bailey
 import data.nat.choose.factorization
 import data.nat.prime_norm_num
 import number_theory.primorial
-import analysis.convex.specific_functions
+import analysis.convex.specific_functions.basic
+import analysis.convex.specific_functions.deriv
 
 /-!
 # Bertrand's Postulate
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains a proof of Bertrand's postulate: That between any positive number and its
 double there is a prime.

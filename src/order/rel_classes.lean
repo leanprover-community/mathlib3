@@ -3,8 +3,9 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import order.basic
 import logic.is_empty
+import logic.relation
+import order.basic
 
 /-!
 # Unbundled relation classes
@@ -246,6 +247,9 @@ instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α r] : is_irrefl α r :=
 is_asymm.is_irrefl
+
+instance (r : α → α → Prop) [i : is_well_founded α r] : is_well_founded α (relation.trans_gen r) :=
+⟨i.wf.trans_gen⟩
 
 /-- A class for a well founded relation `<`. -/
 @[reducible] def well_founded_lt (α : Type*) [has_lt α] : Prop := is_well_founded α (<)

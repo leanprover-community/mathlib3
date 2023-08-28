@@ -11,6 +11,9 @@ import linear_algebra.unitary_group
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `L²` norm on a finite product of inner product spaces is compatible with an inner product
 $$
 \langle x, y\rangle = \sum \langle x_i, y_i \rangle.
@@ -57,10 +60,11 @@ open_locale big_operators uniformity topology nnreal ennreal complex_conjugate d
 noncomputable theory
 
 variables {ι : Type*} {ι' : Type*}
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
-variables {E' : Type*} [inner_product_space 𝕜 E']
-variables {F : Type*} [inner_product_space ℝ F]
-variables {F' : Type*} [inner_product_space ℝ F']
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [inner_product_space 𝕜 E]
+variables {E' : Type*} [normed_add_comm_group E'] [inner_product_space 𝕜 E']
+variables {F : Type*} [normed_add_comm_group F] [inner_product_space ℝ F]
+variables {F' : Type*} [normed_add_comm_group F'] [inner_product_space ℝ F']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -69,9 +73,9 @@ then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed
 we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2` norm.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
-  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
-{ to_normed_add_comm_group := infer_instance,
-  inner := λ x y, ∑ i, inner (x i) (y i),
+  [Π i, normed_add_comm_group (f i)] [Π i, inner_product_space 𝕜 (f i)] :
+  inner_product_space 𝕜 (pi_Lp 2 f) :=
+{ inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_symm :=
@@ -91,7 +95,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     by simp only [finset.mul_sum, inner_smul_left] }
 
 @[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
+  [Π i, normed_add_comm_group (f i)] [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
@@ -150,7 +154,7 @@ def direct_sum.is_internal.isometry_L2_of_orthogonal_family
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
   let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
-  refine (e₂.symm.trans e₁).isometry_of_inner _,
+  refine linear_equiv.isometry_of_inner (e₂.symm.trans e₁) _,
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
     convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
@@ -225,17 +229,44 @@ by simp [apply_ite conj]
 
 lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
   (v : euclidean_space 𝕜 ι) :
-  ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
+  ⟪v, euclidean_space.single i (a : 𝕜)⟫ = a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
 
-lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
-  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
-  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' (1:𝕜)) =
-    euclidean_space.single (e i') (1:𝕜) :=
+@[simp] lemma euclidean_space.norm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖ = ‖a‖ :=
+(pi_Lp.norm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.nnnorm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  ‖euclidean_space.single i (a : 𝕜)‖₊ = ‖a‖₊ :=
+(pi_Lp.nnnorm_equiv_symm_single 2 (λ i, 𝕜) i a : _)
+
+@[simp] lemma euclidean_space.dist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  dist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = dist a b :=
+(pi_Lp.dist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.nndist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  nndist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = nndist a b :=
+(pi_Lp.nndist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+@[simp] lemma euclidean_space.edist_single_same [decidable_eq ι] (i : ι) (a b : 𝕜) :
+  edist (euclidean_space.single i (a : 𝕜)) (euclidean_space.single i (b : 𝕜)) = edist a b :=
+(pi_Lp.edist_equiv_symm_single_same 2 (λ i, 𝕜) i a b : _)
+
+/-- `euclidean_space.single` forms an orthonormal family. -/
+lemma euclidean_space.orthonormal_single [decidable_eq ι] :
+  orthonormal 𝕜 (λ i : ι, euclidean_space.single i (1 : 𝕜)) :=
 begin
-  ext i,
-  simpa using if_congr e.symm_apply_eq rfl rfl
+  simp_rw [orthonormal_iff_ite, euclidean_space.inner_single_left, map_one, one_mul,
+    euclidean_space.single_apply],
+  intros i j,
+  refl,
 end
+
+lemma euclidean_space.pi_Lp_congr_left_single [decidable_eq ι] {ι' : Type*} [fintype ι']
+  [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') (v : 𝕜):
+  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' v) =
+    euclidean_space.single (e i') v :=
+linear_isometry_equiv.pi_Lp_congr_left_single e i' _
 
 variables (ι 𝕜 E)
 
@@ -306,12 +337,7 @@ end
 
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
-begin
-  change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
-  ext x j,
-  simp only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
-    basis.equiv_fun_apply],
-end
+basis.equiv_fun_of_equiv_fun _
 
 @[simp] protected lemma coe_to_basis_repr_apply (b : orthonormal_basis ι 𝕜 E) (x : E) (i : ι) :
   b.to_basis.repr x i = b.repr x i :=
@@ -344,16 +370,17 @@ by simpa only [b.repr_apply_apply, inner_orthogonal_projection_eq_of_mem_left]
   using (b.sum_repr (orthogonal_projection U x)).symm
 
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
-protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
+protected def map {G : Type*}
+  [normed_add_comm_group G] [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
   orthonormal_basis ι 𝕜 G :=
 { repr := L.symm.trans b.repr }
 
-@[simp] protected lemma map_apply {G : Type*} [inner_product_space 𝕜 G]
+@[simp] protected lemma map_apply {G : Type*} [normed_add_comm_group G] [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
   b.map L i = L (b i) := rfl
 
-@[simp] protected lemma to_basis_map {G : Type*} [inner_product_space 𝕜 G]
+@[simp] protected lemma to_basis_map {G : Type*} [normed_add_comm_group G] [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) :
   (b.map L).to_basis = b.to_basis.map L.to_linear_equiv :=
 rfl
@@ -737,7 +764,7 @@ def orthonormal_basis.from_orthogonal_span_singleton
 
 section linear_isometry
 
-variables {V : Type*} [inner_product_space 𝕜 V] [finite_dimensional 𝕜 V]
+variables {V : Type*} [normed_add_comm_group V] [inner_product_space 𝕜 V] [finite_dimensional 𝕜 V]
 
 variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
 

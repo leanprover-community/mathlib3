@@ -8,6 +8,9 @@ import analysis.convex.basic
 /-!
 # Convex and concave functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines convex and concave functions in vector spaces and proves the finite Jensen
 inequality. The integral version can be found in `analysis.convex.integral`.
 

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import ring_theory.quotient_nilpotent
-import ring_theory.derivation
+import ring_theory.kaehler
 
 /-!
 
 # Formally étale morphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An `R`-algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebra,
 every square-zero ideal `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists

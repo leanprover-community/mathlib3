@@ -9,6 +9,9 @@ import ring_theory.localization.basic
 /-!
 # Fraction ring / fraction field Frac(R) as localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
  * `is_fraction_ring R K` expresses that `K` is a field of fractions of `R`, as an abbreviation of

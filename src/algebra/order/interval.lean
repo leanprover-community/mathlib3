@@ -13,9 +13,12 @@ import tactic.positivity
 /-!
 # Interval arithmetic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines arithmetic operations on intervals and prove their correctness. Note that this is
 full precision operations. The essentials of float operations can be found
-in `data.fp.basic`. We hsve not yet integrated these with the rest of the library.
+in `data.fp.basic`. We have not yet integrated these with the rest of the library.
 -/
 
 open function set

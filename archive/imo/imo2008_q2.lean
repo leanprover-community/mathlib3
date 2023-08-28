@@ -8,6 +8,9 @@ import data.set.finite
 
 /-!
 # IMO 2008 Q2
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 (a) Prove that
           ```
           x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1
@@ -25,6 +28,8 @@ using `c`, `m` and `n`. We factor `LHS - 1` as a square, which finishes the proo
 (b) We present a set `W` of rational triples. We prove that `W` is a subset of the
 set of rational solutions to the equation, and that `W` is infinite.
 -/
+
+namespace imo2008_q2
 
 lemma subst_abc {x y z : ℝ} (h : x*y*z = 1) :
   ∃ a b c : ℝ, a ≠ 0 ∧ b ≠ 0 ∧ c ≠ 0 ∧ x = a/b ∧ y = b/c ∧ z = c /a :=
@@ -128,7 +133,9 @@ begin
     have hK_inf : set.infinite K,
     { intro h, apply hK_not_bdd, exact set.finite.bdd_above h },
 
-    exact set.infinite_of_infinite_image g hK_inf },
+    exact hK_inf.of_image g },
 
   exact hW_inf.mono hW_sub_S,
 end
+
+end imo2008_q2

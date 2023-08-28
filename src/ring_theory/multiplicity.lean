@@ -330,8 +330,8 @@ variables [ring α] [decidable_rel ((∣) : α → α → Prop)]
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 part.ext' (by simp only [multiplicity, part_enat.find, dvd_neg])
   (λ h₁ h₂, part_enat.coe_inj.1 (by rw [part_enat.coe_get]; exact
-    eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
-      (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
+    eq.symm (unique (pow_multiplicity_dvd _).neg_right
+      (mt dvd_neg.1 (is_greatest' _ (lt_succ_self _))))))
 
 theorem int.nat_abs (a : ℕ) (b : ℤ) : multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
 begin
@@ -346,8 +346,8 @@ begin
   apply le_antisymm,
   { apply part_enat.le_of_lt_add_one,
     cases part_enat.ne_top_iff.mp (part_enat.ne_top_of_lt h) with k hk,
-    rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd], intro h_dvd,
-    rw [← dvd_add_iff_right] at h_dvd,
+    rw [hk], rw_mod_cast [multiplicity_lt_iff_neg_dvd, dvd_add_right],
+    intro h_dvd,
     apply multiplicity.is_greatest _ h_dvd, rw [hk], apply_mod_cast nat.lt_succ_self,
     rw [pow_dvd_iff_le_multiplicity, nat.cast_add, ← hk, nat.cast_one],
     exact part_enat.add_one_le_of_lt h },

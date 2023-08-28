@@ -8,6 +8,9 @@ import category_theory.monoidal.Mon_
 
 /-!
 # The category of commutative monoids in a braided monoidal category.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes v₁ v₂ u₁ u₂ u

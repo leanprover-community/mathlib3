@@ -8,6 +8,9 @@ import ring_theory.quotient_nilpotent
 
 /-!
 # Noetherian quotient rings and quotient modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]

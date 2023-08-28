@@ -161,7 +161,7 @@ instance cancel_monoid [cancel_monoid α] :
   cancel_monoid (ulift α) :=
 equiv.ulift.injective.cancel_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
-@[to_additive add_cancel_monoid]
+@[to_additive add_cancel_comm_monoid]
 instance cancel_comm_monoid [cancel_comm_monoid α] :
   cancel_comm_monoid (ulift α) :=
 equiv.ulift.injective.cancel_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)

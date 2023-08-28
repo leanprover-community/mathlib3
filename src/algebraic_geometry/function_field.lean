@@ -8,6 +8,9 @@ import algebraic_geometry.properties
 /-!
 # Function field of integral schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the function field of an irreducible scheme as the stalk of the generic point.
 This is a field when the scheme is integral.
 

@@ -9,6 +9,9 @@ import linear_algebra.basis
 /-!
 # Affine bases and barycentric coordinates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Suppose `P` is an affine space modelled on the module `V` over the ring `k`, and `p : ι → P` is an
 affine-independent family of points spanning `P`. Given this data, each point `q : P` may be written
 uniquely as an affine combination: `q = w₀ p₀ + w₁ p₁ + ⋯` for some (finitely-supported) weights
@@ -145,7 +148,7 @@ lemma coord_apply [decidable_eq ι] (i j : ι) : b.coord i (b j) = if i = j then
 by cases eq_or_ne i j; simp [h]
 
 @[simp] lemma coord_apply_combination_of_mem (hi : i ∈ s) {w : ι → k} (hw : s.sum w = 1) :
-  b.coord i (s.affine_combination b w) = w i :=
+  b.coord i (s.affine_combination k b w) = w i :=
 begin
   classical,
   simp only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_true, mul_boole,
@@ -153,7 +156,7 @@ begin
 end
 
 @[simp] lemma coord_apply_combination_of_not_mem (hi : i ∉ s) {w : ι → k} (hw : s.sum w = 1) :
-  b.coord i (s.affine_combination b w) = 0 :=
+  b.coord i (s.affine_combination k b w) = 0 :=
 begin
   classical,
   simp only [coord_apply, hi, finset.affine_combination_eq_linear_combination, if_false, mul_boole,
@@ -171,7 +174,7 @@ begin
 end
 
 @[simp] lemma affine_combination_coord_eq_self [fintype ι] (q : P) :
-  finset.univ.affine_combination b (λ i, b.coord i q) = q :=
+  finset.univ.affine_combination k b (λ i, b.coord i q) = q :=
 begin
   have hq : q ∈ affine_span k (range b), { rw b.tot, exact affine_subspace.mem_top k V q, },
   obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
@@ -208,7 +211,7 @@ begin
   let s : finset ι := {i},
   have hi : i ∈ s, { simp, },
   have hw : s.sum (function.const ι (1 : k)) = 1, { simp, },
-  have hq : q = s.affine_combination b (function.const ι (1 : k)), { simp, },
+  have hq : q = s.affine_combination k b (function.const ι (1 : k)), { simp, },
   rw [pi.one_apply, hq, b.coord_apply_combination_of_mem hi hw],
 end
 
@@ -223,7 +226,7 @@ begin
   have hj : j ∈ s, { simp, },
   let w : ι → k := λ j', if j' = i then x else 1-x,
   have hw : s.sum w = 1, { simp [hij, finset.sum_ite, finset.filter_insert, finset.filter_eq'], },
-  use s.affine_combination b w,
+  use s.affine_combination k b w,
   simp [b.coord_apply_combination_of_mem hi hw],
 end
 

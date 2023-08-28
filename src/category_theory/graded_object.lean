@@ -5,11 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.group_power.lemmas
 import category_theory.pi.basic
-import category_theory.shift
+import category_theory.shift.basic
 import category_theory.concrete_category.basic
 
 /-!
 # The category of graded objects
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For any type `β`, a `β`-graded object over some category `C` is just
 a function `β → C` into the objects of `C`.
@@ -106,11 +109,12 @@ instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=
 has_shift_mk _ _
 { F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
-  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
-  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
-  left_unitality := by { introv, ext, dsimp, simpa },
-  right_unitality := by { introv, ext, dsimp, simpa },
-  associativity := by { introv, ext, dsimp, simp } }
+  zero := comap_eq C (by { ext, simp }) ≪≫ comap_id β (λ _, C),
+  add := λ m n,  comap_eq C (by { ext, simp [add_zsmul, add_comm], }) ≪≫
+    (comap_comp _ _ _).symm,
+  assoc_hom_app := λ m₁ m₂ m₃ X, by { ext, dsimp, simp, },
+  zero_add_hom_app := λ n X, by { ext, dsimp, simpa, },
+  add_zero_hom_app := λ n X, by { ext, dsimp, simpa, }, }
 
 @[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
   (s : β) (X : β → C) (t : β) (n : ℤ) :

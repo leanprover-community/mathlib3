@@ -9,6 +9,9 @@ import linear_algebra.clifford_algebra.grading
 /-!
 # The universal property of the even subalgebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `clifford_algebra.even Q`: The even subalgebra of `clifford_algebra Q`.

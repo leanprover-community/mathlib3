@@ -15,8 +15,8 @@ import topology.bases
 This file defines three properties of functions:
 
 * `dense_range f`      means `f` has dense image;
-* `dense_inducing i`   means `i` is also `inducing`;
-* `dense_embedding e`  means `e` is also an `embedding`.
+* `dense_inducing i`   means `i` is also `inducing`, namely it induces the topology on its codomain;
+* `dense_embedding e`  means `e` is further an `embedding`, namely it is injective and `inducing`.
 
 The main theorem `continuous_extend` gives a criterion for a function
 `f : X → Z` to a T₃ space Z to extend along a dense embedding

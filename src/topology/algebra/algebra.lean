@@ -10,6 +10,9 @@ import ring_theory.adjoin.basic
 /-!
 # Topological (sub)algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological algebra over a topological semiring `R` is a topological semiring with a compatible
 continuous scalar multiplication by elements of `R`. We reuse typeclass `has_continuous_smul` for
 topological algebras.

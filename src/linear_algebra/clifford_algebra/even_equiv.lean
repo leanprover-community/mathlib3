@@ -9,6 +9,9 @@ import linear_algebra.quadratic_form.prod
 /-!
 # Isomorphisms with the even subalgebra of a Clifford algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides some notable isomorphisms regarding the even subalgebra, `clifford_algebra.even`.
 
 ## Main definitions

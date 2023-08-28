@@ -1381,7 +1381,7 @@ lemma inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u := by { ext 
 
 @[simp] lemma sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ := inf_sdiff_self_left
 
-@[simp] lemma sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ := sdiff_self
+@[simp] protected lemma sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ := sdiff_self
 
 lemma sdiff_inter_distrib_right (s t u : finset α) : s \ (t ∩ u) = (s \ t) ∪ (s \ u) := sdiff_inf
 
@@ -1533,7 +1533,7 @@ by rw [←sdiff_singleton_eq_erase, sdiff_sdiff_eq_sdiff_union (singleton_subset
   union_comm]
 
 lemma sdiff_erase_self (ha : a ∈ s) : s \ s.erase a = {a} :=
-by rw [sdiff_erase ha, sdiff_self, insert_emptyc_eq]
+by rw [sdiff_erase ha, finset.sdiff_self, insert_emptyc_eq]
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
 
@@ -1774,12 +1774,19 @@ variable (p)
 theorem filter_filter (s : finset α) : (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
 
-lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
+lemma filter_comm (s : finset α) : (s.filter p).filter q = (s.filter q).filter p :=
+by simp_rw [filter_filter, and_comm]
+
+@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
   @finset.filter α (λ _, true) h s = s :=
 by ext; simp
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
+
+@[simp] lemma filter_const (p : Prop) [decidable p] (s : finset α) :
+  s.filter (λ a, p) = if p then s else ∅ :=
+by split_ifs; simp [*]
 
 variables {p q}
 

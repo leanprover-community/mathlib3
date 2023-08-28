@@ -1059,12 +1059,12 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-@[simp] theorem lt_aleph_0_iff_set_finite {S : set α} : #S < ℵ₀ ↔ S.finite :=
+theorem lt_aleph_0_iff_set_finite {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
-@[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
+theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
   #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
 lt_aleph_0_iff_set_finite
 
@@ -1162,7 +1162,7 @@ calc #α = 1 ↔ #α ≤ 1 ∧ 1 ≤ #α : le_antisymm_iff
 theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
 by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
-@[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
+lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
 @[simp] lemma mk_eq_aleph_0 (α : Type*) [countable α] [infinite α] : #α = ℵ₀ :=
 mk_le_aleph_0.antisymm $ aleph_0_le_mk _

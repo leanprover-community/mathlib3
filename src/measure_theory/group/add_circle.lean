@@ -85,11 +85,11 @@ begin
   { -- `volume univ ≤ ∑' (g : G), volume (g +ᵥ I)`
     replace hI : I =ᵐ[volume] closed_ball x (T / (2 * ↑n)) :=
       hI.trans closed_ball_ae_eq_ball.symm,
-    haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
-    have hG_card : (finset.univ : finset G).card = n,
-    { show _ = add_order_of u, rw add_order_eq_card_zmultiples, refl },
+    haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples.to_subtype,
+    have hG_card : fintype.card G = n,
+    { show _ = add_order_of u, rw [←nat.card_zmultiples, nat.card_eq_fintype_card] },
     simp_rw [measure_vadd],
-    rw [add_circle.measure_univ, tsum_fintype, finset.sum_const, measure_congr hI,
+    rw [add_circle.measure_univ, tsum_fintype, finset.sum_const, finset.card_univ, measure_congr hI,
       volume_closed_ball, ← ennreal.of_real_nsmul, mul_div, mul_div_mul_comm,
       div_self (@two_ne_zero ℝ _ _ _ _), one_mul, min_eq_right (div_le_self hT.out.le hn), hG_card,
       nsmul_eq_mul, mul_div_cancel' T (lt_of_lt_of_le zero_lt_one hn).ne.symm],
@@ -102,11 +102,11 @@ lemma volume_of_add_preimage_eq (s I : set $ add_circle T) (u x : add_circle T)
   volume s = add_order_of u • volume (s ∩ I) :=
 begin
   let G := add_subgroup.zmultiples u,
-  haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
+  haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples.to_subtype,
   have hsG : ∀ (g : G), (g +ᵥ s : set $ add_circle T) =ᵐ[volume] s,
   { rintros ⟨y, hy⟩, exact (vadd_ae_eq_self_of_mem_zmultiples hs hy : _), },
   rw [(is_add_fundamental_domain_of_ae_ball I u x hu hI).measure_eq_card_smul_of_vadd_ae_eq_self
-    s hsG, add_order_eq_card_zmultiples u],
+    s hsG, ←nat.card_zmultiples, nat.card_eq_fintype_card],
 end
 
 end add_circle

@@ -8,7 +8,7 @@ import algebraic_topology.topological_simplex
 import category_theory.limits.presheaf
 import category_theory.limits.types
 import category_theory.yoneda
-import topology.category.Top.limits
+import topology.category.Top.limits.basic
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -23,6 +23,9 @@ and their boundaries `∂Δ[n]` and horns `Λ[n, i]`.
 (The notations are available via `open_locale simplicial`.)
 
 ## Future work
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 There isn't yet a complete API for simplices, boundaries, and horns.
 As an example, we should have a function that constructs

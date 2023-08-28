@@ -12,6 +12,9 @@ import tactic.elementwise
 /-!
 # Subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `subobject X` as the quotient (by isomorphisms) of
 `mono_over X := {f : over X // mono f.hom}`.
 

@@ -6,10 +6,14 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.array.lemmas
 import data.list.join
 import data.list.range
+import data.list.nodup
 import data.pnat.defs
 
 /-!
 # Hash maps
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines a hash map data structure, representing a finite key-value map
 with a value type that may depend on the key type.  The structure

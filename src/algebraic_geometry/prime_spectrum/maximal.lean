@@ -10,6 +10,9 @@ import ring_theory.localization.as_subring
 /-!
 # Maximal spectrum of a commutative ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The maximal spectrum of a commutative ring is the type of all maximal ideals.
 It is naturally a subset of the prime spectrum endowed with the subspace topology.
 

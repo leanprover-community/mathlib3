@@ -13,6 +13,9 @@ import topology.instances.complex
 
 /-!
 # Embeddings of number fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines the embeddings of a number field into an algebraic closed field.
 
 ## Main Results
@@ -172,7 +175,7 @@ lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_se
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
   map_one' := by simp only [map_one, one_re],
-  map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
+  map_mul' := by simp only [complex.conj_eq_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
   mul_zero, tsub_zero, eq_self_iff_true, forall_const],
   map_zero' := by simp only [map_zero, zero_re],
   map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
@@ -182,7 +185,7 @@ lemma is_real.coe_embedding_apply {φ : K →+* ℂ} (hφ : is_real φ) (x : K) 
   (hφ.embedding x : ℂ) = φ x :=
 begin
   ext, { refl, },
-  { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
+  { rw [of_real_im, eq_comm, ← complex.conj_eq_iff_im],
     rw is_real at hφ,
     exact ring_hom.congr_fun hφ x, },
 end
@@ -338,9 +341,14 @@ begin
   { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 
-lemma not_is_real_iff_is_complex {w : infinite_place K} :
-  ¬ is_real w ↔ is_complex w :=
+@[simp] lemma not_is_real_iff_is_complex {w : infinite_place K} : ¬ is_real w ↔ is_complex w :=
 by rw [is_complex_iff, is_real_iff]
+
+@[simp] lemma not_is_complex_iff_is_real {w : infinite_place K} : ¬ is_complex w ↔ is_real w :=
+by rw [←not_is_real_iff_is_complex, not_not]
+
+lemma is_real_or_is_complex (w : infinite_place K) : is_real w ∨ is_complex w :=
+by { rw ←not_is_real_iff_is_complex, exact em _ }
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
@@ -353,6 +361,11 @@ begin
   rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],
   exact congr_fun (congr_arg coe_fn (mk_embedding w)) x,
 end
+
+@[simp]
+lemma is_real.abs_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K) :
+  |is_real.embedding hw x| = w x :=
+by { rw ← is_real.place_embedding_apply hw x, congr, }
 
 variable (K)
 

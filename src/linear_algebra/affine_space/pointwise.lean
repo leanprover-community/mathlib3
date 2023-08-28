@@ -8,6 +8,9 @@ import linear_algebra.affine_space.affine_subspace
 
 /-! # Pointwise instances on `affine_subspace`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the additive action `affine_subspace.pointwise_add_action` in the
 `pointwise` locale.
 

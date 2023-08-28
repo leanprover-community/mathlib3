@@ -13,6 +13,9 @@ import tactic.apply_fun
 
 /-!
 # Facts about (co)limits of functors into concrete categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes w v u

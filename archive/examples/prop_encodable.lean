@@ -9,6 +9,9 @@ import data.W.basic
 /-!
 # W types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The file `data/W.lean` shows that if `α` is an an encodable fintype and for every `a : α`,
 `β a` is encodable, then `W β` is encodable.
 
@@ -23,6 +26,8 @@ corresponding `Wfin` type, and show that map has a left inverse.
 We mark the auxiliary constructions `private`, since their only purpose is to
 show encodability.
 -/
+
+namespace prop_encodable
 
 /-- Propositional formulas with labels from `α`. -/
 inductive prop_form (α : Type*)
@@ -96,3 +101,5 @@ begin
 end
 
 end prop_form
+
+end prop_encodable

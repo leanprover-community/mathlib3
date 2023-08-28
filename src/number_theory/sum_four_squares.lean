@@ -13,6 +13,9 @@ import data.fintype.big_operators
 /-!
 # Lagrange's four square theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result in this file is `sum_four_squares`,
 a proof that every natural number is the sum of four square numbers.
 

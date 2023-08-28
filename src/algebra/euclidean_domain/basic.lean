@@ -54,7 +54,7 @@ by { rw mul_comm, exact mul_div_cancel_left a b0 }
 mod_eq_zero.2 dvd_rfl
 
 lemma dvd_mod_iff {a b c : R} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
-by rw [dvd_add_iff_right (h.mul_right _), div_add_mod]
+by rw [←dvd_add_right (h.mul_right _), div_add_mod]
 
 @[simp] lemma mod_one (a : R) : a % 1 = 0 :=
 mod_eq_zero.2 (one_dvd _)
@@ -83,6 +83,9 @@ begin
   rcases h with ⟨p, rfl⟩,
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
 end
+
+protected lemma mul_div_cancel' {a b : R} (hb : b ≠ 0) (hab : b ∣ a) : b * (a / b) = a :=
+by rw [←mul_div_assoc _ hab, mul_div_cancel_left _ hb]
 
 @[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
 lemma div_one (p : R) : p / 1 = p :=

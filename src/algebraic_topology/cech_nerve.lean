@@ -13,6 +13,9 @@ import category_theory.arrow
 
 # The Čech Nerve
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a definition of the Čech nerve associated to an arrow, provided
 the base category has the correct wide pullbacks.
 

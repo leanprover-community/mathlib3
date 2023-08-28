@@ -9,6 +9,9 @@ import ring_theory.finite_type
 /-!
 # Polynomial module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define the polynomial module for an `R`-module `M`, i.e. the `R[X]`-module `M[X]`.
 
 This is defined as an type alias `polynomial_module R M := ℕ →₀ M`, since there might be different

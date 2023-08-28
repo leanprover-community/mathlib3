@@ -8,6 +8,9 @@ import ring_theory.adjoin.fg
 /-!
 # Adjoining elements and being finitely generated in an algebra tower
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main results
 
  * `algebra.fg_trans'`: if `S` is finitely generated as `R`-algebra and `A` as `S`-algebra,

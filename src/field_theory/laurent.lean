@@ -10,6 +10,9 @@ import field_theory.ratfunc
 /-!
 # Laurent expansions of rational functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `ratfunc.laurent`: the Laurent expansion of the rational function `f` at `r`, as an `alg_hom`.

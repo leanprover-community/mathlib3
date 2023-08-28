@@ -9,6 +9,9 @@ import category_theory.idempotents.karoubi
 /-!
 # Extension of functors to the idempotent completion
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we construct an extension `functor_extension₁`
 of functors `C ⥤ karoubi D` to functors `karoubi C ⥤ karoubi D`. This results in an
 equivalence `karoubi_universal₁ C D : (C ⥤ karoubi D) ≌ (karoubi C ⥤ karoubi D)`.

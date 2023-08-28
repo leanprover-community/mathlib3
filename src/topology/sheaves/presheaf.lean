@@ -10,6 +10,9 @@ import category_theory.adjunction.opposites
 /-!
 # Presheaves on a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `presheaf C X` simply as `(opens X)ᵒᵖ ⥤ C`,
 and inherit the category structure with natural transformations as morphisms.
 

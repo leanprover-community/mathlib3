@@ -11,6 +11,9 @@ import category_theory.limits.is_limit
 /-!
 # Category of groupoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of the category `Groupoid` of all groupoids.
 In this category objects are groupoids and morphisms are functors
 between these groupoids.

@@ -9,6 +9,9 @@ import combinatorics.composition
 /-!
 # Composition of analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the composition of analytic functions is analytic.
 
 The argument is the following. Assume `g z = ∑' qₙ (z, ..., z)` and `f y = ∑' pₖ (y, ..., y)`. Then
@@ -181,10 +184,12 @@ def comp_along_composition {n : ℕ}
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
   continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
 { to_fun    := λ v, f (p.apply_composition c v),
-  map_add'  := λ v i x y, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_add],
-  map_smul' := λ v i c x, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_smul],
+  map_add'  := λ _ v i x y, by
+  { cases subsingleton.elim ‹_› (fin.decidable_eq _),
+    simp only [apply_composition_update, continuous_multilinear_map.map_add] },
+  map_smul' := λ _ v i c x, by
+  { cases subsingleton.elim ‹_› (fin.decidable_eq _),
+    simp only [apply_composition_update, continuous_multilinear_map.map_smul] },
   cont := f.cont.comp $ continuous_pi $ λ i, (coe_continuous _).comp $ continuous_pi $ λ j,
     continuous_apply _, }
 

@@ -8,6 +8,9 @@ import analysis.convex.function
 /-!
 # Quasiconvex and quasiconcave functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines quasiconvexity, quasiconcavity and quasilinearity of functions, which are
 generalizations of unimodality and monotonicity. Convexity implies quasiconvexity, concavity implies
 quasiconcavity, and monotonicity implies quasilinearity.

@@ -10,6 +10,9 @@ import category_theory.adjunction.reflective
 /-!
 # Adjunction between `Γ` and `Spec`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the adjunction `Γ_Spec.adjunction : Γ ⊣ Spec` by defining the unit (`to_Γ_Spec`,
 in multiple steps in this file) and counit (done in Spec.lean) and checking that they satisfy
 the left and right triangle identities. The constructions and proofs make use of

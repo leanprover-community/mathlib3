@@ -11,6 +11,9 @@ import tactic.ring_exp
 
 # Study of face maps for the Dold-Kan correspondence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we obtain the technical lemmas that are used in the file
@@ -21,6 +24,8 @@ role of these endomorphisms in the overall strategy of proof).
 The main lemma in this file is `higher_faces_vanish.induction`. It is based
 on two technical lemmas `higher_faces_vanish.comp_Hσ_eq` and
 `higher_faces_vanish.comp_Hσ_eq_zero`.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

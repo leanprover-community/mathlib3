@@ -3,10 +3,13 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # Measurability of `⌊x⌋` etc
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that `int.floor`, `int.ceil`, `int.fract`, `nat.floor`, and `nat.ceil` are
 measurable under some assumptions on the (semi)ring.

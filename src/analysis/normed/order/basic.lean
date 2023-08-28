@@ -9,6 +9,9 @@ import analysis.normed_space.basic
 /-!
 # Ordered normed spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define classes for fields and groups that are both normed and ordered.
 These are mostly useful to avoid diamonds during type class inference.
 -/

@@ -11,6 +11,9 @@ import tactic.ring
 /-!
 # Decision procedure: necessary condition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce a condition `decstr` and show that if a string `en` is `derivable`, then `decstr en`
 holds.
 

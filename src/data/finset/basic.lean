@@ -536,14 +536,27 @@ by rw [←coe_ssubset, coe_singleton, set.ssubset_singleton_iff, coe_eq_empty]
 lemma eq_empty_of_ssubset_singleton {s : finset α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
 ssubset_singleton_iff.1 hs
 
-lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ (s : set α).nontrivial :=
+/-- A finset is nontrivial if it has at least two elements. -/
+@[reducible] protected def nontrivial (s : finset α) : Prop := (s : set α).nontrivial
+
+@[simp] lemma not_nontrivial_empty : ¬ (∅ : finset α).nontrivial := by simp [finset.nontrivial]
+
+@[simp] lemma not_nontrivial_singleton : ¬ ({a} : finset α).nontrivial :=
+by simp [finset.nontrivial]
+
+lemma nontrivial.ne_singleton (hs : s.nontrivial) : s ≠ {a} :=
+by { rintro rfl, exact not_nontrivial_singleton hs }
+
+lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ s.nontrivial :=
 by { rw ←coe_eq_singleton, exact set.eq_singleton_or_nontrivial ha }
 
-lemma nonempty.exists_eq_singleton_or_nontrivial :
-  s.nonempty → (∃ a, s = {a}) ∨ (s : set α).nontrivial :=
+lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial ↔ s ≠ {a} :=
+⟨nontrivial.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
+
+lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
 λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
 
-instance [nonempty α] : nontrivial (finset α) :=
+instance nontrivial' [nonempty α] : nontrivial (finset α) :=
 ‹nonempty α›.elim $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩
 
 instance [is_empty α] : unique (finset α) :=
@@ -1590,10 +1603,10 @@ theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x
 
 @[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
 
-@[simp] lemma attach_nonempty_iff (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
+@[simp] lemma attach_nonempty_iff {s : finset α} : s.attach.nonempty ↔ s.nonempty :=
 by simp [finset.nonempty]
 
-@[simp] lemma attach_eq_empty_iff (s : finset α) : s.attach = ∅ ↔ s = ∅ :=
+@[simp] lemma attach_eq_empty_iff {s : finset α} : s.attach = ∅ ↔ s = ∅ :=
 by simpa [eq_empty_iff_forall_not_mem]
 
 /-! ### piecewise -/

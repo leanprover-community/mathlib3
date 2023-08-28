@@ -1762,7 +1762,7 @@ end decidable_pi_exists
 
 /-! ### filter -/
 section filter
-variables (p q : α → Prop) [decidable_pred p] [decidable_pred q]
+variables (p q : α → Prop) [decidable_pred p] [decidable_pred q] {s : finset α}
 
 /-- `filter p s` is the set of elements of `s` that satisfy `p`. -/
 def filter (s : finset α) : finset α := ⟨_, s.2.filter p⟩
@@ -1790,42 +1790,31 @@ ext $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
 lemma filter_comm (s : finset α) : (s.filter p).filter q = (s.filter q).filter p :=
 by simp_rw [filter_filter, and_comm]
 
-@[simp] lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
-  @finset.filter α (λ _, true) h s = s :=
-by ext; simp
+/- We can simplify an application of filter where the decidability is inferred in "the wrong way" -/
+@[simp] lemma filter_congr_decidable (s : finset α) (p : α → Prop) (h : decidable_pred p)
+  [decidable_pred p] : @filter α p h s = s.filter p :=
+by congr
 
-@[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
-ext $ assume a, by simp only [mem_filter, and_false]; refl
+lemma filter_true {h} (s : finset α) : @filter α (λ a, true) h s = s := by ext; simp
+lemma filter_false {h} (s : finset α) : @filter α (λ a, false) h s = ∅ := by ext; simp
+
+variables {p q}
+
+lemma filter_eq_self : s.filter p = s ↔ ∀ ⦃x⦄, x ∈ s → p x := by simp [finset.ext_iff]
+lemma filter_eq_empty_iff : s.filter p = ∅ ↔ ∀ ⦃x⦄, x ∈ s → ¬ p x := by simp [finset.ext_iff]
+
+lemma filter_nonempty_iff {s : finset α} : (s.filter p).nonempty ↔ ∃ a ∈ s, p a :=
+by simp only [nonempty_iff_ne_empty, ne.def, filter_eq_empty_iff, not_not, not_forall]
+
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
+@[simp] lemma filter_true_of_mem (h : ∀ x ∈ s, p x) : s.filter p = s := filter_eq_self.2 h
+
+/-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
+@[simp] lemma filter_false_of_mem (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ := filter_eq_empty_iff.2 h
 
 @[simp] lemma filter_const (p : Prop) [decidable p] (s : finset α) :
   s.filter (λ a, p) = if p then s else ∅ :=
 by split_ifs; simp [*]
-
-variables {p q}
-
-lemma filter_eq_self (s : finset α) :
-  s.filter p = s ↔ ∀ x ∈ s, p x :=
-by simp [finset.ext_iff]
-
-/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
-@[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
-(filter_eq_self s).mpr h
-
-/-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
-lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
-eq_empty_of_forall_not_mem (by simpa)
-
-lemma filter_eq_empty_iff (s : finset α) :
-  (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
-begin
-  refine ⟨_, filter_false_of_mem⟩,
-  intros hs,
-  injection hs with hs',
-  rwa filter_eq_nil at hs'
-end
-
-lemma filter_nonempty_iff {s : finset α} : (s.filter p).nonempty ↔ ∃ a ∈ s, p a :=
-by simp only [nonempty_iff_ne_empty, ne.def, filter_eq_empty_iff, not_not, not_forall]
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
@@ -1965,11 +1954,6 @@ begin
   { intro x, simp },
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end
-
-/- We can simplify an application of filter where the decidability is inferred in "the wrong way" -/
-@[simp] lemma filter_congr_decidable {α} (s : finset α) (p : α → Prop) (h : decidable_pred p)
-  [decidable_pred p] : @filter α p h s = s.filter p :=
-by congr
 
 section classical
 open_locale classical

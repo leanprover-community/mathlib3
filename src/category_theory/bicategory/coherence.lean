@@ -10,6 +10,9 @@ import category_theory.bicategory.locally_discrete
 /-!
 # The coherence theorem for bicategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove the coherence theorem for bicategories, stated in the following form: the
 free bicategory over any quiver is locally thin.
 

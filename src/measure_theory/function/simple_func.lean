@@ -3,12 +3,15 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 import algebra.indicator_function
 import algebra.support
 
 /-!
 # Simple functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A function `f` from a measurable space to any type is called *simple*, if every preimage `f ⁻¹' {x}`
 is measurable, and the range is finite. In this file, we define simple functions and establish their

@@ -12,6 +12,9 @@ import linear_algebra.multilinear.basic
 /-!
 # Tensor Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a commutative semiring `R`, and an `R`-module `M`, we construct the tensor algebra of `M`.
 This is the free `R`-algebra generated (`R`-linearly) by the module `M`.
 

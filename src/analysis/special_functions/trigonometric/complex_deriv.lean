@@ -8,6 +8,9 @@ import analysis.special_functions.trigonometric.complex
 /-!
 # Complex trigonometric functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic facts and derivatives for the complex trigonometric functions.
 -/
 

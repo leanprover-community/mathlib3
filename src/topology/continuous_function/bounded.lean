@@ -13,6 +13,9 @@ import topology.metric_space.equicontinuity
 /-!
 # Bounded continuous functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of bounded continuous functions taking values in a metric space, with
 the uniform distance.
 

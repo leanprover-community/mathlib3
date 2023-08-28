@@ -101,6 +101,9 @@ lemma segment_subset_convex_hull (hx : x ∈ s) (hy : y ∈ s) : segment 𝕜 x 
 @[simp] lemma convex_hull_singleton (x : E) : convex_hull 𝕜 ({x} : set E) = {x} :=
 (convex_singleton x).convex_hull_eq
 
+@[simp] lemma convex_hull_zero : convex_hull 𝕜 (0 : set E) = 0 :=
+convex_hull_singleton 0
+
 @[simp] lemma convex_hull_pair (x y : E) : convex_hull 𝕜 {x, y} = segment 𝕜 x y :=
 begin
   refine (convex_hull_min _ $ convex_segment _ _).antisymm

@@ -10,6 +10,9 @@ import geometry.manifold.partition_of_unity
 /-!
 # Whitney embedding theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a version of the Whitney embedding theorem: for any compact real manifold `M`,
 for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 
@@ -50,8 +53,8 @@ include hi
 
 /-- Smooth embedding of `M` into `(E × ℝ) ^ ι`. -/
 def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, ι → (E × ℝ)), ι → (E × ℝ)⟯ :=
-{ to_fun := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
-  cont_mdiff_to_fun := cont_mdiff_pi_space.2 $ λ i,
+{ val := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
+  property := cont_mdiff_pi_space.2 $ λ i,
     ((f i).smooth_smul cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
 
 local attribute [simp] lemma embedding_pi_tangent_coe :

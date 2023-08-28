@@ -15,6 +15,9 @@ import data.set.constructions
 
 # Compacta and Compact Hausdorff Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Recall that, given a monad `M` on `Type*`, an *algebra* for `M` consists of the following data:
 - A type `X : Type*`
 - A "structure" map `M X → X`.

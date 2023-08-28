@@ -10,6 +10,9 @@ import field_theory.polynomial_galois_group
 /-!
 # Galois group of cyclotomic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show the relationship between the Galois group of `K(ζₙ)` and `(zmod n)ˣ`;
 it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, they are isomorphic.
 
@@ -160,15 +163,17 @@ Asserts that the Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ`
 if `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_cyclotomic_equiv_units_zmod :
   (cyclotomic n K).gal ≃* (zmod n)ˣ :=
-(alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
-(is_cyclotomic_extension.aut_equiv_pow L h)
+(alg_equiv.aut_congr
+  ((is_splitting_field.alg_equiv L _) : L ≃ₐ[K] (cyclotomic n K).splitting_field)).symm.trans
+    (is_cyclotomic_extension.aut_equiv_pow L h)
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`.
 Asserts that the Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ`
 if `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_X_pow_equiv_units_zmod :
   (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
-(alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
-(is_cyclotomic_extension.aut_equiv_pow L h)
+(alg_equiv.aut_congr
+  ((is_splitting_field.alg_equiv L _) : L ≃ₐ[K] (X ^ (n : ℕ) - 1).splitting_field)).symm.trans
+    (is_cyclotomic_extension.aut_equiv_pow L h)
 
 end gal

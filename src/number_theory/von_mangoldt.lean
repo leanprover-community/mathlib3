@@ -11,6 +11,9 @@ import analysis.special_functions.log.basic
 /-!
 # The von Mangoldt Function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the von Mangoldt function: the function on natural numbers that returns
 `log p` if the input can be expressed as `p^k` for a prime `p`.
 

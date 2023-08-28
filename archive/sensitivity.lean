@@ -15,6 +15,9 @@ import data.real.sqrt
 /-!
 # Huang's sensitivity theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A formalization of Hao Huang's sensitivity theorem: in the hypercube of
 dimension n ≥ 1, if one colors more than half the vertices then at least one
 vertex has at least √n colored neighbors.
@@ -32,6 +35,8 @@ and using Lean's user maintained mathematics library
 The project was developed at https://github.com/leanprover-community/lean-sensitivity and is now
 archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
+
+namespace sensitivity
 
 /-! The next two lines assert we do not want to give a constructive proof,
 but rather use classical logic. -/
@@ -435,3 +440,5 @@ begin
         convert finset.inter_subset_inter_right coeffs_support
       end
 end
+
+end sensitivity

@@ -10,6 +10,9 @@ import set_theory.ordinal.natural_ops
 /-!
 # Ordinals as games
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
 set consists of all previous ordinals.
 

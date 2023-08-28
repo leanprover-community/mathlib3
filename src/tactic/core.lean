@@ -2410,38 +2410,6 @@ add_tactic_doc
   tags                     := ["renaming"] }
 
 /--
-The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
-Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
-`mk_simp_attribute simp_name none` will use a default description.
-
-Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
-`attr1`, `attr2`, ... in the new simp set.
-
-This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
-to the attribute that is defined. If you need to create a simp set in a file where this command is
-not available, you should use
-```lean
-run_cmd mk_simp_attr `simp_name
-run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
-```
--/
-@[user_command]
-meta def mk_simp_attribute_cmd (_ : parse $ tk "mk_simp_attribute") : lean.parser unit :=
-do n ← ident,
-   d ← parser.pexpr,
-   d ← to_expr ``(%%d : option string),
-   descr ← eval_expr (option string) d,
-   with_list ← (tk "with" *> many ident) <|> return [],
-   mk_simp_attr n with_list,
-   add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
-
-add_tactic_doc
-{ name                     := "mk_simp_attribute",
-  category                 := doc_category.cmd,
-  decl_names               := [`tactic.mk_simp_attribute_cmd],
-  tags                     := ["simplification"] }
-
-/--
 Given a user attribute name `attr_name`, `get_user_attribute_name attr_name` returns
 the name of the declaration that defines this attribute.
 Fails if there is no user attribute with this name.

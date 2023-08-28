@@ -418,8 +418,28 @@ lemma convex_hull_add (s t : set E) : convex_hull R (s + t) = convex_hull R s + 
 by simp_rw [←image2_add, ←image_prod, is_linear_map.is_linear_map_add.convex_hull_image,
   convex_hull_prod]
 
+variables (R E)
+/-- `convex_hull` is an additive monoid morphism under pointwise addition. -/
+@[simps]
+def convex_hull_add_monoid_hom : set E →+ set E :=
+{ to_fun := convex_hull R,
+  map_add' := convex_hull_add,
+  map_zero' := convex_hull_zero }
+variables {R E}
+
 lemma convex_hull_sub (s t : set E) : convex_hull R (s - t) = convex_hull R s - convex_hull R t :=
 by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]
+
+lemma convex_hull_list_sum (l : list (set E)) : convex_hull R l.sum = (l.map $ convex_hull R).sum :=
+map_list_sum (convex_hull_add_monoid_hom R E) l
+
+lemma convex_hull_multiset_sum (s : multiset (set E)) :
+  convex_hull R s.sum = (s.map $ convex_hull R).sum :=
+map_multiset_sum (convex_hull_add_monoid_hom R E) s
+
+lemma convex_hull_sum {ι} (s : finset ι) (t : ι → set E) :
+  convex_hull R (∑ i in s, t i) = ∑ i in s, convex_hull R (t i):=
+map_sum (convex_hull_add_monoid_hom R E) _ _
 
 /-! ### `std_simplex` -/
 

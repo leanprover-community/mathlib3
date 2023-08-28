@@ -570,6 +570,10 @@ lemma forall_mem_cons (h : a ∉ s) (p : α → Prop) :
   (∀ x, x ∈ cons a s h → p x) ↔ p a ∧ ∀ x, x ∈ s → p x :=
 by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 
+/-- Useful in proofs by induction. -/
+lemma forall_of_forall_cons {p : α → Prop} {h : a ∉ s} (H : ∀ x, x ∈ cons a s h → p x) (x)
+  (h : x ∈ s) : p x := H _ $ mem_cons.2 $ or.inr h
+
 @[simp] lemma mk_cons {s : multiset α} (h : (a ::ₘ s).nodup) :
   (⟨a ::ₘ s, h⟩ : finset α) = cons a ⟨s, (nodup_cons.1 h).2⟩ (nodup_cons.1 h).1 := rfl
 
@@ -2086,6 +2090,10 @@ lemma forall_mem_insert [decidable_eq α] (a : α) (s : finset α) (p : α → P
   (∀ x, x ∈ insert a s → p x) ↔ p a ∧ ∀ x, x ∈ s → p x :=
 by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq]
 
+/-- Useful in proofs by induction. -/
+lemma forall_of_forall_insert [decidable_eq α] {p : α → Prop} {a : α} {s : finset α}
+  (H : ∀ x, x ∈ insert a s → p x) (x) (h : x ∈ s) : p x := H _ $ mem_insert_of_mem h
+
 end finset
 
 /-- Equivalence between the set of natural numbers which are `≥ k` and `ℕ`, given by `n → n - k`. -/
@@ -2155,6 +2163,9 @@ by ext; simp
 
 @[simp] theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.dedup_eq_zero
+
+@[simp] lemma to_finset_nonempty : s.to_finset.nonempty ↔ s ≠ 0 :=
+by simp only [to_finset_eq_empty, ne.def, finset.nonempty_iff_ne_empty]
 
 @[simp] lemma to_finset_subset : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
@@ -2246,6 +2257,9 @@ by { ext, simp }
 by { ext, simp }
 
 @[simp] lemma to_finset_eq_empty_iff (l : list α) : l.to_finset = ∅ ↔ l = nil := by cases l; simp
+
+@[simp] lemma to_finset_nonempty_iff (l : list α) : l.to_finset.nonempty ↔ l ≠ [] :=
+by simp [finset.nonempty_iff_ne_empty]
 
 end list
 

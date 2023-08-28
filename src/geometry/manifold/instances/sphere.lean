@@ -3,15 +3,20 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.complex.circle
+import analysis.calculus.deriv.inv
 import analysis.normed_space.ball_action
+import analysis.special_functions.exp_deriv
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
 import geometry.manifold.instances.real
+import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Manifold structure on the sphere
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines stereographic projection from the sphere in an inner product space `E`, and uses
 it to put a smooth manifold structure on the sphere.

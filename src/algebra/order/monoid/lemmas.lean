@@ -245,6 +245,23 @@ variables [linear_order α] {a b c d : α} [covariant_class α α (*) (<)]
 by { simp_rw [min_le_iff, le_max_iff], contrapose! h, exact mul_lt_mul_of_lt_of_lt h.1.1 h.2.2 }
 
 end linear_order
+
+section linear_order
+variables [linear_order α] [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  {a b c d : α}
+
+@[to_additive max_add_add_le_max_add_max] lemma max_mul_mul_le_max_mul_max' :
+  max (a * b) (c * d) ≤ max a c * max b d :=
+max_le (mul_le_mul' (le_max_left _ _) $ le_max_left _ _) $
+  mul_le_mul' (le_max_right _ _) $ le_max_right _ _
+
+--TODO: Also missing `min_mul_min_le_min_mul_mul`
+@[to_additive min_add_min_le_min_add_add] lemma min_mul_min_le_min_mul_mul' :
+  min a c * min b d ≤ min (a * b) (c * d) :=
+le_min (mul_le_mul' (min_le_left _ _) $ min_le_left _ _) $
+  mul_le_mul' (min_le_right _ _) $ min_le_right _ _
+
+end linear_order
 end has_mul
 
 -- using one

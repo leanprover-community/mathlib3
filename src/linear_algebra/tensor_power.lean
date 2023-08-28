@@ -11,6 +11,9 @@ import algebra.direct_sum.algebra
 /-!
 # Tensor power of a semimodule over a commutative semirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the `n`th tensor power of `M` as the n-ary tensor product indexed by `fin n` of `M`,
 `⨂[R] (i : fin n), M`. This is a special case of `pi_tensor_product`.
 

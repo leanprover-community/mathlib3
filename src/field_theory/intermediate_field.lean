@@ -11,6 +11,9 @@ import field_theory.tower
 /-!
 # Intermediate fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `L / K` be a field extension, given as an instance `algebra K L`.
 This file defines the type of fields in between `K` and `L`, `intermediate_field K L`.
 An `intermediate_field K L` is a subfield of `L` which contains (the image of) `K`,

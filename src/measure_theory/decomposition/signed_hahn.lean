@@ -9,6 +9,9 @@ import order.symm_diff
 /-!
 # Hahn decomposition
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
 states that, given a signed measure `s`, there exist complementary, measurable sets `i` and `j`,
 such that `i` is positive and `j` is negative with respect to `s`; that is, `s` restricted on `i`

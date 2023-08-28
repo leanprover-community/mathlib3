@@ -9,6 +9,9 @@ import group_theory.quotient_group
 /-!
 # Equality modulo an element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines equality modulo an element in a commutative group.
 
 ## Main definitions

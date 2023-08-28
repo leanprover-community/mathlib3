@@ -1,5 +1,14 @@
 import tactic.linarith
 
+example : ∀ (y : ℕ), y ≤ 37 → y < 40 :=
+begin
+  refine λ y hy, _,
+  -- The type of `hy` is a (solved but not instantiated) metavariable
+  do { tactic.get_local `hy >>= tactic.infer_type >>= guardb ∘ expr.is_mvar },
+  -- But linarith should still work
+  linarith
+end
+
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
   {a b c : α}

@@ -480,7 +480,7 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
-@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M 1 :=
+@[simp] lemma basis.det_is_empty [is_empty ι] : e.det = alternating_map.const_of_is_empty R M ι 1 :=
 begin
   ext v,
   exact matrix.det_is_empty,
@@ -558,6 +558,11 @@ lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).det v = b.det (v ∘ e) :=
 by rw [basis.det_apply, basis.to_matrix_reindex', det_reindex_alg_equiv, basis.det_apply]
+
+lemma basis.det_reindex' {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (e : ι ≃ ι') :
+  (b.reindex e).det = b.det.dom_dom_congr e :=
+alternating_map.ext $ λ _, basis.det_reindex _ _ _
 
 lemma basis.det_reindex_symm {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :

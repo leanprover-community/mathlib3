@@ -11,6 +11,9 @@ import data.rat.cast
 /-!
 # The Oxford Invariants Puzzle Challenges - Summer 2021, Week 3, Problem 1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Original statement
 
 Let `n ≥ 3`, `a₁, ..., aₙ` be strictly positive integers such that `aᵢ ∣ aᵢ₋₁ + aᵢ₊₁` for
@@ -72,7 +75,7 @@ open_locale big_operators
 
 variables {α : Type*} [linear_ordered_field α]
 
-theorem week3_p1 (n : ℕ) (a : ℕ → ℕ) (a_pos : ∀ i ≤ n, 0 < a i)
+theorem oxford_invariants.week3_p1 (n : ℕ) (a : ℕ → ℕ) (a_pos : ∀ i ≤ n, 0 < a i)
   (ha : ∀ i, i + 2 ≤ n → a (i + 1) ∣ a i + a (i + 2)) :
   ∃ b : ℕ, (b : α) = ∑ i in finset.range n, (a 0 * a n)/(a i * a (i + 1)) :=
 begin

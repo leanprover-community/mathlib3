@@ -1,4 +1,3 @@
-import data.list
 import data.list.perm
 import data.multiset.basic
 

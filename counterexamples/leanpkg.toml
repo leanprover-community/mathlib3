@@ -1,0 +1,7 @@
+[package]
+name = "mathlib-counterexamples"
+version = "0.1"
+path = "."
+
+[dependencies]
+mathlib = {path = ".."}

@@ -5,12 +5,15 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
-import category_theory.endomorphism
-import category_theory.types
+import topology.bornology.hom
 
 /-!
 # Lipschitz continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
@@ -40,7 +43,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -84,6 +87,15 @@ by simp [lipschitz_on_with, lipschitz_with]
 lemma lipschitz_on_with_iff_restrict [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
   {f : α → β} {s : set α} : lipschitz_on_with K f s ↔ lipschitz_with K (s.restrict f) :=
 by simp only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
+
+alias lipschitz_on_with_iff_restrict ↔ lipschitz_on_with.to_restrict _
+
+lemma maps_to.lipschitz_on_with_iff_restrict [pseudo_emetric_space α] [pseudo_emetric_space β]
+  {K : ℝ≥0} {f : α → β} {s : set α} {t : set β} (h : maps_to f s t) :
+  lipschitz_on_with K f s ↔ lipschitz_with K (h.restrict f s t) :=
+lipschitz_on_with_iff_restrict
+
+alias maps_to.lipschitz_on_with_iff_restrict ↔ lipschitz_on_with.to_restrict_maps_to _
 
 namespace lipschitz_with
 
@@ -195,10 +207,7 @@ calc edist (f (g x)) (f (g y)) ≤ Kf * edist (g x) (g y) : hf _ _
 lemma comp_lipschitz_on_with {Kf Kg : ℝ≥0} {f : β → γ} {g : α → β} {s : set α}
   (hf : lipschitz_with Kf f) (hg : lipschitz_on_with Kg g s) :
   lipschitz_on_with (Kf * Kg) (f ∘ g) s :=
-assume x hx y hy,
-calc edist (f (g x)) (f (g y)) ≤ Kf * edist (g x) (g y) : hf _ _
-... ≤ Kf * (Kg * edist x y) : ennreal.mul_left_mono (hg hx hy)
-... = (Kf * Kg : ℝ≥0) * edist x y : by rw [← mul_assoc, ennreal.coe_mul]
+lipschitz_on_with_iff_restrict.mpr $ hf.comp hg.to_restrict
 
 protected lemma prod_fst : lipschitz_with 1 (@prod.fst α β) :=
 lipschitz_with.of_edist_le $ assume x y, le_max_left _ _
@@ -215,6 +224,12 @@ begin
   exact max_le_max (hf x y) (hg x y)
 end
 
+protected lemma prod_mk_left (a : α) : lipschitz_with 1 (prod.mk a : β → α × β) :=
+by simpa only [max_eq_right zero_le_one] using (lipschitz_with.const a).prod lipschitz_with.id
+
+protected lemma prod_mk_right (b : β) : lipschitz_with 1 (λ a : α, (a, b)) :=
+by simpa only [max_eq_left zero_le_one] using lipschitz_with.id.prod (lipschitz_with.const b)
+
 protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
   (hβ : ∀ a, lipschitz_with Kβ (f a)) :
   lipschitz_with (Kα + Kβ) (function.uncurry f) :=
@@ -228,7 +243,7 @@ end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by rw [pow_succ']; exact (iterate n).comp hf
 
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
@@ -238,22 +253,22 @@ begin
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
-open category_theory
-
-protected lemma mul {f g : End α} {Kf Kg} (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
-  lipschitz_with (Kf * Kg) (f * g : End α) :=
+protected lemma mul {f g : function.End α} {Kf Kg} (hf : lipschitz_with Kf f)
+  (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf * Kg) (f * g : function.End α) :=
 hf.comp hg
 
 /-- The product of a list of Lipschitz continuous endomorphisms is a Lipschitz continuous
 endomorphism. -/
-protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
+protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
+  (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [types_id, lipschitz_with.id]
+| [] := by simpa using lipschitz_with.id
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
-protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
-  ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
-| 0       := lipschitz_with.id
+protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
+  ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric
@@ -319,6 +334,21 @@ lemma dist_lt_mul_of_lt (hf : lipschitz_with K f) (hK : K ≠ 0) (hr : dist x y 
 lemma maps_to_ball (hf : lipschitz_with K f) (hK : K ≠ 0) (x : α) (r : ℝ) :
   maps_to f (metric.ball x r) (metric.ball (f x) (K * r)) :=
 λ y hy, hf.dist_lt_mul_of_lt hK hy
+
+/-- A Lipschitz continuous map is a locally bounded map. -/
+def to_locally_bounded_map (f : α → β) (hf : lipschitz_with K f) :
+  locally_bounded_map α β :=
+locally_bounded_map.of_map_bounded f $ λ s hs, let ⟨C, hC⟩ := metric.is_bounded_iff.1 hs
+in metric.is_bounded_iff.2 ⟨K * C, ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy,
+  hf.dist_le_mul_of_le (hC hx hy)⟩
+
+@[simp] lemma coe_to_locally_bounded_map (hf : lipschitz_with K f) :
+  ⇑(hf.to_locally_bounded_map f) = f :=
+rfl
+
+lemma comap_cobounded_le (hf : lipschitz_with K f) :
+  comap f (bornology.cobounded β) ≤ bornology.cobounded α :=
+(hf.to_locally_bounded_map f).2
 
 lemma bounded_image (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
   metric.bounded (f '' s) :=
@@ -429,6 +459,11 @@ lemma edist_lt_of_edist_lt_div (hf : lipschitz_on_with K f s) {x y : α} (hx : x
   {d : ℝ≥0∞} (hd : edist x y < d / K) : edist (f x) (f y) < d :=
 (lipschitz_on_with_iff_restrict.mp hf).edist_lt_of_edist_lt_div $
   show edist (⟨x, hx⟩ : s) ⟨y, hy⟩ < d / K, from hd
+
+protected lemma comp {g : β → γ} {t : set β} {Kg : ℝ≥0} (hg : lipschitz_on_with Kg g t)
+  (hf : lipschitz_on_with K f s) (hmaps : maps_to f s t) :
+  lipschitz_on_with (Kg * K) (g ∘ f) s :=
+lipschitz_on_with_iff_restrict.mpr $ hg.to_restrict.comp (hf.to_restrict_maps_to hmaps)
 
 end emetric
 

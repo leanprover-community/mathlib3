@@ -10,6 +10,9 @@ import category_theory.monoidal.natural_transformation
 /-!
 # Monoids as discrete monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The discrete category on a monoid is a monoidal category.
 Multiplicative morphisms induced monoidal functors.
 -/
@@ -23,7 +26,7 @@ variables (M : Type u) [monoid M]
 
 namespace category_theory
 
-@[to_additive discrete.add_monoidal]
+@[to_additive discrete.add_monoidal, simps tensor_obj_as tensor_unit_as]
 instance discrete.monoidal : monoidal_category (discrete M) :=
 { tensor_unit := discrete.mk 1,
   tensor_obj := λ X Y, discrete.mk (X.as * Y.as),

@@ -5,13 +5,16 @@ Authors: Simon Hudon
 -/
 
 import order.omega_complete_partial_order
-import order.category.Preorder
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.concrete_category.bundled_hom
 
 /-!
 # Category of types with a omega complete partial order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we bundle the class `omega_complete_partial_order` into a
 concrete category and prove that continuous functions also form
@@ -123,7 +126,7 @@ fork.is_limit.mk' _ $ λ s,
 
 end has_equalizers
 
-instance : has_products ωCPO.{v} :=
+instance : has_products.{v} ωCPO.{v} :=
 λ J, { has_limit := λ F, has_limit_of_iso discrete.nat_iso_functor.symm }
 
 instance {X Y : ωCPO.{v}} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
@@ -131,7 +134,7 @@ has_limit.mk ⟨_, has_equalizers.is_equalizer f g⟩
 
 instance : has_equalizers ωCPO.{v} := has_equalizers_of_has_limit_parallel_pair _
 
-instance : has_limits ωCPO.{v} := limits_from_equalizers_and_products
+instance : has_limits ωCPO.{v} := has_limits_of_has_equalizers_and_products
 
 end
 

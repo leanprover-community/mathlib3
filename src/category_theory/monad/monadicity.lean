@@ -12,6 +12,9 @@ import category_theory.monad.limits
 /-!
 # Monadicity theorems
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove monadicity theorems which can establish a given functor is monadic. In particular, we
 show three versions of Beck's monadicity theorem, and the reflexive (crude) monadicity theorem:
 
@@ -172,7 +175,7 @@ lemma comparison_adjunction_unit_f
     (beck_coequalizer A).desc (unit_cofork A) :=
 begin
   apply limits.cofork.is_colimit.hom_ext (beck_coequalizer A),
-  rw [cofork.is_colimit.π_comp_desc],
+  rw [cofork.is_colimit.π_desc],
   dsimp only [beck_cofork_π, unit_cofork_π],
   rw [comparison_adjunction_unit_f_aux, ← adj .hom_equiv_naturality_left A.a, coequalizer.condition,
       adj .hom_equiv_naturality_right, adj .hom_equiv_unit, category.assoc],

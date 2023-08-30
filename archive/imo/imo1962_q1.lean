@@ -9,6 +9,9 @@ import data.nat.digits
 /-!
 # IMO 1962 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Find the smallest natural number $n$ which has the following properties:
 
 (a) Its decimal representation has 6 as the last digit.
@@ -20,6 +23,8 @@ Since Lean does not explicitly express problems of the form "find the smallest n
 we define the problem as a predicate, and then prove a particular number is the smallest member
 of a set satisfying it.
 -/
+
+namespace imo1962_q1
 
 open nat
 
@@ -153,6 +158,10 @@ begin
       norm_num at h5,
       exact h5.ge, }, },
 end
+
+end imo1962_q1
+
+open imo1962_q1
 
 theorem imo1962_q1 : is_least {n | problem_predicate n} 153846 :=
 ⟨satisfied_by_153846, no_smaller_solutions⟩

@@ -12,6 +12,9 @@ import order.atoms
 /-!
 # Simple objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define simple objects in any category with zero morphisms.
 A simple object is an object `Y` such that any monomorphism `f : X ⟶ Y`
 is either an isomorphism or zero (but not both).
@@ -70,6 +73,9 @@ lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
       rw [←category.comp_id f, ←i.hom_inv_id, ←category.assoc],
       apply_instance, },
   end }
+
+lemma simple.iff_of_iso {X Y : C} (i : X ≅ Y) : simple X ↔ simple Y :=
+⟨λ h, by exactI simple.of_iso i.symm, λ h, by exactI simple.of_iso i⟩
 
 lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
@@ -190,8 +196,9 @@ begin
   rw [biprod.is_iso_inl_iff_id_eq_fst_comp_inl, ←biprod.total, add_right_eq_self],
   split,
   { intro h, replace h := h =≫ biprod.snd,
-    simpa [←is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
-  { intro h, rw is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h, rw [h, zero_comp], },
+    simpa [←is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
+  { intro h, rw is_zero.iff_is_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h,
+    rw [h, zero_comp], },
 end
 
 /-- Any simple object in a preadditive category is indecomposable. -/
@@ -199,7 +206,7 @@ lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
 ⟨simple.not_is_zero X,
 λ Y Z i, begin
   refine or_iff_not_imp_left.mpr (λ h, _),
-  rw is_zero.iff_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
+  rw is_zero.iff_is_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
   change biprod.inl ≠ 0 at h,
   rw ←(simple.mono_is_iso_iff_nonzero biprod.inl) at h,
   { rwa biprod.is_iso_inl_iff_is_zero at h, },

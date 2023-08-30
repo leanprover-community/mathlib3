@@ -5,10 +5,14 @@ Authors: Scott Morrison, Shing Tak Lam
 -/
 
 import topology.algebra.order.proj_Icc
+import topology.algebra.order.group
 import topology.continuous_function.basic
 
 /-!
 # Bundled continuous maps into orders, with order-compatible topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 

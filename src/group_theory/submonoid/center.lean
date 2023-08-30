@@ -5,10 +5,12 @@ Authors: Eric Wieser
 -/
 import group_theory.submonoid.operations
 import group_theory.subsemigroup.center
-import data.fintype.basic
 
 /-!
 # Centers of monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -45,13 +47,26 @@ variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
 
-instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈ center M) :=
-λ _, decidable_of_iff' _ mem_center_iff
+@[to_additive] instance decidable_mem_center (a) [decidable $ ∀ b : M, b * a = a * b] :
+  decidable (a ∈ center M) :=
+decidable_of_iff' _ mem_center_iff
 
 /-- The center of a monoid is commutative. -/
 instance : comm_monoid (center M) :=
 { mul_comm := λ a b, subtype.ext $ b.prop _,
   .. (center M).to_monoid }
+
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_left : smul_comm_class (center M) M M :=
+{ smul_comm := λ m x y, (commute.left_comm (m.prop x) y).symm }
+
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_right : smul_comm_class M (center M) M :=
+smul_comm_class.symm _ _ _
+
+/-! Note that `smul_comm_class (center M) (center M) M` is already implied by
+`submonoid.smul_comm_class_right` -/
+example : smul_comm_class (center M) (center M) M := by apply_instance
 
 end
 
@@ -64,3 +79,6 @@ set_like.coe_injective (set.center_eq_univ M)
 end
 
 end submonoid
+
+-- Guard against import creep
+assert_not_exists finset

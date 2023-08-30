@@ -10,6 +10,9 @@ import data.polynomial.ring_division
 /-!
 # "Mirror" of a univariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
 between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
 divisible by `X`.
@@ -43,8 +46,8 @@ begin
   by_cases ha : a = 0,
   { rw [ha, monomial_zero_right, mirror_zero] },
   { rw [mirror, reverse, nat_degree_monomial n a, if_neg ha, nat_trailing_degree_monomial ha,
-        ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n),
-        tsub_self, pow_zero, mul_one] },
+        ← C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n), tsub_self, pow_zero,
+        mul_one] },
 end
 
 lemma mirror_C (a : R) : (C a).mirror = C a :=
@@ -151,6 +154,23 @@ begin
   rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
 
+variables [no_zero_divisors R]
+
+lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  rw [nat_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_degree, two_mul],
+end
+
+lemma nat_trailing_degree_mul_mirror :
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  rw [nat_trailing_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_trailing_degree, two_mul],
+end
+
 end semiring
 
 section ring
@@ -160,7 +180,7 @@ variables {R : Type*} [ring R] (p q : R[X])
 lemma mirror_neg : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-variables [is_domain R]
+variables [no_zero_divisors R]
 
 lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
@@ -181,7 +201,7 @@ end ring
 
 section comm_ring
 
-variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
+variables {R : Type*} [comm_ring R] [no_zero_divisors R] {f : R[X]}
 
 lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
@@ -208,9 +228,9 @@ begin
     have hk := h2 k key,
     rcases hk with hk | hk | hk | hk,
     { exact or.inr (h3 h h_dvd_f (by rwa ← hk)) },
-    { exact or.inr (h3 h h_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, mirror_neg, dvd_neg])) },
+    { exact or.inr (h3 h h_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, mirror_neg, dvd_neg])) },
     { exact or.inl (h3 g g_dvd_f (by rwa ← hk)) },
-    { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
+    { exact or.inl (h3 g g_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, dvd_neg])) } },
 end
 
 end comm_ring

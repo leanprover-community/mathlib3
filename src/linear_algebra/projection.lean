@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Projection to a subspace
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 * `linear_proj_of_is_compl (p q : submodule R E) (h : is_compl p q)`: the projection of a module `E`
   to a submodule `p` along its complement `q`; it is the unique linear map `f : E → p` such that
@@ -28,6 +31,8 @@ section ring
 variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
   {G : Type*} [add_comm_group G] [module R G] (p q : submodule R E)
+variables {S : Type*} [semiring S] {M : Type*} [add_comm_monoid M] [module S M] (m : submodule S M)
+
 
 noncomputable theory
 
@@ -53,10 +58,12 @@ lemma is_compl_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
   is_compl p f.ker :=
 begin
   split,
-  { rintros x ⟨hpx, hfx⟩,
+  { rw disjoint_iff_inf_le,
+    rintros x ⟨hpx, hfx⟩,
     erw [set_like.mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
     simp only [hfx, set_like.mem_coe, zero_mem] },
-  { intros x hx,
+  { rw codisjoint_iff_le_sup,
+    intros x hx,
     rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
     rw [mem_ker, linear_map.map_sub, hf, sub_self] }
@@ -71,8 +78,8 @@ open linear_map
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
 def quotient_equiv_of_is_compl (h : is_compl p q) : (E ⧸ p) ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
-  (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
-  (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
+  ⟨by rw [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint],
+   by rw [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top]⟩
 
 @[simp] lemma quotient_equiv_of_is_compl_symm_apply (h : is_compl p q) (x : q) :
   (quotient_equiv_of_is_compl p q h).symm x = quotient.mk x := rfl
@@ -90,13 +97,10 @@ linear map `f : E → p` such that `f x = x` for `x ∈ p` and `f x = 0` for `x 
 def prod_equiv_of_is_compl (h : is_compl p q) : (p × q) ≃ₗ[R] E :=
 begin
   apply linear_equiv.of_bijective (p.subtype.coprod q.subtype),
-  { simp only [←ker_eq_bot, ker_eq_bot', prod.forall, subtype_apply, prod.mk_eq_zero, coprod_apply],
-    -- TODO: if I add `submodule.forall`, it unfolds the outer `∀` but not the inner one.
-    rintros ⟨x, hx⟩ ⟨y, hy⟩,
-    simp only [coe_mk, mk_eq_zero, ← eq_neg_iff_add_eq_zero],
-    rintro rfl,
-    rw [neg_mem_iff] at hx,
-    simp [disjoint_def.1 h.disjoint y hx hy] },
+  split,
+  { rw [← ker_eq_bot, ker_coprod_of_disjoint_range, ker_subtype, ker_subtype, prod_bot],
+    rw [range_subtype, range_subtype],
+    exact h.1 },
   { rw [← range_eq_top, ← sup_eq_range, h.sup_eq_top] }
 end
 
@@ -297,8 +301,8 @@ a linear equivalence `E ≃ₗ[R] F × G`. -/
 def equiv_prod_of_surjective_of_is_compl (f : E →ₗ[R] F) (g : E →ₗ[R] G) (hf : f.range = ⊤)
   (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
   E ≃ₗ[R] F × G :=
-linear_equiv.of_bijective (f.prod g) (by simp [← ker_eq_bot, hfg.inf_eq_bot])
-  (by simp [← range_eq_top, range_prod_eq hfg.sup_eq_top, *])
+linear_equiv.of_bijective (f.prod g) ⟨by simp [← ker_eq_bot, hfg.inf_eq_bot],
+  by { rw [←range_eq_top], simp [range_prod_eq hfg.sup_eq_top, *] }⟩
 
 @[simp] lemma coe_equiv_prod_of_surjective_of_is_compl {f : E →ₗ[R] F} {g : E →ₗ[R] G}
   (hf : f.range = ⊤) (hg : g.range = ⊤) (hfg : is_compl f.ker g.ker) :
@@ -343,11 +347,11 @@ of `E` to `p` and fixes every element of `p`.
 The definition allow more generally any `fun_like` type and not just linear maps, so that it can be
 used for example with `continuous_linear_map` or `matrix`.
 -/
-structure is_proj {F : Type*} [fun_like F E (λ _, E)] (f : F) : Prop :=
-(map_mem : ∀ x, f x ∈ p)
-(map_id : ∀ x ∈ p, f x = x)
+structure is_proj {F : Type*} [fun_like F M (λ _, M)] (f : F) : Prop :=
+(map_mem : ∀ x, f x ∈ m)
+(map_id : ∀ x ∈ m, f x = x)
 
-lemma is_proj_iff_idempotent (f : E →ₗ[R] E) : (∃ p : submodule R E, is_proj p f) ↔ f ∘ₗ f = f :=
+lemma is_proj_iff_idempotent (f : M →ₗ[S] M) : (∃ p : submodule S M, is_proj p f) ↔ f ∘ₗ f = f :=
 begin
   split,
   { intro h, obtain ⟨p, hp⟩ := h, ext, rw comp_apply, exact hp.map_id (f x) (hp.map_mem x), },
@@ -358,26 +362,26 @@ end
 
 namespace is_proj
 
-variables {p}
+variables {p m}
 
 /--
 Restriction of the codomain of a projection of onto a subspace `p` to `p` instead of the whole
 space.
 -/
-def cod_restrict {f : E →ₗ[R] E} (h : is_proj p f) : E →ₗ[R] p :=
-f.cod_restrict p h.map_mem
+def cod_restrict {f : M →ₗ[S] M} (h : is_proj m f) : M →ₗ[S] m :=
+f.cod_restrict m h.map_mem
 
 @[simp]
-lemma cod_restrict_apply {f : E →ₗ[R] E} (h : is_proj p f) (x : E) :
-  ↑(h.cod_restrict x) = f x := f.cod_restrict_apply p x
+lemma cod_restrict_apply {f : M →ₗ[S] M} (h : is_proj m f) (x : M) :
+  ↑(h.cod_restrict x) = f x := f.cod_restrict_apply m x
 
 @[simp]
-lemma cod_restrict_apply_cod {f : E →ₗ[R] E} (h : is_proj p f) (x : p) :
+lemma cod_restrict_apply_cod {f : M →ₗ[S] M} (h : is_proj m f) (x : m) :
   h.cod_restrict x = x :=
 by {ext, rw [cod_restrict_apply], exact h.map_id x x.2}
 
-lemma cod_restrict_ker {f : E →ₗ[R] E} (h : is_proj p f) :
-  h.cod_restrict.ker = f.ker := f.ker_cod_restrict p _
+lemma cod_restrict_ker {f : M →ₗ[S] M} (h : is_proj m f) :
+  h.cod_restrict.ker = f.ker := f.ker_cod_restrict m _
 
 lemma is_compl {f : E →ₗ[R] E} (h : is_proj p f) : is_compl p f.ker :=
 by { rw ←cod_restrict_ker, exact is_compl_of_proj h.cod_restrict_apply_cod, }

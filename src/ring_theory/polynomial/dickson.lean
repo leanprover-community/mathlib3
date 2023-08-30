@@ -5,13 +5,15 @@ Authors: Julian Kuelshammer
 -/
 import algebra.char_p.invertible
 import data.zmod.basic
-import field_theory.finite.basic
 import ring_theory.localization.fraction_ring
 import ring_theory.polynomial.chebyshev
-
+import ring_theory.ideal.local_ring
 
 /-!
 # Dickson polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The (generalised) Dickson polynomials are a family of polynomials indexed by `ℕ × ℕ`,
 with coefficients in a commutative ring `R` depending on an element `a∈R`. More precisely, the
@@ -104,12 +106,12 @@ end
 section dickson
 /-!
 
-### A Lambda structure on `polynomial ℤ`
+### A Lambda structure on `ℤ[X]`
 
 Mathlib doesn't currently know what a Lambda ring is.
-But once it does, we can endow `polynomial ℤ` with a Lambda structure
+But once it does, we can endow `ℤ[X]` with a Lambda structure
 in terms of the `dickson 1 1` polynomials defined below.
-There is exactly one other Lambda structure on `polynomial ℤ` in terms of binomial polynomials.
+There is exactly one other Lambda structure on `ℤ[X]` in terms of binomial polynomials.
 
 -/
 
@@ -157,12 +159,12 @@ lemma dickson_one_one_mul (m n : ℕ) :
   dickson 1 (1 : R) (m * n) = (dickson 1 1 m).comp (dickson 1 1 n) :=
 begin
   have h : (1 : R) = int.cast_ring_hom R (1),
-    simp only [ring_hom.eq_int_cast, int.cast_one],
+    simp only [eq_int_cast, int.cast_one],
   rw h,
   simp only [← map_dickson (int.cast_ring_hom R), ← map_comp],
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
+  simp only [map_dickson, map_comp, eq_int_cast, int.cast_one,
     dickson_one_one_eq_chebyshev_T, chebyshev.T_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,

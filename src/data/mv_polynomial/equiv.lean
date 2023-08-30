@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import data.mv_polynomial.rename
 import data.polynomial.algebra_map
-import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
 import logic.equiv.fin
@@ -15,6 +14,9 @@ import algebra.big_operators.fin
 
 /-!
 # Equivalences between polynomial rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file establishes a number of equivalences between polynomial rings,
 based on equivalences between the underlying types.
@@ -44,7 +46,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators polynomial
+open_locale big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 
@@ -459,8 +461,8 @@ lemma degree_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
 begin
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
   { rw [degree_of_eq_sup, fin_succ_equiv_support f, finset.sup_image] },
-  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h)],
-  congr,
+  rw [polynomial.degree, ← h', finset.coe_sup_of_nonempty (support_fin_succ_equiv_nonempty h),
+    finset.max_eq_sup_coe],
 end
 
 lemma nat_degree_fin_succ_equiv (f : mv_polynomial (fin (n + 1)) R) :

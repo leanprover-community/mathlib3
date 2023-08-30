@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.equiv.basic
+import logic.equiv.defs
 import tactic.clear
 import tactic.simp_result
 import tactic.apply
@@ -186,11 +186,6 @@ do
   -- Finally we simplify the resulting equivalence,
   -- to compress away some `map_equiv equiv.refl` subexpressions.
   prod.fst <$> new_eqv.simp {fail_if_unchanged := ff}
-
-mk_simp_attribute equiv_rw_simp "The simpset `equiv_rw_simp` is used by the tactic `equiv_rw` to
-simplify applications of equivalences and their inverses."
-
-attribute [equiv_rw_simp] equiv.symm_symm equiv.apply_symm_apply equiv.symm_apply_apply
 
 /--
 Attempt to replace the hypothesis with name `x`

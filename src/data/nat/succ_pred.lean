@@ -3,10 +3,14 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.fin.basic
 import order.succ_pred.basic
 
 /-!
 # Successors and predecessors of naturals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we show that `ℕ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/

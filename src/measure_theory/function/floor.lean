@@ -3,10 +3,13 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.constructions.borel_space
+import measure_theory.constructions.borel_space.basic
 
 /-!
 # Measurability of `⌊x⌋` etc
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that `int.floor`, `int.ceil`, `int.fract`, `nat.floor`, and `nat.ceil` are
 measurable under some assumptions on the (semi)ring.
@@ -21,7 +24,7 @@ variables {α R : Type*} [measurable_space α] [linear_ordered_ring R] [floor_ri
 
 lemma int.measurable_floor [opens_measurable_space R] :
   measurable (int.floor : R → ℤ) :=
-measurable_to_encodable $ λ x, by simpa only [int.preimage_floor_singleton]
+measurable_to_countable $ λ x, by simpa only [int.preimage_floor_singleton]
   using measurable_set_Ico
 
 @[measurability] lemma measurable.floor [opens_measurable_space R]
@@ -30,7 +33,7 @@ int.measurable_floor.comp hf
 
 lemma int.measurable_ceil [opens_measurable_space R] :
   measurable (int.ceil : R → ℤ) :=
-measurable_to_encodable $ λ x,
+measurable_to_countable $ λ x,
   by simpa only [int.preimage_ceil_singleton] using measurable_set_Ioc
 
 @[measurability] lemma measurable.ceil [opens_measurable_space R]
@@ -64,13 +67,13 @@ variables {α R : Type*} [measurable_space α] [linear_ordered_semiring R] [floo
   {f : α → R}
 
 lemma nat.measurable_floor : measurable (nat.floor : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]
+measurable_to_countable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]
 
 @[measurability] lemma measurable.nat_floor (hf : measurable f) : measurable (λ x, ⌊f x⌋₊) :=
 nat.measurable_floor.comp hf
 
 lemma nat.measurable_ceil : measurable (nat.ceil : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simp [*, nat.preimage_ceil_of_ne_zero]
+measurable_to_countable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simp [*, nat.preimage_ceil_of_ne_zero]
 
 @[measurability] lemma measurable.nat_ceil (hf : measurable f) : measurable (λ x, ⌈f x⌉₊) :=
 nat.measurable_ceil.comp hf

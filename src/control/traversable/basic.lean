@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import control.functor
+import tactic.ext
 
 /-!
 # Traversable type class
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Type classes for traversing collections. The concepts and laws are taken from
 <http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html>
@@ -115,11 +119,10 @@ section preserves
 variables (η : applicative_transformation F G)
 
 @[functor_norm]
-lemma preserves_pure : ∀ {α} (x : α), η (pure x) = pure x := η.preserves_pure'
+lemma preserves_pure {α} : ∀ (x : α), η (pure x) = pure x := η.preserves_pure'
 
 @[functor_norm]
-lemma preserves_seq :
-  ∀ {α β : Type u} (x : F (α → β)) (y : F α), η (x <*> y) = η x <*> η y :=
+lemma preserves_seq {α β : Type u} : ∀ (x : F (α → β)) (y : F α), η (x <*> y) = η x <*> η y :=
 η.preserves_seq'
 
 @[functor_norm]

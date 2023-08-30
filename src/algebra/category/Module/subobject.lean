@@ -7,10 +7,12 @@ import algebra.category.Module.epi_mono
 import algebra.category.Module.kernels
 import category_theory.subobject.well_powered
 import category_theory.subobject.limits
-import category_theory.limits.concrete_category
 
 /-!
 # Subobjects in the category of `R`-modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct an explicit order isomorphism between the categorical subobjects of an `R`-module `M`
 and its submodules. This immediately implies that the category of `R`-modules is well-powered.
@@ -38,6 +40,7 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
     fapply eq_mk_of_comm,
     { apply linear_equiv.to_Module_iso'_left,
       apply linear_equiv.of_bijective (linear_map.cod_restrict S.arrow.range S.arrow _),
+      split,
       { simpa only [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict]
           using ker_eq_bot_of_mono _ },
       { rw [← linear_map.range_eq_top, linear_map.range_cod_restrict,

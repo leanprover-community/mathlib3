@@ -5,11 +5,13 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import set_theory.cardinal.cofinality
-import set_theory.game.basic
 import set_theory.game.birthday
 
 /-!
 # Short games
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A combinatorial game is `short` [Conway, ch.9][conway2001] if it has only finitely many positions.
 In particular, this means there is a finite set of moves at every point.
@@ -20,9 +22,9 @@ prove anything using these instances.
 -/
 universes u
 
-namespace pgame
+open_locale pgame
 
-local infix ` ⧏ `:50 := lf
+namespace pgame
 
 /-- A short game is a game with a finite set of moves at every turn. -/
 inductive short : pgame.{u} → Type (u+1)
@@ -98,13 +100,13 @@ theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.ome
 | ⟨xl, xr, xL, xR⟩ hs :=
 begin
   haveI := hs,
-  unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
+  unfreezingI { rcases hs with ⟨sL, sR⟩ },
   rw [birthday, max_lt_iff],
   split, all_goals
-  { rw ←cardinal.ord_omega,
-    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_omega
-      (cardinal.lt_omega_of_fintype _) (λ i, _),
-    rw cardinal.ord_omega,
+  { rw ←cardinal.ord_aleph_0,
+    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
+      (cardinal.lt_aleph_0_of_finite _) (λ i, _),
+    rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },
   { exact move_right_short' xL xR i }
@@ -150,7 +152,7 @@ begin
   haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
-    (λ j, short_of_relabelling (rR j) infer_instance)
+    (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
 end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
@@ -215,7 +217,7 @@ instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y
 (le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-by { rw lt_iff_le_and_lf, exact and.decidable }
+and.decidable
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

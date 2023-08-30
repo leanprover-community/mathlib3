@@ -5,11 +5,13 @@ Authors: Johannes Hölzl
 -/
 import logic.function.basic
 import tactic.ext
-import tactic.lint
 import tactic.simps
 
 /-!
 # Subtypes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basic API for subtypes, which are defined in core.
 
@@ -82,11 +84,14 @@ ext_iff
 
 @[simp] theorem coe_eta (a : {a // p a}) (h : p a) : mk ↑a h = a := subtype.ext rfl
 
-@[simp] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
+@[simp, mfld_simps] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
 
 @[simp, nolint simp_nf] -- built-in reduction doesn't always work
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ext_iff
+
+lemma coe_eq_of_eq_mk {a : {a // p a}} {b : α} (h : ↑a = b) :
+  a = ⟨b, h ▸ a.2⟩ := subtype.ext h
 
 theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
 ⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩

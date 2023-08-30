@@ -10,6 +10,9 @@ import number_theory.function_field
 /-!
 # Class numbers of function fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the class number of a function field as the (finite) cardinality of
 the class group of its ring of integers. It also proves some elementary results
 on the class number.
@@ -33,7 +36,7 @@ namespace ring_of_integers
 
 open function_field
 
-noncomputable instance  : fintype (class_group (ring_of_integers Fq F) F) :=
+noncomputable instance  : fintype (class_group (ring_of_integers Fq F)) :=
 class_group.fintype_of_admissible_of_finite (ratfunc Fq) F
   (polynomial.card_pow_degree_is_admissible : absolute_value.is_admissible
     (polynomial.card_pow_degree : absolute_value Fq[X] ℤ))
@@ -41,7 +44,7 @@ class_group.fintype_of_admissible_of_finite (ratfunc Fq) F
 end ring_of_integers
 
 /-- The class number in a function field is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers Fq F) F)
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers Fq F))
 
 /-- The class number of a function field is `1` iff the ring of integers is a PID. -/
 theorem class_number_eq_one_iff :

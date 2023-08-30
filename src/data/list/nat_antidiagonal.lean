@@ -3,10 +3,14 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import data.list.nodup
 import data.list.range
 
 /-!
 # Antidiagonals in ℕ × ℕ as lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the antidiagonals of ℕ × ℕ as lists: the `n`-th antidiagonal is the list of
 pairs `(i, j)` such that `i + j = n`. This is useful for polynomial multiplication and more

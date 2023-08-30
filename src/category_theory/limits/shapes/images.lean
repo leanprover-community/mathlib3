@@ -10,6 +10,9 @@ import category_theory.limits.shapes.strong_epi
 /-!
 # Categorical images
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the categorical image of `f` as a factorisation `f = e ≫ m` through a monomorphism `m`,
 so that `m` factors through the `m'` in any other such factorisation.
 
@@ -247,6 +250,10 @@ lemma has_image.of_arrow_iso {f g : arrow C} [h : has_image f.hom] (sq : f ⟶ g
   has_image g.hom :=
 ⟨⟨h.exists_image.some.of_arrow_iso sq⟩⟩
 
+@[priority 100]
+instance mono_has_image (f : X ⟶ Y) [mono f] : has_image f :=
+has_image.mk ⟨_, is_image.self f⟩
+
 section
 variable [has_image f]
 
@@ -285,6 +292,10 @@ lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = imag
 @[simp, reassoc]
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
+@[simp]
+lemma image.is_image_lift (F : mono_factorisation f) :
+  (image.is_image f).lift F = image.lift F :=
+rfl
 
 @[simp, reassoc]
 lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :
@@ -327,7 +338,7 @@ attribute [instance, priority 100] has_images.has_image
 end
 
 section
-variables (f) [has_image f]
+variables (f)
 /-- The image of a monomorphism is isomorphic to the source. -/
 def image_mono_iso_source [mono f] : image f ≅ X :=
 is_image.iso_ext (image.is_image f) (is_image.self f)
@@ -346,7 +357,7 @@ end
 -- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
-lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
+lemma image.ext [has_image f] {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
   (w : factor_thru_image f ≫ g = factor_thru_image f ≫ h) :
   g = h :=
 begin
@@ -371,7 +382,7 @@ begin
      ... = h                : by rw [category.id_comp]
 end
 
-instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
+instance [has_image f] [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
   epi (factor_thru_image f) :=
 ⟨λ Z g h w, image.ext f w⟩
 
@@ -698,8 +709,8 @@ instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong
     property of the image. -/
 def strong_epi_mono_factorisation.to_mono_is_image {X Y : C} {f : X ⟶ Y}
   (F : strong_epi_mono_factorisation f) : is_image F.to_mono_factorisation :=
-{ lift := λ G, arrow.lift $ arrow.hom_mk' $
-    show G.e ≫ G.m = F.e ≫ F.m, by rw [F.to_mono_factorisation.fac, G.fac] }
+{ lift := λ G, (comm_sq.mk (show G.e ≫ G.m = F.e ≫ F.m,
+    by rw [F.to_mono_factorisation.fac, G.fac])).lift, }
 
 variable (C)
 
@@ -768,26 +779,28 @@ variables [has_images C]
 instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
   has_image_maps C :=
 { has_image_map := λ f g st, has_image_map.mk
-  { map := arrow.lift $ arrow.hom_mk' $ show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
-      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp } }
+  { map := (comm_sq.mk (show (st.left ≫ factor_thru_image g.hom) ≫ image.ι g.hom =
+      factor_thru_image f.hom ≫ (image.ι f.hom ≫ st.right), by simp)).lift, }, }
 
 /-- If a category has images, equalizers and pullbacks, then images are automatically strong epi
     images. -/
 @[priority 100]
 instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks C]
   [has_equalizers C] : has_strong_epi_images C :=
-{ strong_factor_thru_image := λ X Y f,
-  { epi := by apply_instance,
-    has_lift := λ A B x y h h_mono w, arrow.has_lift.mk
-    { lift := image.lift
-      { I := pullback h y,
-        m := pullback.snd ≫ image.ι f,
-        m_mono := by exactI mono_comp _ _,
-        e := pullback.lift _ _ w } ≫ pullback.fst } } }
+{ strong_factor_thru_image := λ X Y f, strong_epi.mk'
+  (λ A B h h_mono x y sq, comm_sq.has_lift.mk'
+    { l := image.lift
+        { I := pullback h y,
+          m := pullback.snd ≫ image.ι f,
+          m_mono := by exactI mono_comp _ _,
+          e := pullback.lift _ _ sq.w } ≫ pullback.fst,
+      fac_left' := by simp only [image.fac_lift_assoc, pullback.lift_fst],
+      fac_right' := by { ext, simp only [sq.w, category.assoc,
+        image.fac_lift_assoc, pullback.lift_fst_assoc], }, }) }
 
 end has_strong_epi_images
 
-variables [has_strong_epi_mono_factorisations.{v} C]
+variables [has_strong_epi_mono_factorisations C]
 variables {X Y : C} {f : X ⟶ Y}
 
 /--
@@ -814,3 +827,28 @@ lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' �
 image.lift_fac _
 
 end category_theory.limits
+
+namespace category_theory.functor
+
+open category_theory.limits
+
+variables {C D : Type*} [category C] [category D]
+
+lemma has_strong_epi_mono_factorisations_imp_of_is_equivalence (F : C ⥤ D) [is_equivalence F]
+  [h : has_strong_epi_mono_factorisations C] :
+  has_strong_epi_mono_factorisations D :=
+⟨λ X Y f, begin
+  let em : strong_epi_mono_factorisation (F.inv.map f) :=
+    (has_strong_epi_mono_factorisations.has_fac (F.inv.map f)).some,
+  haveI : mono (F.map em.m ≫ F.as_equivalence.counit_iso.hom.app Y) := mono_comp _ _,
+  haveI : strong_epi (F.as_equivalence.counit_iso.inv.app X ≫ F.map em.e) := strong_epi_comp _ _,
+  exact nonempty.intro
+  { I := F.obj em.I,
+    e := F.as_equivalence.counit_iso.inv.app X ≫ F.map em.e,
+    m := F.map em.m ≫ F.as_equivalence.counit_iso.hom.app Y,
+    fac' := by simpa only [category.assoc, ← F.map_comp_assoc, em.fac',
+      is_equivalence.fun_inv_map, iso.inv_hom_id_app, iso.inv_hom_id_app_assoc]
+        using category.comp_id _, },
+end⟩
+
+end category_theory.functor

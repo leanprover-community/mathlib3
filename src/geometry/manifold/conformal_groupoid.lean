@@ -9,6 +9,9 @@ import geometry.manifold.charted_space
 /-!
 # Conformal Groupoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the groupoid of conformal maps on normed spaces.
 
 ## Main definitions
@@ -20,7 +23,7 @@ In this file we define the groupoid of conformal maps on normed spaces.
 conformal, groupoid
 -/
 
-variables {X : Type*} [normed_group X] [normed_space ℝ X]
+variables {X : Type*} [normed_add_comm_group X] [normed_space ℝ X]
 
 /-- The pregroupoid of conformal maps. -/
 def conformal_pregroupoid : pregroupoid X :=

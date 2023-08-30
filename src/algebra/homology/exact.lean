@@ -8,6 +8,9 @@ import algebra.homology.image_to_kernel
 /-!
 # Exact sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a category with zero morphisms, images, and equalizers we say that `f : A ⟶ B` and `g : B ⟶ C`
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 
@@ -198,13 +201,17 @@ begin
   apply_instance,
 end
 
+/-- The dual of this lemma is only true when `V` is abelian, see `abelian.exact_epi_comp_iff`. -/
+lemma exact_comp_mono_iff [mono h] : exact f (g ≫ h) ↔ exact f g :=
+begin
+  refine ⟨λ hfg, ⟨zero_of_comp_mono h (by rw [category.assoc, hfg.1]), _⟩, λ h, exact_comp_mono h⟩,
+  rw ← (iso.eq_comp_inv _).1 (image_to_kernel_comp_mono _ _ h hfg.1),
+  haveI := hfg.2, apply_instance
+end
+
 @[simp]
 lemma exact_comp_iso [is_iso h] : exact f (g ≫ h) ↔ exact f g :=
-⟨λ w, begin
-    rw [←category.comp_id g, ←is_iso.hom_inv_id h, ←category.assoc],
-    exactI exact_comp_mono w,
-  end,
-  λ w, exact_comp_mono w⟩
+exact_comp_mono_iff
 
 lemma exact_kernel_subobject_arrow : exact (kernel_subobject f).arrow f :=
 begin

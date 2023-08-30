@@ -12,6 +12,9 @@ import topology.unit_interval
 /-!
 # Homotopy between functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define
 `continuous_map.homotopy` between the two functions, with no restrictions on the intermediate
 maps. Then, as in the formalisation in HOL-Analysis, we define
@@ -74,6 +77,9 @@ structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (map_zero_left' : ∀ x, to_fun (0, x) = f₀ x)
 (map_one_left' : ∀ x, to_fun (1, x) = f₁ x)
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_map.homotopy_like F f₀ f₁` states that `F` is a type of homotopies between `f₀` and
 `f₁`.
 
@@ -82,6 +88,8 @@ class homotopy_like (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
   extends continuous_map_class F (I × X) Y :=
 (map_zero_left (f : F) : ∀ x, f (0, x) = f₀ x)
 (map_one_left (f : F) : ∀ x, f (1, x) = f₁ x)
+
+end
 
 -- `f₀` and `f₁` are `out_param` so this is not dangerous
 attribute [nolint dangerous_instance] homotopy_like.to_continuous_map_class
@@ -141,24 +149,24 @@ lemma extend_apply_of_le_zero (F : homotopy f₀ f₁) {t : ℝ} (ht : t ≤ 0) 
   F.extend t x = f₀ x :=
 begin
   rw [←F.apply_zero],
-  exact continuous_map.congr_fun (set.Icc_extend_of_le_left (@zero_le_one ℝ _) F.curry ht) x,
+  exact continuous_map.congr_fun (set.Icc_extend_of_le_left (zero_le_one' ℝ) F.curry ht) x,
 end
 
 lemma extend_apply_of_one_le (F : homotopy f₀ f₁) {t : ℝ} (ht : 1 ≤ t) (x : X) :
   F.extend t x = f₁ x :=
 begin
   rw [←F.apply_one],
-  exact continuous_map.congr_fun (set.Icc_extend_of_right_le (@zero_le_one ℝ _) F.curry ht) x,
+  exact continuous_map.congr_fun (set.Icc_extend_of_right_le (zero_le_one' ℝ) F.curry ht) x,
 end
 
 @[simp]
 lemma extend_apply_coe (F : homotopy f₀ f₁) (t : I) (x : X) : F.extend t x = F (t, x) :=
-continuous_map.congr_fun (set.Icc_extend_coe (@zero_le_one ℝ _) F.curry t) x
+continuous_map.congr_fun (set.Icc_extend_coe (zero_le_one' ℝ) F.curry t) x
 
 @[simp]
 lemma extend_apply_of_mem_I (F : homotopy f₀ f₁) {t : ℝ} (ht : t ∈ I) (x : X) :
   F.extend t x = F (⟨t, ht⟩, x) :=
-continuous_map.congr_fun (set.Icc_extend_of_mem (@zero_le_one ℝ _) F.curry ht) x
+continuous_map.congr_fun (set.Icc_extend_of_mem (zero_le_one' ℝ) F.curry ht) x
 
 lemma congr_fun {F G : homotopy f₀ f₁} (h : F = G) (x : I × X) : F x = G x :=
 continuous_map.congr_fun (congr_arg _ h) x

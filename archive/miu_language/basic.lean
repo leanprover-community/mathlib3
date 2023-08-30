@@ -8,6 +8,9 @@ import tactic.linarith
 /-!
 # An MIU Decision Procedure in Lean
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The [MIU formal system](https://en.wikipedia.org/wiki/MU_puzzle) was introduced by Douglas
 Hofstadter in the first chapter of his 1979 book,
 [Gödel, Escher, Bach](https://en.wikipedia.org/wiki/G%C3%B6del,_Escher,_Bach).

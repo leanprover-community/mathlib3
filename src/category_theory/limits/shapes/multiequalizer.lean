@@ -6,11 +6,13 @@ Authors: Adam Topaz
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.cone_category
-import category_theory.adjunction
 
 /-!
 
 # Multi-(co)equalizers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A *multiequalizer* is an equalizer of two morphisms between two products.
 Since both products and equalizers are limits, such an object is again a limit.
@@ -31,29 +33,29 @@ namespace category_theory.limits
 
 open category_theory
 
-universes v u
+universes w v u
 
 /-- The type underlying the multiequalizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multicospan {L R : Type v} (fst snd : R → L) : Type v
+inductive walking_multicospan {L R : Type w} (fst snd : R → L) : Type w
 | left : L → walking_multicospan
 | right : R → walking_multicospan
 
 /-- The type underlying the multiecoqualizer diagram. -/
 @[nolint unused_arguments]
-inductive walking_multispan {L R : Type v} (fst snd : L → R) : Type v
+inductive walking_multispan {L R : Type w} (fst snd : L → R) : Type w
 | left : L → walking_multispan
 | right : R → walking_multispan
 
 namespace walking_multicospan
 
-variables {L R : Type v} {fst snd : R → L}
+variables {L R : Type w} {fst snd : R → L}
 
 instance [inhabited L] : inhabited (walking_multicospan fst snd) :=
 ⟨left default⟩
 
 /-- Morphisms for `walking_multicospan`. -/
-inductive hom : Π (a b : walking_multicospan fst snd), Type v
+inductive hom : Π (a b : walking_multicospan fst snd), Type w
 | id (A)  : hom A A
 | fst (b) : hom (left (fst b)) (right b)
 | snd (b) : hom (left (snd b)) (right b)
@@ -112,9 +114,9 @@ instance : small_category (walking_multispan fst snd) :=
 end walking_multispan
 
 /-- This is a structure encapsulating the data necessary to define a `multicospan`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure multicospan_index (C : Type u) [category.{v} C] :=
-(L R : Type v)
+(L R : Type w)
 (fst_to snd_to : R → L)
 (left : L → C)
 (right : R → C)
@@ -122,9 +124,9 @@ structure multicospan_index (C : Type u) [category.{v} C] :=
 (snd : Π b, left (snd_to b) ⟶ right b)
 
 /-- This is a structure encapsulating the data necessary to define a `multispan`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure multispan_index (C : Type u) [category.{v} C] :=
-(L R : Type v)
+(L R : Type w)
 (fst_from snd_from : L → R)
 (left : L → C)
 (right : R → C)
@@ -252,11 +254,11 @@ end multispan_index
 variables {C : Type u} [category.{v} C]
 
 /-- A multifork is a cone over a multicospan. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation multifork (I : multicospan_index C) := cone I.multicospan
 
 /-- A multicofork is a cocone over a multispan. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation multicofork (I : multispan_index C) := cocone I.multispan
 
 namespace multifork

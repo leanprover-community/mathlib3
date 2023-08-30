@@ -2115,4 +2115,21 @@ begin
   exact is_o.comp_tendsto (is_o_const_id_at_top _) tendsto_coe_nat_at_top_at_top,
 end
 
+lemma nine_one_nine : ∀ᶠ l in at_top, ∀ k, k = 9 * l →
+  (ramsey_number ![k, l] : ℝ) ≤ exp (- l / 25) * (k + l).choose l :=
+begin
+  filter_upwards [nine_one_precise (1 / 10) (by norm_num1), eventually_ge_at_top 200] with l hl hl'
+    k hk,
+  subst hk,
+  refine (hl (9 * l) (1 / 10) (1 / 10 / 20) _ le_rfl le_rfl rfl).trans _,
+  { rw [nat.cast_mul, ←add_one_mul, mul_comm, ←div_div, div_self],
+    { norm_num1 },
+    { positivity } },
+  refine mul_le_mul_of_nonneg_right (exp_le_exp.2 _) (nat.cast_nonneg _),
+  have : (200 : ℝ) ≤ l := by exact_mod_cast hl',
+  rw [nat.cast_mul],
+  norm_num1,
+  linarith
+end
+
 end simple_graph

@@ -9,6 +9,9 @@ import combinatorics.simple_graph.regularity.energy
 /-!
 # Increment partition for Szemerédi Regularity Lemma
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the proof of Szemerédi Regularity Lemma, we need to partition each part of a starting partition
 to increase the energy. This file defines the partition obtained by gluing the parts partitions
 together (the *increment partition*) and shows that the energy globally increases.

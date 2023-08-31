@@ -9,6 +9,9 @@ import ring_theory.polynomial.cyclotomic.roots
 /-!
 # The Solution of a Cubic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 In this file, we give the solutions to the cubic equation `a * x^3 + b * x^2 + c * x + d = 0`

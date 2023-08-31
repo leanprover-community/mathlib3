@@ -13,6 +13,9 @@ import tactic.field_simp
 /-!
 # IMO 2013 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Prove that for any pair of positive integers k and n, there exist k positive integers
 m₁, m₂, ..., mₖ (not necessarily different) such that
 

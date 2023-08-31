@@ -9,6 +9,9 @@ import algebraic_geometry.locally_ringed_space
 /-!
 # Open immersions of structured spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a morphism of presheafed spaces `f : X ⟶ Y` is an open immersion if
 the underlying map of spaces is an open embedding `f : X ⟶ U ⊆ Y`,
 and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.

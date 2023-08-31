@@ -11,6 +11,9 @@ import order.filter.zero_and_bounded_at_filter
 /-!
 # Bounded at infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For complex valued functions on the upper half plane, this file defines the filter `at_im_infty`
 required for defining when functions are bounded at infinity and zero at infinity.
 Both of which are relevant for defining modular forms.

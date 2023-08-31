@@ -564,8 +564,11 @@ lemma Icc_subset_uIcc' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_su
 @[simp] lemma left_mem_uIcc : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
 @[simp] lemma right_mem_uIcc : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
 
-lemma mem_uIcc_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] := Icc_subset_uIcc $ mem_Icc.2 ⟨ha, hb⟩
-lemma mem_uIcc_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] := Icc_subset_uIcc' $ mem_Icc.2 ⟨hb, ha⟩
+lemma mem_uIcc_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] :=
+Icc_subset_uIcc $ mem_Icc.2 ⟨ha, hb⟩
+
+lemma mem_uIcc_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
+Icc_subset_uIcc' $ mem_Icc.2 ⟨hb, ha⟩
 
 lemma uIcc_subset_uIcc (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 by { rw mem_uIcc at h₁ h₂, exact Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2) }
@@ -576,11 +579,15 @@ by { rw mem_Icc at ha hb, exact Icc_subset_Icc (le_inf ha.1 hb.1) (sup_le ha.2 h
 lemma uIcc_subset_uIcc_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 ⟨λ h, ⟨h left_mem_uIcc, h right_mem_uIcc⟩, λ h, uIcc_subset_uIcc h.1 h.2⟩
 
-lemma uIcc_subset_uIcc_iff_le' : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
+lemma uIcc_subset_uIcc_iff_le' :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
 Icc_subset_Icc_iff inf_le_sup
 
-lemma uIcc_subset_uIcc_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] := uIcc_subset_uIcc h right_mem_uIcc
-lemma uIcc_subset_uIcc_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] := uIcc_subset_uIcc left_mem_uIcc h
+lemma uIcc_subset_uIcc_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
+uIcc_subset_uIcc h right_mem_uIcc
+
+lemma uIcc_subset_uIcc_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
+uIcc_subset_uIcc left_mem_uIcc h
 
 end lattice
 

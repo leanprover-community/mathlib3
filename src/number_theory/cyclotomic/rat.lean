@@ -9,6 +9,9 @@ import ring_theory.polynomial.eisenstein.is_integral
 
 /-!
 # Ring of integers of `p ^ n`-th cyclotomic fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We gather results about cyclotomic extensions of `ℚ`. In particular, we compute the ring of
 integers of a `p ^ n`-th cyclotomic extension of `ℚ`.
 

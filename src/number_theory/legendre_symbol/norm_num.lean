@@ -8,6 +8,9 @@ import number_theory.legendre_symbol.jacobi_symbol
 /-!
 # A `norm_num` extension for Jacobi and Legendre symbols
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We extend the `tactic.interactive.norm_num` tactic so that it can be used to provably compute
 the value of the Jacobi symbol `J(a | b)` or the Legendre symbol `legendre_sym p a` when
 the arguments are numerals.

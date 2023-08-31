@@ -10,6 +10,9 @@ import linear_algebra.exterior_algebra.basic
 /-!
 # Extending an alternating map to the exterior algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `exterior_algebra.lift_alternating`: construct a linear map out of the exterior algebra

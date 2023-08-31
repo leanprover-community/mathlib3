@@ -11,6 +11,9 @@ import data.set.pointwise.iterate
 /-!
 # Ergodic maps of the additive circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains proofs of ergodicity for maps of the additive circle.
 
 ## Main definitions:

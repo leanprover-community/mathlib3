@@ -11,6 +11,9 @@ import ring_theory.norm
 
 # Field/algebra norm and localization
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results on the combination of `algebra.norm` and `is_localization`.
 
 ## Main results

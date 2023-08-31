@@ -11,6 +11,9 @@ import tactic.linear_combination
 /-!
 # Weierstrass equations of elliptic curves
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the structure of an elliptic curve as a nonsingular Weierstrass curve given by a
 Weierstrass equation, which is mathematically accurate in many cases but also good for computation.
 

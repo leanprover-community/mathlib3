@@ -8,6 +8,9 @@ import number_theory.legendre_symbol.quadratic_char.basic
 /-!
 # Legendre symbol
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains results about Legendre symbols.
 
 We define the Legendre symbol $\Bigl(\frac{a}{p}\Bigr)$ as `legendre_sym p a`.

@@ -8,6 +8,9 @@ import analysis.special_functions.gaussian
 
 /-! # Convexity properties of the Gamma function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we prove that `Gamma` and `log ∘ Gamma` are convex functions on the positive real
 line. We then prove the Bohr-Mollerup theorem, which characterises `Gamma` as the *unique*
 positive-real-valued, log-convex function on the positive reals satisfying `f (x + 1) = x f x` and

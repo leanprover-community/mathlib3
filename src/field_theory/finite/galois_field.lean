@@ -13,6 +13,9 @@ import field_theory.splitting_field.is_splitting_field
 /-!
 # Galois fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `p` is a prime number, and `n` a natural number,
 then `galois_field p n` is defined as the splitting field of `X^(p^n) - X` over `zmod p`.
 It is a finite field with `p ^ n` elements.
@@ -152,8 +155,6 @@ begin
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 
-local attribute [-instance] zmod.algebra
-
 /-- A Galois field with exponent 1 is equivalent to `zmod` -/
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
 let h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)) :=
@@ -229,6 +230,8 @@ begin
     all_goals {apply_instance}, },
   rw ← hpp' at *,
   haveI := fact_iff.2 hp,
+  letI : algebra (zmod p) K := zmod.algebra _ _,
+  letI : algebra (zmod p) K' := zmod.algebra _ _,
   exact alg_equiv_of_card_eq p hKK',
 end
 

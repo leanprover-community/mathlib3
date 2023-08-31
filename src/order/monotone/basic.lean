@@ -102,6 +102,21 @@ def strict_anti_on (f : α → β) (s : set α) : Prop :=
 
 end monotone_def
 
+section decidable
+
+variables [preorder α] [preorder β] {f : α → β} {s : set α}
+
+instance [i : decidable (∀ a b, a ≤ b → f a ≤ f b)] : decidable (monotone f) := i
+instance [i : decidable (∀ a b, a ≤ b → f b ≤ f a)] : decidable (antitone f) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f a ≤ f b)] : decidable (monotone_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a ≤ b → f b ≤ f a)] : decidable (antitone_on f s) := i
+instance [i : decidable (∀ a b, a < b → f a < f b)] : decidable (strict_mono f) := i
+instance [i : decidable (∀ a b, a < b → f b < f a)] : decidable (strict_anti f) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f a < f b)] : decidable (strict_mono_on f s) := i
+instance [i : decidable (∀ a b ∈ s, a < b → f b < f a)] : decidable (strict_anti_on f s) := i
+
+end decidable
+
 /-! ### Monotonicity on the dual order
 
 Strictly, many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,

@@ -11,6 +11,9 @@ import linear_algebra.quadratic_form.isometry
 /-!
 # Clifford Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the Clifford algebra of a module `M` over a commutative ring `R`, equipped with
 a quadratic_form `Q`.
 

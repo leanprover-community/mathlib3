@@ -11,6 +11,9 @@ import category_theory.monoidal.Mon_
 /-!
 # `Mon_ (Module R) ≌ Algebra R`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The category of internal monoid objects in `Module R`
 is equivalent to the category of "native" bundled `R`-algebras.
 

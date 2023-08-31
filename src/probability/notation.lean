@@ -8,6 +8,9 @@ import measure_theory.function.conditional_expectation.basic
 
 /-! # Notations for probability theory
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the following notations, for functions `X,Y`, measures `P, Q` defined on a
 measurable space `m0`, and another measurable space structure `m` with `hm : m ≤ m0`,
 - `P[X] = ∫ a, X a ∂P`

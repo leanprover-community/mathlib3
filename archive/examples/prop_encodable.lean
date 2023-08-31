@@ -9,6 +9,9 @@ import data.W.basic
 /-!
 # W types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The file `data/W.lean` shows that if `α` is an an encodable fintype and for every `a : α`,
 `β a` is encodable, then `W β` is encodable.
 

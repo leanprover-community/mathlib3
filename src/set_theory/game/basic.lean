@@ -9,6 +9,9 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the quotient of pre-games by the equivalence relation
 `p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
 as well as an instance `partial_order game`.
@@ -124,6 +127,16 @@ instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group_with_one,
   ..game.partial_order }
+
+/-- A small set `s` of games is bounded above. -/
+lemma bdd_above_of_small (s : set game.{u}) [small.{u} s] : bdd_above s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (upper_bound_mem_upper_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
+
+/-- A small set `s` of games is bounded below. -/
+lemma bdd_below_of_small (s : set game.{u}) [small.{u} s] : bdd_below s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (lower_bound_mem_lower_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
 
 end game
 

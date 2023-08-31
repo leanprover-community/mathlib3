@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.complex
 /-!
 # IMO 1962 Q4
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Solve the equation `cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1`.
 
 Since Lean does not have a concept of "simplest form", we just express what is

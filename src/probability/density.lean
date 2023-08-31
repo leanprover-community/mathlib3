@@ -341,7 +341,7 @@ begin
       simp [hnt] },
     rw [heq, set.inter_univ] at this,
     exact hns this },
-  exact set.indicator_ae_eq_zero hu.symm,
+  exact set.indicator_ae_eq_zero.1 hu.symm,
 end
 
 lemma pdf_to_real_ae_eq {m : measurable_space Ω}

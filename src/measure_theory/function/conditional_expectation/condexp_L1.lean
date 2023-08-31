@@ -7,6 +7,9 @@ import measure_theory.function.conditional_expectation.condexp_L2
 
 /-! # Conditional expectation in L1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains two more steps of the construction of the conditional expectation, which is
 completed in `measure_theory.function.conditional_expectation.basic`. See that file for a
 description of the full process.

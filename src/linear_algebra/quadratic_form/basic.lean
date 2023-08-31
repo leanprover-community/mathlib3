@@ -706,7 +706,7 @@ variables [invertible (2 : R₁)]
 
 /-- `associated` is the linear map that sends a quadratic form over a commutative ring to its
 associated symmetric bilinear form. -/
-abbreviation associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+@[reducible] def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
 associated_hom R₁
 
 @[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :

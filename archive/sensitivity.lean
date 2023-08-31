@@ -15,6 +15,9 @@ import data.real.sqrt
 /-!
 # Huang's sensitivity theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A formalization of Hao Huang's sensitivity theorem: in the hypercube of
 dimension n ≥ 1, if one colors more than half the vertices then at least one
 vertex has at least √n colored neighbors.

@@ -1659,25 +1659,26 @@ begin
   { positivity },
 end
 
-noncomputable def U_lower_bound_ratio (k l m : ℕ) : ℝ :=
-(1 + 1 / 16) ^ m * ∏ i in range m, (l - i) / (k + l - i)
+noncomputable def U_lower_bound_ratio (ξ : ℝ) (k l m : ℕ) : ℝ :=
+(1 + ξ) ^ m * ∏ i in range m, (l - i) / (k + l - i)
 
-lemma U_lower_bound_ratio_eq (k l m : ℕ) :
-  U_lower_bound_ratio k l m = ∏ i in range m, ((1 + 1 / 16) * ((l - i) / (k + l - i))) :=
+lemma U_lower_bound_ratio_eq {ξ : ℝ} (k l m : ℕ) :
+  U_lower_bound_ratio ξ k l m = ∏ i in range m, ((1 + ξ) * ((l - i) / (k + l - i))) :=
 begin
   rw [U_lower_bound_ratio, prod_mul_distrib],
   simp,
 end
 
-lemma U_lower_bound_ratio_of_l_lt_m {k l m : ℕ} (h : l < m) :
-  U_lower_bound_ratio k l m = 0 :=
+lemma U_lower_bound_ratio_of_l_lt_m {ξ : ℝ} {k l m : ℕ} (h : l < m) :
+  U_lower_bound_ratio ξ k l m = 0 :=
 begin
   rw ←mem_range at h,
   rw [U_lower_bound_ratio, prod_eq_zero h, mul_zero],
   rw [sub_self, zero_div],
 end
 
-lemma U_lower_bound_ratio_nonneg {k l m : ℕ} : 0 ≤ U_lower_bound_ratio k l m :=
+lemma U_lower_bound_ratio_nonneg {ξ : ℝ} {k l m : ℕ} (hξ : 0 ≤ ξ) :
+  0 ≤ U_lower_bound_ratio ξ k l m :=
 begin
   cases lt_or_le l m,
   { rw U_lower_bound_ratio_of_l_lt_m h },
@@ -1687,12 +1688,13 @@ begin
   { rw [sub_nonneg, nat.cast_le],
     exact h.trans' (mem_range.1 hi).le },
   rw [mem_range] at hi,
-  refine mul_nonneg (by norm_num1) (div_nonneg this _),
+  refine mul_nonneg (by linarith only [hξ]) (div_nonneg this _),
   rw [add_sub_assoc],
   exact add_nonneg (nat.cast_nonneg _) this
 end
 
-lemma U_lower_bound_ratio_pos {k l m : ℕ} (h : m ≤ l) : 0 < U_lower_bound_ratio k l m :=
+lemma U_lower_bound_ratio_pos {ξ : ℝ} {k l m : ℕ} (hξ : 0 ≤ ξ) (h : m ≤ l) :
+  0 < U_lower_bound_ratio ξ k l m :=
 begin
   rw U_lower_bound_ratio_eq,
   refine prod_pos _,
@@ -1705,25 +1707,25 @@ begin
   positivity
 end
 
-lemma U_lower_bound_decreasing (k l : ℕ) (hlk : l ≤ k) (hk : 0 < k) :
-  antitone (U_lower_bound_ratio k l) :=
+lemma U_lower_bound_decreasing {ξ : ℝ} (k l : ℕ) (hξ : 0 ≤ ξ) (hξ' : ξ ≤ 1)
+  (hlk : l ≤ k) (hk : 0 < k) :
+  antitone (U_lower_bound_ratio ξ k l) :=
 begin
   refine antitone_nat_of_succ_le _,
   intro m,
   cases le_or_lt l m,
   { rw U_lower_bound_ratio_of_l_lt_m,
-    { exact U_lower_bound_ratio_nonneg },
+    { exact U_lower_bound_ratio_nonneg hξ },
     rwa nat.lt_add_one_iff },
   rw [U_lower_bound_ratio_eq, prod_range_succ, ←U_lower_bound_ratio_eq],
   refine mul_le_of_le_one_right _ _,
-  { exact U_lower_bound_ratio_nonneg },
+  { exact U_lower_bound_ratio_nonneg hξ },
   rw [mul_div_assoc', add_sub_assoc, ←nat.cast_sub h.le, div_le_one, add_comm, add_one_mul,
-    add_le_add_iff_right, div_mul_comm, mul_one, div_le_iff'],
-  rotate,
-  { norm_num1 },
-  { positivity },
-  norm_cast,
-  exact ((nat.sub_le _ _).trans hlk).trans (nat.le_mul_of_pos_left (by positivity)),
+    add_le_add_iff_right],
+  { refine (mul_le_of_le_one_left (nat.cast_nonneg _) hξ').trans _,
+    rw nat.cast_le,
+    exact (nat.sub_le _ _).trans hlk },
+  positivity
 end
 
 lemma xi_numeric : exp (1 / 20) < (1 + 1 / 16) :=
@@ -1738,7 +1740,7 @@ lemma U_lower_bound_ratio_lower_bound_aux_aux {k l m n : ℕ} {γ δ : ℝ} (hml
   (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
   (hg : (l - m : ℝ) / (k + l - m) < (l / (k + l)) ^ 2)
   (hn : exp (- δ * k) * (k + l).choose l ≤ n) :
-  ((k + l - m).choose k : ℝ) ≤ n * U_lower_bound_ratio k l m :=
+  ((k + l - m).choose k : ℝ) ≤ n * U_lower_bound_ratio (1 / 16) k l m :=
 begin
   have : ((l + k - m).choose _ : ℝ) / _ = _ := choose_ratio hml,
   rw [U_lower_bound_ratio, add_comm (k : ℝ), ←this],
@@ -1760,7 +1762,7 @@ lemma U_lower_bound_ratio_lower_bound_aux {k l m n : ℕ} {γ δ : ℝ} (hml : m
   (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
   (hg : (l - m : ℝ) / (k + l - m) < (l / (k + l)) ^ 2)
   (hn : exp (- δ * k) * (k + l).choose l ≤ n) :
-  (k : ℝ) ≤ n * U_lower_bound_ratio k l m :=
+  (k : ℝ) ≤ n * U_lower_bound_ratio (1 / 16) k l m :=
 begin
   refine (U_lower_bound_ratio_lower_bound_aux_aux hml.le hk₀ hγ hδ hg hn).trans' _,
   rw [nat.cast_le, add_tsub_assoc_of_le hml.le],
@@ -1775,7 +1777,7 @@ end
 lemma U_lower_bound_ratio_lower_bound' {k l m n : ℕ} {γ δ : ℝ} (hml : m < l) (hk₀ : 0 < k)
   (hlk : l ≤ k) (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
   (hn : exp (- δ * k) * (k + l).choose l ≤ n) (h : (k : ℝ) < (l - 2) * l) :
-  (k : ℝ) ≤ n * U_lower_bound_ratio k l m :=
+  (k : ℝ) ≤ n * U_lower_bound_ratio (1 / 16) k l m :=
 begin
   cases lt_or_le ((l - m : ℝ) / (k + l - m)) ((l / (k + l)) ^ 2) with h' h',
   { exact U_lower_bound_ratio_lower_bound_aux hml hk₀ hγ hδ h' hn },
@@ -1793,8 +1795,8 @@ begin
     rw [div_lt_iff, ←sub_pos],
     { ring_nf, exact h },
     { positivity } },
-  refine (U_lower_bound_ratio_lower_bound_aux this hk₀ hγ hδ _ hn).trans
-    (mul_le_mul_of_nonneg_left (U_lower_bound_decreasing k l hlk hk₀ hm.le) (nat.cast_nonneg _)),
+  refine (U_lower_bound_ratio_lower_bound_aux this hk₀ hγ hδ _ hn).trans (mul_le_mul_of_nonneg_left
+    (U_lower_bound_decreasing k l (by norm_num1) (by norm_num1) hlk hk₀ hm.le) (nat.cast_nonneg _)),
   rw [gamma'_le_gamma_iff this.le hk₀, nat.cast_add_one],
   exact nat.lt_floor_add_one _
 end
@@ -1807,11 +1809,13 @@ begin
   positivity
 end
 
-def is_good_clique {n : ℕ} (k l : ℕ) (χ : top_edge_labelling (fin n) (fin 2)) (x : finset (fin n)) :
-  Prop :=
-χ.monochromatic_of x 1 ∧ (n : ℝ) * (U_lower_bound_ratio k l x.card) ≤ (common_blues χ x).card
+def is_good_clique {n : ℕ} (ξ : ℝ) (k l : ℕ)
+  (χ : top_edge_labelling (fin n) (fin 2)) (x : finset (fin n)) : Prop :=
+χ.monochromatic_of x 1 ∧
+  (n : ℝ) * (U_lower_bound_ratio ξ k l x.card) ≤ (common_blues χ x).card
 
-lemma empty_is_good {n k l : ℕ} {χ : top_edge_labelling (fin n) (fin 2)} : is_good_clique k l χ ∅ :=
+lemma empty_is_good {n k l : ℕ} {ξ : ℝ} {χ : top_edge_labelling (fin n) (fin 2)} :
+  is_good_clique ξ k l χ ∅ :=
 begin
   split,
   { simp },
@@ -1819,9 +1823,9 @@ begin
   simp
 end
 
-lemma good_clique_bound {n k l} {χ : top_edge_labelling (fin n) (fin 2)} {x : finset (fin n)}
+lemma good_clique_bound {n k l ξ} {χ : top_edge_labelling (fin n) (fin 2)} {x : finset (fin n)}
   (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
-  (hx : is_good_clique k l χ x) :
+  (hx : is_good_clique ξ k l χ x) :
   x.card < l :=
 begin
   by_contra',
@@ -1872,24 +1876,29 @@ begin
   linarith,
 end
 
-lemma maximally_good_clique {n k l : ℕ} {χ : top_edge_labelling (fin n) (fin 2)}
+-- here
+lemma maximally_good_clique {n k l : ℕ} {ξ ξ' : ℝ} {χ : top_edge_labelling (fin n) (fin 2)}
+  (hξ : 0 ≤ ξ)
   (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
-  {x : finset (fin n)} (hU : 256 ≤ (common_blues χ x).card)
-  (hx : is_good_clique k l χ x) (h : ∀ y : finset (fin n), is_good_clique k l χ y → ¬ x ⊂ y) :
-  1 - (1 + 1 / 15) * ((l - x.card : ℝ) / (k + l - x.card)) ≤
+  {x : finset (fin n)}
+  (hU : ((common_blues χ x).card : ℝ) / ((common_blues χ x).card - 1) * (1 + ξ) ≤ 1 + ξ')
+  (hU' : 2 ≤ (common_blues χ x).card)
+  (hx : is_good_clique ξ k l χ x)
+  (h : ∀ i : fin n, i ∉ x → is_good_clique ξ k l χ (insert i x) → false) :
+  1 - (1 + ξ') * ((l - x.card : ℝ) / (k + l - x.card)) ≤
     (χ.pullback (function.embedding.subtype _ : common_blues χ x ↪ fin n)).density 0 :=
 begin
   classical,
   have hml := good_clique_bound hχ hx,
   rw [is_good_clique] at hx,
   have : ∀ i ∈ common_blues χ x, i ∉ x ∧
-    ¬ ((n : ℝ) * (U_lower_bound_ratio k l (insert i x).card) ≤ (common_blues χ (insert i x)).card),
+    ¬ ((n : ℝ) * (U_lower_bound_ratio ξ k l (insert i x).card) ≤ (common_blues χ (insert i x)).card),
   { intros i hi,
     rw [common_blues, mem_filter] at hi,
     have : i ∉ x,
     { intro h',
       exact not_mem_col_neighbors (hi.2 i h') },
-    refine ⟨this, λ hi', h (insert i x) ⟨_, hi'⟩ (ssubset_insert this)⟩,
+    refine ⟨this, λ hi', h i this ⟨_, hi'⟩⟩,
     rw [coe_insert, top_edge_labelling.monochromatic_of_insert],
     swap,
     { exact this },
@@ -1901,12 +1910,12 @@ begin
     exact z },
   have hz : ∀ i ∈ common_blues χ x,
     ((blue_neighbors χ i ∩ common_blues χ x).card : ℝ) <
-      (common_blues χ x).card * ((1 + 1 / 16) * ((l - x.card) / (k + l - x.card))),
+      (common_blues χ x).card * ((1 + ξ) * ((l - x.card) / (k + l - x.card))),
   { intros i hi,
     obtain ⟨hi', hi''⟩ := this i hi,
     rw [card_insert_of_not_mem hi', not_le, common_blues_insert, U_lower_bound_ratio_eq,
       prod_range_succ, ←U_lower_bound_ratio_eq, ←mul_assoc, add_sub_assoc] at hi'',
-    have : (0 : ℝ) < (1 + 1 / 16) * ((l - x.card) / (k + (l - x.card))),
+    have : (0 : ℝ) < (1 + ξ) * ((l - x.card) / (k + (l - x.card))),
     { have : (0 : ℝ) < l - x.card,
       { rwa [sub_pos, nat.cast_lt] },
       positivity },
@@ -1915,26 +1924,26 @@ begin
   rw [density_zero_one, maximally_good_clique_aux, sub_le_sub_iff_left],
   swap,
   { rw [fintype.subtype_card, filter_mem_eq_inter, univ_inter],
-    exact hU.trans' (by norm_num1) },
+    exact hU' },
   refine (mul_le_mul_of_nonneg_left (sum_le_sum (λ i hi, (hz i hi).le)) _).trans _,
   { rw [inv_nonneg],
     refine mul_nonneg (nat.cast_nonneg _) _,
     rw [sub_nonneg, nat.one_le_cast],
-    exact hU.trans' (by norm_num1) },
+    exact hU'.trans' (by norm_num1) },
   rw [sum_const, nsmul_eq_mul, inv_mul_eq_div, mul_div_mul_left, ←div_mul_eq_mul_div, ←mul_assoc],
   swap,
   { rw [nat.cast_ne_zero],
-    linarith only [hU] },
+    linarith only [hU'] },
   refine mul_le_mul_of_nonneg_right _ _,
   swap,
   { rw [add_sub_assoc, ←nat.cast_sub hml.le],
     positivity },
-  exact big_U hU
+  exact hU
 end
 
-lemma nine_one_end {k l n : ℕ} {χ : top_edge_labelling (fin n) (fin 2)} {x : finset (fin n)}
+lemma nine_one_end {k l n : ℕ} {ξ : ℝ} {χ : top_edge_labelling (fin n) (fin 2)} {x : finset (fin n)}
   (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
-  (hx : is_good_clique k l χ x)
+  (hx : is_good_clique ξ k l χ x)
   (h : ∃ (m : finset (fin n)) (c : fin 2), m ⊆ common_blues χ x ∧ χ.monochromatic_of ↑m c ∧
     ![k, l - x.card] c ≤ m.card) :
   false :=
@@ -1959,7 +1968,7 @@ lemma nine_one_part_two {k l n : ℕ} {γ δ : ℝ} {χ : top_edge_labelling (fi
   (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
   (hml : x.card < l) (hl₀ : 0 < l) (hlk : l ≤ k)
   (hγ : γ = l / (k + l)) (hδ : δ = γ / 20) (hm : exp (-δ * k) * (k + l).choose l ≤ n)
-  (hx : is_good_clique k l χ x)
+  (hx : is_good_clique (1 / 16) k l χ x)
   (hγ' : (l - x.card : ℝ) / (k + l - x.card) < (l / (k + l)) ^ 2) :
   false :=
 begin
@@ -1974,7 +1983,7 @@ lemma nine_one_part_three {k l m n : ℕ} {γ γ' δ : ℝ} {χ : top_edge_label
   (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
   (hml : m < l) (hk₀ : 0 < k)
   (hγ : γ = l / (k + l)) (hδ : δ = γ / 20) (hγ' : γ' = (l - m) / (k + l - m))
-  (h : exp (-δ * k) * ((k + l).choose l) * U_lower_bound_ratio k l m <
+  (h : exp (-δ * k) * ((k + l).choose l) * U_lower_bound_ratio (1 / 16) k l m <
     exp (-(γ' / 20) * k) * ↑((k + (l - m)).choose (l - m))) :
   false :=
 begin
@@ -2064,7 +2073,7 @@ begin
     exact this.trans' (nat.le_ceil _) },
   by_contra' hm,
   classical,
-  have : (univ.filter (is_good_clique k l χ)).nonempty :=
+  have : (univ.filter (is_good_clique (1 / 16) k l χ)).nonempty :=
     ⟨∅, by simp only [mem_filter, empty_is_good, mem_univ, true_and]⟩,
   obtain ⟨x, hx, hxy⟩ := exists_maximal _ this,
   simp only [mem_filter, mem_univ, true_and] at hx hxy,
@@ -2093,7 +2102,10 @@ begin
   have hγ'₀ : 0 ≤ γ',
   { rw hγ'_eq,
     positivity },
-  have := maximally_good_clique hχ this hx hxy,
+  have hxy' : ∀ i ∉ x, is_good_clique (1 / 16) k l χ (insert i x) → false,
+  { intros i hi hi',
+    exact hxy (insert i x) hi' (ssubset_insert hi) },
+  have := maximally_good_clique (by norm_num1) hχ (big_U this) (this.trans' (by norm_num1)) hx hxy',
   rw [one_add_mul, mul_comm (1 / 15 : ℝ), mul_one_div, ←sub_sub] at this,
   specialize hk₉₂ (l - m) hlm k γ' (γ' / 20) (γ' / 15) hγ'_eq (hγ'.trans' (pow_le_pow_of_le_left
     hγ₀.le (hγl.trans_eq hγ) _)) (hγ'γ.trans hγu) rfl (div_nonneg hγ'₀ (by norm_num1)) le_rfl _ _ _
@@ -2101,7 +2113,8 @@ begin
   replace hk₉₂ := λ z, nine_one_end hχ hx (ramsey_number_le_finset_aux _ (hk₉₂ z)),
   rw [imp_false, not_le, fintype.subtype_card, filter_mem_eq_inter, univ_inter] at hk₉₂,
   replace hk₉₂ := hx.2.trans hk₉₂.le,
-  replace hk₉₂ := (mul_lt_mul_of_pos_right hm (U_lower_bound_ratio_pos hml.le)).trans_le hk₉₂,
+  replace hk₉₂ := (mul_lt_mul_of_pos_right hm (U_lower_bound_ratio_pos (by norm_num1)
+    hml.le)).trans_le hk₉₂,
   exact nine_one_part_three hχ hml (hl₀.trans_le hlk) hγ hδ rfl hk₉₂,
 end
 

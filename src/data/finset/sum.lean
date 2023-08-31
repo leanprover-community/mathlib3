@@ -54,6 +54,8 @@ multiset.mem_disj_sum
 @[simp] lemma inl_mem_disj_sum : inl a ∈ s.disj_sum t ↔ a ∈ s := inl_mem_disj_sum
 @[simp] lemma inr_mem_disj_sum : inr b ∈ s.disj_sum t ↔ b ∈ t := inr_mem_disj_sum
 
+@[simp] lemma disj_sum_eq_empty : s.disj_sum t = ∅ ↔ s = ∅ ∧ t = ∅ := by simp [ext_iff]
+
 lemma disj_sum_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁.disj_sum t₁ ⊆ s₂.disj_sum t₂ :=
 val_le_iff.1 $ disj_sum_mono (val_le_iff.2 hs) (val_le_iff.2 ht)
 

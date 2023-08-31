@@ -9,6 +9,9 @@ import topology.algebra.module.basic
 /-!
 # The kernel of a linear function is closed or dense
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove (`linear_map.is_closed_or_dense_ker`) that the kernel of a linear function `f
 : M →ₗ[R] N` is either closed or dense in `M` provided that `N` is a simple module over `R`. This
 applies, e.g., to the case when `R = N` is a division ring.

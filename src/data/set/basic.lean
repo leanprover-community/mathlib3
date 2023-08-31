@@ -409,7 +409,7 @@ Mathematically it is the same as `α` but it has a different type.
 
 @[simp] theorem set_of_true : {x : α | true} = univ := rfl
 
-@[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
+@[simp, mfld_simps] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
 @[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ is_empty α :=
 eq_empty_iff_forall_not_mem.trans ⟨λ H, ⟨λ x, H x trivial⟩, λ H x _, @is_empty.false α H x⟩
@@ -541,7 +541,8 @@ by simp only [← subset_empty_iff]; exact union_subset_iff
 
 theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
 
-@[simp] theorem mem_inter_iff (x : α) (a b : set α) : x ∈ a ∩ b ↔ (x ∈ a ∧ x ∈ b) := iff.rfl
+@[simp, mfld_simps]
+theorem mem_inter_iff (x : α) (a b : set α) : x ∈ a ∩ b ↔ (x ∈ a ∧ x ∈ b) := iff.rfl
 
 theorem mem_inter {x : α} {a b : set α} (ha : x ∈ a) (hb : x ∈ b) : x ∈ a ∩ b := ⟨ha, hb⟩
 
@@ -569,7 +570,7 @@ ext $ λ x, and.left_comm
 theorem inter_right_comm (s₁ s₂ s₃ : set α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
 ext $ λ x, and.right_comm
 
-@[simp] theorem inter_subset_left (s t : set α) : s ∩ t ⊆ s := λ x, and.left
+@[simp, mfld_simps] theorem inter_subset_left (s t : set α) : s ∩ t ⊆ s := λ x, and.left
 
 @[simp] theorem inter_subset_right (s t : set α) : s ∩ t ⊆ t := λ x, and.right
 
@@ -596,9 +597,9 @@ lemma inter_congr_right (hs : t ∩ u ⊆ s) (ht : s ∩ u ⊆ t) : s ∩ u = t 
 lemma inter_eq_inter_iff_left : s ∩ t = s ∩ u ↔ s ∩ u ⊆ t ∧ s ∩ t ⊆ u := inf_eq_inf_iff_left
 lemma inter_eq_inter_iff_right : s ∩ u = t ∩ u ↔ t ∩ u ⊆ s ∧ s ∩ u ⊆ t := inf_eq_inf_iff_right
 
-@[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
+@[simp, mfld_simps] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
 
-@[simp] theorem univ_inter (a : set α) : univ ∩ a = a := top_inf_eq
+@[simp, mfld_simps] theorem univ_inter (a : set α) : univ ∩ a = a := top_inf_eq
 
 theorem inter_subset_inter {s₁ s₂ t₁ t₂ : set α}
   (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∩ s₂ ⊆ t₁ ∩ t₂ := λ x, and.imp (@h₁ _) (@h₂ _)
@@ -959,6 +960,11 @@ disjoint_sup_right
 
 lemma disjoint_sdiff_left : disjoint (t \ s) s := disjoint_sdiff_self_left
 lemma disjoint_sdiff_right : disjoint s (t \ s) := disjoint_sdiff_self_right
+
+lemma diff_union_diff_cancel (hts : t ⊆ s) (hut : u ⊆ t) : s \ t ∪ t \ u = s \ u :=
+sdiff_sup_sdiff_cancel hts hut
+
+lemma diff_diff_eq_sdiff_union (h : u ⊆ s) : s \ (t \ u) = s \ t ∪ u := sdiff_sdiff_eq_sdiff_sup h
 
 @[simp] lemma disjoint_singleton_left : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl

@@ -11,6 +11,9 @@ import ring_theory.norm
 /-!
 # Selmer groups of fraction fields of Dedekind domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let $K$ be the field of fractions of a Dedekind domain $R$. For any set $S$ of prime ideals in the
 height one spectrum of $R$, and for any natural number $n$, the Selmer group $K(S, n)$ is defined to
 be the subgroup of the unit group $K^\times$ modulo $n$-th powers where each element has $v$-adic

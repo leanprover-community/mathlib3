@@ -12,6 +12,9 @@ import topology.metric_space.cau_seq_filter
 /-!
 # Hensel's lemma on ℤ_p
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
 <http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf>
 

@@ -37,7 +37,9 @@ prod.exists
 
 @[simp] lemma fst_comp_mk (x : α) : prod.fst ∘ (prod.mk x : β → α × β) = function.const β x := rfl
 
-@[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
+@[simp, mfld_simps] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) :
+  map f g (a, b) = (f a, g b) :=
+rfl
 
 lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 
@@ -95,7 +97,7 @@ funext (λ p, ext (map_fst f g p) (map_snd f g p))
 lemma id_prod : (λ (p : α × β), (p.1, p.2)) = id :=
 funext $ λ ⟨a, b⟩, rfl
 
-lemma map_id : (prod.map (@id α) (@id β)) = id :=
+@[simp] lemma map_id : (prod.map (@id α) (@id β)) = id :=
 id_prod
 
 lemma fst_surjective [h : nonempty β] : function.surjective (@fst α β) :=

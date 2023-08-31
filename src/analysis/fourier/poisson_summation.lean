@@ -7,9 +7,13 @@ import analysis.fourier.add_circle
 import analysis.fourier.fourier_transform
 import analysis.p_series
 import analysis.schwartz_space
+import measure_theory.measure.lebesgue.integral
 
 /-!
 # Poisson's summation formula
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove Poisson's summation formula `∑ (n : ℤ), f n = ∑ (n : ℤ), 𝓕 f n`, where `𝓕 f` is the
 Fourier transform of `f`, under the following hypotheses:

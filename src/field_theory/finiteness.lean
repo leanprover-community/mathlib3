@@ -9,6 +9,9 @@ import linear_algebra.dimension
 /-!
 # A module over a division ring is noetherian if and only if it is finite.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 universes u v

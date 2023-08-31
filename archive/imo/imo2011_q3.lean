@@ -9,6 +9,9 @@ import data.real.basic
 /-!
 # IMO 2011 Q3
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let f : ℝ → ℝ be a function that satisfies
 
    f(x + y) ≤ y * f(x) + f(f(x))

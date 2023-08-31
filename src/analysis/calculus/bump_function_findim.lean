@@ -3,14 +3,17 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.bump_function_inner
 import analysis.calculus.series
 import analysis.convolution
+import analysis.inner_product_space.euclidean_dist
+import measure_theory.measure.haar.normed_space
 import data.set.pointwise.support
-import measure_theory.measure.haar_lebesgue
 
 /-!
 # Bump functions in finite-dimensional vector spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Let `E` be a finite-dimensional real normed vector space. We show that any open set `s` in `E` is
 exactly the support of a smooth function taking values in `[0, 1]`,

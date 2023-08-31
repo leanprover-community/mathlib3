@@ -10,6 +10,9 @@ import category_theory.triangulated.rotate
 /-!
 # Pretriangulated Categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of pretriangulated categories and triangulated functors
 between them.
 

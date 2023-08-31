@@ -11,6 +11,9 @@ import tactic.fin_cases
 /-!
 # Not all complementary decompositions of a module over a semiring make up a direct sum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This shows that while `ℤ≤0` and `ℤ≥0` are complementary `ℕ`-submodules of `ℤ`, which in turn
 implies as a collection they are `complete_lattice.independent` and that they span all of `ℤ`, they
 do not form a decomposition into a direct sum.
@@ -18,6 +21,8 @@ do not form a decomposition into a direct sum.
 This file demonstrates why `direct_sum.is_internal_submodule_of_independent_of_supr_eq_top` must
 take `ring R` and not `semiring R`.
 -/
+
+namespace counterexample
 
 lemma units_int.one_ne_neg_one : (1 : ℤˣ) ≠ -1 := dec_trivial
 
@@ -93,3 +98,5 @@ end
 /-- And so they do not represent an internal direct sum. -/
 lemma with_sign.not_internal : ¬direct_sum.is_internal with_sign :=
 with_sign.not_injective ∘ and.elim_left
+
+end counterexample

@@ -777,6 +777,19 @@ by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 end pi
 
+namespace function
+variables {ι : Type*} {π : ι → Type*} [decidable_eq ι]
+
+lemma update_sup [Π i, semilattice_sup (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊔ b) = f.update i a ⊔ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+lemma update_inf [Π i, semilattice_inf (π i)] (f : Π i, π i) (i : ι) (a b : π i) :
+  f.update i (a ⊓ b) = f.update i a ⊓ f.update i b :=
+funext $ λ j, by obtain rfl | hji := eq_or_ne j i; simp [update_noteq, *]
+
+end function
+
 /-!
 ### Monotone functions and lattices
 -/
@@ -833,6 +846,7 @@ hf.dual.map_sup _ _
 end monotone
 
 namespace monotone_on
+variables {f : α → β} {s : set α} {x y : α}
 
 /-- Pointwise supremum of two monotone functions is a monotone function. -/
 protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
@@ -853,6 +867,25 @@ hf.sup hg
 protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
   (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, min (f x) (g x)) s :=
 hf.inf hg
+
+lemma of_map_inf [semilattice_inf α] [semilattice_inf β]
+  (h : ∀ (x ∈ s) (y ∈ s), f (x ⊓ y) = f x ⊓ f y) : monotone_on f s :=
+λ x hx y hy hxy, inf_eq_left.1 $ by rw [←h _ hx _ hy, inf_eq_left.2 hxy]
+
+lemma of_map_sup [semilattice_sup α] [semilattice_sup β]
+  (h : ∀ (x ∈ s) (y ∈ s), f (x ⊔ y) = f x ⊔ f y) : monotone_on f s :=
+(@of_map_inf αᵒᵈ βᵒᵈ _ _ _ _ h).dual
+
+variables [linear_order α]
+
+lemma map_sup [semilattice_sup β] (hf : monotone_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f (x ⊔ y) = f x ⊔ f y :=
+by cases le_total x y; have := hf _ _ h;
+  assumption <|> simp only [h, this, sup_of_le_left, sup_of_le_right]
+
+lemma map_inf [semilattice_inf β] (hf : monotone_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f (x ⊓ y) = f x ⊓ f y :=
+hf.dual.map_sup hx hy
 
 end monotone_on
 
@@ -899,6 +932,7 @@ hf.dual_right.map_inf x y
 end antitone
 
 namespace antitone_on
+variables {f : α → β} {s : set α} {x y : α}
 
 /-- Pointwise supremum of two antitone functions is a antitone function. -/
 protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
@@ -919,6 +953,25 @@ hf.sup hg
 protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
   (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, min (f x) (g x)) s :=
 hf.inf hg
+
+lemma of_map_inf [semilattice_inf α] [semilattice_sup β]
+  (h : ∀ (x ∈ s) (y ∈ s), f (x ⊓ y) = f x ⊔ f y) : antitone_on f s :=
+λ x hx y hy hxy, sup_eq_left.1 $ by rw [←h _ hx _ hy, inf_eq_left.2 hxy]
+
+lemma of_map_sup [semilattice_sup α] [semilattice_inf β]
+  (h : ∀ (x ∈ s) (y ∈ s), f (x ⊔ y) = f x ⊓ f y) : antitone_on f s :=
+(@of_map_inf αᵒᵈ βᵒᵈ _ _ _ _ h).dual
+
+variables [linear_order α]
+
+lemma map_sup [semilattice_inf β] (hf : antitone_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f (x ⊔ y) = f x ⊓ f y :=
+by cases le_total x y; have := hf _ _ h; assumption <|>
+  simp only [h, this, sup_of_le_left, sup_of_le_right, inf_of_le_left, inf_of_le_right]
+
+lemma map_inf [semilattice_sup β] (hf : antitone_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f (x ⊓ y) = f x ⊔ f y :=
+hf.dual.map_sup hx hy
 
 end antitone_on
 

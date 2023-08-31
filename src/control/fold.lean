@@ -14,6 +14,9 @@ import category_theory.category.Kleisli
 
 # List folds generalized to `traversable`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Informally, we can think of `foldl` as a special case of `traverse` where we do not care about the
 reconstructed data structure and, in a state monad, we care about the final state.
 

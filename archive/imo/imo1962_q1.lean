@@ -9,6 +9,9 @@ import data.nat.digits
 /-!
 # IMO 1962 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Find the smallest natural number $n$ which has the following properties:
 
 (a) Its decimal representation has 6 as the last digit.

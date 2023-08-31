@@ -373,7 +373,7 @@ instance : has_add (P ⟶ Q) :=
 instance : add_comm_group (P ⟶ Q) :=
 function.injective.add_comm_group (λ (f : Sheaf.hom P Q), f.1)
   (λ _ _ h, Sheaf.hom.ext _ _ h) rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, by { dsimp at *, ext, simpa [*] }) (λ _ _, by { dsimp at *, ext, simpa [*] })
+  (λ _ _, by { ext, simpa [*] }) (λ _ _, by { ext, simpa [*] })
 
 instance : preadditive (Sheaf J A) :=
 { hom_group := λ P Q, infer_instance,

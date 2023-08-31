@@ -12,6 +12,9 @@ import measure_theory.decomposition.radon_nikodym
 
 # Conditional expectation of real-valued functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some results regarding the conditional expectation of real-valued functions.
 
 ## Main results

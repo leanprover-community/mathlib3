@@ -9,6 +9,9 @@ import topology.sets.compacts
 /-!
 # The Kuratowski embedding
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Any separable metric space can be embedded isometrically in `ℓ^∞(ℝ)`.
 -/
 

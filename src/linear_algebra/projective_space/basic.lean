@@ -9,6 +9,9 @@ import linear_algebra.finite_dimensional
 
 # Projective Spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition of the projectivization of a vector space over a field,
 as well as the bijection between said projectivization and the collection of all one
 dimensional subspaces of the vector space.

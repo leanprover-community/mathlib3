@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.direct_limit
+import algebra.char_p.algebra
 import field_theory.is_alg_closed.basic
+import field_theory.splitting_field.construction
 
 /-!
 # Algebraic Closure
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we construct the algebraic closure of a field
 

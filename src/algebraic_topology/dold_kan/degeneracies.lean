@@ -11,6 +11,9 @@ import tactic.fin_cases
 
 # Behaviour of P_infty with respect to degeneracies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For any `X : simplicial_object C` where `C` is an abelian category,
 the projector `P_infty : K[X] ⟶ K[X]` is supposed to be the projection
 on the normalized subcomplex, parallel to the degenerate subcomplex, i.e.
@@ -21,6 +24,8 @@ if `X : simplicial_object C` with `C` a preadditive category,
 `θ : [n] ⟶ Δ'` is a non injective map in `simplex_category`, then
 `X.map θ.op ≫ P_infty.f n = 0`. It follows from the more precise
 statement vanishing statement `σ_comp_P_eq_zero` for the `P q`.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

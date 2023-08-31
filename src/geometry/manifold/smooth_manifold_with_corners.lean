@@ -9,6 +9,9 @@ import geometry.manifold.charted_space
 /-!
 # Smooth manifolds (possibly with boundary or corners)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A smooth manifold is a manifold modelled on a normed vector space, or a subset like a
 half-space (to get manifolds with boundaries) for which the changes of coordinates are smooth maps.
 We define a model with corners as a map `I : H → E` embedding nicely the topological space `H` in

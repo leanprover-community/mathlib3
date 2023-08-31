@@ -9,12 +9,17 @@ import ring_theory.polynomial.cyclotomic.basic
 /-!
 # Not all coefficients of cyclotomic polynomials are -1, 0, or 1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that not all coefficients of cyclotomic polynomials are equal to `0`, `-1` or `1`, in the
 theorem `not_forall_coeff_cyclotomic_neg_one_zero_one`. We prove this with the counterexample
 `coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2`.
 -/
 
 open nat (proper_divisors) finset
+
+namespace counterexample
 
 section computation
 
@@ -100,3 +105,5 @@ begin
   rw coeff_cyclotomic_105 at h,
   norm_num at h
 end
+
+end counterexample

@@ -13,10 +13,15 @@ import category_theory.idempotents.karoubi_karoubi
 
 # N₁ and N₂ reflects isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, it is shown that the functors
 `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)` and
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ))`
 reflect isomorphisms for any preadditive category `C`.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

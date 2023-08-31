@@ -9,6 +9,9 @@ import category_theory.monoidal.functor
 /-!
 # Promoting a monoidal category to a single object bicategory.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A monoidal category can be thought of as a bicategory with a single object.
 
 The objects of the monoidal category become the 1-morphisms,

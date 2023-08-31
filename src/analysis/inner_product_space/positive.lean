@@ -8,6 +8,9 @@ import analysis.inner_product_space.adjoint
 /-!
 # Positive operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define positive operators in a Hilbert space. We follow Bourbaki's choice
 of requiring self adjointness in the definition.
 
@@ -119,7 +122,7 @@ lemma is_positive_iff_complex (T : E' →L[ℂ] E') :
   is_positive T ↔ ∀ x, (re ⟪T x, x⟫_ℂ : ℂ) = ⟪T x, x⟫_ℂ ∧ 0 ≤ re ⟪T x, x⟫_ℂ :=
 begin
   simp_rw [is_positive, forall_and_distrib, is_self_adjoint_iff_is_symmetric,
-    linear_map.is_symmetric_iff_inner_map_self_real, eq_conj_iff_re],
+    linear_map.is_symmetric_iff_inner_map_self_real, conj_eq_iff_re],
   refl
 end
 

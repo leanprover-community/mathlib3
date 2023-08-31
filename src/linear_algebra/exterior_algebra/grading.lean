@@ -9,6 +9,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the grading structure of the exterior algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many of these results are copied with minimal modification from the tensor algebra.
 
 The main result is `exterior_algebra.graded_algebra`, which says that the exterior algebra is a

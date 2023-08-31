@@ -10,6 +10,9 @@ import group_theory.transfer
 /-!
 # The Schur-Zassenhaus Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove the Schur-Zassenhaus theorem.
 
 ## Main results

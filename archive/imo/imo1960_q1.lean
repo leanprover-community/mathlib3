@@ -9,6 +9,9 @@ import data.nat.digits
 /-!
 # IMO 1960 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine all three-digit numbers $N$ having the property that $N$ is divisible by 11, and
 $\dfrac{N}{11}$ is equal to the sum of the squares of the digits of $N$.
 

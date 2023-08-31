@@ -11,6 +11,9 @@ import data.list.perm
 /-!
 # `gen` Monad
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This monad is used to formulate randomized computations with a parameter
 to specify the desired size of the result.
 

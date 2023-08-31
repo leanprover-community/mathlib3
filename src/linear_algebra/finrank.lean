@@ -8,6 +8,9 @@ import linear_algebra.dimension
 /-!
 # Finite dimension of vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition of the rank of a module, or dimension of a vector space, as a natural number.
 
 ## Main definitions
@@ -84,6 +87,12 @@ begin
     rw [finrank, cardinal.to_nat_apply_of_aleph_0_le h],
     exact n.zero_le },
 end
+
+lemma finrank_le_finrank_of_rank_le_rank
+  (h : lift.{v'} (module.rank K V) ≤ cardinal.lift.{v} (module.rank K V₂))
+  (h' : module.rank K V₂ < ℵ₀) :
+    finrank K V ≤ finrank K V₂ :=
+by simpa only [to_nat_lift] using to_nat_le_of_le_of_lt_aleph_0 (lift_lt_aleph_0.mpr h') h
 
 section
 variables [nontrivial K] [no_zero_smul_divisors K V]
@@ -426,7 +435,7 @@ basis.mk (linear_independent_of_top_le_span_of_card_eq_finrank le_span card_eq) 
 basis.coe_mk _ _
 
 /-- A finset of `finrank K V` vectors forms a basis if they span the whole space. -/
-@[simps]
+@[simps repr_apply]
 noncomputable def finset_basis_of_top_le_span_of_card_eq_finrank {s : finset V}
   (le_span : ⊤ ≤ span K (s : set V)) (card_eq : s.card = finrank K V) :
   basis (s : set V) K V :=
@@ -435,7 +444,7 @@ basis_of_top_le_span_of_card_eq_finrank (coe : (s : set V) → V)
   (trans (fintype.card_coe _) card_eq)
 
 /-- A set of `finrank K V` vectors forms a basis if they span the whole space. -/
-@[simps]
+@[simps repr_apply]
 noncomputable def set_basis_of_top_le_span_of_card_eq_finrank {s : set V} [fintype s]
   (le_span : ⊤ ≤ span K s) (card_eq : s.to_finset.card = finrank K V) :
   basis s K V :=

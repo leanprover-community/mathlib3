@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import measure_theory.measure.haar_lebesgue
+import measure_theory.measure.lebesgue.eq_haar
 import measure_theory.covering.besicovitch
 
 /-!
 # Satellite configurations for Besicovitch covering lemma in vector spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The Besicovitch covering theorem ensures that, in a nice metric space, there exists a number `N`
 such that, from any family of balls with bounded radii, one can extract `N` families, each made of

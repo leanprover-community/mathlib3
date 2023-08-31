@@ -9,6 +9,9 @@ import category_theory.sites.sheaf
 
 # The plus construction for presheaves.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the construction of `P⁺`, for a presheaf `P : Cᵒᵖ ⥤ D`
 where `C` is endowed with a grothendieck topology `J`.
 

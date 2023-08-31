@@ -9,6 +9,9 @@ import category_theory.differential_object
 /-!
 # Homological complexes are differential graded objects.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We verify that a `homological_complex` indexed by an `add_comm_group` is
 essentially the same thing as a differential graded object.
 

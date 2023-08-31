@@ -7,7 +7,10 @@ Authors: Joël Riou
 import algebraic_topology.dold_kan.gamma_comp_n
 import algebraic_topology.dold_kan.n_reflects_iso
 
-/-! The unit isomorphism of the Dold-Kan equivalence
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ The unit isomorphism of the Dold-Kan equivalence
 
 In order to construct the unit isomorphism of the Dold-Kan equivalence,
 we first construct natural transformations
@@ -17,6 +20,8 @@ It is then shown that `Γ₂N₂.nat_trans` is an isomorphism by using
 that it becomes an isomorphism after the application of the functor
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
 which reflects isomorphisms.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

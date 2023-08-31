@@ -9,6 +9,9 @@ import category_theory.limits.shapes.equalizers
 /-!
 # Wide equalizers and wide coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines wide (co)equalizers as special cases of (co)limits.
 
 A wide equalizer for the family of morphisms `X ⟶ Y` indexed by `J` is the categorical

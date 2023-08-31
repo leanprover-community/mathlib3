@@ -10,6 +10,9 @@ import algebra.homology.additive
 
 /-!
 # Opposite categories of complexes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Given a preadditive category `V`, the opposite of its category of chain complexes is equivalent to
 the category of cochain complexes of objects in `Vᵒᵖ`. We define this equivalence, and another
 analagous equivalence (for a general category of homological complexes with a general

@@ -9,6 +9,9 @@ import linear_algebra.dimension
 /-!
 # Linear recurrence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Informally, a "linear recurrence" is an assertion of the form
 `∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
 where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`

@@ -10,6 +10,9 @@ import analysis.normed_space.units
 /-!
 # Units of a normed algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is a stub, containing a construction of the charted space structure on the group of units
 of a complete normed ring `R`, and of the smooth manifold structure on the group of units of a
 complete normed `𝕜`-algebra `R`.

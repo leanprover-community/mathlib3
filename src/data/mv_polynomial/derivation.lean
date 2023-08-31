@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.mv_polynomial.supported
-import ring_theory.derivation
+import ring_theory.derivation.basic
 
 /-!
 # Derivations of multivariate polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that a derivation of `mv_polynomial σ R` is determined by its values on all
 monomials `mv_polynomial.X i`. We also provide a constructor `mv_polynomial.mk_derivation` that

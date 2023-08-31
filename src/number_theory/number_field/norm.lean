@@ -9,6 +9,9 @@ import ring_theory.norm
 
 /-!
 # Norm in number fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Given a finite extension of number fields, we define the norm morphism as a function between the
 rings of integers.
 

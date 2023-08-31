@@ -9,6 +9,9 @@ import linear_algebra.matrix.special_linear_group
 /-!
 # Slash actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a class of slash actions, which are families of right actions of a given group
 parametrized by some Type. This is modeled on the slash action of `GL_pos (fin 2) ℝ` on the space
 of modular forms.

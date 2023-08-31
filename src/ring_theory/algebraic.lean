@@ -11,6 +11,9 @@ import data.polynomial.integral_normalization
 /-!
 # Algebraic elements and algebraic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial.
 An R-algebra is algebraic over R if and only if all its elements are algebraic over R.
 The main result in this file proves transitivity of algebraicity:

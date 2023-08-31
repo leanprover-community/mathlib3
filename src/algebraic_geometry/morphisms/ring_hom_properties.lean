@@ -10,6 +10,9 @@ import ring_theory.local_properties
 
 # Properties of morphisms from properties of ring homs.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the basic framework for talking about properties of morphisms that come from properties
 of ring homs. For `P` a property of ring homs, we have two ways of defining a property of scheme
 morphisms:

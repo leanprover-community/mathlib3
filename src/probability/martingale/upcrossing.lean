@@ -11,6 +11,9 @@ import probability.martingale.basic
 
 # Doob's upcrossing estimate
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a discrete real-valued submartingale $(f_n)_{n \in \mathbb{N}}$, denoting $U_N(a, b)$ the
 number of times $f_n$ crossed from below $a$ to above $b$ before time $N$, Doob's upcrossing
 estimate (also known as Doob's inequality) states that

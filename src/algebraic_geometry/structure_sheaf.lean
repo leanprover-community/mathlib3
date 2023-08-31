@@ -13,6 +13,9 @@ import ring_theory.subring.basic
 /-!
 # The structure sheaf on `prime_spectrum R`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative ring `R` and prove
 basic properties about it. We define this as a subsheaf of the sheaf of dependent functions into the
 localizations, cut out by the condition that the function must be locally equal to a ratio of

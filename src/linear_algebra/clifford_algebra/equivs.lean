@@ -13,6 +13,9 @@ import linear_algebra.quadratic_form.prod
 /-!
 # Other constructions isomorphic to Clifford Algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains isomorphisms showing that other types are equivalent to some `clifford_algebra`.
 
 ## Rings

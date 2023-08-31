@@ -122,7 +122,7 @@ lemma not_is_bounded_under_of_tendsto_at_bot [preorder β] [no_min_order β] {f 
   ¬ is_bounded_under (≥) l f :=
 @not_is_bounded_under_of_tendsto_at_top α βᵒᵈ _ _ _ _ _ hf
 
-lemma is_bounded_under.bdd_above_range_of_cofinite [semilattice_sup β] {f : α → β}
+lemma is_bounded_under.bdd_above_range_of_cofinite [preorder β] [is_directed β (≤)] {f : α → β}
   (hf : is_bounded_under (≤) cofinite f) : bdd_above (range f) :=
 begin
   rcases hf with ⟨b, hb⟩,
@@ -131,17 +131,17 @@ begin
   exact ⟨⟨b, ball_image_iff.2 $ λ x, id⟩, (hb.image f).bdd_above⟩
 end
 
-lemma is_bounded_under.bdd_below_range_of_cofinite [semilattice_inf β] {f : α → β}
+lemma is_bounded_under.bdd_below_range_of_cofinite [preorder β] [is_directed β (≥)] {f : α → β}
   (hf : is_bounded_under (≥) cofinite f) : bdd_below (range f) :=
-@is_bounded_under.bdd_above_range_of_cofinite α βᵒᵈ _ _ hf
+@is_bounded_under.bdd_above_range_of_cofinite α βᵒᵈ _ _ _ hf
 
-lemma is_bounded_under.bdd_above_range [semilattice_sup β] {f : ℕ → β}
+lemma is_bounded_under.bdd_above_range [preorder β] [is_directed β (≤)] {f : ℕ → β}
   (hf : is_bounded_under (≤) at_top f) : bdd_above (range f) :=
 by { rw ← nat.cofinite_eq_at_top at hf, exact hf.bdd_above_range_of_cofinite }
 
-lemma is_bounded_under.bdd_below_range [semilattice_inf β] {f : ℕ → β}
+lemma is_bounded_under.bdd_below_range [preorder β] [is_directed β (≥)] {f : ℕ → β}
   (hf : is_bounded_under (≥) at_top f) : bdd_below (range f) :=
-@is_bounded_under.bdd_above_range βᵒᵈ _ _ hf
+@is_bounded_under.bdd_above_range βᵒᵈ _ _ _ hf
 
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
 also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
@@ -197,6 +197,31 @@ lemma is_cobounded.mono (h : f ≤ g) : f.is_cobounded r → g.is_cobounded r
 | ⟨b, hb⟩ := ⟨b, assume a ha, hb a (h ha)⟩
 
 end relation
+
+section nonempty
+variables [preorder α] [nonempty α] {f : filter β} {u : β → α}
+
+lemma is_bounded_le_at_bot : (at_bot : filter α).is_bounded (≤) :=
+‹nonempty α›.elim $ λ a, ⟨a, eventually_le_at_bot _⟩
+
+lemma is_bounded_ge_at_top : (at_top : filter α).is_bounded (≥) :=
+‹nonempty α›.elim $ λ a, ⟨a, eventually_ge_at_top _⟩
+
+lemma tendsto.is_bounded_under_le_at_bot (h : tendsto u f at_bot) : f.is_bounded_under (≤) u :=
+is_bounded_le_at_bot.mono h
+
+lemma tendsto.is_bounded_under_ge_at_top (h : tendsto u f at_top) : f.is_bounded_under (≥) u :=
+is_bounded_ge_at_top.mono h
+
+lemma bdd_above_range_of_tendsto_at_top_at_bot [is_directed α (≤)] {u : ℕ → α}
+  (hx : tendsto u at_top at_bot) : bdd_above (set.range u) :=
+hx.is_bounded_under_le_at_bot.bdd_above_range
+
+lemma bdd_below_range_of_tendsto_at_top_at_top [is_directed α (≥)] {u : ℕ → α}
+  (hx : tendsto u at_top at_top) : bdd_below (set.range u) :=
+hx.is_bounded_under_ge_at_top.bdd_below_range
+
+end nonempty
 
 lemma is_cobounded_le_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
 ⟨⊥, assume a h, bot_le⟩
@@ -954,6 +979,15 @@ lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β
   (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : liminf u f < b) :
   ∃ᶠ x in f, u x < b :=
 @frequently_lt_of_lt_limsup _ βᵒᵈ _ f u b hu h
+
+variables [conditionally_complete_linear_order α] {f : filter α} {b : α}
+
+lemma lt_mem_sets_of_Limsup_lt (h : f.is_bounded (≤)) (l : f.Limsup < b) : ∀ᶠ a in f, a < b :=
+let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
+mem_of_superset h $ λ a, hcb.trans_le'
+
+lemma gt_mem_sets_of_Liminf_gt : f.is_bounded (≥) → b < f.Liminf → ∀ᶠ a in f, b < a :=
+@lt_mem_sets_of_Limsup_lt αᵒᵈ _ _ _
 
 end conditionally_complete_linear_order
 

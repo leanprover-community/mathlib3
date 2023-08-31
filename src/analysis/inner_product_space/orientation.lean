@@ -9,6 +9,9 @@ import linear_algebra.orientation
 /-!
 # Orientations of real inner product spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides definitions and proves lemmas about orientations of real inner product spaces.
 
 ## Main definitions
@@ -181,7 +184,7 @@ alternating form uniquely defined by compatibility with the orientation and inne
 begin
   classical,
   unfreezingI { cases n },
-  { let opos : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty ℝ E (1:ℝ),
+  { let opos : alternating_map ℝ E ℝ (fin 0) := alternating_map.const_of_is_empty ℝ E (fin 0) (1:ℝ),
     exact o.eq_or_eq_neg_of_is_empty.by_cases (λ _, opos) (λ _, -opos) },
   { exact (o.fin_orthonormal_basis n.succ_pos _i.out).to_basis.det }
 end

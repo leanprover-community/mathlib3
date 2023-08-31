@@ -8,6 +8,9 @@ import data.int.dvd.basic
 /-!
 # IMO 2011 Q5
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `f` be a function from the set of integers to the set
 of positive integers.  Suppose that, for any two integers
 `m` and `n`, the difference `f(m) - f(n)` is divisible by

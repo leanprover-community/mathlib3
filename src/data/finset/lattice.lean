@@ -686,11 +686,7 @@ end
 
 @[simp] lemma _root_.map_finset_sup' [semilattice_sup β] [sup_hom_class F α β] (f : F)
   {s : finset ι} (hs) (g : ι → α) : f (s.sup' hs g) = s.sup' hs (f ∘ g) :=
-begin
-  induction s using finset.cons_induction with i s hi ih,
-  { cases not_nonempty_empty hs },
-  { obtain rfl | hs := s.eq_empty_or_nonempty; simp [*] }
-end
+by refine hs.cons_induction _ _; intros; simp [*]
 
 @[simp] lemma sup'_image [decidable_eq β] {s : finset γ} {f : γ → β} (hs : (s.image f).nonempty)
   (g : β → α) (hs': s.nonempty := (nonempty.image_iff _).1 hs) :
@@ -782,11 +778,7 @@ lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
 
 @[simp] lemma _root_.map_finset_inf' [semilattice_inf β] [inf_hom_class F α β] (f : F)
   {s : finset ι} (hs) (g : ι → α) : f (s.inf' hs g) = s.inf' hs (f ∘ g) :=
-begin
-  induction s using finset.cons_induction with i s hi ih,
-  { cases not_nonempty_empty hs },
-  { obtain rfl | hs := s.eq_empty_or_nonempty; simp [*] }
-end
+by refine hs.cons_induction _ _; intros; simp [*]
 
 @[simp] lemma inf'_image [decidable_eq β] {s : finset γ} {f : γ → β} (hs : (s.image f).nonempty)
   (g : β → α) (hs': s.nonempty := (nonempty.image_iff _).1 hs) :

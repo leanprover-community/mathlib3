@@ -14,7 +14,7 @@ import linear_algebra.pi
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the standard basis `pi.basis (s : ∀ j, basis (ι j) R (M j))`,
-which is the `Σ j, ι j`-indexed basis of Π j, M j`. The basis vectors are given by
+which is the `Σ j, ι j`-indexed basis of `Π j, M j`. The basis vectors are given by
 `pi.basis s ⟨j, i⟩ j' = linear_map.std_basis R M j' (s j) i = if j = j' then s i else 0`.
 
 The standard basis on `R^η`, i.e. `η → R` is called `pi.basis_fun`.
@@ -254,6 +254,9 @@ by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=
 by simp [basis_fun]
+
+@[simp] lemma basis_fun_equiv_fun : (pi.basis_fun R η).equiv_fun = linear_equiv.refl _ _ :=
+basis.equiv_fun_of_equiv_fun _
 
 end
 

@@ -9,6 +9,9 @@ import control.traversable.lemmas
 /-!
 # Bitraversable instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `bitraversable` instances for concrete bifunctors:
 * `prod`
 * `sum`

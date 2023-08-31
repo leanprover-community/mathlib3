@@ -9,6 +9,9 @@ import order.heyting.hom
 /-!
 # The category of Heyting algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `HeytAlg`, the category of Heyting algebras.
 -/
 

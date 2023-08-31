@@ -9,6 +9,9 @@ import analysis.specific_limits.normed
 /-!
 # The group of units of a complete normed ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the basic theory for the group of units (invertible elements) of a complete
 normed ring (Banach algebras being a notable special case).
 

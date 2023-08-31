@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.complex
 /-!
 # IMO 1962 Q4
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Solve the equation `cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1`.
 
 Since Lean does not have a concept of "simplest form", we just express what is
@@ -17,6 +20,8 @@ in fact the simplest form of the set of solutions, and then prove it equals the 
 
 open real
 open_locale real
+namespace imo1962_q4
+
 noncomputable theory
 
 def problem_equation (x : ℝ) : Prop := cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
@@ -80,6 +85,10 @@ begin
   split; intro; linarith
 end
 
+end imo1962_q4
+
+open imo1962_q4
+
 /-
 The final theorem is now just gluing together our lemmas.
 -/
@@ -90,6 +99,7 @@ begin
   exact exists_or_distrib.symm
 end
 
+namespace imo1962_q4
 
 /-
 We now present a second solution.  The key to this solution is that, when the identity is
@@ -119,6 +129,10 @@ begin
   refine exists_congr (λ k, _),
   split; intro; linarith
 end
+
+end imo1962_q4
+
+open imo1962_q4
 
 /-
 Again, the final theorem is now just gluing together our lemmas.

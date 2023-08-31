@@ -458,17 +458,10 @@ namespace set
 section preorder
 variables [preorder α] [locally_finite_order α] (a b : α)
 
-instance fintype_Icc : fintype (Icc a b) :=
-fintype.of_finset (finset.Icc a b) (λ x, by rw [finset.mem_Icc, mem_Icc])
-
-instance fintype_Ico : fintype (Ico a b) :=
-fintype.of_finset (finset.Ico a b) (λ x, by rw [finset.mem_Ico, mem_Ico])
-
-instance fintype_Ioc : fintype (Ioc a b) :=
-fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
-
-instance fintype_Ioo : fintype (Ioo a b) :=
-fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
+instance fintype_Icc : fintype (Icc a b) := fintype.of_finset (finset.Icc a b) $ λ x, finset.mem_Icc
+instance fintype_Ico : fintype (Ico a b) := fintype.of_finset (finset.Ico a b) $ λ x, finset.mem_Ico
+instance fintype_Ioc : fintype (Ioc a b) := fintype.of_finset (finset.Ioc a b) $ λ x, finset.mem_Ioc
+instance fintype_Ioo : fintype (Ioo a b) := fintype.of_finset (finset.Ioo a b) $ λ x, finset.mem_Ioo
 
 lemma finite_Icc : (Icc a b).finite := (Icc a b).to_finite
 lemma finite_Ico : (Ico a b).finite := (Ico a b).to_finite
@@ -480,11 +473,8 @@ end preorder
 section order_top
 variables [preorder α] [locally_finite_order_top α] (a : α)
 
-instance fintype_Ici : fintype (Ici a) :=
-fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
-
-instance fintype_Ioi : fintype (Ioi a) :=
-fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
+instance fintype_Ici : fintype (Ici a) := fintype.of_finset (finset.Ici a) $ λ x, finset.mem_Ici
+instance fintype_Ioi : fintype (Ioi a) := fintype.of_finset (finset.Ioi a) $ λ x, finset.mem_Ioi
 
 lemma finite_Ici : (Ici a).finite := (Ici a).to_finite
 lemma finite_Ioi : (Ioi a).finite := (Ioi a).to_finite
@@ -494,17 +484,23 @@ end order_top
 section order_bot
 variables [preorder α] [locally_finite_order_bot α] (b : α)
 
-instance fintype_Iic : fintype (Iic b) :=
-fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
-
-instance fintype_Iio : fintype (Iio b) :=
-fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
+instance fintype_Iic : fintype (Iic b) := fintype.of_finset (finset.Iic b) $ λ x, finset.mem_Iic
+instance fintype_Iio : fintype (Iio b) := fintype.of_finset (finset.Iio b) $ λ x, finset.mem_Iio
 
 lemma finite_Iic : (Iic b).finite := (Iic b).to_finite
 lemma finite_Iio : (Iio b).finite := (Iio b).to_finite
 
 end order_bot
 
+section lattice
+variables [lattice α] [locally_finite_order α] (a b : α)
+
+instance fintype_uIcc : fintype (uIcc a b) :=
+fintype.of_finset (finset.uIcc a b) $ λ x, finset.mem_uIcc
+
+@[simp] lemma finite_interval : (uIcc a b).finite := (uIcc _ _).to_finite
+
+end lattice
 end set
 
 /-! ### Instances -/

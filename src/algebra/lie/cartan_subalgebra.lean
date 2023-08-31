@@ -9,6 +9,9 @@ import algebra.lie.normalizer
 /-!
 # Cartan subalgebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Cartan subalgebras are one of the most important concepts in Lie theory. We define them here.
 The standard example is the set of diagonal matrices in the Lie algebra of matrices.
 

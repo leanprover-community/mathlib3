@@ -8,6 +8,9 @@ import data.nat.sqrt
 
 /-! ### `norm_num` plugin for `sqrt`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `norm_num` plugin evaluates `sqrt` by bounding it between consecutive integers.
 -/
 

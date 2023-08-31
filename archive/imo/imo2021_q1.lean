@@ -14,6 +14,9 @@ import tactic.ring_exp
 /-!
 # IMO 2021 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `n≥100` be an integer. Ivan writes the numbers `n, n+1,..., 2n` each on different cards.
 He then shuffles these `n+1` cards, and divides them into two piles. Prove that at least one
 of the piles contains two cards such that the sum of their numbers is a perfect square.
@@ -42,6 +45,8 @@ which finishes the proof.
 -/
 
 open real
+
+namespace imo2021_q1
 
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * l) :
   n + 4 * l ≤ 2 * l * l :=
@@ -150,7 +155,11 @@ begin
     rintros d (rfl|rfl|rfl); split; linarith only [hna, hab, hbc, hcn], },
 end
 
-theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
+end imo2021_q1
+
+open imo2021_q1
+
+theorem imo2021_q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Icc n (2 * n)),
   (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
   (∃ (a b ∈ finset.Icc n (2 * n) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin

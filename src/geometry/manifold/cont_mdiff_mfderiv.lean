@@ -9,6 +9,9 @@ import geometry.manifold.cont_mdiff_map
 /-!
 ### Interactions between differentiability, smoothness and manifold derivatives
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give the relation between `mdifferentiable`, `cont_mdiff`, `mfderiv`, `tangent_map`
 and related notions.
 

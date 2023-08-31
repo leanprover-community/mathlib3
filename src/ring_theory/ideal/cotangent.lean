@@ -38,16 +38,10 @@ instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 
 instance : is_scalar_tower S S' I.cotangent :=
-begin
-  delta cotangent,
-  constructor,
-  intros s s' x,
-  rw [← @is_scalar_tower.algebra_map_smul S' R, ← @is_scalar_tower.algebra_map_smul S' R,
-    ← smul_assoc, ← is_scalar_tower.to_alg_hom_apply S S' R, map_smul],
-  refl
-end
+submodule.quotient.is_scalar_tower _ _
 
-instance [is_noetherian R I] : is_noetherian R I.cotangent := by { delta cotangent, apply_instance }
+instance [is_noetherian R I] : is_noetherian R I.cotangent :=
+submodule.quotient.is_noetherian _
 
 /-- The quotient map from `I` to `I ⧸ I ^ 2`. -/
 @[simps apply (lemmas_only)]

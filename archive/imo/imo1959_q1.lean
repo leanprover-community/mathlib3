@@ -10,6 +10,9 @@ import data.nat.prime
 /-!
 # IMO 1959 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Prove that the fraction `(21n+4)/(14n+3)` is irreducible for every natural number `n`.
 
 Since Lean doesn't have a concept of "irreducible fractions" per se, we just formalize this

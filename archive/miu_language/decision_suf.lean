@@ -9,6 +9,9 @@ import tactic.linarith
 /-!
 # Decision procedure - sufficient condition and decidability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We give a sufficient condition for a string to be derivable in the MIU language. Together with the
 necessary condition, we use this to prove that `derivable` is an instance of `decidable_pred`.
 

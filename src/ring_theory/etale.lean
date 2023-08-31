@@ -10,6 +10,9 @@ import ring_theory.kaehler
 
 # Formally étale morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An `R`-algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebra,
 every square-zero ideal `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists
 exactly (resp. at most, at least) one lift `A →ₐ[R] B`.

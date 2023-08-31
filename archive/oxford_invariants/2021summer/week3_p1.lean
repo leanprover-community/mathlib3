@@ -11,6 +11,9 @@ import data.rat.cast
 /-!
 # The Oxford Invariants Puzzle Challenges - Summer 2021, Week 3, Problem 1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Original statement
 
 Let `n ≥ 3`, `a₁, ..., aₙ` be strictly positive integers such that `aᵢ ∣ aᵢ₋₁ + aᵢ₊₁` for

@@ -1526,6 +1526,20 @@ theorem is_normal.eq_iff_zero_and_succ {f g : ordinal.{u} → ordinal.{u}} (hf :
   exact H b hb
 end)⟩
 
+/-- A two-argument version of `ordinal.blsub`.
+
+We don't develop a full API for this, since it's only used in a handful of existence results. -/
+def blsub₂ (o₁ o₂ : ordinal) (op : Π (a < o₁) (b < o₂), ordinal) : ordinal :=
+lsub (λ x : o₁.out.α × o₂.out.α,
+  op (typein (<) x.1) (typein_lt_self _) (typein (<) x.2) (typein_lt_self _))
+
+theorem lt_blsub₂ {o₁ o₂ : ordinal} (op : Π (a < o₁) (b < o₂), ordinal) {a b : ordinal}
+  (ha : a < o₁) (hb : b < o₂) : op a ha b hb < blsub₂ o₁ o₂ op :=
+begin
+  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
+  simp only [typein_enum]
+end
+
 /-! ### Minimum excluded ordinals -/
 
 /-- The minimum excluded ordinal in a family of ordinals. -/

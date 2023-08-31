@@ -13,6 +13,9 @@ import tactic.wlog
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
 could not tackle the question within the given time limit.
 The problem lead to the introduction of a new proof technique,

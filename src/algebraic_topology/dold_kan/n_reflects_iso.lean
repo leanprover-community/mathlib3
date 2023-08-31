@@ -21,6 +21,8 @@ In this file, it is shown that the functors
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ))`
 reflect isomorphisms for any preadditive category `C`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 open category_theory

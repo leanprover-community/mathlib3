@@ -10,6 +10,9 @@ import data.nat.multiplicity
 /-!
 # IMO 2019 Q4
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Find all pairs `(k, n)` of positive integers such that
 ```
   k! = (2 ^ n - 1)(2 ^ n - 2)(2 ^ n - 4)···(2 ^ n - 2 ^ (n - 1))

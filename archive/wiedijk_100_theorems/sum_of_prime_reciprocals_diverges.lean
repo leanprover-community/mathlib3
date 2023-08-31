@@ -9,6 +9,9 @@ import data.nat.squarefree
 /-!
 # Divergence of the Prime Reciprocal Series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 81 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 The theorem states that the sum of the reciprocals of all prime numbers diverges.
 The formalization follows Erdős's proof by upper and lower estimates.

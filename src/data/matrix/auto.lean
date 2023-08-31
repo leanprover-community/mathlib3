@@ -8,6 +8,9 @@ import data.matrix.reflection
 
 /-! # Automatically generated lemmas for working with concrete matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains "magic" lemmas which autogenerate to the correct size of matrix. For instance,
 `matrix.of_mul_of_fin` can be used as:
 ```lean

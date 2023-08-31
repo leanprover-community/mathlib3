@@ -8,6 +8,9 @@ import field_theory.finite.basic
 /-!
 # IMO 2005 Q4
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Problem: Determine all positive integers relatively prime to all the terms of the infinite sequence
 `a n = 2 ^ n + 3 ^ n + 6 ^ n - 1`, for `n ≥ 1`.
 

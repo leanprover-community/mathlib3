@@ -7,6 +7,9 @@ import algebra.char_p.basic
 
 /-! # `char_p R 0` and `char_zero R` need not coincide for semirings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For rings, the two notions coincide.
 
 In fact, `char_p.of_char_zero` shows that `char_zero R` implies `char_p R 0` for any `char_zero`

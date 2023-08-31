@@ -11,6 +11,9 @@ import measure_theory.measure.lebesgue.integral
 /-!
 # Freek № 9: The Area of a Circle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show that the area of a disc with nonnegative radius `r` is `π * r^2`. The main
 tools our proof uses are `volume_region_between_eq_integral`, which allows us to represent the area
 of the disc as an integral, and `interval_integral.integral_eq_sub_of_has_deriv_at'_of_le`, the

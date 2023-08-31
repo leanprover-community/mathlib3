@@ -9,6 +9,9 @@ import tactic.derive_fintype
 /-!
 # The Königsberg bridges problem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that a graph that represents the islands and mainlands of Königsberg and seven bridges
 between them has no Eulerian trail.
 -/

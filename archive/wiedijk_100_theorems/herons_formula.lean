@@ -8,6 +8,9 @@ import geometry.euclidean.triangle
 /-!
 # Freek № 57: Heron's Formula
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 57 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/),
 also known as Heron's formula, which gives the area of a triangle based only on its three sides'
 lengths.

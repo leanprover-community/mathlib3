@@ -3,6 +3,7 @@ Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
+import data.fun_like.fintype
 import data.rel
 import data.set.finite
 import data.sym.sym2
@@ -288,6 +289,13 @@ instance : complete_boolean_algebra (simple_graph V) :=
 
 @[simps] instance (V : Type u) : inhabited (simple_graph V) := ⟨⊥⟩
 
+instance [subsingleton V] : unique (simple_graph V) :=
+{ default := ⊥,
+  uniq := λ G, by ext a b; simp [subsingleton.elim a b] }
+
+instance [nontrivial V] : nontrivial (simple_graph V) :=
+⟨⟨⊥, ⊤, λ h, not_subsingleton V ⟨by simpa [ext_iff, function.funext_iff] using h⟩⟩⟩
+
 section decidable
 
 variables (V) (H : simple_graph V) [decidable_rel G.adj] [decidable_rel H.adj]
@@ -372,6 +380,17 @@ by { ext ⟨x, y⟩, refl }
 @[simp] lemma edge_set_sdiff : (G₁ \ G₂).edge_set = G₁.edge_set \ G₂.edge_set :=
 by { ext ⟨x, y⟩, refl }
 
+variables {G G₁ G₂}
+
+@[simp] lemma disjoint_edge_set : disjoint G₁.edge_set G₂.edge_set ↔ disjoint G₁ G₂ :=
+by rw [set.disjoint_iff, disjoint_iff_inf_le, ←edge_set_inf, ←edge_set_bot, ←set.le_iff_subset,
+  order_embedding.le_iff_le]
+
+@[simp] lemma edge_set_eq_empty : G.edge_set = ∅ ↔ G = ⊥ := by rwa [←edge_set_bot, edge_set_inj]
+
+@[simp] lemma edge_set_nonempty : G.edge_set.nonempty ↔ G ≠ ⊥ :=
+by rw [set.nonempty_iff_ne_empty, edge_set_eq_empty.ne]
+
 /--
 This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,
 allows proving `(G \ from_edge_set s).edge_set = G.edge_set \ s` by `simp`.
@@ -405,6 +424,8 @@ end
 
 lemma adj_iff_exists_edge_coe : G.adj a b ↔ ∃ (e : G.edge_set), ↑e = ⟦(a, b)⟧ :=
 by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtype.coe_mk]
+
+variables (G G₁ G₂)
 
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
@@ -481,6 +502,16 @@ begin
   simp only [from_edge_set_adj, ne.def, not_false_iff, and_true, and_imp] {contextual := tt},
   exact λ vws _, h vws,
 end
+
+@[simp] lemma disjoint_from_edge_set : disjoint G (from_edge_set s) ↔ disjoint G.edge_set s :=
+begin
+  conv_rhs { rw ←set.diff_union_inter s {e | e.is_diag} },
+  rw [←disjoint_edge_set, edge_set_from_edge_set, set.disjoint_union_right, and_iff_left],
+  exact set.disjoint_left.2 (λ e he he', not_is_diag_of_mem_edge_set _ he he'.2),
+end
+
+@[simp] lemma from_edge_set_disjoint : disjoint (from_edge_set s) G ↔ disjoint s G.edge_set :=
+by rw [disjoint.comm, disjoint_from_edge_set, disjoint.comm]
 
 instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
 by { rw edge_set_from_edge_set s, apply_instance }
@@ -680,6 +711,9 @@ end edge_finset
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
 
+@[simp] lemma not_mem_neighbor_set_self : a ∉ G.neighbor_set a :=
+(mem_neighbor_set _ _ _).not.2 $ G.loopless _
+
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
 by simp [incidence_set]
 
@@ -820,6 +854,9 @@ by { ext, simp }
 lemma delete_edges_eq_sdiff_from_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G \ from_edge_set s :=
 by { ext, exact ⟨λ h, ⟨h.1, not_and_of_not_left _ h.2⟩, λ h, ⟨h.1, not_and'.mp h.2 h.ne⟩⟩ }
+
+@[simp] lemma delete_edges_eq {s : set (sym2 V)} : G.delete_edges s = G ↔ disjoint G.edge_set s :=
+by rw [delete_edges_eq_sdiff_from_edge_set, sdiff_eq_left, disjoint_from_edge_set]
 
 lemma compl_eq_delete_edges :
   Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
@@ -1343,10 +1380,23 @@ infix ` ↪g ` : 50 := embedding
 infix ` ≃g ` : 50 := iso
 
 namespace hom
-variables {G G'} (f : G →g G')
+variables {G G'} {H : simple_graph W} (f : G →g G')
 
 /-- The identity homomorphism from a graph to itself. -/
-abbreviation id : G →g G := rel_hom.id _
+protected abbreviation id : G →g G := rel_hom.id _
+
+@[simp, norm_cast] lemma coe_id : ⇑(hom.id : G →g G) = _root_.id := rfl
+
+instance [subsingleton (V → W)] : subsingleton (G →g H) := fun_like.coe_injective.subsingleton
+
+instance [is_empty V] : unique (G →g H) :=
+{ default := ⟨is_empty_elim, is_empty_elim⟩,
+  uniq := λ _, subsingleton.elim _ _ }
+
+noncomputable instance [fintype V] [fintype W] : fintype (G →g H) :=
+by classical; exact fun_like.fintype _
+
+instance [finite V] [finite W] : finite (G →g H) := fun_like.finite _
 
 lemma map_adj {v w : V} (h : G.adj v w) : G'.adj (f v) (f w) := f.map_rel' h
 
@@ -1405,10 +1455,15 @@ abbreviation comp (f' : G' →g G'') (f : G →g G') : G →g G'' := f'.comp f
 
 @[simp] lemma coe_comp (f' : G' →g G'') (f : G →g G') : ⇑(f'.comp f) = f' ∘ f := rfl
 
+/-- The graph homomorphism from a smaller graph to a bigger one. -/
+def of_le {H : simple_graph V} (h : G ≤ H) : G →g H := ⟨id, h⟩
+
+@[simp, norm_cast] lemma coe_of_le {H : simple_graph V} (h : G ≤ H) : ⇑(of_le h) = id := rfl
+
 end hom
 
 namespace embedding
-variables {G G'} (f : G ↪g G')
+variables {G G'} {H : simple_graph W} (f : G ↪g G')
 
 /-- The identity embedding from a graph to itself. -/
 abbreviation refl : G ↪g G := rel_embedding.refl _
@@ -1416,7 +1471,9 @@ abbreviation refl : G ↪g G := rel_embedding.refl _
 /-- An embedding of graphs gives rise to a homomorphism of graphs. -/
 abbreviation to_hom : G →g G' := f.to_rel_hom
 
-lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
+@[simp] lemma coe_to_hom (f : G ↪g H) : ⇑f.to_hom = f := rfl
+
+@[simp] lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
 
 lemma map_mem_edge_set_iff {e : sym2 V} : e.map f ∈ G'.edge_set ↔ e ∈ G.edge_set :=
 quotient.ind (λ ⟨v, w⟩, f.map_adj_iff) e

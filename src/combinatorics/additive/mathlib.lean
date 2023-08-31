@@ -123,24 +123,8 @@ variables {α : Type*} {s : finset α} {a : α}
 
 lemma one_le_card : 1 ≤ s.card ↔ s.nonempty := card_pos
 
-/-- A finset is nontrivial if it has at least two elements. -/
-@[reducible] protected def nontrivial' (s : finset α) : Prop := (s : set α).nontrivial
-
-@[simp] lemma not_nontrivial_empty : ¬ (∅ : finset α).nontrivial' := by simp [finset.nontrivial']
-
-@[simp] lemma not_nontrivial_singleton : ¬ ({a} : finset α).nontrivial' :=
-by simp [finset.nontrivial']
-
-lemma nontrivial'.ne_singleton (hs : s.nontrivial') : s ≠ {a} :=
-by { rintro rfl, exact not_nontrivial_singleton hs }
-
-lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial' ↔ s ≠ {a} :=
-⟨nontrivial'.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
-
-lemma nontrivial'.one_lt_card : s.nontrivial' → 1 < s.card := finset.one_lt_card.2
-
--- TODO: Fix implicitness of `finset.attach_nonempty_iff`
-protected lemma nonempty.attach : s.nonempty → s.attach.nonempty := s.attach_nonempty_iff.2
+alias attach_nonempty_iff ↔ _ nonempty.attach
+attribute [protected] nonempty.attach
 
 end finset
 

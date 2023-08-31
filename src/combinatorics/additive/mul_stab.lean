@@ -92,7 +92,7 @@ begin
 end
 
 @[to_additive] lemma nonempty.mul_stab_nontrivial (h : s.nonempty) :
-  s.mul_stab.nontrivial' ↔ s.mul_stab ≠ 1 :=
+  s.mul_stab.nontrivial ↔ s.mul_stab ≠ 1 :=
 nontrivial_iff_ne_singleton h.one_mem_mul_stab
 
 @[to_additive] lemma subset_mul_stab_mul_left (ht : t.nonempty) : s.mul_stab ⊆ (s * t).mul_stab :=

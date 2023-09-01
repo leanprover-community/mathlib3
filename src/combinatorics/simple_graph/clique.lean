@@ -67,14 +67,14 @@ variables {G H} {a b : α}
 @[simp] lemma is_clique_empty : G.is_clique ∅ := set.pairwise_empty _
 @[simp] lemma is_clique_singleton (a : α) : G.is_clique {a} := set.pairwise_singleton _ _
 
-@[simp] lemma is_clique_pair : G.is_clique {a, b} ↔ a ≠ b → G.adj a b :=
+lemma is_clique_pair : G.is_clique {a, b} ↔ a ≠ b → G.adj a b :=
 set.pairwise_pair_of_symmetric G.symm
 
 @[simp] lemma is_clique_insert :
   G.is_clique (insert a s) ↔ G.is_clique s ∧ ∀ b ∈ s, a ≠ b → G.adj a b :=
 set.pairwise_insert_of_symmetric G.symm
 
-@[simp] lemma is_clique_insert_of_not_mem (ha : a ∉ s) :
+lemma is_clique_insert_of_not_mem (ha : a ∉ s) :
   G.is_clique (insert a s) ↔ G.is_clique s ∧ ∀ b ∈ s, G.adj a b :=
 set.pairwise_insert_of_symmetric_of_not_mem G.symm ha
 

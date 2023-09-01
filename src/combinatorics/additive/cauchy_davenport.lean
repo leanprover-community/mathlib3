@@ -75,8 +75,9 @@ lemma well_founded_on_devos_mul_rel :
   {x : finset α × finset α | x.1.nonempty ∧ x.2.nonempty}.well_founded_on
     (devos_mul_rel : finset α × finset α → finset α × finset α → Prop) :=
 begin
-  refine is_well_founded.wf.on_fun.well_founded_on.prod_lex (λ n, set.well_founded_on.prod_lex _ $
-    λ n, is_well_founded.wf.on_fun.well_founded_on),
+  refine is_well_founded.wf.on_fun.well_founded_on.prod_lex_of_well_founded_on_fiber
+    (λ n, set.well_founded_on.prod_lex_of_well_founded_on_fiber _ $
+      λ n, is_well_founded.wf.on_fun.well_founded_on),
   exact is_well_founded.wf.on_fun.well_founded_on.mono' (λ x hx y hy, tsub_lt_tsub_left_of_le $
     add_le_add ((card_le_card_mul_right _ hx.1.2).trans_eq hx.2) $
       (card_le_card_mul_left _ hx.1.1).trans_eq hx.2),

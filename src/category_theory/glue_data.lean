@@ -12,6 +12,9 @@ import category_theory.limits.shapes.types
 /-!
 # Gluing data
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `glue_data` as a family of data needed to glue topological spaces, schemes, etc. We
 provide the API to realize it as a multispan diagram, and also states lemmas about its
 interaction with a functor that preserves certain pullbacks.
@@ -42,7 +45,7 @@ such that
     `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
 10. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data :=
 (J : Type v)
 (U : J → C)

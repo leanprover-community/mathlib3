@@ -8,6 +8,9 @@ import data.set.intervals.basic
 /-!
 # Intervals in `with_top α` and `with_bot α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove various lemmas about `set.image`s and `set.preimage`s of intervals under
 `coe : α → with_top α` and `coe : α → with_bot α`.
 -/

@@ -9,6 +9,9 @@ import algebra.algebra.basic
 
 /-!
 # The `zmod n`-algebra structure on rings whose characteristic divides `n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace zmod
@@ -21,7 +24,9 @@ instance (p : ℕ) : subsingleton (algebra (zmod p) R) :=
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]
 
-/-- The `zmod n`-algebra structure on rings whose characteristic `m` divides `n` -/
+/-- The `zmod n`-algebra structure on rings whose characteristic `m` divides `n`.
+See note [reducible non-instances]. -/
+@[reducible]
 def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 { smul := λ a r, a * r,
   to_has_opposite_smul := { smul := λ a r, r * a.unop },
@@ -29,7 +34,7 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
   begin
     rcases zmod.int_cast_surjective a with ⟨k, rfl⟩,
     show zmod.cast_hom h R k * r = r * zmod.cast_hom h R k,
-    rw ring_hom.map_int_cast,
+    rw map_int_cast,
     exact commute.cast_int_left r k,
   end,
   smul_def' := λ a r, rfl,
@@ -38,6 +43,10 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
-instance (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
+/-- The `zmod p`-algebra structure on a ring of characteristic `p`. This is not an
+instance since it creates a diamond with `algebra.id`.
+See note [reducible non-instances]. -/
+@[reducible]
+def algebra (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
 
 end zmod

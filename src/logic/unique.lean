@@ -9,6 +9,9 @@ import logic.is_empty
 /-!
 # Types with a unique term
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a typeclass `unique`,
 which expresses that a type has a unique term.
 In other words, a type that is `inhabited` and a `subsingleton`.

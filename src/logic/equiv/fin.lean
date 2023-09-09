@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fin.vec_notation
-import logic.equiv.basic
-import tactic.norm_num
+import data.int.order.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences for `fin n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u
@@ -29,18 +32,10 @@ equiv.equiv_punit _
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
-⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
-  λb, cond b 1 0,
-  begin
-    refine fin.cases _ _, by norm_num,
-    refine fin.cases _ _, by norm_num,
-    exact λi, fin_zero_elim i
-  end,
-  begin
-    rintro ⟨_|_⟩,
-    { refl },
-    { rw ← fin.succ_zero_eq_one, refl }
-  end⟩
+{ to_fun := ![ff, tt],
+  inv_fun := λ b, cond b 1 0,
+  left_inv := fin.forall_fin_two.2 $ by simp,
+  right_inv := bool.forall_bool.2 $ by simp }
 
 /-- `Π i : fin 2, α i` is equivalent to `α 0 × α 1`. See also `fin_two_arrow_equiv` for a
 non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α β : Type u`. -/
@@ -184,6 +179,61 @@ fin_succ_equiv_symm_some m
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
   fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
+
+lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last n) :
+  fin_succ_equiv' (fin.last n) i =
+    fin.cast_lt i (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h) : ↑i < n) :=
+begin
+  have h' : ↑i < n := lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h),
+  conv_lhs { rw ←fin.cast_succ_cast_lt i h' },
+  convert fin_succ_equiv'_below _,
+  rw fin.cast_succ_cast_lt i h',
+  exact h'
+end
+
+lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last n)
+  (hj : j ≠ i) :
+  fin_succ_equiv' i j = (i.cast_lt (lt_of_le_of_ne (fin.le_last _)
+                                     (fin.coe_injective.ne_iff.2 hi) : ↑i < n)).pred_above j :=
+begin
+  rw [fin.pred_above],
+  have hi' : ↑i < n := lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 hi),
+  rcases hj.lt_or_lt with hij | hij,
+  { simp only [hij.not_lt, fin.cast_succ_cast_lt, not_false_iff, dif_neg],
+    convert fin_succ_equiv'_below _,
+    { simp },
+    { exact hij } },
+  { simp only [hij, fin.cast_succ_cast_lt, dif_pos],
+    convert fin_succ_equiv'_above _,
+    { simp },
+    { simp [fin.le_cast_succ_iff, hij] } }
+end
+
+/-- `succ_above` as an order isomorphism between `fin n` and `{x : fin (n + 1) // x ≠ p}`. -/
+def fin_succ_above_equiv (p : fin (n + 1)) : fin n ≃o {x : fin (n + 1) // x ≠ p} :=
+{ map_rel_iff' := λ _ _, p.succ_above.map_rel_iff',
+  ..equiv.option_subtype p ⟨(fin_succ_equiv' p).symm, rfl⟩ }
+
+lemma fin_succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
+  fin_succ_above_equiv p i = ⟨p.succ_above i, p.succ_above_ne i⟩ :=
+rfl
+
+lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last n}) :
+  (fin_succ_above_equiv (fin.last n)).symm x =
+    fin.cast_lt (x : fin (n + 1))
+                (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 x.property)) :=
+begin
+  rw [←option.some_inj, ←option.coe_def],
+  simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_last_apply x.property,
+end
+
+lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last n)
+  (x : {x : fin (n + 1) // x ≠ p}) : (fin_succ_above_equiv p).symm x =
+    (p.cast_lt (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h))).pred_above x :=
+begin
+  rw [←option.some_inj, ←option.coe_def],
+  simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_ne_last_apply h x.property
+end
 
 /-- `equiv` between `fin (n + 1)` and `option (fin n)` sending `fin.last n` to `none` -/
 def fin_succ_equiv_last {n : ℕ} : fin (n + 1) ≃ option (fin n) :=
@@ -375,11 +425,45 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
         ... = y.1 : nat.mod_eq_of_lt y.2),
   right_inv := λ x, fin.eq_of_veq $ nat.mod_add_div _ _ }
 
+/-- The equivalence induced by `a ↦ (a / n, a % n)` for nonzero `n`.
+
+This is like `fin_prod_fin_equiv.symm` but with `m` infinite.
+See `nat.div_mod_unique` for a similar propositional statement. -/
+@[simps]
+def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
+{ to_fun := λ a, (a / n, ↑a),
+  inv_fun := λ p, p.1 * n + ↑p.2,  -- TODO: is there a canonical order of `*` and `+` here?
+  left_inv := λ a, nat.div_add_mod' _ _,
+  right_inv := λ p, begin
+    refine prod.ext _ (fin.ext $ nat.mul_add_mod_of_lt p.2.is_lt),
+    dsimp only,
+    rw [add_comm, nat.add_mul_div_right _ _ (ne_zero.pos n), nat.div_eq_of_lt p.2.is_lt, zero_add],
+  end }
+
+/-- The equivalence induced by `a ↦ (a / n, a % n)` for nonzero `n`.
+
+See `int.div_mod_unique` for a similar propositional statement. -/
+@[simps]
+def int.div_mod_equiv (n : ℕ) [ne_zero n] : ℤ ≃ ℤ × fin n :=
+{ -- TODO: could cast from int directly if we import `data.zmod.defs`, though there are few lemmas
+  -- about that coercion.
+  to_fun := λ a, (a / n, ↑(a.nat_mod n)),
+  inv_fun := λ p, p.1 * n + ↑p.2,
+  left_inv := λ a, by simp_rw [coe_coe, fin.coe_of_nat_eq_mod, int.coe_nat_mod, int.nat_mod,
+    int.to_nat_of_nonneg (int.mod_nonneg _ $ ne_zero.ne n), int.mod_mod, int.div_add_mod'],
+  right_inv := λ ⟨q, r, hrn⟩, begin
+    simp only [fin.coe_mk, prod.mk.inj_iff, fin.ext_iff, coe_coe],
+    obtain ⟨h1, h2⟩ := ⟨int.coe_nat_nonneg r, int.coe_nat_lt.2 hrn⟩,
+    rw [add_comm, int.add_mul_div_right _ _ (ne_zero.ne n), int.div_eq_zero_of_lt h1 h2,
+        int.nat_mod, int.add_mul_mod_self, int.mod_eq_of_lt h1 h2, int.to_nat_coe_nat],
+    exact ⟨zero_add q, fin.coe_coe_of_lt hrn⟩,
+  end }
+
 /-- Promote a `fin n` into a larger `fin m`, as a subtype where the underlying
 values are retained. This is the `order_iso` version of `fin.cast_le`. -/
 @[simps apply symm_apply]
 def fin.cast_le_order_iso {n m : ℕ} (h : n ≤ m) : fin n ≃o {i : fin m // (i : ℕ) < n} :=
-{ to_fun := λ i, ⟨fin.cast_le h i, by simpa using i.is_lt⟩,
+{ to_fun := λ i, ⟨fin.cast_le h i, by simp⟩,
   inv_fun := λ i, ⟨i, i.prop⟩,
   left_inv := λ _, by simp,
   right_inv := λ _, by simp,

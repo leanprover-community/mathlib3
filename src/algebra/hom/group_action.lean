@@ -3,11 +3,14 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action
-import group_theory.group_action.defs
+import algebra.group_ring_action.basic
+import algebra.module.basic
 
 /-!
 # Equivariant homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -34,6 +37,8 @@ The above types have corresponding classes:
 
 -/
 
+assert_not_exists submonoid
+
 variables (M' : Type*)
 variables (X : Type*) [has_smul M' X]
 variables (Y : Type*) [has_smul M' Y]
@@ -49,17 +54,16 @@ variables (R' : Type*) [ring R'] [mul_semiring_action M R']
 variables (S : Type*) [semiring S] [mul_semiring_action M S]
 variables (S' : Type*) [ring S'] [mul_semiring_action M S']
 variables (T : Type*) [semiring T] [mul_semiring_action M T]
-variables (G : Type*) [group G] (H : subgroup G)
 
 set_option old_structure_cmd true
 
 /-- Equivariant functions. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_action_hom :=
 (to_fun : X → Y)
 (map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
 
-notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
+notation (name := mul_action_hom) X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 /-- `smul_hom_class F M X Y` states that `F` is a type of morphisms preserving
 scalar multiplication by `M`.
@@ -258,7 +262,7 @@ end semiring
 end distrib_mul_action_hom
 
 /-- Equivariant ring homomorphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_semiring_action_hom extends R →+[M] S, R →+* S.
 
 /-- Reinterpret an equivariant ring homomorphism as a ring homomorphism. -/
@@ -339,18 +343,3 @@ ext $ λ x, by rw [comp_apply, id_apply]
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom
-
-section
-variables (M) {R'} (U : subring R') [is_invariant_subring M U]
-
-/-- The canonical inclusion from an invariant subring. -/
-def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, ..U.subtype }
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom :
-  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
-
-end

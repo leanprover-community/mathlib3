@@ -9,6 +9,9 @@ import data.pfun
 /-!
 # The category of types with partial functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `PartialFun`, the category of types equipped with partial functions.
 
 This category is classically equivalent to the category of pointed types. The reason it doesn't hold
@@ -39,7 +42,7 @@ namespace PartialFun
 instance : has_coe_to_sort PartialFun Type* := ⟨id⟩
 
 /-- Turns a type into a `PartialFun`. -/
-@[nolint has_inhabited_instance] def of : Type* → PartialFun := id
+@[nolint has_nonempty_instance] def of : Type* → PartialFun := id
 
 @[simp] lemma coe_of (X : Type*) : ↥(of X) = X := rfl
 

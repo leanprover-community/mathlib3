@@ -5,9 +5,13 @@ Authors: Nicolò Cavalleri, Yury Kudryashov
 -/
 
 import geometry.manifold.cont_mdiff_map
+import geometry.manifold.cont_mdiff_mfderiv
 
 /-!
 # Diffeomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file implements diffeomorphisms.
 
 ## Definitions
@@ -43,13 +47,13 @@ practice.
 diffeomorphism, manifold
 -/
 
-open_locale manifold topological_space
+open_locale manifold topology
 open function set
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {H : Type*} [topological_space H]
 {H' : Type*} [topological_space H']
 {G : Type*} [topological_space G]
@@ -61,7 +65,7 @@ variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
 {N' : Type*} [topological_space N'] [charted_space G' N']
-{n : with_top ℕ}
+{n : ℕ∞}
 
 section defs
 
@@ -70,18 +74,20 @@ variables (I I' M M' n)
 /--
 `n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
 -/
-@[protect_proj, nolint has_inhabited_instance]
+@[protect_proj, nolint has_nonempty_instance]
 structure diffeomorph extends M ≃ M' :=
 (cont_mdiff_to_fun  : cont_mdiff I I' n to_equiv)
 (cont_mdiff_inv_fun : cont_mdiff I' I n to_equiv.symm)
 
 end defs
 
-localized "notation M ` ≃ₘ^` n:1000 `⟮`:50 I `,` J `⟯ ` N := diffeomorph I J M N n" in manifold
-localized "notation M ` ≃ₘ⟮` I `,` J `⟯ ` N := diffeomorph I J M N ⊤" in manifold
-localized "notation E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph) M ` ≃ₘ^` n:1000 `⟮`:50 I `, ` J `⟯ ` N :=
+  diffeomorph I J M N n" in manifold
+localized "notation (name := diffeomorph.top) M ` ≃ₘ⟮` I `, ` J `⟯ ` N :=
+  diffeomorph I J M N ⊤" in manifold
+localized "notation (name := diffeomorph.self) E ` ≃ₘ^` n:1000 `[`:50 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' n" in manifold
-localized "notation E ` ≃ₘ[` 𝕜 `] ` E' :=
+localized "notation (name := diffeomorph.self.top) E ` ≃ₘ[` 𝕜 `] ` E' :=
   diffeomorph (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') E E' ⊤" in manifold
 
 namespace diffeomorph
@@ -122,6 +128,11 @@ equiv.coe_fn_injective.comp to_equiv_injective
 
 @[ext] lemma ext {h h' : M ≃ₘ^n⟮I, I'⟯ M'} (Heq : ∀ x, h x = h' x) : h = h' :=
 coe_fn_injective $ funext Heq
+
+instance : continuous_map_class (M ≃ₘ⟮I, J⟯ N) M N :=
+{ coe := coe_fn,
+  coe_injective' := coe_fn_injective,
+  map_continuous := λ f, f.continuous }
 
 section
 
@@ -409,7 +420,7 @@ def to_trans_diffeomorph (e : E ≃ₘ[𝕜] F) : M ≃ₘ⟮I, I.trans_diffeomo
     begin
       refine cont_mdiff_within_at_iff'.2 ⟨continuous_within_at_id, _⟩,
       refine e.symm.cont_diff.cont_diff_within_at.congr' (λ y hy, _) _,
-      { simp only [mem_inter_eq, I.ext_chart_at_trans_diffeomorph_target] at hy,
+      { simp only [mem_inter_iff, I.ext_chart_at_trans_diffeomorph_target] at hy,
         simp only [equiv.coe_refl, equiv.refl_symm, id, (∘),
           I.coe_ext_chart_at_trans_diffeomorph_symm, (ext_chart_at I x).right_inv hy.1] },
       exact ⟨(ext_chart_at _ x).map_source (mem_ext_chart_source _ x), trivial,

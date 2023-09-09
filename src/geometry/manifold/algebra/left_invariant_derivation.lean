@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
+import ring_theory.derivation.lie
 import geometry.manifold.derivation_bundle
 
 /-!
 
 # Left invariant derivations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the concept of left invariant derivation for a Lie group. The concept is
 analogous to the more classical concept of left invariant vector fields, and it holds that the
@@ -23,8 +27,8 @@ noncomputable theory
 
 open_locale lie_group manifold derivation
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 

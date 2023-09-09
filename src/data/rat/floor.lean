@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
 import algebra.order.floor
+import algebra.euclidean_domain.instances
 import tactic.field_simp
 
 /-!
 # Floor Function for Rational Numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Summary
 
@@ -65,7 +69,7 @@ by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
 @[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
-by rw [round, round, ← this, floor_cast]
+by rw [round_eq, round_eq, ← this, floor_cast]
 
 @[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
 by simp only [fract, cast_sub, cast_coe_int, floor_cast]
@@ -125,9 +129,8 @@ begin
     have : ((q.denom - q.num * ⌊q_inv⌋ : ℚ) / q.num).num = q.denom - q.num * ⌊q_inv⌋, by
     { suffices : ((q.denom : ℤ) - q.num * ⌊q_inv⌋).nat_abs.coprime q.num.nat_abs, by
         exact_mod_cast (rat.num_div_eq_of_coprime q_num_pos this),
-      have : (q.num.nat_abs : ℚ) = (q.num : ℚ), by exact_mod_cast q_num_abs_eq_q_num,
       have tmp := nat.coprime_sub_mul_floor_rat_div_of_coprime q.cop.symm,
-      simpa only [this, q_num_abs_eq_q_num] using tmp },
+      simpa only [nat.cast_nat_abs, abs_of_nonneg q_num_pos.le] using tmp },
     rwa this },
   -- to show the claim, start with the following inequality
   have q_inv_num_denom_ineq : q⁻¹.num - ⌊q⁻¹⌋ * q⁻¹.denom < q⁻¹.denom, by

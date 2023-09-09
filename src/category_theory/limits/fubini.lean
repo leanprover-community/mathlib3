@@ -10,6 +10,9 @@ import category_theory.functor.currying
 /-!
 # A Fubini theorem for categorical limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that $lim_{J × K} G = lim_J (lim_K G(j, -))$ for a functor `G : J × K ⥤ C`,
 when all the appropriate limits exist.
 
@@ -127,7 +130,7 @@ def cone_of_cone_uncurry_is_limit
         dsimp,
         slice_rhs 3 4 { rw ←nat_trans.naturality, },
         slice_rhs 2 3 { rw ←(D.obj j).π.naturality, },
-        simp only [functor.const.obj_map, category.id_comp, category.assoc],
+        simp only [functor.const_obj_map, category.id_comp, category.assoc],
         have w := (D.map fj).w k',
         dsimp at w,
         rw ←w,

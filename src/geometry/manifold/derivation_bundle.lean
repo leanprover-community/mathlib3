@@ -5,11 +5,14 @@ Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.smooth_functions
-import ring_theory.derivation
+import ring_theory.derivation.basic
 
 /-!
 
 # Derivation bundle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the derivations at a point of a manifold on the algebra of smooth fuctions.
 Moreover, we define the differential of a function in terms of derivations.
@@ -20,10 +23,10 @@ of the Lie algebra for a Lie group.
 
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [charted_space H M] (n : with_top ℕ)
+(M : Type*) [topological_space M] [charted_space H M] (n : ℕ∞)
 
 open_locale manifold
 
@@ -35,15 +38,15 @@ instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^�
 which is defined as `f • r = f(x) * r`. -/
 @[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
-localized "notation `C^` n `⟮` I `,` M `;` 𝕜 `⟯⟨` x `⟩` :=
+localized "notation (name := pointed_smooth_map) `C^` n `⟮` I `, ` M `; ` 𝕜 `⟯⟨` x `⟩` :=
   pointed_smooth_map 𝕜 I M n x" in derivation
 
 variables {𝕜 M}
 
 namespace pointed_smooth_map
 
-instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ (λ _, M → 𝕜) :=
-cont_mdiff_map.has_coe_to_fun
+instance fun_like {x : M} : fun_like C^∞⟮I, M; 𝕜⟯⟨x⟩ M (λ _, 𝕜) :=
+cont_mdiff_map.fun_like
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
 -- times out without the `show`
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := show algebra 𝕜 C^∞⟮I, M; 𝕜⟯, from smooth_map.algebra
@@ -96,7 +99,7 @@ lemma eval_at_apply (x : M) : eval_at x X f = (X f) x := rfl
 
 end derivation
 
-variables {I} {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+variables {I} {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M']
 
@@ -121,10 +124,10 @@ def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
 hfdifferential (rfl : f x = f x)
 
 /- Standard notation for the differential. The abbreviation is `MId`. -/
-localized "notation `𝒅` := fdifferential" in manifold
+localized "notation (name := fdifferential) `𝒅` := fdifferential" in manifold
 
 /- Standard notation for the differential. The abbreviation is `MId`. -/
-localized "notation `𝒅ₕ` := hfdifferential" in manifold
+localized "notation (name := hfdifferential) `𝒅ₕ` := hfdifferential" in manifold
 
 @[simp] lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) {x : M} (v : point_derivation I x)
   (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅f x v g = v (g.comp f) := rfl
@@ -132,7 +135,7 @@ localized "notation `𝒅ₕ` := hfdifferential" in manifold
 @[simp] lemma apply_hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y)
   (v : point_derivation I x) (g : C^∞⟮I', M'; 𝕜⟯) : 𝒅ₕh v g = 𝒅f x v g := rfl
 
-variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+variables {E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 

@@ -6,9 +6,14 @@ Authors: Alex Zhao
 import data.nat.modeq
 import group_theory.submonoid.basic
 import group_theory.submonoid.membership
+import tactic.ring
+import tactic.zify
 
 /-!
 # Frobenius Number in Two Variables
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we first define a predicate for Frobenius numbers, then solve the 2-variable variant
 of this problem.

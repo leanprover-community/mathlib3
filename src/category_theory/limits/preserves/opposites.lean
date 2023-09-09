@@ -9,6 +9,9 @@ import category_theory.limits.preserves.finite
 /-!
 # Limit preservation properties of `functor.op` and related constructions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We formulate conditions about `F` which imply that `F.op`, `F.unop`, `F.left_op` and `F.right_op`
 preserve certain (co)limits.
 

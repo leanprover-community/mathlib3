@@ -3,13 +3,16 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.measure.lebesgue
+import measure_theory.measure.lebesgue.basic
 import number_theory.liouville.residual
 import number_theory.liouville.liouville_with
 import analysis.p_series
 
 /-!
 # Volume of the set of Liouville numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
 strictly greater than two is a set of Lebesuge measure zero, see
@@ -25,7 +28,7 @@ measure. The fact that the filters are disjoint means that two mutually exclusiv
 Liouville number, Lebesgue measure, residual, generic property
 -/
 
-open_locale filter big_operators ennreal topological_space nnreal
+open_locale filter big_operators ennreal topology nnreal
 open filter set metric measure_theory real
 
 lemma set_of_liouville_with_subset_aux :
@@ -75,7 +78,7 @@ begin
   simp only [← set_of_exists],
   refine measure_mono_null set_of_liouville_with_subset_aux _,
   rw measure_Union_null_iff, intro m, rw measure_preimage_add_right, clear m,
-  refine (measure_bUnion_null_iff $ countable_encodable _).2 (λ n (hn : 1 ≤ n), _),
+  refine (measure_bUnion_null_iff $ to_countable _).2 (λ n (hn : 1 ≤ n), _),
   generalize hr : (2 + 1 / n : ℝ) = r,
   replace hr : 2 < r, by simp [← hr, zero_lt_one.trans_le hn], clear hn n,
   refine measure_set_of_frequently_eq_zero _,

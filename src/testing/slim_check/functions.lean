@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import data.list.sigma
 import data.int.range
-import data.finsupp.basic
+import data.finsupp.defs
 import data.finsupp.to_dfinsupp
 import tactic.pretty_cases
 import testing.slim_check.sampleable
@@ -13,6 +13,9 @@ import testing.slim_check.testable
 
 /-!
 ## `slim_check`: generators for functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `sampleable` instances for `α → β` functions and
 `ℤ → ℤ` injective functions.

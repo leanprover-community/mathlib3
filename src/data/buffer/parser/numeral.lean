@@ -8,6 +8,9 @@ import data.buffer.parser.basic
 /-!
 # Numeral parsers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file expands on the existing `nat : parser ℕ` to provide parsers into any type `α` that
 can be represented by a numeral, which relies on `α` having a 0, 1, and addition operation.
 There are also convenience parsers that ensure that the numeral parsed in is not larger than
@@ -122,7 +125,7 @@ do
 Matches an integer, like `43` or `-2`.
 Large numbers may cause performance issues, so don't run this parser on untrusted input.
 -/
-meta def int : parser int :=
+def int : parser int :=
 (coe <$> nat) <|> (ch '-' >> has_neg.neg <$> coe <$> nat)
 
 /--
@@ -131,7 +134,7 @@ Requires that the negation is in the numerator,
 and that both a numerator and denominator are provided (e.g. will not match `43`).
 Large numbers may cause performance issues, so don't run this parser on untrusted input.
 -/
-meta def rat : parser rat :=
+def rat : parser rat :=
 (λ x y, ↑x / ↑y) <$> int <*> (ch '/' >> nat)
 
 end parser

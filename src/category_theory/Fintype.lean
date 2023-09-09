@@ -8,11 +8,13 @@ import category_theory.concrete_category.basic
 import category_theory.full_subcategory
 import category_theory.skeletal
 import category_theory.elementwise
-import data.fin.basic
-import data.fintype.basic
+import data.fintype.card
 
 /-!
 # The category of finite types.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the category of finite types, denoted `Fintype` as
 (bundled) types with a `fintype` instance.

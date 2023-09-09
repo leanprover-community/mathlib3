@@ -3,13 +3,16 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.tower
+import algebra.algebra.operations
+import algebra.algebra.subalgebra.tower
 import linear_algebra.prod
 import linear_algebra.finsupp
-import algebra.algebra.operations
 
 /-!
 # Adjoining elements to form subalgebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basic theory of subalgebras of an R-algebra generated
 by a set of elements. A basic interface for `adjoin` is set up.
@@ -270,8 +273,23 @@ begin
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
-lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
-  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+lemma adjoin_adjoin_of_tower [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (s : set B) : adjoin A (adjoin R s : set B) = adjoin A s :=
+begin
+  apply le_antisymm (adjoin_le _),
+  { exact adjoin_mono subset_adjoin },
+  { change adjoin R s ≤ (adjoin A s).restrict_scalars R,
+    refine adjoin_le _,
+    exact subset_adjoin }
+end
+
+variable {R}
+
+lemma pow_smul_mem_of_smul_subset_of_mem_adjoin
+  [comm_semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (r : A) (s : set B) (B' : subalgebra R B) (hs : r • s ⊆ B') {x : B} (hx : x ∈ adjoin R s)
+  (hr : algebra_map A B r ∈ B') :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ B' :=
 begin
   change x ∈ (adjoin R s).to_submodule at hx,
   rw [adjoin_eq_span, finsupp.mem_span_iff_total] at hx,
@@ -280,15 +298,23 @@ begin
   use l.support.sup n₁,
   intros n hn,
   rw finsupp.smul_sum,
-  refine (adjoin R (r • s)).to_submodule.sum_mem _,
+  refine B'.to_submodule.sum_mem _,
   intros a ha,
   have : n ≥ n₁ a := le_trans (finset.le_sup ha) hn,
   dsimp only,
-  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul, smul_smul _ (l a), mul_comm,
-    ← smul_smul, adjoin_eq_span],
-  refine submodule.smul_mem _ _ _,
-  exact submodule.smul_mem _ _ (submodule.subset_span (n₂ a))
+  rw [← tsub_add_cancel_of_le this, pow_add, ← smul_smul,
+    ← is_scalar_tower.algebra_map_smul A (l a) (a : B), smul_smul (r ^ n₁ a),
+    mul_comm, ← smul_smul, smul_def, map_pow, is_scalar_tower.algebra_map_smul],
+  apply subalgebra.mul_mem _ (subalgebra.pow_mem _ hr _) _,
+  refine subalgebra.smul_mem _ _ _,
+  change _ ∈ B'.to_submonoid,
+  rw ← submonoid.closure_eq B'.to_submonoid,
+  apply submonoid.closure_mono hs (n₂ a),
 end
+
+lemma pow_smul_mem_adjoin_smul (r : R) (s : set A) {x : A} (hx : x ∈ adjoin R s) :
+  ∃ n₀ : ℕ, ∀ n ≥ n₀, r ^ n • x ∈ adjoin R (r • s) :=
+pow_smul_mem_of_smul_subset_of_mem_adjoin r s _ subset_adjoin hx (subalgebra.algebra_map_mem _ _)
 
 end comm_semiring
 

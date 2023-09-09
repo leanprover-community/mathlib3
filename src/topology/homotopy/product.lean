@@ -9,6 +9,9 @@ import topology.homotopy.path
 /-!
 # Product of homotopies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we introduce definitions for the product of
 homotopies. We show that the products of relative homotopies
 are still relative homotopies. Finally, we specialize to the case

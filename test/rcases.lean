@@ -189,6 +189,38 @@ example : bool → false → true
 | ff := by rintro ⟨⟩
 | tt := by rintro ⟨⟩
 
+example : true :=
+begin
+  obtain h : true,
+  { trivial },
+  exact h
+end
+
+example {a b} (h : a ∧ b) : a ∧ b :=
+begin
+  rcases h with t,
+  exact t
+end
+
+structure baz {α : Type*} (f : α → α) : Prop := [inst : nonempty α] (h : f ∘ f = id)
+example {α} (f : α → α) (h : baz f) : true := by { rcases h with ⟨_⟩; trivial }
+example {α} (f : α → α) (h : baz f) : true := by { rcases h with @⟨_, _⟩; trivial }
+
+inductive test : nat → Prop
+| a (n) : test (2 + n)
+| b {n} : n > 5 → test (n * n)
+
+example {n} (h : test n) : n = n :=
+begin
+  have : true,
+  { rcases h with a | b,
+    { guard_hyp a : nat, trivial },
+    { guard_hyp b : ‹nat› > 5, trivial } },
+  { rcases h with a | @⟨n, b⟩,
+    { guard_hyp a : nat, trivial },
+    { guard_hyp b : n > 5, trivial } },
+end
+
 open tactic
 meta def test_rcases_hint (s : string) (num_goals : ℕ) (depth := 5) : tactic unit :=
 do change `(true),
@@ -223,7 +255,118 @@ inductive foo (α : Type) : ℕ → Type
 
 example {α} (h : foo α 0) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 2
 example {α} (h : foo α 1) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 1
-example {α n} (h : foo α n) : true := by test_rcases_hint "_ | ⟨n, h_ᾰ⟩" 2 1
+example {α n} (h : foo α n) : true := by test_rcases_hint "_ | h_ᾰ" 2 1
 
 example {α} (V : set α) (h : ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) :=
 by test_rcases_hint "⟨⟨h_w_fst, h_w_snd⟩, ⟨⟩⟩" 0
+
+section rsuffices
+
+/-- These next few are duplicated from `rcases/obtain` tests, with the goal order swapped. -/
+
+example : true :=
+begin
+  rsuffices ⟨n : ℕ, h : n = n, -⟩ : ∃ n : ℕ, n = n ∧ true,
+  { guard_hyp n : ℕ,
+    guard_hyp h : n = n,
+    success_if_fail {assumption},
+    trivial },
+  { existsi 0, simp },
+end
+
+example : true :=
+begin
+  rsuffices : ∃ n : ℕ, n = n ∧ true,
+  { trivial },
+  { existsi 0, simp },
+end
+
+example : true :=
+begin
+  rsuffices (h : true) | ⟨⟨⟩⟩ : true ∨ false,
+  { guard_hyp h : true,
+    trivial },
+  { left, trivial },
+end
+
+example : true :=
+begin
+  success_if_fail {rsuffices ⟨h, h2⟩},
+  trivial
+end
+
+example (x y : α × β) : true :=
+begin
+  rsuffices ⟨⟨a, b⟩, c, d⟩ : (α × β) × (α × β),
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : α,
+    guard_hyp d : β,
+    trivial },
+  { exact ⟨x, y⟩ }
+end
+
+-- This test demonstrates why `swap` is not used in the implementation of `rsuffices`:
+-- it would make the _second_ goal the one requiring ⟨x, y⟩, not the last one.
+example (x y : α ⊕ β) : true :=
+begin
+  rsuffices ⟨a|b, c|d⟩ : (α ⊕ β) × (α ⊕ β),
+  { guard_hyp a : α, guard_hyp c : α, trivial },
+  { guard_hyp a : α, guard_hyp d : β, trivial },
+  { guard_hyp b : β, guard_hyp c : α, trivial },
+  { guard_hyp b : β, guard_hyp d : β, trivial },
+  exact ⟨x, y⟩,
+end
+
+example {α} (V : set α) (w : true → ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) : true :=
+begin
+  rsuffices ⟨a, h⟩ : ∃ p, p ∈ (V.foo V) ∩ (V.foo V),
+  { trivial },
+  { exact w trivial },
+end
+
+-- Now some tests that ensure that things stay in the correct order.
+
+-- This test demonstrates why `focus1` is required in the definition of `rsuffices`; otherwise
+-- the `∃ ...` goal would get put _after_ the `true` goal.
+example : nonempty ℕ ∧ true :=
+begin
+  split,
+  rsuffices ⟨n : ℕ, hn⟩ : ∃ n, _,
+  { exact ⟨n⟩ },
+  { exact true },
+  { exact ⟨0, trivial⟩ },
+  { trivial },
+end
+
+section instances
+
+example (h : Π {α}, inhabited α) : inhabited (α ⊕ β) :=
+begin
+  rsufficesI (ha | hb) : inhabited α ⊕ inhabited β,
+  { exact ⟨sum.inl default⟩ },
+  { exact ⟨sum.inr default⟩ },
+  { exact sum.inl h }
+end
+
+include β
+-- this test demonstrates that the `resetI` also applies onto the goal.
+example (h : Π {α}, inhabited α) : inhabited α :=
+begin
+  have : inhabited β := h,
+  rsufficesI t : β,
+  { exact h },
+  { exact default }
+end
+
+example (h : Π {α}, inhabited α) : β :=
+begin
+  rsufficesI ht : inhabited β,
+  { guard_hyp ht : inhabited β,
+    exact default },
+  { exact h }
+end
+
+end instances
+
+end rsuffices

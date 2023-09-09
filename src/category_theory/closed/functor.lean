@@ -11,6 +11,9 @@ import category_theory.adjunction.fully_faithful
 /-!
 # Cartesian closed functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define the exponential comparison morphisms for a functor which preserves binary products, and use
 them to define a cartesian closed functor: one which (naturally) preserves exponentials.
 

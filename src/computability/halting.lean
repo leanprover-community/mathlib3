@@ -8,6 +8,9 @@ import computability.partrec_code
 /-!
 # Computability theory and the halting problem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A universal partial recursive function, Rice's theorem, and the halting problem.
 
 ## References
@@ -203,12 +206,12 @@ have hC : ∀ f, f ∈ C ↔ eval f ∈ eval '' C,
 from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
 ⟨λ h, or_iff_not_imp_left.2 $ λ C0,
   set.eq_univ_of_forall $ λ cg,
-  let ⟨cf, fC⟩ := set.ne_empty_iff_nonempty.1 C0 in
+  let ⟨cf, fC⟩ := set.nonempty_iff_ne_empty.2 C0 in
   (hC _).2 $ rice (eval '' C) (h.of_eq hC)
     (partrec.nat_iff.1 $ eval_part.comp (const cf) computable.id)
     (partrec.nat_iff.1 $ eval_part.comp (const cg) computable.id)
     ((hC _).1 fC),
-λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
+λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_iff_false];
   exact ⟨by apply_instance, computable.const _⟩⟩
 
 theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=

@@ -9,6 +9,9 @@ import model_theory.substructures
 /-!
 # Elementary Maps Between First-Order Structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main Definitions
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
@@ -38,11 +41,11 @@ variables [L.Structure M] [L.Structure N] [L.Structure P] [L.Structure Q]
   realizations of formulas. -/
 structure elementary_embedding :=
 (to_fun : M → N)
-(map_formula' : ∀{n} (φ : L.formula (fin n)) (x : fin n → M),
+(map_formula' : ∀ {{n}} (φ : L.formula (fin n)) (x : fin n → M),
   φ.realize (to_fun ∘ x) ↔ φ.realize x . obviously)
 
-localized "notation A ` ↪ₑ[`:25 L `] ` B := first_order.language.elementary_embedding L A B"
-  in first_order
+localized "notation (name := elementary_embedding)
+  A ` ↪ₑ[`:25 L `] ` B := first_order.language.elementary_embedding L A B" in first_order
 
 variables {L} {M} {N}
 
@@ -59,7 +62,7 @@ instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
 
 instance : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) := fun_like.has_coe_to_fun
 
-@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type} {n : ℕ}
+@[simp] lemma map_bounded_formula (f : M ↪ₑ[L] N) {α : Type*} {n : ℕ}
   (φ : L.bounded_formula α n) (v : α → M) (xs : fin n → M) :
   φ.realize (f ∘ v) (f ∘ xs) ↔ φ.realize v xs :=
 begin
@@ -80,7 +83,7 @@ begin
     bounded_formula.realize_restrict_free_var set.subset.rfl],
 end
 
-@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} (φ : L.formula α) (x : α → M) :
+@[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type*} (φ : L.formula α) (x : α → M) :
   φ.realize (f ∘ x) ↔ φ.realize x :=
 by rw [formula.realize, formula.realize, ← f.map_bounded_formula, unique.eq_default (f ∘ default)]
 
@@ -107,7 +110,8 @@ begin
 end
 
 instance embedding_like : embedding_like (M ↪ₑ[L] N) M N :=
-{ injective' := injective }
+{ injective' := injective,
+  .. show fun_like (M ↪ₑ[L] N) M (λ _, N), from infer_instance }
 
 @[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) :=
@@ -290,18 +294,18 @@ end
 /-- A substructure is elementary when every formula applied to a tuple in the subtructure
   agrees with its value in the overall structure. -/
 def is_elementary (S : L.substructure M) : Prop :=
-∀{n} (φ : L.formula (fin n)) (x : fin n → S), φ.realize ((coe : _ → M) ∘ x) ↔ φ.realize x
+∀ {{n}} (φ : L.formula (fin n)) (x : fin n → S), φ.realize ((coe : _ → M) ∘ x) ↔ φ.realize x
 
 end substructure
 
-variables (L) (M)
+variables (L M)
 /-- An elementary substructure is one in which every formula applied to a tuple in the subtructure
   agrees with its value in the overall structure. -/
 structure elementary_substructure :=
 (to_substructure : L.substructure M)
 (is_elementary' : to_substructure.is_elementary)
 
-variables {L} {M}
+variables {L M}
 
 namespace elementary_substructure
 
@@ -314,13 +318,16 @@ instance : set_like (L.elementary_substructure M) M :=
   exact h,
 end⟩
 
+instance induced_Structure (S : L.elementary_substructure M) : L.Structure S :=
+substructure.induced_Structure
+
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
   (S : L.substructure M).is_elementary := S.is_elementary'
 
 /-- The natural embedding of an `L.substructure` of `M` into `M`. -/
 def subtype (S : L.elementary_substructure M) : S ↪ₑ[L] M :=
 { to_fun := coe,
-  map_formula' := λ n, S.is_elementary }
+  map_formula' := S.is_elementary }
 
 @[simp] theorem coe_subtype {S : L.elementary_substructure M} : ⇑S.subtype = coe := rfl
 
@@ -369,7 +376,7 @@ theorem is_elementary_of_exists (S : L.substructure M)
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
     ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
   L.elementary_substructure M :=
-⟨S, λ _, S.is_elementary_of_exists htv⟩
+⟨S, S.is_elementary_of_exists htv⟩
 
 end substructure
 

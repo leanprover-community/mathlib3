@@ -9,6 +9,9 @@ import topology.homotopy.contractible
 /-!
 # A convex set is contractible
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a (star) convex set in a real topological vector space is a contractible
 topological space.
 -/
@@ -23,10 +26,9 @@ begin
   refine (contractible_iff_id_nullhomotopic _).2 ⟨⟨x, h.mem hne⟩,
     ⟨⟨⟨λ p, ⟨p.1.1 • x + (1 - p.1.1) • p.2, _⟩, _⟩, λ x, _, λ x, _⟩⟩⟩,
   { exact h p.2.2 p.1.2.1 (sub_nonneg.2 p.1.2.2) (add_sub_cancel'_right _ _) },
-  { exact continuous_subtype_mk _
-      (((continuous_subtype_val.comp continuous_fst).smul continuous_const).add
-        ((continuous_const.sub $ continuous_subtype_val.comp continuous_fst).smul
-          (continuous_subtype_val.comp continuous_snd))) },
+  { exact ((continuous_subtype_val.fst'.smul continuous_const).add
+      ((continuous_const.sub continuous_subtype_val.fst').smul
+        continuous_subtype_val.snd')).subtype_mk _ },
   { ext1, simp },
   { ext1, simp }
 end

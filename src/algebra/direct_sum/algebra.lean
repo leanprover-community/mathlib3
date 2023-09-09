@@ -9,6 +9,9 @@ import algebra.direct_sum.ring
 
 /-! # Additively-graded algebra structures on `⨁ i, A i`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `R`-algebra structures on external direct sums of `R`-modules.
 
 Recall that if `A i` are a family of `add_comm_monoid`s indexed by an `add_monoid`, then an instance

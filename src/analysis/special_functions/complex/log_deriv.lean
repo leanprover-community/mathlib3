@@ -3,11 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
+import analysis.calculus.inverse
 import analysis.special_functions.complex.log
 import analysis.special_functions.exp_deriv
 
 /-!
 # Differentiability of the complex `log` function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 
@@ -17,7 +21,10 @@ namespace complex
 
 open set filter
 
-open_locale real topological_space
+open_locale real topology
+
+lemma is_open_map_exp : is_open_map exp :=
+open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
 /-- `complex.exp` as a `local_homeomorph` with `source = {z | -π < im z < π}` and
 `target = {z | 0 < re z} ∪ {z | im z ≠ 0}`. This definition is used to prove that `complex.log`
@@ -56,7 +63,7 @@ lemma has_strict_fderiv_at_log_real {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
   has_strict_fderiv_at log (x⁻¹ • (1 : ℂ →L[ℝ] ℂ)) x :=
 (has_strict_deriv_at_log h).complex_to_real_fderiv
 
-lemma cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
+lemma cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : ℕ∞} :
   cont_diff_at ℂ n log x :=
 exp_local_homeomorph.cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
   (has_deriv_at_exp _) cont_diff_exp.cont_diff_at
@@ -66,9 +73,9 @@ end complex
 section log_deriv
 
 open complex filter
-open_locale topological_space
+open_locale topology
 
-variables {α : Type*} [topological_space α] {E : Type*} [normed_group E] [normed_space ℂ E]
+variables {α : Type*} [topological_space α] {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 lemma has_strict_fderiv_at.clog {f : E → ℂ} {f' : E →L[ℂ] ℂ} {x : E}
   (h₁ : has_strict_fderiv_at f f' x) (h₂ : 0 < (f x).re ∨ (f x).im ≠ 0) :

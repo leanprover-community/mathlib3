@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.norm_num
+import data.fin.basic
 
 /-!
 # `ring`
@@ -498,18 +499,23 @@ meta def eval (norm_atom : expr → tactic (expr × expr)) : expr → ring_m (ho
     p' ← ic_lift $ λ ic, ic.mk_app ``unfold_div [e₁, e₂, e', p],
     return (e', p'))
   (eval_norm_atom norm_atom e)
-| e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
-  (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
-  match e₂'.to_nat, P with
-  | some k, `(monoid.has_pow) := do
-    (e₁', p₁) ← eval e₁,
-    (e', p') ← eval_pow e₁' (e₂, k),
-    p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
-    return (e', p)
-  | _, _ := eval_norm_atom norm_atom e
-  end
+| e@`(@has_pow.pow _ _ %%inst %%e₁ %%e₂) := mcond
+  (succeeds (do
+    inst' ← ic_lift $ λ ic, ic.mk_app ``monoid.has_pow [],
+    lift $ is_def_eq inst inst'))
+  (do
+    (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
+    match e₂'.to_nat with
+    | some k := do
+      (e₁', p₁) ← eval e₁,
+      (e', p') ← eval_pow e₁' (e₂, k),
+      p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
+      return (e', p)
+    | _ := eval_norm_atom norm_atom e
+    end)
+  (eval_norm_atom norm_atom e)
 | e := match e.to_nat with
-  | some n := (const e (rat.of_int n)).refl_conv
+  | some n := (const e n).refl_conv
   | none := eval_norm_atom norm_atom e
   end
 
@@ -708,7 +714,7 @@ open conv interactive
 open tactic tactic.interactive (ring.mode ring1)
 open tactic.ring (normalize normalize_mode.horner)
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.

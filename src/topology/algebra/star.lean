@@ -5,17 +5,21 @@ Authors: Eric Wieser
 -/
 import algebra.star.pi
 import algebra.star.prod
-import topology.algebra.group
+import topology.algebra.constructions
+import topology.continuous_function.basic
 
 /-!
 # Continuity of `star`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the `has_continuous_star` typeclass, along with instances on `pi`, `prod`,
 `mul_opposite`, and `units`.
 -/
 
 
-open_locale filter topological_space
+open_locale filter topology
 open filter
 
 universes u
@@ -84,6 +88,6 @@ instance [has_star R] [topological_space R] [has_continuous_star R] : has_contin
 
 instance [monoid R] [star_semigroup R] [topological_space R] [has_continuous_star R] :
   has_continuous_star Rˣ :=
-⟨continuous_induced_rng units.continuous_embed_product.star⟩
+⟨continuous_induced_rng.2 units.continuous_embed_product.star⟩
 
 end instances

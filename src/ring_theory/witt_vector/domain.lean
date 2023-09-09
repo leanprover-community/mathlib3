@@ -10,6 +10,9 @@ import ring_theory.witt_vector.identities
 
 # Witt vectors over a domain
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file builds to the proof `witt_vector.is_domain`,
 an instance that says if `R` is an integral domain, then so is `𝕎 R`.
 It depends on the API around iterated applications
@@ -114,7 +117,6 @@ instance [char_p R p] [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
 end⟩
 
 instance [char_p R p] [is_domain R] : is_domain (𝕎 R) :=
-{ ..witt_vector.no_zero_divisors,
-  ..witt_vector.nontrivial }
+no_zero_divisors.to_is_domain _
 
 end witt_vector

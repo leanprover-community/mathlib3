@@ -3,12 +3,16 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
+import data.int.cast.prod
 import algebra.group.prod
-import algebra.ring.basic
 import algebra.ring.equiv
+import algebra.order.monoid.prod
 
 /-!
 # Semiring, ring etc structures on `R × S`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
 trivial `simp` lemmas, and define the following operations on `ring_hom`s and similarly for
@@ -21,7 +25,7 @@ trivial `simp` lemmas, and define the following operations on `ring_hom`s and si
   sends `(x, y)` to `(f x, g y)`.
 -/
 
-variables {R : Type*} {R' : Type*} {S : Type*} {S' : Type*} {T : Type*} {T' : Type*}
+variables {α β R R' S S' T T' : Type*}
 
 namespace prod
 
@@ -208,7 +212,9 @@ end prod_map
 end ring_hom
 
 namespace ring_equiv
-variables {R S} [non_assoc_semiring R] [non_assoc_semiring S]
+variables {R S R' S'}
+variables [non_assoc_semiring R] [non_assoc_semiring S]
+variables [non_assoc_semiring R'] [non_assoc_semiring S']
 
 /-- Swapping components as an equivalence of (semi)rings. -/
 def prod_comm : R × S ≃+* S × R :=
@@ -224,6 +230,31 @@ ring_hom.ext $ λ _, rfl
 @[simp] lemma snd_comp_coe_prod_comm :
   (ring_hom.snd S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.fst R S :=
 ring_hom.ext $ λ _, rfl
+
+section
+variables (R R' S S')
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm : (R × R') × (S × S') ≃+* (R × S) × (R' × S') :=
+{ to_fun := λ rrss, ((rrss.1.1, rrss.2.1), (rrss.1.2, rrss.2.2)),
+  inv_fun := λ rsrs, ((rsrs.1.1, rsrs.2.1), (rsrs.1.2, rsrs.2.2)),
+  .. add_equiv.prod_prod_prod_comm R R' S S',
+  .. mul_equiv.prod_prod_prod_comm R R' S S' }
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm R R' S S').symm = prod_prod_prod_comm R S R' S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_add_equiv :
+  (prod_prod_prod_comm R R' S S').to_add_equiv = add_equiv.prod_prod_prod_comm R R' S S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_mul_equiv :
+  (prod_prod_prod_comm R R' S S').to_mul_equiv = mul_equiv.prod_prod_prod_comm R R' S S' := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_equiv :
+  (prod_prod_prod_comm R R' S S').to_equiv = equiv.prod_prod_prod_comm R R' S S' := rfl
+
+end
 
 variables (R S) [subsingleton S]
 
@@ -251,10 +282,31 @@ end ring_equiv
 lemma false_of_nontrivial_of_product_domain (R S : Type*) [ring R] [ring S]
   [is_domain (R × S)] [nontrivial R] [nontrivial S] : false :=
 begin
-  have := is_domain.eq_zero_or_eq_zero_of_mul_eq_zero
+  have := no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero
     (show ((0 : R), (1 : S)) * (1, 0) = 0, by simp),
   rw [prod.mk_eq_zero,prod.mk_eq_zero] at this,
   rcases this with (⟨_,h⟩|⟨h,_⟩),
   { exact zero_ne_one h.symm },
   { exact zero_ne_one h.symm }
 end
+
+/-! ### Order -/
+
+instance [ordered_semiring α] [ordered_semiring β] : ordered_semiring (α × β) :=
+{ add_le_add_left := λ _ _, add_le_add_left,
+  zero_le_one := ⟨zero_le_one, zero_le_one⟩,
+  mul_le_mul_of_nonneg_left := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_left hab.1 hc.1, mul_le_mul_of_nonneg_left hab.2 hc.2⟩,
+  mul_le_mul_of_nonneg_right := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_right hab.1 hc.1, mul_le_mul_of_nonneg_right hab.2 hc.2⟩,
+  ..prod.semiring, ..prod.partial_order _ _ }
+
+instance [ordered_comm_semiring α] [ordered_comm_semiring β] : ordered_comm_semiring (α × β) :=
+{ ..prod.comm_semiring, ..prod.ordered_semiring }
+
+instance [ordered_ring α] [ordered_ring β] : ordered_ring (α × β) :=
+{ mul_nonneg := λ a b ha hb, ⟨mul_nonneg ha.1 hb.1, mul_nonneg ha.2 hb.2⟩,
+  ..prod.ring, ..prod.ordered_semiring }
+
+instance [ordered_comm_ring α] [ordered_comm_ring β] : ordered_comm_ring (α × β) :=
+{ ..prod.comm_ring, ..prod.ordered_ring }

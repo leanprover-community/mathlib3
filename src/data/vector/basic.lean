@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the infix notation `::ᵥ` for `vector.cons`.
 -/
 universes u
@@ -35,6 +38,10 @@ subtype.val_injective
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
 
+/-- A vector with `n` elements `a`. -/
+def replicate (n : ℕ) (a : α) : vector α n :=
+⟨list.replicate n a, list.length_replicate n a⟩
+
 /-- The empty `vector` is a `subsingleton`. -/
 instance zero_subsingleton : subsingleton (vector α 0) :=
 ⟨λ _ _, vector.ext (λ m, fin.elim0 m)⟩
@@ -47,6 +54,19 @@ instance zero_subsingleton : subsingleton (vector α 0) :=
 
 @[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a ::ᵥ v).tail = v
 | ⟨_, _⟩ := rfl
+
+lemma eq_cons_iff (a : α) (v : vector α n.succ) (v' : vector α n) :
+  v = a ::ᵥ v' ↔ v.head = a ∧ v.tail = v' :=
+⟨λ h, h.symm ▸ ⟨head_cons a v', tail_cons a v'⟩,
+ λ h, trans (cons_head_tail v).symm (by rw [h.1, h.2])⟩
+
+lemma ne_cons_iff (a : α) (v : vector α n.succ) (v' : vector α n) :
+  v ≠ a ::ᵥ v' ↔ v.head ≠ a ∨ v.tail ≠ v' :=
+by rw [ne.def, eq_cons_iff a v v', not_and_distrib]
+
+lemma exists_eq_cons (v : vector α n.succ) :
+  ∃ (a : α) (as : vector α n), v = a ::ᵥ as :=
+⟨v.head, v.tail, (eq_cons_iff v.head v v.tail).2 ⟨rfl, rfl⟩⟩
 
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
 | 0     f := rfl
@@ -64,14 +84,28 @@ v.2
 @[simp] lemma to_list_map {β : Type*} (v : vector α n) (f : α → β) : (v.map f).to_list =
   v.to_list.map f := by cases v; refl
 
+@[simp] lemma head_map {β : Type*} (v : vector α (n + 1)) (f : α → β) :
+  (v.map f).head = f v.head :=
+begin
+  obtain ⟨a, v', h⟩ := vector.exists_eq_cons v,
+  rw [h, map_cons, head_cons, head_cons],
+end
+
+@[simp] lemma tail_map {β : Type*} (v : vector α (n + 1)) (f : α → β) :
+  (v.map f).tail = v.tail.map f :=
+begin
+  obtain ⟨a, v', h⟩ := vector.exists_eq_cons v,
+  rw [h, map_cons, tail_cons, tail_cons],
+end
+
 theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
   nth v i = v.to_list.nth_le i.1 (by rw to_list_length; exact i.2)
 | ⟨l, h⟩ i := rfl
 
 @[simp]
-lemma nth_repeat (a : α) (i : fin n) :
-  (vector.repeat a n).nth i = a :=
-by apply list.nth_le_repeat
+lemma nth_replicate (a : α) (i : fin n) :
+  (vector.replicate n a).nth i = a :=
+list.nth_le_replicate _ _
 
 @[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=
@@ -116,6 +150,8 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
 (of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simp, }
 
+@[simp] theorem to_list_empty (v : vector α 0) : v.to_list = [] := list.length_eq_zero.mp v.2
+
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
 @[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
@@ -125,14 +161,15 @@ begin
              and_self, singleton_tail]
 end
 
+@[simp] lemma empty_to_list_eq_ff (v : vector α (n + 1)) : v.to_list.empty = ff :=
+match v with | ⟨a :: as, _⟩ := rfl end
+
+lemma not_empty_to_list (v : vector α (n + 1)) : ¬ v.to_list.empty :=
+by simp only [empty_to_list_eq_ff, coe_sort_ff, not_false_iff]
+
 /-- Mapping under `id` does not change a vector. -/
 @[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=
   vector.eq _ _ (by simp only [list.map_id, vector.to_list_map])
-
-lemma mem_iff_nth {a : α} {v : vector α n} : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
-by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
-  exact ⟨λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length at hi, h⟩,
-    λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length, h⟩⟩
 
 lemma nodup_iff_nth_inj {v : vector α n} : v.to_list.nodup ↔ function.injective v.nth :=
 begin
@@ -145,9 +182,6 @@ begin
   { intros h i j hi hj hij,
     have := @h ⟨i, hi⟩ ⟨j, hj⟩, simp [nth_eq_nth_le] at *, tauto }
 end
-
-@[simp] lemma nth_mem (i : fin n) (v : vector α n) : v.nth i ∈ v.to_list :=
-by rw [nth_eq_nth_le]; exact list.nth_le_mem _ _ _
 
 theorem head'_to_list : ∀ (v : vector α n.succ),
   (to_list v).head' = some (head v)

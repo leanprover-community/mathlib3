@@ -10,6 +10,9 @@ import category_theory.limits.filtered_colimit_commutes_finite_limit
 
 /-!
 # Left exactness of sheafification
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file we show that sheafification commutes with finite limits.
 -/
 
@@ -192,7 +195,7 @@ begin
     dsimp,
     simp only [category.assoc],
     rw ι_colimit_limit_iso_limit_π_assoc,
-    simp only [nat_iso.of_components.inv_app,
+    simp only [nat_iso.of_components_inv_app,
       colimit_obj_iso_colimit_comp_evaluation_ι_app_hom, iso.symm_inv],
     dsimp [is_limit.cone_point_unique_up_to_iso],
     rw [← category.assoc, ← nat_trans.comp_app, limit.lift_π],

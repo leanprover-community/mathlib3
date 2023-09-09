@@ -6,11 +6,14 @@ Authors: Riccardo Brasca
 
 import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.charpoly.coeff
-import field_theory.minpoly
+import field_theory.minpoly.field
 
 /-!
 
 # Characteristic polynomial
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
 free `R`-module. The proof that `f.charpoly` is the characteristic polynomial of the matrix of `f`
@@ -63,7 +66,7 @@ to the linear map itself, is zero.
 See `matrix.aeval_self_charpoly` for the equivalent statement about matrices. -/
 lemma aeval_self_charpoly : aeval f f.charpoly = 0 :=
 begin
-  apply (linear_equiv.map_eq_zero_iff (alg_equiv_matrix _).to_linear_equiv).1,
+  apply (linear_equiv.map_eq_zero_iff (alg_equiv_matrix (choose_basis R M)).to_linear_equiv).1,
   rw [alg_equiv.to_linear_equiv_apply, ← alg_equiv.coe_alg_hom,
     ← polynomial.aeval_alg_hom_apply _ _ _, charpoly_def],
   exact aeval_self_charpoly _,

@@ -8,6 +8,9 @@ import logic.relator
 /-!
 # Quotient types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module extends the core library's treatment of quotient types (`init.data.quot`).
 
 ## Tags
@@ -16,6 +19,8 @@ quotient
 -/
 
 variables {α : Sort*} {β : Sort*}
+
+open function
 
 namespace setoid
 
@@ -29,7 +34,7 @@ end setoid
 
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
-local notation `⟦`:max a `⟧` := quot.mk _ a
+local notation (name := mk) `⟦`:max a `⟧` := quot.mk _ a
 
 instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
 
@@ -69,11 +74,15 @@ variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
 /-- **Alias** of `quot.lift_beta`. -/
 lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
-  quot.lift f h (quot.mk r a) = f a := quot.lift_beta f h a
+  quot.lift f h (quot.mk r a) = f a := rfl
 
 @[simp]
 lemma lift_on_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
   quot.lift_on (quot.mk r a) f h = f a := rfl
+
+@[simp] lemma surjective_lift {f : α → γ} (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+  surjective (lift f h) ↔ surjective f :=
+⟨λ hf, hf.comp quot.exists_rep, λ hf y, let ⟨x, hx⟩ := hf y in ⟨quot.mk _ x, hx⟩⟩
 
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
 attribute [reducible, elab_as_eliminator]
@@ -268,12 +277,11 @@ rfl
   quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
 
 /-- `quot.mk r` is a surjective function. -/
-lemma surjective_quot_mk (r : α → α → Prop) : function.surjective (quot.mk r) :=
-quot.exists_rep
+lemma surjective_quot_mk (r : α → α → Prop) : surjective (quot.mk r) := quot.exists_rep
 
 /-- `quotient.mk` is a surjective function. -/
 lemma surjective_quotient_mk (α : Sort*) [s : setoid α] :
-  function.surjective (quotient.mk : α → quotient s) :=
+  surjective (quotient.mk : α → quotient s) :=
 quot.exists_rep
 
 /-- Choose an element of the equivalence class using the axiom of choice.
@@ -315,7 +323,7 @@ end
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
-lemma quotient.out_injective {s : setoid α} : function.injective (@quotient.out α s) :=
+lemma quotient.out_injective {s : setoid α} : injective (@quotient.out α s) :=
 λ a b h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _
 
 @[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
@@ -357,15 +365,21 @@ lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty
 
 /-! ### Truncation -/
 
+theorem true_equivalence : @equivalence α (λ _ _, true) :=
+⟨λ _, trivial, λ _ _ _, trivial, λ _ _ _ _ _, trivial⟩
+
+/-- Always-true relation as a `setoid`.
+
+Note that in later files the preferred spelling is `⊤ : setoid α`. -/
+def true_setoid : setoid α :=
+⟨_, true_equivalence⟩
+
 /-- `trunc α` is the quotient of `α` by the always-true relation. This
   is related to the propositional truncation in HoTT, and is similar
   in effect to `nonempty α`, but unlike `nonempty α`, `trunc α` is data,
   so the VM representation is the same as `α`, and so this can be used to
   maintain computability. -/
-def {u} trunc (α : Sort u) : Sort u := @quot α (λ _ _, true)
-
-theorem true_equivalence : @equivalence α (λ _ _, true) :=
-⟨λ _, trivial, λ _ _ _, trivial, λ _ _ _ _ _, trivial⟩
+def {u} trunc (α : Sort u) : Sort u := @quotient α true_setoid
 
 namespace trunc
 
@@ -465,7 +479,7 @@ instance argument. -/
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
 /-- `quotient.mk'` is a surjective function. -/
-lemma surjective_quotient_mk' : function.surjective (quotient.mk' : α → quotient s₁) :=
+lemma surjective_quotient_mk' : surjective (quotient.mk' : α → quotient s₁) :=
 quot.exists_rep
 
 /-- A version of `quotient.lift_on` taking `{s : setoid α}` as an implicit argument instead of an
@@ -477,6 +491,10 @@ protected def lift_on' (q : quotient s₁) (f : α → φ)
 @[simp]
 protected lemma lift_on'_mk' (f : α → φ) (h) (x : α) :
   quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
+
+@[simp] lemma surjective_lift_on' {f : α → φ} (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) :
+  surjective (λ x, quotient.lift_on' x f h) ↔ surjective f :=
+quot.surjective_lift _
 
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
 instead of instance arguments. -/

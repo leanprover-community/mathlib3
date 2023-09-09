@@ -3,12 +3,14 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
-import order.min_max
 import order.rel_classes
 import data.set.intervals.basic
 
 /-!
 # Bounded and unbounded sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove miscellaneous lemmas about bounded and unbounded sets. Many of these are just variations on
 the same ideas, or similar results with a few minor differences. The file is divided into these

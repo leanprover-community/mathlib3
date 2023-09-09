@@ -10,6 +10,9 @@ import ring_theory.witt_vector.init_tail
 
 # Truncated Witt vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The ring of truncated Witt vectors (of length `n`) is a quotient of the ring of Witt vectors.
 It retains the first `n` coefficients of each Witt vector.
 In this file, we set up the basic quotient API for this ring.
@@ -318,7 +321,7 @@ lemma mem_ker_truncate (x : 𝕎 R) :
 begin
   simp only [ring_hom.mem_ker, truncate, truncate_fun, ring_hom.coe_mk,
     truncated_witt_vector.ext_iff, truncated_witt_vector.coeff_mk, coeff_zero],
-  exact subtype.forall
+  exact fin.forall_iff
 end
 
 variables (p)

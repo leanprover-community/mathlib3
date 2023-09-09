@@ -8,6 +8,9 @@ import data.W.basic
 /-!
 # Polynomial functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines polynomial functors and the W-type construction as a
 polynomial functor.  (For the M-type construction, see
 pfunctor/M.lean.)
@@ -65,7 +68,7 @@ def W := _root_.W_type P.B
 /- inhabitants of W types is awkward to encode as an instance
 assumption because there needs to be a value `a : P.A`
 such that `P.B a` is empty to yield a finite tree -/
-attribute [nolint has_inhabited_instance] W
+attribute [nolint has_nonempty_instance] W
 variables {P}
 
 /-- root element  of a W tree -/

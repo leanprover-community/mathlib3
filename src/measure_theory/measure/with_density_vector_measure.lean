@@ -10,6 +10,9 @@ import measure_theory.function.ae_eq_of_integral
 
 # Vector measure defined by an integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a measure `μ` and an integrable function `f : α → E`, we can define a vector measure `v` such
 that for all measurable set `s`, `v i = ∫ x in s, f x ∂μ`. This definition is useful for
 the Radon-Nikodym theorem for signed measures.
@@ -31,7 +34,7 @@ namespace measure_theory
 open topological_space
 
 variables {μ ν : measure α}
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 /-- Given a measure `μ` and an integrable function `f`, `μ.with_densityᵥ f` is
 the vector measure which maps the set `s` to `∫ₛ f ∂μ`. -/
@@ -100,7 +103,7 @@ lemma with_densityᵥ_sub' (hf : integrable f μ) (hg : integrable g μ) :
   μ.with_densityᵥ (λ x, f x - g x) = μ.with_densityᵥ f - μ.with_densityᵥ g :=
 with_densityᵥ_sub hf hg
 
-@[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+@[simp] lemma with_densityᵥ_smul {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (r • f) = r • μ.with_densityᵥ f :=
 begin
@@ -115,7 +118,7 @@ begin
       rwa integrable_smul_iff hr f } }
 end
 
-lemma with_densityᵥ_smul' {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+lemma with_densityᵥ_smul' {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] (f : α → E) (r : 𝕜) :
   μ.with_densityᵥ (λ x, r • f x) = r • μ.with_densityᵥ f :=
 with_densityᵥ_smul f r

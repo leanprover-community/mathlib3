@@ -8,6 +8,9 @@ import logic.basic
 /-!
 # Nonempty types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves a few extra facts about `nonempty`, which is defined in core Lean.
 
 ## Main declarations
@@ -75,9 +78,6 @@ iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
 @[simp] lemma nonempty.exists {α} {p : nonempty α → Prop} : (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
 iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
 
-lemma classical.nonempty_pi {α} {β : α → Sort*} : nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
-iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
-
 /-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
   `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
   `core/init/classical.lean`, but the assumption is not a type class argument,
@@ -112,9 +112,16 @@ h.elim $ f ∘ inhabited.mk
 instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
+instance {ι : Sort*} {α : ι → Sort*} [Π i, nonempty (α i)] : nonempty (Π i, α i) :=
+⟨λ _, classical.arbitrary _⟩
+
+lemma classical.nonempty_pi {ι} {α : ι → Sort*} : nonempty (Π i, α i) ↔ ∀ i, nonempty (α i) :=
+⟨λ ⟨f⟩ a, ⟨f a⟩, @pi.nonempty _ _⟩
+
 lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
 ⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
 
-lemma function.surjective.nonempty [h : nonempty β] {f : α → β} (hf : function.surjective f) :
+lemma function.surjective.nonempty {α β : Sort*} [h : nonempty β] {f : α → β}
+  (hf : function.surjective f) :
   nonempty α :=
 let ⟨y⟩ := h, ⟨x, hx⟩ := hf y in ⟨x⟩

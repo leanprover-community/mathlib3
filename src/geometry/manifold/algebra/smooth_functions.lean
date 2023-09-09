@@ -9,20 +9,24 @@ import geometry.manifold.algebra.structures
 /-!
 # Algebraic structures over smooth functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define instances of algebraic structures over smooth functions.
 -/
 
 noncomputable theory
 
 open_locale manifold
+open topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {N : Type*} [topological_space N] [charted_space H N]
-{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{E'' : Type*} [normed_add_comm_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {N' : Type*} [topological_space N'] [charted_space H'' N']
 
@@ -84,6 +88,38 @@ instance monoid {G : Type*} [monoid G] [topological_space G]
 def coe_fn_monoid_hom {G : Type*} [monoid G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] : C^∞⟮I, N; I', G⟯ →* (N → G) :=
 { to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
+
+variables (I N)
+
+/-- For a manifold `N` and a smooth homomorphism `φ` between Lie groups `G'`, `G''`, the
+'left-composition-by-`φ`' group homomorphism from `C^∞⟮I, N; I', G'⟯` to `C^∞⟮I, N; I'', G''⟯`. -/
+@[to_additive "For a manifold `N` and a smooth homomorphism `φ` between additive Lie groups `G'`,
+`G''`, the 'left-composition-by-`φ`' group homomorphism from `C^∞⟮I, N; I', G'⟯` to
+`C^∞⟮I, N; I'', G''⟯`."]
+def comp_left_monoid_hom
+  {G' : Type*} [monoid G'] [topological_space G'] [charted_space H' G'] [has_smooth_mul I' G']
+  {G'' : Type*} [monoid G''] [topological_space G''] [charted_space H'' G'']
+  [has_smooth_mul I'' G''] (φ : G' →* G'') (hφ : smooth I' I'' φ) :
+  C^∞⟮I, N; I', G'⟯ →* C^∞⟮I, N; I'', G''⟯ :=
+{ to_fun := λ f, ⟨φ ∘ f, λ x, (hφ.smooth _).comp x (f.cont_mdiff x)⟩,
+  map_one' := by ext x; show φ 1 = 1; simp,
+  map_mul' := λ f g, by ext x; show φ (f x * g x) = φ (f x) * φ (g x); simp }
+
+variables (I') {N}
+
+/-- For a Lie group `G` and open sets `U ⊆ V` in `N`, the 'restriction' group homomorphism from
+`C^∞⟮I, V; I', G⟯` to `C^∞⟮I, U; I', G⟯`. -/
+@[to_additive "For an additive Lie group `G` and open sets `U ⊆ V` in `N`, the 'restriction' group
+homomorphism from `C^∞⟮I, V; I', G⟯` to `C^∞⟮I, U; I', G⟯`."]
+def restrict_monoid_hom
+  (G : Type*) [monoid G] [topological_space G] [charted_space H' G] [has_smooth_mul I' G]
+  {U V : opens N} (h : U ≤ V) :
+  C^∞⟮I, V; I', G⟯ →* C^∞⟮I, U; I', G⟯ :=
+{ to_fun := λ f, ⟨f ∘ set.inclusion h, f.smooth.comp (smooth_inclusion h)⟩,
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
+variables {I N I' N'}
 
 @[to_additive]
 instance comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
@@ -155,6 +191,33 @@ instance comm_ring {R : Type*} [comm_ring R] [topological_space R]
   ..smooth_map.add_comm_group,
   ..smooth_map.comm_monoid,}
 
+variables (I N)
+
+/-- For a manifold `N` and a smooth homomorphism `φ` between smooth rings `R'`, `R''`, the
+'left-composition-by-`φ`' ring homomorphism from `C^∞⟮I, N; I', R'⟯` to `C^∞⟮I, N; I'', R''⟯`. -/
+def comp_left_ring_hom
+  {R' : Type*} [ring R'] [topological_space R'] [charted_space H' R'] [smooth_ring I' R']
+  {R'' : Type*} [ring R''] [topological_space R''] [charted_space H'' R''] [smooth_ring I'' R'']
+  (φ : R' →+* R'') (hφ : smooth I' I'' φ) :
+  C^∞⟮I, N; I', R'⟯ →+* C^∞⟮I, N; I'', R''⟯ :=
+{ to_fun := λ f, ⟨φ ∘ f, λ x, (hφ.smooth _).comp x (f.cont_mdiff x)⟩,
+  .. smooth_map.comp_left_monoid_hom I N φ.to_monoid_hom hφ,
+  .. smooth_map.comp_left_add_monoid_hom I N φ.to_add_monoid_hom hφ }
+
+variables (I') {N}
+
+/-- For a "smooth ring" `R` and open sets `U ⊆ V` in `N`, the "restriction" ring homomorphism from
+`C^∞⟮I, V; I', R⟯` to `C^∞⟮I, U; I', R⟯`. -/
+def restrict_ring_hom
+  (R : Type*) [ring R] [topological_space R] [charted_space H' R] [smooth_ring I' R]
+  {U V : opens N} (h : U ≤ V) :
+  C^∞⟮I, V; I', R⟯ →+* C^∞⟮I, U; I', R⟯ :=
+{ to_fun := λ f, ⟨f ∘ set.inclusion h, f.smooth.comp (smooth_inclusion h)⟩,
+  .. smooth_map.restrict_monoid_hom I I' R h,
+  .. smooth_map.restrict_add_monoid_hom I I' R h }
+
+variables {I N I' N'}
+
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {R : Type*} [comm_ring R] [topological_space R]
@@ -179,12 +242,12 @@ In this section we show that smooth functions valued in a vector space `M` over 
 field `𝕜` inherit a vector space structure.
 -/
 
-instance has_smul {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+instance has_smul {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
   has_smul 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 /-- TODO: generalize `smooth_map.has_smul` to include this case-/
-instance has_op_smul {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+instance has_op_smul {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
   has_smul 𝕜ᵐᵒᵖ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, begin
   induction r using mul_opposite.rec,
@@ -193,20 +256,20 @@ instance has_op_smul {V : Type*} [normed_group V] [normed_space 𝕜 V] :
 end⟩⟩
 
 @[simp]
-lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
+lemma coe_smul {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
   (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
 @[simp]
-lemma coe_op_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
+lemma coe_op_smul {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
   (r : 𝕜ᵐᵒᵖ) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
-@[simp] lemma smul_comp {V : Type*} [normed_group V] [normed_space 𝕜 V]
+@[simp] lemma smul_comp {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
   (r : 𝕜) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (r • g).comp h = r • (g.comp h) := rfl
 
-instance module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+instance module {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
   module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 function.injective.module 𝕜 coe_fn_add_monoid_hom cont_mdiff_map.coe_inj coe_smul
 
@@ -216,7 +279,7 @@ function.injective.module 𝕜ᵐᵒᵖ coe_fn_add_monoid_hom cont_mdiff_map.coe
 
 /-- Coercion to a function as a `linear_map`. -/
 @[simps]
-def coe_fn_linear_map {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+def coe_fn_linear_map {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ →ₗ[𝕜] (N → V) :=
 { to_fun := coe_fn,
   map_smul' := coe_smul,
@@ -273,15 +336,15 @@ section module_over_continuous_functions
 If `V` is a module over `𝕜`, then we show that the space of smooth functions from `N` to `V`
 is naturally a vector space over the ring of smooth functions from `N` to `𝕜`. -/
 
-instance has_smul' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+instance has_smul' {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
   has_smul C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
-@[simp] lemma smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]
+@[simp] lemma smul_comp' {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V]
   (f : C^∞⟮I'', N'; 𝕜⟯) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f • g).comp h = (f.comp h) • (g.comp h) := rfl
 
-instance module' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+instance module' {V : Type*} [normed_add_comm_group V] [normed_space 𝕜 V] :
   module C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),

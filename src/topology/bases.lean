@@ -9,6 +9,9 @@ import topology.continuous_on
 /-!
 # Bases of topologies. Countability axioms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological basis on a topological space `t` is a collection of sets,
 such that all open sets can be generated as unions of these sets, without the need to take
 finite intersections of them. This file introduces a framework for dealing with these collections,
@@ -46,7 +49,7 @@ More fine grained instances for `first_countable_topology`, `separable_space`, `
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 noncomputable theory
 
 namespace topological_space
@@ -63,28 +66,45 @@ structure is_topological_basis (s : set (set α)) : Prop :=
 (sUnion_eq : (⋃₀ s) = univ)
 (eq_generate_from : t = generate_from s)
 
-/-- If a family of sets `s` generates the topology, then nonempty intersections of finite
+lemma is_topological_basis.insert_empty {s : set (set α)} (h : is_topological_basis s) :
+  is_topological_basis (insert ∅ s) :=
+begin
+  refine ⟨_, by rw [sUnion_insert, empty_union, h.sUnion_eq], _⟩,
+  { rintro t₁ (rfl|h₁) t₂ (rfl|h₂) x ⟨hx₁, hx₂⟩, {cases hx₁}, {cases hx₁}, {cases hx₂},
+    obtain ⟨t₃, h₃, hs⟩ := h.exists_subset_inter _ h₁ _ h₂ x ⟨hx₁, hx₂⟩,
+    exact ⟨t₃, or.inr h₃, hs⟩ },
+  { rw h.eq_generate_from,
+    refine le_antisymm (le_generate_from $ λ t, _) (generate_from_anti $ subset_insert ∅ s),
+    rintro (rfl|ht), { convert is_open_empty }, { exact generate_open.basic t ht } },
+end
+
+lemma is_topological_basis.diff_empty {s : set (set α)} (h : is_topological_basis s) :
+  is_topological_basis (s \ {∅}) :=
+begin
+  refine ⟨_, by rw [sUnion_diff_singleton_empty, h.sUnion_eq], _⟩,
+  { rintro t₁ ⟨h₁, -⟩ t₂ ⟨h₂, -⟩ x hx,
+    obtain ⟨t₃, h₃, hs⟩ := h.exists_subset_inter _ h₁ _ h₂ x hx,
+    exact ⟨t₃, ⟨h₃, nonempty.ne_empty ⟨x, hs.1⟩⟩, hs⟩ },
+  { rw h.eq_generate_from,
+    refine le_antisymm (generate_from_anti $ diff_subset s _) (le_generate_from $ λ t ht, _),
+    obtain rfl|he := eq_or_ne t ∅, { convert is_open_empty },
+    exact generate_open.basic t ⟨ht, he⟩ },
+end
+
+/-- If a family of sets `s` generates the topology, then intersections of finite
 subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
-  is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
+  is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s}) :=
 begin
-  refine ⟨_, _, _⟩,
-  { rintro _ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, rfl⟩ x h,
-    have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
-    exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
-      subset.rfl⟩ },
+  refine ⟨_, _, hs.trans (le_antisymm (le_generate_from _) $ generate_from_anti $ λ t ht, _)⟩,
+  { rintro _ ⟨t₁, ⟨hft₁, ht₁b⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b⟩, rfl⟩ x h,
+    exact ⟨_, ⟨_, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b⟩, sInter_union t₁ t₂⟩, h, subset.rfl⟩ },
   { rw [sUnion_image, Union₂_eq_univ_iff],
-    intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
-    exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
-  { rw hs,
-    apply le_antisymm; apply le_generate_from,
-    { rintro _ ⟨t, ⟨hft, htb, ht⟩, rfl⟩,
-      exact @is_open_sInter _ (generate_from s) _ hft (λ s hs, generate_open.basic _ $ htb hs) },
-    { intros t ht,
-      rcases t.eq_empty_or_nonempty with rfl|hne, { apply @is_open_empty _ _ },
-      rw ← sInter_singleton t at hne ⊢,
-      exact generate_open.basic _ ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht, hne⟩,
-        rfl⟩ } }
+    exact λ x, ⟨∅, ⟨finite_empty, empty_subset _⟩, sInter_empty.substr $ mem_univ x⟩ },
+  { rintro _ ⟨t, ⟨hft, htb⟩, rfl⟩, apply is_open_sInter,
+    exacts [hft, λ s hs, generate_open.basic _ $ htb hs] },
+  { rw ← sInter_singleton t,
+    exact ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht⟩, rfl⟩ },
 end
 
 /-- If a family of open sets `s` is such that every open neighbourhood contains some
@@ -155,6 +175,11 @@ lemma is_topological_basis.open_eq_sUnion {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ S ⊆ B, u = ⋃₀ S :=
 ⟨{s ∈ B | s ⊆ u}, λ s h, h.1, hB.open_eq_sUnion' ou⟩
+
+lemma is_topological_basis.open_iff_eq_sUnion {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} :
+  is_open u ↔ ∃ S ⊆ B, u = ⋃₀ S :=
+⟨hB.open_eq_sUnion, λ ⟨S, hSB, hu⟩, hu.symm ▸ is_open_sUnion (λ s hs, hB.is_open (hSB hs))⟩
 
 lemma is_topological_basis.open_eq_Union {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
@@ -275,7 +300,7 @@ If `α` might be empty, then `exists_countable_dense` is the main way to use sep
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
-  cases countable_iff_exists_surjective.mp hs with u hu,
+  cases set.countable_iff_exists_subset_range.mp hs with u hu,
   exact ⟨u, s_dense.mono hu⟩,
 end
 
@@ -291,10 +316,10 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 variable {α}
 
 @[priority 100]
-instance encodable.to_separable_space [encodable α] : separable_space α :=
-{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
+instance countable.to_separable_space [countable α] : separable_space α :=
+{ exists_countable_dense := ⟨set.univ, set.countable_univ, dense_univ⟩ }
 
-lemma separable_space_of_dense_range {ι : Type*} [encodable ι] (u : ι → α) (hu : dense_range u) :
+lemma separable_space_of_dense_range {ι : Type*} [countable ι] (u : ι → α) (hu : dense_range u) :
   separable_space α :=
 ⟨⟨range u, countable_range u, hu⟩⟩
 
@@ -310,7 +335,8 @@ begin
   choose f hfs hfu using this,
   lift f to a → u using hfu,
   have f_inj : injective f,
-  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+  { refine injective_iff_pairwise_ne.mpr
+      ((h.subtype _ _).mono $ λ i j hij hfij, hij.le_bot ⟨hfs i, _⟩),
     simp only [congr_arg coe hfij, hfs j] },
   exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end
@@ -352,7 +378,7 @@ begin
   exact ⟨c, c_count, by simpa using closure_mono hs⟩,
 end
 
-lemma is_separable_Union {ι : Type*} [encodable ι] {s : ι → set α} (hs : ∀ i, is_separable (s i)) :
+lemma is_separable_Union {ι : Type*} [countable ι] {s : ι → set α} (hs : ∀ i, is_separable (s i)) :
   is_separable (⋃ i, s i) :=
 begin
   choose c hc h'c using hs,
@@ -491,8 +517,7 @@ end
 
 instance separable_space_univ {α : Type*} [topological_space α] [separable_space α] :
   separable_space (univ : set α) :=
-(equiv.set.univ α).symm.surjective.dense_range.separable_space
-  (continuous_subtype_mk _ continuous_id)
+(equiv.set.univ α).symm.surjective.dense_range.separable_space (continuous_id.subtype_mk _)
 
 /-- If `α` is a separable topological space with a partial order, then there exists a countable
 dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
@@ -530,6 +555,20 @@ end first_countable_topology
 
 variables {α}
 
+instance {β} [topological_space β] [first_countable_topology α] [first_countable_topology β] :
+  first_countable_topology (α × β) :=
+⟨λ ⟨x, y⟩, by { rw nhds_prod_eq, apply_instance }⟩
+
+section pi
+
+omit t
+
+instance {ι : Type*} {π : ι → Type*} [countable ι] [Π i, topological_space (π i)]
+  [∀ i, first_countable_topology (π i)] : first_countable_topology (Π i, π i) :=
+⟨λ f, by { rw nhds_pi, apply_instance }⟩
+
+end pi
+
 instance is_countably_generated_nhds_within (x : α) [is_countably_generated (𝓝 x)] (s : set α) :
   is_countably_generated (𝓝[s] x) :=
 inf.is_countably_generated _ _
@@ -551,14 +590,12 @@ protected lemma is_topological_basis.second_countable_topology
 variable (α)
 
 lemma exists_countable_basis [second_countable_topology α] :
-  ∃b:set (set α), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b :=
-let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
-let b' := (λs, ⋂₀ s) '' {s:set (set α) | s.finite ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
-⟨b',
-  ((countable_set_of_finite_subset hb₁).mono
-    (by { simp only [← and_assoc], apply inter_subset_left })).image _,
-  assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
-  is_topological_basis_of_subbasis hb₂⟩
+  ∃ b : set (set α), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b :=
+begin
+  obtain ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α,
+  refine ⟨_, _, not_mem_diff_of_mem _, (is_topological_basis_of_subbasis hb₂).diff_empty⟩,
+  exacts [((countable_set_of_finite_subset hb₁).image _).mono (diff_subset _ _), rfl],
+end
 
 /-- A countable topological basis of `α`. -/
 def countable_basis [second_countable_topology α] : set (set α) :=
@@ -590,7 +627,7 @@ lemma is_open_of_mem_countable_basis [second_countable_topology α] {s : set α}
 
 lemma nonempty_of_mem_countable_basis [second_countable_topology α] {s : set α}
   (hs : s ∈ countable_basis α) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
+nonempty_iff_ne_empty.2 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
 
 variable (α)
 
@@ -622,8 +659,8 @@ instance {β : Type*} [topological_space β]
 ((is_basis_countable_basis α).prod (is_basis_countable_basis β)).second_countable_topology $
   (countable_countable_basis α).image2 (countable_countable_basis β) _
 
-instance second_countable_topology_encodable {ι : Type*} {π : ι → Type*}
-  [encodable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
+instance {ι : Type*} {π : ι → Type*}
+  [countable ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
 begin
   have : t = (λa, generate_from (countable_basis (π a))),
@@ -644,11 +681,6 @@ begin
     rcases @subtype.surjective_restrict ι (λ i, set (π i)) _ (λ i, i ∈ I) s with ⟨s, rfl⟩,
     exact ⟨s, I, λ i hi, hs ⟨i, hi⟩, set.ext $ λ f, subtype.forall⟩ }
 end
-
-instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
-  [fintype ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
-  second_countable_topology (∀a, π a) :=
-by { letI := fintype.to_encodable ι, exact topological_space.second_countable_topology_encodable }
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space
@@ -744,7 +776,7 @@ begin
 end
 
 /-- A countable disjoint union of second countable spaces is second countable. -/
-instance [encodable ι] [∀ i, second_countable_topology (E i)] :
+instance [countable ι] [∀ i, second_countable_topology (E i)] :
   second_countable_topology (Σ i, E i) :=
 begin
   let b := (⋃ (i : ι), (λ u, ((sigma.mk i) '' u : set (Σ i, E i))) '' (countable_basis (E i))),
@@ -800,6 +832,56 @@ begin
 end
 
 end sum
+
+section quotient
+
+variables {X : Type*} [topological_space X] {Y : Type*} [topological_space Y] {π : X → Y}
+omit t
+
+/-- The image of a topological basis under an open quotient map is a topological basis. -/
+lemma is_topological_basis.quotient_map {V : set (set X)} (hV : is_topological_basis V)
+  (h' : quotient_map π) (h : is_open_map π) :
+  is_topological_basis (set.image π '' V) :=
+begin
+  apply is_topological_basis_of_open_of_nhds,
+  { rintros - ⟨U, U_in_V, rfl⟩,
+    apply h U (hV.is_open U_in_V), },
+  { intros y U y_in_U U_open,
+    obtain ⟨x, rfl⟩ := h'.surjective y,
+    let W := π ⁻¹' U,
+    have x_in_W : x ∈ W := y_in_U,
+    have W_open : is_open W := U_open.preimage h'.continuous,
+    obtain ⟨Z, Z_in_V, x_in_Z, Z_in_W⟩ := hV.exists_subset_of_mem_open x_in_W W_open,
+    have πZ_in_U : π '' Z ⊆ U := (set.image_subset _ Z_in_W).trans (image_preimage_subset π U),
+    exact ⟨π '' Z, ⟨Z, Z_in_V, rfl⟩, ⟨x, x_in_Z, rfl⟩, πZ_in_U⟩, },
+end
+
+/-- A second countable space is mapped by an open quotient map to a second countable space. -/
+lemma quotient_map.second_countable_topology [second_countable_topology X] (h' : quotient_map π)
+  (h : is_open_map π) :
+  second_countable_topology Y :=
+{ is_open_generated_countable :=
+  begin
+    obtain ⟨V, V_countable, V_no_empty, V_generates⟩ := exists_countable_basis X,
+    exact ⟨set.image π '' V, V_countable.image (set.image π),
+      (V_generates.quotient_map h' h).eq_generate_from⟩,
+  end }
+
+variables {S : setoid X}
+
+/-- The image of a topological basis "downstairs" in an open quotient is a topological basis. -/
+lemma is_topological_basis.quotient {V : set (set X)}
+  (hV : is_topological_basis V) (h : is_open_map (quotient.mk : X → quotient S)) :
+  is_topological_basis (set.image (quotient.mk : X → quotient S) '' V) :=
+hV.quotient_map quotient_map_quotient_mk h
+
+/-- An open quotient of a second countable space is second countable. -/
+lemma quotient.second_countable_topology [second_countable_topology X]
+  (h : is_open_map (quotient.mk : X → quotient S)) :
+  second_countable_topology (quotient S) :=
+quotient_map_quotient_mk.second_countable_topology h
+
+end quotient
 
 end topological_space
 

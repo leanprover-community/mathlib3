@@ -9,6 +9,9 @@ import ring_theory.witt_vector.structure_polynomial
 /-!
 # Witt vectors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type of `p`-typical Witt vectors and ring operations on it.
 The ring axioms are verified in `ring_theory/witt_vector/basic.lean`.
 
@@ -369,32 +372,28 @@ by simp [mul_coeff, peval]
 
 end coeff
 
-lemma witt_add_vars (n : ℕ) :
-  (witt_add p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_add_vars (n : ℕ) : (witt_add p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_sub_vars (n : ℕ) :
-  (witt_sub p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_sub_vars (n : ℕ) : (witt_sub p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_mul_vars (n : ℕ) :
-  (witt_mul p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_mul_vars (n : ℕ) : (witt_mul p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
-lemma witt_neg_vars (n : ℕ) :
-  (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+lemma witt_neg_vars (n : ℕ) : (witt_neg p n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_nsmul_vars (m : ℕ) (n : ℕ) :
-  (witt_nsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_nsmul p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_zsmul_vars (m : ℤ) (n : ℕ) :
-  (witt_zsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_zsmul p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 lemma witt_pow_vars (m : ℕ) (n : ℕ) :
-  (witt_pow p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+  (witt_pow p m n).vars ⊆ finset.univ ×ˢ finset.range (n + 1) :=
 witt_structure_int_vars _ _ _
 
 end witt_vector

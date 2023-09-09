@@ -8,6 +8,9 @@ import category_theory.equivalence
 /-!
 # Adjunctions between functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `F ⊣ G` represents the data of an adjunction between two functors
 `F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
 
@@ -170,7 +173,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_hom_equiv`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_hom_equiv (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (hom_equiv_naturality_left_symm' : Π {X' X Y} (f : X' ⟶ X) (g : X ⟶ G.obj Y),
@@ -201,7 +204,7 @@ This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : 𝟭 C ⟶ F.comp G)
 (counit : G.comp F ⟶ 𝟭 D)

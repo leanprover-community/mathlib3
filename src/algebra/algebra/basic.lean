@@ -686,14 +686,22 @@ end ring_hom
 
 section rat
 
+/-- Note that this instance forms non-defeq diamonds with other module instances, as unlike
+`rat.smul_division_ring`, it does not reuse an existing `has_smul` instance. Fixing this
+will require adding even more fields to `division_ring`. We defer doing this until these diamonds
+start to cause problems. -/
+instance rat.op_smul_division_ring {α} [division_ring α] [char_zero α] : has_smul ℚᵐᵒᵖ α :=
+has_smul.comp α $ (ring_hom.id ℚ).from_opposite mul_comm
+
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 { smul := (•),
   smul_def' := division_ring.qsmul_eq_mul',
+  op_smul_def' := λ a q, (division_ring.qsmul_eq_mul' q a).trans $ rat.cast_commute _ _,
   to_ring_hom := rat.cast_hom α,
   commutes' := rat.cast_commute }
 
 /-- The two `algebra ℚ ℚ` instances should coincide. -/
-example : algebra_rat = algebra.id ℚ := rfl
+example : algebra_rat = algebra.id ℚ := by { ext; refl }
 
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _

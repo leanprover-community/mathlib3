@@ -808,6 +808,10 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
 
+-- @[simp] lemma op_algebra_map_smul [module Rᵐᵒᵖ M] [module Aᵐᵒᵖ M] (r : R) (m : M) :
+--   mul_opposite.op ((algebra_map R A) r) • m = mul_opposite.op r • m :=
+-- by rw [←(one_smul Aᵐᵒᵖ m), ←smul_assoc, smul_eq_mul, mul_one]
+
 lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
   (r : k) • x = r • x :=
 algebra_map_smul k r x

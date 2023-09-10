@@ -31,17 +31,10 @@ open algebra
 
 instance algebra : algebra R (A × B) :=
 { commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
-  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
+  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [algebra.smul_def r a, algebra.smul_def r b] },
   op_smul_def' := by { rintro ⟨a, b⟩ r, dsimp, rw [op_smul_def r a, op_smul_def r b] },
   .. prod.module,
   .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
-
-variables {R A B}
-
-@[simp] lemma algebra_map_prod_apply (r : R) :
-  algebra_map R (A × B) r = (algebra_map R A r, algebra_map R B r) := rfl
-
-end prod
 
 variables {R A B}
 

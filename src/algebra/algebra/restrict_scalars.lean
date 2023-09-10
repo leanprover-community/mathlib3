@@ -172,7 +172,8 @@ lemma restrict_scalars.add_equiv_symm_map_smul_smul (r : R) (s : S) (x : M) :
   = r • (restrict_scalars.add_equiv R S M ).symm (s • x) :=
 by { rw [algebra.smul_def, mul_smul], refl, }
 
-lemma restrict_scalars.lsmul_apply_apply (s : S) (x : restrict_scalars R S M) :
+lemma restrict_scalars.lsmul_apply_apply[module Sᵐᵒᵖ M] [is_central_scalar S M]
+  (s : S) (x : restrict_scalars R S M) :
   restrict_scalars.lsmul R S M s x =
     (restrict_scalars.add_equiv R S M).symm (s • (restrict_scalars.add_equiv R S M x)) :=
 rfl

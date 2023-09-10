@@ -10,6 +10,9 @@ import topology.continuous_function.basic
 /-!
 # Smooth bundled map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the type `cont_mdiff_map` of `n` times continuously differentiable
 bundled maps.
 -/

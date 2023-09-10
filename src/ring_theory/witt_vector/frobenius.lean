@@ -14,6 +14,9 @@ import field_theory.perfect_closure
 /-!
 ## The Frobenius operator
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `R` has characteristic `p`, then there is a ring endomorphism `frobenius R p`
 that raises `r : R` to the power `p`.
 By applying `witt_vector.map` to `frobenius R p`, we obtain a ring endomorphism `𝕎 R →+* 𝕎 R`.

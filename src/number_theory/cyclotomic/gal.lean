@@ -10,6 +10,9 @@ import field_theory.polynomial_galois_group
 /-!
 # Galois group of cyclotomic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we show the relationship between the Galois group of `K(ζₙ)` and `(zmod n)ˣ`;
 it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, they are isomorphic.
 

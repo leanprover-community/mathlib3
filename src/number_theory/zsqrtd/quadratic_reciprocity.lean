@@ -9,6 +9,9 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Facts about the gaussian integers relying on quadratic reciprocity.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 `prime_iff_mod_four_eq_three_of_nat_prime`

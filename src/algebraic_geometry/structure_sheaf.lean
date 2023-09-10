@@ -772,10 +772,10 @@ begin
   rw to_basic_open_mk',
 
   -- Since the structure sheaf is a sheaf, we can show the desired equality locally.
-  -- Annoyingly, `sheaf.eq_of_locally_eq'` requires an open cover indexed by a *type*, so we need to
+  -- Annoyingly, `sheaf.eq_of_locally_eq` requires an open cover indexed by a *type*, so we need to
   -- coerce our finset `t` to a type first.
   let tt := ((t : set (basic_open f)) : Type u),
-  apply Top.sheaf.eq_of_locally_eq'.{(u+1) u} (structure_sheaf R)
+  apply (structure_sheaf R).eq_of_locally_eq'
     (λ i : tt, basic_open (h i)) (basic_open f) (λ i : tt, iDh i),
   { -- This feels a little redundant, since already have `ht_cover` as a hypothesis
     -- Unfortunately, `ht_cover` uses a bounded union over the set `t`, while here we have the

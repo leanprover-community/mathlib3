@@ -14,6 +14,9 @@ import ring_theory.norm
 
 /-!
 # Class numbers of global fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file, we use the notion of "admissible absolute value" to prove
 finiteness of the class group for number fields and function fields,
 and define `class_number` as the order of this group.

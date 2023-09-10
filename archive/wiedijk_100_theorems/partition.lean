@@ -15,6 +15,9 @@ import tactic.congrm
 /-!
 # Euler's Partition Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 45 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 The theorem concerns the counting of integer partitions -- ways of

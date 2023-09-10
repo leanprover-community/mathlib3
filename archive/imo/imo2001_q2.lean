@@ -9,6 +9,9 @@ import analysis.special_functions.pow.real
 /-!
 # IMO 2001 Q2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let $a$, $b$, $c$ be positive reals. Prove that
 $$
 \frac{a}{\sqrt{a^2 + 8bc}} +

@@ -14,6 +14,9 @@ import tactic.by_contra
 /-!
 # IMO 1994 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `m` and `n` be two positive integers.
 Let `a₁, a₂, ..., aₘ` be `m` different numbers from the set `{1, 2, ..., n}`
 such that for any two indices `i` and `j` with `1 ≤ i ≤ j ≤ m` and `aᵢ + aⱼ ≤ n`,

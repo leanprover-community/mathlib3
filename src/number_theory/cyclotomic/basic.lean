@@ -10,6 +10,9 @@ import field_theory.galois
 /-!
 # Cyclotomic extensions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `A` and `B` be commutative rings with `algebra A B`. For `S : set ℕ+`, we define a class
 `is_cyclotomic_extension S A B` expressing the fact that `B` is obtained from `A` by adding `n`-th
 primitive roots of unity, for all `n ∈ S`.

@@ -8,6 +8,9 @@ import geometry.manifold.algebra.lie_group
 /-!
 # Smooth structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define smooth structures that build on Lie groups. We prefer using the term smooth
 instead of Lie mainly because Lie ring has currently another use in mathematics.
 -/

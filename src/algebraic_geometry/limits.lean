@@ -9,6 +9,9 @@ import algebraic_geometry.AffineScheme
 /-!
 # (Co)Limits of Schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct various limits and colimits in the category of schemes.
 
 * The existence of fibred products was shown in `algebraic_geometry/pullbacks.lean`.

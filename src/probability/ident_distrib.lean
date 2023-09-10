@@ -9,6 +9,9 @@ import measure_theory.function.uniform_integrable
 /-!
 # Identically distributed random variables
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two random variables defined on two (possibly different) probability spaces but taking value in
 the same space are *identically distributed* if their distributions (i.e., the image probability
 measures on the target space) coincide. We define this concept and establish its basic properties

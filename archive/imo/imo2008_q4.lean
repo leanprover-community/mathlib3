@@ -10,6 +10,9 @@ import tactic.linear_combination
 
 /-!
 # IMO 2008 Q4
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Find all functions `f : (0,∞) → (0,∞)` (so, `f` is a function from the positive real
 numbers to the positive real numbers) such that
       ```

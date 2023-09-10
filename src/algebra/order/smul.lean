@@ -170,11 +170,22 @@ ordered_smul.mk'' $ λ n hn, begin
   { cases (int.neg_succ_not_pos _).1 hn }
 end
 
+section linear_ordered_semiring
+variables [linear_ordered_semiring R] [linear_ordered_add_comm_monoid M] [smul_with_zero R M]
+  [ordered_smul R M] {a : R}
+
 -- TODO: `linear_ordered_field M → ordered_smul ℚ M`
 
-instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
-  ordered_smul R R :=
+instance linear_ordered_semiring.to_ordered_smul : ordered_smul R R :=
 ordered_smul.mk'' $ λ c, strict_mono_mul_left_of_pos
+
+lemma smul_max (ha : 0 ≤ a) (b₁ b₂ : M) : a • max b₁ b₂ = max (a • b₁) (a • b₂) :=
+(monotone_smul_left ha : monotone (_ : M → M)).map_max
+
+lemma smul_min (ha : 0 ≤ a) (b₁ b₂ : M) : a • min b₁ b₂ = min (a • b₁) (a • b₂) :=
+(monotone_smul_left ha : monotone (_ : M → M)).map_min
+
+end linear_ordered_semiring
 
 section linear_ordered_semifield
 variables [linear_ordered_semifield 𝕜] [ordered_add_comm_monoid M] [ordered_add_comm_monoid N]

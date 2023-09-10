@@ -9,6 +9,9 @@ import geometry.manifold.algebra.structures
 /-!
 # Algebraic structures over smooth functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define instances of algebraic structures over smooth functions.
 -/
 

@@ -8,6 +8,9 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Lemmas of Gauss and Eisenstein
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the Lemmas of Gauss and Eisenstein on the Legendre symbol.
 The main results are `zmod.gauss_lemma` and `zmod.eisenstein_lemma`.
 -/
@@ -87,7 +90,7 @@ calc (a ^ (p / 2) * (p / 2)! : zmod p) =
       (λ _ _ _ _ _ _, id)
       (λ b h _, ⟨b, by simp [-not_le, *] at *⟩)
       (by intros; split_ifs at *; simp * at *),
-  by rw [prod_mul_distrib, this]; simp
+  by rw [prod_mul_distrib, this, prod_const]
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,

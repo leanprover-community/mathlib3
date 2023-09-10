@@ -9,6 +9,9 @@ import analysis.special_functions.sqrt
 /-!
 # IMO 2006 Q3
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine the least real number $M$ such that
 $$
 \left| ab(a^2 - b^2) + bc(b^2 - c^2) + ca(c^2 - a^2) \right|

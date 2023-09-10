@@ -9,6 +9,9 @@ import probability.notation
 /-!
 # Regular conditional probability distribution
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the regular conditional probability distribution of `Y : α → Ω` given `X : α → β`, where
 `Ω` is a standard Borel space. This is a `kernel β Ω` such that for almost all `a`, `cond_distrib`
 evaluated at `X a` and a measurable set `s` is equal to the conditional expectation

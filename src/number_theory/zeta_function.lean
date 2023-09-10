@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import analysis.special_functions.gamma.beta
-import number_theory.modular_forms.jacobi_theta
+import number_theory.modular_forms.jacobi_theta.basic
 import number_theory.zeta_values
 
 /-!
 # Definition of the Riemann zeta function
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions:
 

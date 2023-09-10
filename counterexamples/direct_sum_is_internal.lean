@@ -11,6 +11,9 @@ import tactic.fin_cases
 /-!
 # Not all complementary decompositions of a module over a semiring make up a direct sum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This shows that while `ℤ≤0` and `ℤ≥0` are complementary `ℕ`-submodules of `ℤ`, which in turn
 implies as a collection they are `complete_lattice.independent` and that they span all of `ℤ`, they
 do not form a decomposition into a direct sum.

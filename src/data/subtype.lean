@@ -84,7 +84,7 @@ ext_iff
 
 @[simp] theorem coe_eta (a : {a // p a}) (h : p a) : mk ↑a h = a := subtype.ext rfl
 
-@[simp] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
+@[simp, mfld_simps] theorem coe_mk (a h) : (@mk α p a h : α) = a := rfl
 
 @[simp, nolint simp_nf] -- built-in reduction doesn't always work
 theorem mk_eq_mk {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=

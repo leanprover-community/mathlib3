@@ -12,6 +12,9 @@ import tactic.positivity
 /-!
 # IMO 2013 Q5
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `ℚ>₀` be the positive rational numbers. Let `f : ℚ>₀ → ℝ` be a function satisfying
 the conditions
 

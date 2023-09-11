@@ -1,5 +1,40 @@
+/-
+Copyright (c) 2023 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
+
 import representation_theory.group_cohomology.basic
 import representation_theory.invariants
+
+/-!
+# The low-degree group cohomology of a `k`-linear `G`-representation
+
+Let `k` be a commutative ring and `G` a group. The file `RepresentationTheory.GroupCohomology.Basic`
+defines the group cohomology of `A : Rep k G` to be the cohomology of the complex
+$$0 \to \mathrm{Fun}(G^0, A) \to \mathrm{Fun}(G^1, A) \to \mathrm{Fun}(G^2, A) \to \dots$$
+with differential $d^n$ sending $f: G^n \to A$ to the function mapping $(g_0, \dots, g_n)$ to
+$$\rho(g_0)(f(g_1, \dots, g_n))
++ \sum_{i = 0}^{n - 1} (-1)^{i + 1}\cdot f(g_0, \dots, g_ig_{i + 1}, \dots, g_n)$$
+$$+ (-1)^{n + 1}\cdot f(g_0, \dots, g_{n - 1})$$ (where `ρ` is the representation attached to `A`).
+We call this complex `groupCohomology.inhomogeneousCochains A`.
+
+The first few objects of this complex can be expressed more nicely; in this file we show
+that the beginning of `inhomogeneousCochains A` is isomorphic to
+$$0 \to A \to \mathrm{Fun}(G, A) \to \mathrm{Fun}(G \times G, A)$$
+$$ \to \mathrm{Fun}(G \times G \times G, A)$$
+We use this identification to build API for cocycles and cohomology in degrees `n = 0, 1, 2`
+which is easier to use than the definition for general `n`.
+
+## Main definitions
+
+## Implementation notes
+
+## TODO
+
+*
+
+-/
 universes v u
 noncomputable theory
 open category_theory category_theory.limits
@@ -8,6 +43,11 @@ variables {k G : Type u} [comm_ring k] [group G] (A : Rep k G)
 
 namespace group_cohomology
 open category_theory category_theory.limits representation
+
+-- to be moved
+@[simp] lemma inhomogeneous_cochains.d_def (n : ℕ) :
+  (inhomogeneous_cochains A).d n (n + 1) = inhomogeneous_cochains.d n A :=
+cochain_complex.of_d _ _ _ _
 
 /-- The 0th object in the complex of inhomogeneous cochains of `A : Rep k G` is isomorphic
 to `A` as a `k`-module. -/
@@ -47,7 +87,9 @@ begin
     inhomogeneous_cochains.d_apply, zero_cochains_iso, one_cochains_iso,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_unique_apply,
     function.eval_apply, linear_equiv.fun_congr_left_apply, linear_map.fun_left_apply,
-    Module.of_hom, d_zero_apply, fintype.univ_of_subsingleton, fin.coe_fin_one, pow_one, neg_smul,
+    Module.of_hom, d_zero_apply, fintype.univ_of_subsingleton],
+
+  simp only [fin.coe_fin_one, pow_one, neg_smul,
     one_smul, finset.sum_singleton, sub_eq_add_neg],
   congr,
 end
@@ -91,7 +133,8 @@ begin
   simp only [Module.coe_comp, function.comp_app, inhomogeneous_cochains.d_def,
     inhomogeneous_cochains.d_apply, two_cochains_iso, one_cochains_iso,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_congr_left_apply,
-    linear_map.fun_left_apply, Module.of_hom, d_one_apply, sub_eq_add_neg,
+    linear_map.fun_left_apply, Module.of_hom, d_one_apply],
+  simp only [sub_eq_add_neg,
     add_assoc, fin.sum_univ_two, fin.coe_zero, pow_one, neg_smul, one_smul,
     fin.coe_one, neg_one_sq],
   congr,
@@ -219,9 +262,12 @@ begin
     inhomogeneous_cochains.d_apply, two_cochains_iso, three_cochains_iso,
     linear_equiv.to_Module_iso_inv, linear_equiv.fun_congr_left_symm,
     linear_equiv.to_Module_iso_hom, linear_equiv.coe_coe, linear_equiv.fun_congr_left_apply,
-    linear_map.fun_left_apply, Module.of_hom, d_two_apply, sub_eq_add_neg,
-    pi_fin_two_equiv_symm_apply, fin.sum_univ_three, fin.coe_zero, pow_one, neg_smul, one_smul,
-    fin.coe_one, neg_one_sq, fin.coe_two, pow_succ (-1 : k) 2, mul_one, add_assoc],
+    linear_map.fun_left_apply, Module.of_hom, d_two_apply,
+    pi_fin_two_equiv_symm_apply, fin.coe_zero],
+  simp only [sub_eq_add_neg, fin.sum_univ_three, pow_one, neg_smul, one_smul, fin.coe_one, neg_one_sq, fin.coe_two,
+  pow_succ _ 2, mul_one, add_assoc, equiv.symm_trans_apply,
+  equiv.prod_congr_symm, equiv.refl_symm, equiv.prod_congr_apply, equiv.coe_refl, pi_fin_two_equiv_symm_apply, prod_map,
+  id.def, equiv.pi_fin_succ_symm_apply, fin.cons_zero, fin.cons_succ, fin.coe_zero, add_right_inj],
   congr; ext i; fin_cases i; refl,
 end
 
@@ -239,6 +285,8 @@ def two_cocycles := (d_two A).ker
 def two_coboundaries := ((d_one A).cod_restrict (two_cocycles A) $
 λ c, linear_map.ext_iff.1 (d_two_comp_d_one.{u} A) c).range
 
+def H2 := two_cocycles A ⧸ two_coboundaries A
+
 lemma mem_two_cocycles_iff (f : G × G → A) :
   f ∈ two_cocycles A ↔ ∀ g : G × G × G, A.ρ g.1 (f (g.2.1, g.2.2)) - f (g.1 * g.2.1, g.2.2)
     + f (g.1, g.2.1 * g.2.2) - f (g.1, g.2.1) = 0 :=
@@ -249,6 +297,22 @@ lemma mem_two_cocycles_iff' (f : G × G → A) :
     = A.ρ g.1 (f (g.2.1, g.2.2)) + f (g.1, g.2.1 * g.2.2) :=
 by simp_rw [mem_two_cocycles_iff, sub_eq_zero, sub_add_eq_add_sub, sub_eq_iff_eq_add,
   eq_comm, add_comm (f (prod.fst _, _))]
+
+lemma two_cocycles_snd {k G : Type u} [comm_ring k] [group G]
+  {A : Rep k G} (g : G) (f : two_cocycles A) :
+  (f : G × G → A) (1, g) = (f : G × G → A) (1, 1) :=
+begin
+  have := ((mem_two_cocycles_iff' A f).1 f.2 (1, (1, g))).symm,
+  simpa only [map_one, linear_map.one_apply, one_mul, add_right_inj, this],
+end
+
+lemma two_cocycles_fst {k G : Type u} [comm_ring k] [group G]
+  {A : Rep k G} (g : G) (f : two_cocycles A) :
+  (f : G × G → A) (g, 1) = A.ρ g ((f : G × G → A) (1, 1)) :=
+begin
+  have := (mem_two_cocycles_iff' A f).1 f.2 (g, (1, 1)),
+  simpa only [mul_one, add_left_inj, this],
+end
 
 lemma mem_two_coboundaries_of_mem_range (f : G × G → A) (h : f ∈ (d_one A).range) :
   (⟨f, by rcases h with ⟨x, rfl⟩; exact linear_map.ext_iff.1

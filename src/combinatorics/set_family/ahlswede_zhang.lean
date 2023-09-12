@@ -10,7 +10,7 @@ import data.finset.sups
 
 This file proves the Ahlswede-Zhang identity, which is a nontrivial relation between the size of the
 "truncated unions"  of a set family. It sharpens the Lubell-Yamamoto-Meshalkin inequality
-`finset.sum_card_slice_div_choose_le_one`, by expliciting the correction term.
+`finset.sum_card_slice_div_choose_le_one`, by making explicit the correction term.
 
 For a set family `𝒜`, the Ahlswede-Zhang identity states that the sum of
 `|⋂ B ∈ 𝒜, B ⊆ A, B|/(|A| * n.choose |A|)` is exactly `1`.

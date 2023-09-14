@@ -16,6 +16,9 @@ import ring_theory.nilpotent
 /-!
 # Noetherian rings and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The following are equivalent for a module M over a ring R:
 1. Every increasing chain of submodules M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
 2. Every submodule is finitely generated.
@@ -250,20 +253,20 @@ begin
   { intro H,
     constructor,
     intro N,
-    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ := well_founded.well_founded_iff_has_max'.mp
+    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ := well_founded.has_min
       H { N' : α | N'.1 ≤ N } ⟨⟨⊥, submodule.fg_bot⟩, bot_le⟩,
     convert h₁,
     refine (e.antisymm _).symm,
     by_contra h₃,
     obtain ⟨x, hx₁ : x ∈ N, hx₂ : x ∉ N₀⟩ := set.not_subset.mp h₃,
     apply hx₂,
-    have := h₂ ⟨(R ∙ x) ⊔ N₀, _⟩ _ _,
+    have := eq_of_le_of_not_lt _ (h₂ ⟨(R ∙ x) ⊔ N₀, _⟩ _),
     { injection this with eq,
-      rw ← eq,
+      rw eq,
       exact (le_sup_left : (R ∙ x) ≤ (R ∙ x) ⊔ N₀) (submodule.mem_span_singleton_self _) },
     { exact submodule.fg.sup ⟨{x}, by rw [finset.coe_singleton]⟩ h₁ },
-    { exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e },
-    { show N₀ ≤ (R ∙ x) ⊔ N₀, from le_sup_right } }
+    { show N₀ ≤ (R ∙ x) ⊔ N₀, from le_sup_right },
+    { exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e } }
 end
 
 variables (R M)
@@ -277,14 +280,12 @@ variables {R M}
 /-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
 -/
 theorem set_has_maximal_iff_noetherian :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
-  is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, ¬ M' < I) ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_min]
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :
-  (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
-    ↔ is_noetherian R M :=
+  (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m) ↔ is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/

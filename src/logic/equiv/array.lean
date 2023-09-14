@@ -10,6 +10,9 @@ import control.traversable.equiv
 /-!
 # Equivalences involving `array`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We keep this separate from the file containing `list`-like equivalences as those have no future
 in mathlib4.
 -/

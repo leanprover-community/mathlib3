@@ -10,6 +10,9 @@ import set_theory.game.impartial
 /-!
 # Nim and the Sprague-Grundy theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the definition for nim for any ordinal `o`. In the game of `nim o₁` both players
 may move to `nim o₂` for any `o₂ < o₁`.
 We also define a Grundy value for an impartial game `G` and prove the Sprague-Grundy theorem, that

@@ -7,11 +7,14 @@ Authors: Jireh Loreaux, Jon Bannon
 import algebra.star.star_alg_hom
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
-import analysis.special_functions.pow
+import analysis.special_functions.pow.nnreal
 import analysis.normed_space.star.mul
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Define the multiplier algebra of a C⋆-algebra as the algebra (over `𝕜`) of double centralizers,
 for which we provide the localized notation `𝓜(𝕜, A)`.  A double centralizer is a pair of
@@ -383,7 +386,7 @@ lemma norm_def' (a : 𝓜(𝕜, A)) : ‖a‖ = ‖a.to_prod_mul_opposite_hom‖
 lemma nnnorm_def' (a : 𝓜(𝕜, A)) : ‖a‖₊ = ‖a.to_prod_mul_opposite_hom‖₊ := rfl
 
 instance : normed_space 𝕜 𝓜(𝕜, A) :=
-{ norm_smul_le := λ k a, (norm_smul k a.to_prod_mul_opposite).le,
+{ norm_smul_le := λ k a, (norm_smul_le k a.to_prod_mul_opposite : _),
   .. double_centralizer.module }
 
 instance : normed_algebra 𝕜 𝓜(𝕜, A) :=

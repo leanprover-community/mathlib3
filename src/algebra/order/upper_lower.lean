@@ -34,13 +34,10 @@ section ordered_comm_group
 variables {α : Type*} [ordered_comm_group α] {s t : set α} {a : α}
 
 @[to_additive] lemma is_upper_set.smul (hs : is_upper_set s) : is_upper_set (a • s) :=
-begin
-  rintro _ y hxy ⟨x, hx, rfl⟩,
-  exact mem_smul_set_iff_inv_smul_mem.2 (hs (le_inv_mul_iff_mul_le.2 hxy) hx),
-end
+hs.image $ order_iso.mul_left _
 
 @[to_additive] lemma is_lower_set.smul (hs : is_lower_set s) : is_lower_set (a • s) :=
-hs.of_dual.smul
+hs.image $ order_iso.mul_left _
 
 @[to_additive] lemma set.ord_connected.smul (hs : s.ord_connected) : (a • s).ord_connected :=
 begin
@@ -55,10 +52,10 @@ by { rw [←smul_eq_mul, ←bUnion_smul_set], exact is_upper_set_Union₂ (λ x 
 by { rw mul_comm, exact hs.mul_left }
 
 @[to_additive] lemma is_lower_set.mul_left (ht : is_lower_set t) : is_lower_set (s * t) :=
-ht.of_dual.mul_left
+ht.to_dual.mul_left
 
 @[to_additive] lemma is_lower_set.mul_right (hs : is_lower_set s) : is_lower_set (s * t) :=
-hs.of_dual.mul_right
+hs.to_dual.mul_right
 
 @[to_additive] lemma is_upper_set.inv (hs : is_upper_set s) : is_lower_set s⁻¹ :=
 λ x y h, hs $ inv_le_inv' h
@@ -73,10 +70,10 @@ by { rw div_eq_mul_inv, exact ht.inv.mul_left }
 by { rw div_eq_mul_inv, exact hs.mul_right }
 
 @[to_additive] lemma is_lower_set.div_left (ht : is_lower_set t) : is_upper_set (s / t) :=
-ht.of_dual.div_left
+ht.to_dual.div_left
 
 @[to_additive] lemma is_lower_set.div_right (hs : is_lower_set s) : is_lower_set (s / t) :=
-hs.of_dual.div_right
+hs.to_dual.div_right
 
 namespace upper_set
 

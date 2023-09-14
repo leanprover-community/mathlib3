@@ -11,6 +11,9 @@ import data.nat.multiplicity
 /-!
 # Factorization of Binomial Coefficients
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains a few results on the multiplicity of prime factors within certain size
 bounds in binomial coefficients. These include:
 

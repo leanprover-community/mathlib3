@@ -293,7 +293,16 @@ section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
-variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
+variables [smul_comm_class R R'₂ M]
+
+/-- `smul_comm_class R' R'₂ M` implies `smul_comm_class R' R'₂ (M ⊗[R] N)` -/
+instance smul_comm_class_left [smul_comm_class R' R'₂ M] : smul_comm_class R' R'₂ (M ⊗[R] N) :=
+{ smul_comm := λ r' r'₂ x, tensor_product.induction_on x
+    (by simp_rw tensor_product.smul_zero)
+    (λ m n, by simp_rw [smul_tmul', smul_comm])
+    (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),}
+
+variables [has_smul R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :

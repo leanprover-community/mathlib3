@@ -21,21 +21,24 @@ and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `
 and an induction principle `well_founded.induction_bot`.
 -/
 
-variables {α : Type*}
+variables {α β γ : Type*}
 
 namespace well_founded
+variables {r r' : α → α → Prop}
 
-protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.asymmetric⟩
+protected theorem is_asymm (h : well_founded r) : is_asymm α r := ⟨h.asymmetric⟩
 
-instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
-has_well_founded.wf.is_asymm
-
-protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
+protected theorem is_irrefl (h : well_founded r) : is_irrefl α r :=
 (@is_asymm.is_irrefl α r h.is_asymm)
 
-instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
-is_asymm.is_irrefl
+instance [has_well_founded α] : is_asymm α has_well_founded.r := has_well_founded.wf.is_asymm
+instance [has_well_founded α] : is_irrefl α has_well_founded.r := is_asymm.is_irrefl
+
+lemma mono (hr : well_founded r) (h : ∀ a b, r' a b → r a b) : well_founded r' :=
+subrelation.wf h hr
+
+lemma on_fun {α β : Sort*} {r : β → β → Prop} {f : α → β} :
+  well_founded r → well_founded (r on f) := inv_image.wf _
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
@@ -71,26 +74,6 @@ begin
   by_contra hy',
   exact hm' y hy' hy
 end
-
-lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
-begin
-  split,
-  { intros xle nge,
-    cases le_not_le_of_lt nge,
-    rw xle left at nge,
-    exact lt_irrefl x nge },
-  { intros ngt xle,
-    contrapose! ngt,
-    exact lt_of_le_of_ne xle (ne.symm ngt) }
-end
-
-theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
-by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
-
-theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/
@@ -130,8 +113,7 @@ end
 
 section linear_order
 
-variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
-  {γ : Type*} [partial_order γ]
+variables [linear_order β] (h : well_founded ((<) : β → β → Prop)) [partial_order γ]
 
 theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
   h.min s hne ≤ x :=
@@ -169,8 +151,7 @@ end linear_order
 end well_founded
 
 namespace function
-
-variables {β : Type*} (f : α → β)
+variables (f : α → β)
 
 section has_lt
 

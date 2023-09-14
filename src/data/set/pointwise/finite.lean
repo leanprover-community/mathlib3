@@ -6,16 +6,24 @@ Authors: Johan Commelin, Floris van Doorn
 import data.set.finite
 import data.set.pointwise.smul
 
-/-! # Finiteness lemmas for pointwise operations on sets 
+/-!
+# Finiteness lemmas for pointwise operations on sets
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.-/
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
 
 open_locale pointwise
 
 variables {F α β γ : Type*}
 
 namespace set
+section has_one
+variables [has_one α]
+
+@[simp, to_additive] lemma finite_one : (1 : set α).finite := finite_singleton _
+
+end has_one
 
 section has_involutive_inv
 variables [has_involutive_inv α] {s : set α}
@@ -68,6 +76,7 @@ section has_smul_set
 variables [has_smul α β] {s : set β} {a : α}
 
 @[to_additive] lemma finite.smul_set : s.finite → (a • s).finite := finite.image _
+@[to_additive] lemma infinite.of_smul_set : (a • s).infinite → s.infinite := infinite.of_image _
 
 end has_smul_set
 
@@ -79,6 +88,30 @@ lemma finite.vsub (hs : s.finite) (ht : t.finite) : set.finite (s -ᵥ t) := hs.
 
 end vsub
 
+section cancel
+variables [has_mul α] [is_left_cancel_mul α] [is_right_cancel_mul α] {s t : set α}
+
+@[to_additive] lemma infinite_mul :
+  (s * t).infinite ↔ s.infinite ∧ t.nonempty ∨ t.infinite ∧ s.nonempty :=
+infinite_image2 (λ _ _, (mul_left_injective _).inj_on _) (λ _ _, (mul_right_injective _).inj_on _)
+
+end cancel
+
+section group
+variables [group α] [mul_action α β] {a : α} {s : set β}
+
+@[simp, to_additive] lemma finite_smul_set : (a • s).finite ↔ s.finite :=
+finite_image_iff $ (mul_action.injective _).inj_on _
+
+@[simp, to_additive] lemma infinite_smul_set : (a • s).infinite ↔ s.infinite :=
+infinite_image_iff $ (mul_action.injective _).inj_on _
+
+alias finite_smul_set ↔ finite.of_smul_set _
+alias infinite_smul_set ↔ _ infinite.smul_set
+
+attribute [to_additive] finite.of_smul_set infinite.smul_set
+
+end group
 end set
 
 open set

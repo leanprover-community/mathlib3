@@ -5,11 +5,13 @@ Authors: Jujian Zhang, Scott Morrison
 -/
 import algebra.homology.quasi_iso
 import category_theory.preadditive.injective_resolution
-import category_theory.abelian.homology
 import algebra.homology.homotopy_category
 
 /-!
 # Main result
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 When the underlying category is abelian:
 * `category_theory.InjectiveResolution.desc`: Given `I : InjectiveResolution X` and

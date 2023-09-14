@@ -10,6 +10,9 @@ import data.zmod.basic
 /-!
 # `quadratic_form R M` and `subtype bilin_form.is_symm` are distinct notions in characteristic 2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main result of this file is `bilin_form.not_inj_on_to_quadratic_form_is_symm`.
 
 The counterexample we use is $B (x, y) (x', y') ↦ xy' + x'y$ where `x y x' y' : zmod 2`.
@@ -18,6 +21,8 @@ The counterexample we use is $B (x, y) (x', y') ↦ xy' + x'y$ where `x y x' y' 
 variables (F : Type*) [nontrivial F] [comm_ring F] [char_p F 2]
 
 open bilin_form
+
+namespace counterexample
 
 /-- The bilinear form we will use as a counterexample, over some field `F` of characteristic two. -/
 def B : bilin_form F (F × F) :=
@@ -51,3 +56,5 @@ begin
   rw [bilin_form.to_quadratic_form_zero, bilin_form.to_quadratic_form_eq_zero],
   exact is_alt_B F,
 end
+
+end counterexample

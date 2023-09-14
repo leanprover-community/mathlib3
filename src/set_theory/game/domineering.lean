@@ -8,6 +8,9 @@ import set_theory.game.state
 /-!
 # Domineering as a combinatorial game.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the game of Domineering, played on a chessboard of arbitrary shape
 (possibly even disconnected).
 Left moves by placing a domino vertically, while Right moves by placing a domino horizontally.

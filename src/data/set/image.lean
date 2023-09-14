@@ -50,7 +50,7 @@ variables {f : α → β} {g : β → γ}
 
 @[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
-@[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
+@[simp, mfld_simps] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
 lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
 by { congr' with x, apply_assumption }
@@ -58,11 +58,11 @@ by { congr' with x, apply_assumption }
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
 
-@[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
+@[simp, mfld_simps] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
 theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
-@[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
+@[simp, mfld_simps] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
 
@@ -70,6 +70,9 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
+
+@[simp] lemma preimage_symm_diff (f : α → β) (s t : set β) :
+  f ⁻¹' (s ∆ t) = (f ⁻¹' s) ∆ (f ⁻¹' t) := rfl
 
 @[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
   f ⁻¹' (s.ite t₁ t₂) = (f ⁻¹' s).ite (f ⁻¹' t₁) (f ⁻¹' t₂) :=
@@ -80,7 +83,7 @@ rfl
 
 @[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
 
-theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[mfld_simps] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
@@ -120,6 +123,10 @@ lemma nonempty_of_nonempty_preimage {s : set β} {f : α → β} (hf : (f ⁻¹'
   s.nonempty :=
 let ⟨x, hx⟩ := hf in ⟨f x, hx⟩
 
+@[simp] lemma preimage_singleton_true (p : α → Prop) : p ⁻¹' {true} = {a | p a} := by { ext, simp }
+@[simp] lemma preimage_singleton_false (p : α → Prop) : p ⁻¹' {false} = {a | ¬ p a} :=
+by { ext, simp }
+
 lemma preimage_subtype_coe_eq_compl {α : Type*} {s u v : set α} (hsuv : s ⊆ u ∪ v)
   (H : s ∩ (u ∩ v) = ∅) : (coe : s → α) ⁻¹' u = (coe ⁻¹' v)ᶜ :=
 begin
@@ -152,6 +159,7 @@ theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
 
 lemma image_eta (f : α → β) : f '' s = (λ x, f x) '' s := rfl
 
+@[mfld_simps]
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
 
@@ -252,7 +260,8 @@ by { ext, simp [image, eq_comm] }
 ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
   λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
 
-@[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
+@[simp, mfld_simps]
+lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 
@@ -506,7 +515,7 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 
 @[simp] theorem mem_range {x : α} : x ∈ range f ↔ ∃ y, f y = x := iff.rfl
 
-@[simp] theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
+@[simp, mfld_simps] theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 by simp
@@ -649,7 +658,7 @@ theorem preimage_image_preimage {f : α → β} {s : set β} :
   f ⁻¹' (f '' (f ⁻¹' s)) = f ⁻¹' s :=
 by rw [image_preimage_eq_inter_range, preimage_inter_range]
 
-@[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
+@[simp, mfld_simps] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
 @[simp] theorem range_id' : range (λ (x : α), x) = univ := range_id
 
@@ -1000,6 +1009,9 @@ by rw [← image_comp, h.comp_eq_id, image_id]
 lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
   f ⁻¹' (g ⁻¹' s) = s :=
 by rw [← preimage_comp, h.comp_eq_id, preimage_id]
+
+protected lemma involutive.preimage {f : α → α} (hf : involutive f) : involutive (preimage f) :=
+hf.right_inverse.preimage_preimage
 
 end function
 

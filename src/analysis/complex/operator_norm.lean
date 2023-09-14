@@ -9,6 +9,9 @@ import data.complex.determinant
 
 /-! # The basic continuous linear maps associated to `ℂ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The continuous linear maps `complex.re_clm` (real part), `complex.im_clm` (imaginary part),
 `complex.conj_cle` (conjugation), and `complex.of_real_clm` (inclusion of `ℝ`) were introduced in
 `analysis.complex.operator_norm`.  This file contains a few calculations requiring more imports:

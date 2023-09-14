@@ -10,6 +10,9 @@ import analysis.normed.group.hom_completion
 /-!
 # Completions of normed groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains an API for completions of seminormed groups (basic facts about
 objects and morphisms).
 

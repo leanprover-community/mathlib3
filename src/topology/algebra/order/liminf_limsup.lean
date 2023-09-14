@@ -8,6 +8,7 @@ import algebra.big_operators.order
 import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
+import order.filter.countable_Inter
 import topology.order.basic
 
 /-!
@@ -17,7 +18,7 @@ import topology.order.basic
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
-open filter
+open filter topological_space
 open_locale topology classical
 
 universes u v
@@ -50,19 +51,6 @@ lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : 
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
 h.is_bounded_under_le.is_cobounded_flip
 
-lemma is_bounded_le_at_bot (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_bot : filter α).is_bounded (≤) :=
-is_bounded_iff.2 ⟨set.Iic hα.some, mem_at_bot _, hα.some, λ x hx, hx⟩
-
-lemma filter.tendsto.is_bounded_under_le_at_bot {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_bot) :
-  f.is_bounded_under (≤) u :=
-(is_bounded_le_at_bot α).mono h
-
-lemma bdd_above_range_of_tendsto_at_top_at_bot {α : Type*} [nonempty α] [semilattice_sup α]
-  {u : ℕ → α} (hx : tendsto u at_top at_bot) : bdd_above (set.range u) :=
-(filter.tendsto.is_bounded_under_le_at_bot hx).bdd_above_range
-
 end order_closed_topology
 
 section order_closed_topology
@@ -89,32 +77,10 @@ lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : 
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
 h.is_bounded_under_ge.is_cobounded_flip
 
-lemma is_bounded_ge_at_top (α : Type*) [hα : nonempty α] [preorder α] :
-  (at_top : filter α).is_bounded (≥) :=
-is_bounded_le_at_bot αᵒᵈ
-
-lemma filter.tendsto.is_bounded_under_ge_at_top {α : Type*} [nonempty α] [preorder α]
-  {f : filter β} {u : β → α} (h : tendsto u f at_top) :
-  f.is_bounded_under (≥) u :=
-(is_bounded_ge_at_top α).mono h
-
-lemma bdd_below_range_of_tendsto_at_top_at_top {α : Type*} [nonempty α] [semilattice_inf α]
-  {u : ℕ → α} (hx : tendsto u at_top at_top) : bdd_below (set.range u) :=
-(filter.tendsto.is_bounded_under_ge_at_top hx).bdd_below_range
-
 end order_closed_topology
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α]
-
-theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
-  ∀ᶠ a in f, a < b :=
-let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
-
-theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
-  ∀ᶠ a in f, b < a :=
-@lt_mem_sets_of_Limsup_lt αᵒᵈ _
 
 variables [topological_space α] [order_topology α]
 
@@ -215,7 +181,44 @@ begin
   exact H a as b bs ab ⟨A, B⟩,
 end
 
+variables [first_countable_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+lemma eventually_le_limsup (hf : is_bounded_under (≤) f u . is_bounded_default) :
+  ∀ᶠ b in f, u b ≤ f.limsup u :=
+begin
+  obtain ha | ha := is_top_or_exists_gt (f.limsup u),
+  { exact eventually_of_forall (λ _, ha _) },
+  by_cases H : is_glb (set.Ioi (f.limsup u)) (f.limsup u),
+  { obtain ⟨u, -, -, hua, hu⟩ := H.exists_seq_antitone_tendsto ha,
+    have := λ n, eventually_lt_of_limsup_lt (hu n) hf,
+    exact (eventually_countable_forall.2 this).mono
+      (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le) },
+  { obtain ⟨x, hx, xa⟩ : ∃ x, (∀ ⦃b⦄, f.limsup u < b → x ≤ b) ∧ f.limsup u < x,
+    { simp only [is_glb, is_greatest, lower_bounds, upper_bounds, set.mem_Ioi, set.mem_set_of_eq,
+        not_and, not_forall, not_le, exists_prop] at H,
+      exact H (λ x hx, le_of_lt hx) },
+    filter_upwards [eventually_lt_of_limsup_lt xa hf] with y hy,
+    contrapose! hy,
+    exact hx hy }
+end
+
+lemma eventually_liminf_le (hf : is_bounded_under (≥) f u . is_bounded_default) :
+  ∀ᶠ b in f, f.liminf u ≤ u b :=
+@eventually_le_limsup αᵒᵈ _ _ _ _ _ _ _ _ hf
+
 end conditionally_complete_linear_order
+
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [first_countable_topology α]
+  [order_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+@[simp] lemma limsup_eq_bot : f.limsup u = ⊥ ↔ u =ᶠ[f] ⊥ :=
+⟨λ h, (eventually_le.trans eventually_le_limsup $ eventually_of_forall $ λ _, h.le).mono $ λ x hx,
+  le_antisymm hx bot_le, λ h, by { rw limsup_congr h, exact limsup_const_bot }⟩
+
+@[simp] lemma liminf_eq_top : f.liminf u = ⊤ ↔ u =ᶠ[f] ⊤ := @limsup_eq_bot αᵒᵈ _ _ _ _ _ _ _ _
+
+end complete_linear_order
 
 end liminf_limsup
 

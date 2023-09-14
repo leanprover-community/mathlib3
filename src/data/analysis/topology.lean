@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.analysis.filter
 import topology.bases
+import topology.locally_finite
 
 /-!
 # Computational realization of topological spaces (experimental)

@@ -12,6 +12,9 @@ import tactic.linear_combination
 /-!
 # Quadratic discriminants and roots of a quadratic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the discriminant of a quadratic and gives the solution to a quadratic equation.
 
 ## Main definition

@@ -10,6 +10,9 @@ import topology.algebra.uniform_ring
 /-!
 # Normed space structure on the completion of a normed space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `E` is a normed space over `𝕜`, then so is `uniform_space.completion E`. In this file we provide
 necessary instances and define `uniform_space.completion.to_complₗᵢ` - coercion
 `E → uniform_space.completion E` as a bundled linear isometry.
@@ -91,7 +94,7 @@ instance [semi_normed_comm_ring A] [normed_algebra 𝕜 A] [has_uniform_continuo
     { exact is_closed_le (continuous.comp (continuous_norm) (continuous_const_smul r))
       (continuous.comp (continuous_mul_left _) continuous_norm), },
     { intros x,
-      simp only [← coe_smul, norm_coe], exact normed_space.norm_smul_le r x }
+      simp only [← coe_smul, norm_coe], exact norm_smul_le r x }
   end,
   ..completion.algebra A 𝕜}
 

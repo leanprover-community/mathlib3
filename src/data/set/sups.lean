@@ -9,6 +9,9 @@ import order.upper_lower.basic
 /-!
 # Set family operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few binary operations on `set α` for use in set family combinatorics.
 
 ## Main declarations

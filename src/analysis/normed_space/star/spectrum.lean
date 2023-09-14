@@ -5,11 +5,13 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
-import analysis.normed_space.star.exponential
 import analysis.special_functions.exponential
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file, we establish various properties related to the spectrum of elements in C⋆-algebras.
 -/
 

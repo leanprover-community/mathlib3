@@ -12,6 +12,9 @@ import data.qpf.multivariate.basic
 /-!
 # The final co-algebra of a multivariate qpf is again a qpf.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a `(n+1)`-ary QPF `F (α₀,..,αₙ)`, we take the least fixed point of `F` with
 regards to its last argument `αₙ`. The result is a `n`-ary functor: `fix F (α₀,..,αₙ₋₁)`.
 Making `fix F` into a functor allows us to take the fixed point, compose with other functors

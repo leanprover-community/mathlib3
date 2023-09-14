@@ -257,7 +257,10 @@ instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵃᵒᵖ :=
   ..add_opposite.add_comm_monoid α, ..add_opposite.has_one, ..add_opposite.has_nat_cast _ }
 
 instance [add_comm_group_with_one α] : add_comm_group_with_one αᵃᵒᵖ :=
-{ ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α }
+{ int_cast_of_nat := λ n, congr_arg op $ int.cast_of_nat n,
+  int_cast_neg_succ_of_nat := λ _, congr_arg op $ int.cast_neg_succ_of_nat _,
+  ..add_opposite.add_comm_monoid_with_one _, ..add_opposite.add_comm_group α,
+  ..add_opposite.has_int_cast α }
 
 variable {α}
 
@@ -343,6 +346,21 @@ rfl
 lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
+
+@[to_additive]
+lemma is_unit.op {M} [monoid M] {m : M} (h : is_unit m) : is_unit (op m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨units.op_equiv.symm (op u), rfl⟩
+
+@[to_additive]
+lemma is_unit.unop {M} [monoid M] {m : Mᵐᵒᵖ} (h : is_unit m) : is_unit (unop m) :=
+let ⟨u, hu⟩ := h in hu ▸ ⟨unop (units.op_equiv u), rfl⟩
+
+@[simp, to_additive]
+lemma is_unit_op {M} [monoid M] {m : M} : is_unit (op m) ↔ is_unit m := ⟨is_unit.unop, is_unit.op⟩
+
+@[simp, to_additive]
+lemma is_unit_unop {M} [monoid M] {m : Mᵐᵒᵖ} : is_unit (unop m) ↔ is_unit m :=
+⟨is_unit.op, is_unit.unop⟩
 
 /-- A semigroup homomorphism `M →ₙ* N` can equivalently be viewed as a semigroup homomorphism
 `Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/

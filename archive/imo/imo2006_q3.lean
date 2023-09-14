@@ -9,6 +9,9 @@ import analysis.special_functions.sqrt
 /-!
 # IMO 2006 Q3
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine the least real number $M$ such that
 $$
 \left| ab(a^2 - b^2) + bc(b^2 - c^2) + ca(c^2 - a^2) \right|
@@ -28,6 +31,8 @@ It involves making the substitution
 -/
 
 open real
+
+namespace imo2006_q3
 
 /-- Replacing `x` and `y` with their average increases the left side. -/
 lemma lhs_ineq {x y : ℝ} (hxy : 0 ≤ x * y) :
@@ -132,6 +137,10 @@ begin
   { apply pow_pos, norm_num },
   { exact mul_nonneg (mul_nonneg (sq_nonneg _) zero_le_two) (sqrt_nonneg _) }
 end
+
+end imo2006_q3
+
+open imo2006_q3
 
 theorem imo2006_q3 (M : ℝ) :
   (∀ a b c : ℝ,

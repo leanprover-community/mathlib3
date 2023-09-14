@@ -9,6 +9,9 @@ import measure_theory.integral.interval_integral
 /-!
 # Derivatives of interval integrals depending on parameters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we restate theorems about derivatives of integrals depending on parameters for interval
 integrals.  -/
 

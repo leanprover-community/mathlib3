@@ -9,6 +9,9 @@ import measure_theory.measure.lebesgue.eq_haar
 /-!
 # Volume forms and measures on inner product spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A volume form induces a Lebesgue measure on general finite-dimensional real vector spaces. In this
 file, we discuss the specific situation of inner product spaces, where an orientation gives
 rise to a canonical volume form. We show that the measure coming from this volume form gives

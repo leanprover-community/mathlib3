@@ -8,6 +8,9 @@ import measure_theory.constructions.pi
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * A family of sets of sets `π : ι → set (set Ω)` is independent with respect to a measure `μ` if for
   any finite set of indices `s = {i_1, ..., i_n}`, for any sets `f i_1 ∈ π i_1, ..., f i_n ∈ π i_n`,
   `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. It will be used for families of π-systems.
@@ -61,7 +64,7 @@ when defining `μ` in the example above, the measurable space used is the last o
 Part A, Chapter 4.
 -/
 
-open measure_theory measurable_space
+open measure_theory measurable_space set
 open_locale big_operators measure_theory ennreal
 
 namespace probability_theory
@@ -574,7 +577,8 @@ We prove the following equivalences on `indep_set`, for measurable sets `s, t`.
 * `indep_set s t μ ↔ indep_sets {s} {t} μ`.
 -/
 
-variables {s t : set Ω} (S T : set (set Ω))
+variables {s t : set Ω} (S T : set (set Ω)) {π : ι → set (set Ω)} {f : ι → set Ω}
+  {m0 : measurable_space Ω} {μ : measure Ω}
 
 lemma indep_set_iff_indep_sets_singleton {m0 : measurable_space Ω}
   (hs_meas : measurable_set s) (ht_meas : measurable_set t)
@@ -620,6 +624,40 @@ lemma indep_iff_forall_indep_set (m₁ m₂ : measurable_space Ω) {m0 : measura
 ⟨λ h, λ s t hs ht, h.indep_set_of_measurable_set hs ht,
   λ h s t hs ht, h s t hs ht s t (measurable_set_generate_from (set.mem_singleton s))
     (measurable_set_generate_from (set.mem_singleton t))⟩
+
+lemma Indep_sets.meas_Inter [fintype ι] (h : Indep_sets π μ) (hf : ∀ i, f i ∈ π i) :
+  μ (⋂ i, f i) = ∏ i, μ (f i) :=
+by simp [← h _ (λ i _, hf _)]
+
+lemma Indep_comap_mem_iff : Indep (λ i, measurable_space.comap (∈ f i) ⊤) μ ↔ Indep_set f μ :=
+by { simp_rw ←generate_from_singleton, refl }
+
+alias Indep_comap_mem_iff ↔ _ Indep_set.Indep_comap_mem
+
+lemma Indep_sets_singleton_iff :
+  Indep_sets (λ i, {f i}) μ ↔ ∀ t, μ (⋂ i ∈ t, f i) = ∏ i in t, μ (f i) :=
+forall_congr $ λ t,
+  ⟨λ h, h $ λ _ _, mem_singleton _,
+  λ h f hf, begin
+    refine eq.trans _ (h.trans $ finset.prod_congr rfl $ λ i hi, congr_arg _ $ (hf i hi).symm),
+    rw Inter₂_congr hf,
+  end⟩
+
+variables [is_probability_measure μ]
+
+lemma Indep_set_iff_Indep_sets_singleton (hf : ∀ i, measurable_set (f i)) :
+  Indep_set f μ ↔ Indep_sets (λ i, {f i}) μ :=
+⟨Indep.Indep_sets $ λ _, rfl, Indep_sets.Indep _
+  (λ i, generate_from_le $ by { rintro t (rfl : t = _), exact hf _}) _
+    (λ _, is_pi_system.singleton _) $ λ _, rfl⟩
+
+lemma Indep_set_iff_measure_Inter_eq_prod (hf : ∀ i, measurable_set (f i)) :
+  Indep_set f μ ↔ ∀ s, μ (⋂ i ∈ s, f i) = ∏ i in s, μ (f i) :=
+(Indep_set_iff_Indep_sets_singleton hf).trans Indep_sets_singleton_iff
+
+lemma Indep_sets.Indep_set_of_mem (hfπ : ∀ i, f i ∈ π i) (hf : ∀ i, measurable_set (f i))
+  (hπ : Indep_sets π μ) : Indep_set f μ :=
+(Indep_set_iff_measure_Inter_eq_prod hf).2 $ λ t, hπ _ $ λ i _, hfπ _
 
 end indep_set
 

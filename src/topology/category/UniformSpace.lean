@@ -12,6 +12,9 @@ import topology.uniform_space.completion
 /-!
 # The category of uniform spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the category of uniform spaces, show that the complete separated uniform spaces
 form a reflective subcategory, and hence possess all limits that uniform spaces do.
 

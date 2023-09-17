@@ -10,6 +10,9 @@ import data.mv_polynomial.supported
 /-!
 # Leading terms of Witt vector multiplication
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The goal of this file is to study the leading terms of the formula for the `n+1`st coefficient
 of a product of Witt vectors `x` and `y` over a ring of characteristic `p`.
 We aim to isolate the `n+1`st coefficients of `x` and `y`, and express the rest of the product

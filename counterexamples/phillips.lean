@@ -11,6 +11,9 @@ import topology.continuous_function.bounded
 /-!
 # A counterexample on Pettis integrability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There are several theories of integration for functions taking values in Banach spaces. Bochner
 integration, requiring approximation by simple functions, is the analogue of the one-dimensional
 theory. It is very well behaved, but only works for functions with second-countable range.
@@ -71,6 +74,8 @@ The space of all bounded functions is defined as the space of all bounded contin
 on a discrete copy of the original type, as mathlib only contains the space of all bounded
 continuous functions (which is the useful one).
 -/
+
+namespace counterexample
 
 universe u
 variables {α : Type u}
@@ -606,3 +611,5 @@ begin
 end
 
 end phillips_1940
+
+end counterexample

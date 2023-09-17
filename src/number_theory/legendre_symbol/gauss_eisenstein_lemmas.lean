@@ -8,58 +8,15 @@ import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Lemmas of Gauss and Eisenstein
 
-This file contains code for the proof of the Lemmas of Gauss and Eisenstein
-on the Legendre symbol. The main results are `zmod.gauss_lemma_aux` and
-`zmod.eisenstein_lemma_aux`.
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+This file contains the Lemmas of Gauss and Eisenstein on the Legendre symbol.
+The main results are `zmod.gauss_lemma` and `zmod.eisenstein_lemma`.
 -/
 
-open function finset nat finite_field zmod
+open finset nat
 open_locale big_operators nat
-
-namespace zmod
-
-section wilson
-
-variables (p : ℕ) [fact p.prime]
-
-/-- **Wilson's Lemma**: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
-@[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
-begin
-  refine
-  calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
-    by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
-                               ... = (∏ x : (zmod p)ˣ, x) : _
-                               ... = -1 : by simp_rw [← units.coe_hom_apply,
-    ← (units.coe_hom (zmod p)).map_prod, prod_univ_units_id_eq_neg_one, units.coe_hom_apply,
-    units.coe_neg, units.coe_one],
-  have hp : 0 < p := (fact.out p.prime).pos,
-  symmetry,
-  refine prod_bij (λ a _, (a : zmod p).val) _ _ _ _,
-  { intros a ha,
-    rw [mem_Ico, ← nat.succ_sub hp, nat.succ_sub_one],
-    split,
-    { apply nat.pos_of_ne_zero, rw ← @val_zero p,
-      assume h, apply units.ne_zero a (val_injective p h) },
-    { exact val_lt _ } },
-  { intros a ha, simp only [cast_id, nat_cast_val], },
-  { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },
-  { intros b hb,
-    rw [mem_Ico, nat.succ_le_iff, ← succ_sub hp, succ_sub_one, pos_iff_ne_zero] at hb,
-    refine ⟨units.mk0 b _, finset.mem_univ _, _⟩,
-    { assume h, apply hb.1, apply_fun val at h,
-      simpa only [val_cast_of_lt hb.right, val_zero] using h },
-    { simp only [val_cast_of_lt hb.right, units.coe_mk0], } }
-end
-
-@[simp] lemma prod_Ico_one_prime : (∏ x in Ico 1 p, (x : zmod p)) = -1 :=
-begin
-  conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub (fact.out p.prime).pos] },
-  rw [← prod_nat_cast, finset.prod_Ico_id_eq_factorial, wilsons_lemma]
-end
-
-end wilson
-
-end zmod
 
 section gauss_eisenstein
 
@@ -133,7 +90,7 @@ calc (a ^ (p / 2) * (p / 2)! : zmod p) =
       (λ _ _ _ _ _ _, id)
       (λ b h _, ⟨b, by simp [-not_le, *] at *⟩)
       (by intros; split_ifs at *; simp * at *),
-  by rw [prod_mul_distrib, this]; simp
+  by rw [prod_mul_distrib, this, prod_const]
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,
@@ -157,13 +114,14 @@ lemma gauss_lemma {p : ℕ} [fact p.prime] {a : ℤ} (hp : p ≠ 2) (ha0 : (a : 
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 begin
   haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  haveI : fact (2 < p) := ⟨hp.lt_of_le' (fact.out p.prime).two_le⟩,
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
     by { rw [legendre_sym.eq_pow, gauss_lemma_aux p ha0]; simp },
   cases legendre_sym.eq_one_or_neg_one p ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
-  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
+  simp only [*, neg_one_ne_one, neg_one_ne_one.symm, algebra_map.coe_one, int.cast_neg] at *,
 end
 
 private lemma eisenstein_lemma_aux₁ (p : ℕ) [fact p.prime] [hp2 : fact (p % 2 = 1)]

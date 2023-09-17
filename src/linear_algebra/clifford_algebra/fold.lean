@@ -8,6 +8,9 @@ import linear_algebra.clifford_algebra.conjugation
 /-!
 # Recursive computation rules for the Clifford algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides API for a special case `clifford_algebra.foldr` of the universal property
 `clifford_algebra.lift` with `A = module.End R N` for some arbitrary module `N`. This specialization
 resembles the `list.foldr` operation, allowing a bilinear map to be "folded" along the generators.

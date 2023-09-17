@@ -196,7 +196,7 @@ by { cases i, exacts [h₂, h₁] }
   measurable_set (disjointed f n) :=
 disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
-@[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
+lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
 by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }
 
 /-- Every set has a measurable superset. Declare this as local instance as needed. -/
@@ -377,10 +377,10 @@ begin
   { exact measurable_set_generate_from ht, },
 end
 
-@[simp] lemma generate_from_singleton_empty : generate_from {∅} = (⊥ : measurable_space α) :=
+lemma generate_from_singleton_empty : generate_from {∅} = (⊥ : measurable_space α) :=
 by { rw [eq_bot_iff, generate_from_le_iff], simp, }
 
-@[simp] lemma generate_from_singleton_univ : generate_from {set.univ} = (⊥ : measurable_space α) :=
+lemma generate_from_singleton_univ : generate_from {set.univ} = (⊥ : measurable_space α) :=
 by { rw [eq_bot_iff, generate_from_le_iff], simp, }
 
 lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = ∅ ∨ s = univ) :=

@@ -11,6 +11,9 @@ import topology.algebra.order.liminf_limsup
 /-!
 # ℓp space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file describes properties of elements `f` of a pi-type `Π i, E i` with finite "norm",
 defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ‖f a‖^p) ^ (1/p)` for
 `0 < p < ∞` and `⨆ a, ‖f a‖` for `p=∞`.
@@ -248,9 +251,9 @@ begin
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
-section normed_space
+section has_bounded_smul
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
 
 lemma const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c • f) p :=
 begin
@@ -261,17 +264,21 @@ begin
   { obtain ⟨A, hA⟩ := hf.bdd_above,
     refine mem_ℓp_infty ⟨‖c‖ * A, _⟩,
     rintros a ⟨i, rfl⟩,
-    simpa [norm_smul] using mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
+    refine (norm_smul_le _ _).trans _,
+    exact mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
   { apply mem_ℓp_gen,
-    convert (hf.summable hp).mul_left (‖c‖ ^ p.to_real),
-    ext i,
-    simp [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
+    have := (hf.summable hp).mul_left (↑(‖c‖₊ ^ p.to_real) : ℝ),
+    simp_rw [← coe_nnnorm, ←nnreal.coe_rpow, ←nnreal.coe_mul, nnreal.summable_coe,
+      ←nnreal.mul_rpow] at this ⊢,
+    refine nnreal.summable_of_le _ this,
+    intro i,
+    exact nnreal.rpow_le_rpow (nnnorm_smul_le _ _) (ennreal.to_real_nonneg), },
 end
 
 lemma const_mul {f : α → 𝕜} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (λ x, c * f x) p :=
-@mem_ℓp.const_smul α (λ i, 𝕜) _ _ 𝕜 _ _ _ hf c
+@mem_ℓp.const_smul α (λ i, 𝕜) _ _ 𝕜 _ _ (λ i, by apply_instance) _ hf c
 
-end normed_space
+end has_bounded_smul
 
 end mem_ℓp
 
@@ -562,11 +569,24 @@ norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 
 end compare_pointwise
 
-section normed_space
-
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+section has_bounded_smul
+variables {𝕜 : Type*} {𝕜' : Type*}
+variables [normed_ring 𝕜] [normed_ring 𝕜']
+variables [Π i, module 𝕜 (E i)] [Π i, module 𝕜' (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
+
+instance [Π i, smul_comm_class 𝕜' 𝕜 (E i)] : smul_comm_class 𝕜' 𝕜 (pre_lp E) :=
+pi.smul_comm_class
+
+instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] : is_scalar_tower 𝕜' 𝕜 (pre_lp E) :=
+pi.is_scalar_tower
+
+instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)] :
+  is_central_scalar 𝕜 (pre_lp E) :=
+pi.is_central_scalar
+
+variables [∀ i, has_bounded_smul 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜' (E i)]
 
 lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • (f : pre_lp E) ∈ lp E p :=
 (lp.mem_ℓp f).const_smul c
@@ -588,42 +608,73 @@ instance : module 𝕜 (lp E p) :=
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 
-lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
+instance [Π i, smul_comm_class 𝕜' 𝕜 (E i)] : smul_comm_class 𝕜' 𝕜 (lp E p) :=
+⟨λ r c f, subtype.ext $ smul_comm _ _ _⟩
+
+instance [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] : is_scalar_tower 𝕜' 𝕜 (lp E p) :=
+⟨λ r c f, subtype.ext $ smul_assoc _ _ _⟩
+
+instance [Π i, module 𝕜ᵐᵒᵖ (E i)] [Π i, is_central_scalar 𝕜 (E i)] :
+  is_central_scalar 𝕜 (lp E p) :=
+⟨λ r f, subtype.ext $ op_smul_eq_smul _ _⟩
+
+lemma norm_const_smul_le (hp : p ≠ 0) (c : 𝕜) (f : lp E p) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { exact absurd rfl hp },
   { cases is_empty_or_nonempty α; resetI,
     { simp [lp.eq_zero' f], },
-    apply (lp.is_lub_norm (c • f)).unique,
-    convert (lp.is_lub_norm f).mul_left (norm_nonneg c),
-    ext a,
-    simp [coe_fn_smul, norm_smul] },
-  { suffices : ‖c • f‖ ^ p.to_real = (‖c‖ * ‖f‖) ^ p.to_real,
-    { refine real.rpow_left_inj_on hp.ne' _ _ this,
-      { exact norm_nonneg' _ },
-      { exact mul_nonneg (norm_nonneg _) (norm_nonneg' _) } },
-    apply (lp.has_sum_norm hp (c • f)).unique,
-    convert (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
-    { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
-    have hf : 0 ≤ ‖f‖ := lp.norm_nonneg' f,
-    simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
+    have hcf := lp.is_lub_norm (c • f),
+    have hfc := (lp.is_lub_norm f).mul_left (norm_nonneg c),
+    simp_rw [←set.range_comp, function.comp] at hfc,
+    -- TODO: some `is_lub` API should make it a one-liner from here.
+    refine hcf.right _,
+    have := hfc.left,
+    simp_rw [mem_upper_bounds, set.mem_range, forall_exists_index,
+      forall_apply_eq_imp_iff'] at this ⊢,
+    intro a,
+    exact (norm_smul_le _ _).trans (this a) },
+  { letI inst : has_nnnorm (lp E p) := ⟨λ f, ⟨‖f‖, norm_nonneg' _⟩⟩,
+    have coe_nnnorm : ∀ f : lp E p, ↑‖f‖₊ = ‖f‖ := λ _, rfl,
+    suffices : ‖c • f‖₊ ^ p.to_real ≤ (‖c‖₊ * ‖f‖₊) ^ p.to_real,
+    { rwa nnreal.rpow_le_rpow_iff hp at this },
+    unfreezingI { clear_value inst },
+    rw [nnreal.mul_rpow],
+    have hLHS := (lp.has_sum_norm hp (c • f)),
+    have hRHS := (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
+    simp_rw [←coe_nnnorm, ←_root_.coe_nnnorm, ←nnreal.coe_rpow, ←nnreal.coe_mul,
+      nnreal.has_sum_coe] at hRHS hLHS,
+    refine has_sum_mono hLHS hRHS (λ i, _),
+    dsimp only,
+    rw [←nnreal.mul_rpow],
+    exact nnreal.rpow_le_rpow (nnnorm_smul_le _ _) ennreal.to_real_nonneg }
 end
+
+instance [fact (1 ≤ p)] : has_bounded_smul 𝕜 (lp E p) :=
+has_bounded_smul.of_norm_smul_le $ norm_const_smul_le (zero_lt_one.trans_le $ fact.out (1 ≤ p)).ne'
+
+end has_bounded_smul
+
+section division_ring
+variables {𝕜 : Type*}
+variables [normed_division_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
+
+lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
+begin
+  obtain rfl | hc := eq_or_ne c 0,
+  { simp },
+  refine le_antisymm (norm_const_smul_le hp c f) _,
+  have := mul_le_mul_of_nonneg_left (norm_const_smul_le hp c⁻¹ (c • f)) (norm_nonneg c),
+  rwa [inv_smul_smul₀ hc, norm_inv, mul_inv_cancel_left₀ (norm_ne_zero_iff.mpr hc)] at this,
+end
+
+end division_ring
+
+section normed_space
+variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
-{ norm_smul_le := λ c f, begin
-    have hp : 0 < p := zero_lt_one.trans_le (fact.out _),
-    simp [norm_const_smul hp.ne']
-  end }
-
-variables {𝕜' : Type*} [normed_field 𝕜']
-
-instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
-  is_scalar_tower 𝕜' 𝕜 (lp E p) :=
-begin
-  refine ⟨λ r c f, _⟩,
-  ext1,
-  exact (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
-end
+{ norm_smul_le := λ c f, norm_smul_le _ _}
 
 end normed_space
 
@@ -667,8 +718,8 @@ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
     { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
   end }
 
-variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
-variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+variables {𝕜 : Type*} [has_star 𝕜] [normed_ring 𝕜]
+variables [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
 instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
 
@@ -710,12 +761,14 @@ instance : non_unital_normed_ring (lp B ∞) :=
 
 -- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
 
-instance infty_is_scalar_tower {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+instance infty_is_scalar_tower
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [∀ i, has_bounded_smul 𝕜 (B i)]
   [Π i, is_scalar_tower 𝕜 (B i) (B i)] :
   is_scalar_tower 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_assoc r ⇑f ⇑g⟩
 
-instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space 𝕜 (B i)]
+instance infty_smul_comm_class
+  {𝕜} [normed_ring 𝕜] [Π i, module 𝕜 (B i)] [∀ i, has_bounded_smul 𝕜 (B i)]
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
@@ -847,7 +900,7 @@ instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
 end algebra
 
 section single
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [normed_ring 𝕜] [Π i, module 𝕜 (E i)] [∀ i, has_bounded_smul 𝕜 (E i)]
 variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/

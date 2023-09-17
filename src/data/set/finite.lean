@@ -98,6 +98,14 @@ h.nonempty_fintype.some
 protected noncomputable def finite.to_finset {s : set α} (h : s.finite) : finset α :=
 @set.to_finset _ _ h.fintype
 
+theorem finite.to_finset_eq_to_finset {s : set α} [fintype s] (h : s.finite) :
+  h.to_finset = s.to_finset :=
+by { rw [finite.to_finset], congr }
+
+@[simp]
+theorem to_finite_to_finset (s : set α) [fintype s] : s.to_finite.to_finset = s.to_finset :=
+s.to_finite.to_finset_eq_to_finset
+
 theorem finite.exists_finset {s : set α} (h : s.finite) :
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s :=
 by { casesI h, exact ⟨s.to_finset, λ _, mem_to_finset⟩ }
@@ -393,6 +401,10 @@ end fintype_instances
 
 end set
 
+lemma equiv.set_finite_iff {s : set α} {t : set β} (hst : s ≃ t) :
+  s.finite ↔ t.finite :=
+by simp_rw [← set.finite_coe_iff, hst.finite_iff]
+
 /-! ### Finset -/
 
 namespace finset
@@ -593,6 +605,21 @@ by { casesI hs, rw [bUnion_eq_Union], apply finite_Union (λ (i : s), ht i.1 i.2
 theorem finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
   (hf : t.finite) : (⋂₀ s).finite :=
 hf.subset (sInter_subset_of_mem ht)
+
+/-- If sets `s i` are finite for all `i` from a finite set `t` and are empty for `i ∉ t`, then the
+union `⋃ i, s i` is a finite set. -/
+lemma finite.Union {ι : Type*} {s : ι → set α} {t : set ι} (ht : t.finite)
+  (hs : ∀ i ∈ t, (s i).finite) (he : ∀ i ∉ t, s i = ∅) :
+  (⋃ i, s i).finite :=
+begin
+  suffices : (⋃ i, s i) ⊆ (⋃ i ∈ t, s i),
+  { exact (ht.bUnion hs).subset this, },
+  refine Union_subset (λ i x hx, _),
+  by_cases hi : i ∈ t,
+  { exact mem_bUnion hi hx },
+  { rw [he i hi, mem_empty_iff_false] at hx,
+    contradiction, },
+end
 
 theorem finite.bind {α β} {s : set α} {f : α → set β} (h : s.finite) (hf : ∀ a ∈ s, (f a).finite) :
   (s >>= f).finite :=
@@ -1253,7 +1280,7 @@ end
 
 section
 
-variables [semilattice_sup α] [nonempty α] {s : set α}
+variables [preorder α] [is_directed α (≤)] [nonempty α] {s : set α}
 
 /--A finite set is bounded above.-/
 protected lemma finite.bdd_above (hs : s.finite) : bdd_above s :=
@@ -1261,7 +1288,7 @@ finite.induction_on hs bdd_above_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma finite.bdd_above_bUnion {I : set β} {S : β → set α} (H : I.finite) :
-  (bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
+  bdd_above (⋃ i ∈ I, S i) ↔ ∀ i ∈ I, bdd_above (S i) :=
 finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
@@ -1272,22 +1299,17 @@ end
 
 section
 
-variables [semilattice_inf α] [nonempty α] {s : set α}
+variables [preorder α] [is_directed α (≥)] [nonempty α] {s : set α}
 
 /--A finite set is bounded below.-/
-protected lemma finite.bdd_below (hs : s.finite) : bdd_below s := @finite.bdd_above αᵒᵈ _ _ _ hs
+protected lemma finite.bdd_below (hs : s.finite) : bdd_below s := @finite.bdd_above αᵒᵈ _ _ _ _ hs
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : I.finite) :
   bdd_below (⋃ i ∈ I, S i) ↔ ∀ i ∈ I, bdd_below (S i) :=
-@finite.bdd_above_bUnion αᵒᵈ _ _ _ _ _ H
+@finite.bdd_above_bUnion αᵒᵈ _ _ _ _ _ _ H
 
-lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite :=
-begin
-  contrapose!,
-  rw not_infinite,
-  apply finite.bdd_below,
-end
+lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite := mt finite.bdd_below
 
 end
 

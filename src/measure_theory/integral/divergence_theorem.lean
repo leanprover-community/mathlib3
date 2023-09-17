@@ -5,12 +5,15 @@ Authors: Yury Kudryashov
 -/
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
-import analysis.calculus.deriv
+import analysis.calculus.deriv.basic
 import measure_theory.constructions.prod.integral
 import measure_theory.integral.interval_integral
 
 /-!
 # Divergence theorem for Bochner integral
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.

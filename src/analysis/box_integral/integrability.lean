@@ -10,6 +10,9 @@ import measure_theory.measure.regular
 /-!
 # McShane integrability vs Bochner integrability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that any Bochner integrable function is McShane integrable (hence, it is
 Henstock and `⊥` integrable) with the same integral. The proof is based on
 [Russel A. Gordon, *The integrals of Lebesgue, Denjoy, Perron, and Henstock*][Gordon55].

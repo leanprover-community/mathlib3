@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 
+import logic.equiv.set
 import order.rel_iso.set
 import order.well_founded
 
@@ -310,6 +311,22 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 
 @[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
   (of_element r a).top = a := rfl
+
+/-- For any principal segment `r ≺i s`, there is a `subrel` of `s` order isomorphic to `r`. -/
+@[simps symm_apply]
+noncomputable def subrel_iso (f : r ≺i s) : subrel s {b | s b f.top} ≃r r :=
+rel_iso.symm
+{ to_equiv := ((equiv.of_injective f f.injective).trans (equiv.set_congr
+    (funext (λ x, propext f.down.symm)))),
+  map_rel_iff' := λ a₁ a₂, f.map_rel_iff }
+
+@[simp] theorem apply_subrel_iso (f : r ≺i s) (b : {b | s b f.top}) :
+  f (f.subrel_iso b) = b :=
+equiv.apply_of_injective_symm f.injective _
+
+@[simp] theorem subrel_iso_apply (f : r ≺i s) (a : α) :
+  f.subrel_iso ⟨f a, f.down.mpr ⟨a, rfl⟩⟩ = a :=
+equiv.of_injective_symm_apply f.injective _
 
 /-- Restrict the codomain of a principal segment -/
 def cod_restrict (p : set β) (f : r ≺i s)

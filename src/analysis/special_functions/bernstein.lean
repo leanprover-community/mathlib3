@@ -11,6 +11,9 @@ import topology.continuous_function.compact
 /-!
 # Bernstein approximations and Weierstrass' theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We prove that the Bernstein approximations
 ```
 ∑ k : fin (n+1), f (k/n : ℝ) * n.choose k * x^k * (1-x)^(n-k)

@@ -11,6 +11,9 @@ import data.buffer.parser
 /-!
 # Parsers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `parser α` is the type that describes a computation that can ingest a `char_buffer`
 and output, if successful, a term of type `α`.
 This file expands on the definitions in the core library, proving that all the core library

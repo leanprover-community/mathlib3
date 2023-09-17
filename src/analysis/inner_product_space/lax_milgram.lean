@@ -12,6 +12,9 @@ import topology.metric_space.antilipschitz
 /-!
 # The Lax-Milgram Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 

@@ -7,6 +7,9 @@ import analysis.inner_product_space.pi_L2
 
 /-! # Hermitian matrices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines hermitian matrices and some basic results about them.
 
 See also `is_self_adjoint`, which generalizes this definition to other star rings.

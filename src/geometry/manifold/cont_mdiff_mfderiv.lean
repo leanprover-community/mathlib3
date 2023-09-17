@@ -4,9 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import geometry.manifold.mfderiv
+import geometry.manifold.cont_mdiff_map
 
 /-!
 ### Interactions between differentiability, smoothness and manifold derivatives
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We give the relation between `mdifferentiable`, `cont_mdiff`, `mfderiv`, `tangent_map`
 and related notions.
@@ -158,7 +162,7 @@ begin
     { rintro x ⟨hx, h2x⟩,
       simp_rw [written_in_ext_chart_at, function.comp_apply],
       rw [(ext_chart_at I (g x₂)).left_inv hx, (ext_chart_at I' (f x₂ (g x₂))).left_inv h2x] },
-    refine filter.eventually_eq.fderiv_within_eq_nhds (I.unique_diff _ $ mem_range_self _) _,
+    refine filter.eventually_eq.fderiv_within_eq_nhds _,
     refine eventually_of_mem (inter_mem _ _) this,
     { exact ext_chart_at_preimage_mem_nhds' _ _ hx₂ (ext_chart_at_source_mem_nhds I (g x₂)) },
     refine ext_chart_at_preimage_mem_nhds' _ _ hx₂ _,
@@ -213,6 +217,27 @@ begin
   exact this.mfderiv (λ x, f) id cont_mdiff_at_id hmn,
 end
 
+include Js
+/-- The function that sends `x` to the `y`-derivative of `f(x,y)` at `g(x)` applied to `g₂(x)` is
+`C^n` at `x₀`, where the derivative is taken as a continuous linear map.
+We have to assume that `f` is `C^(n+1)` at `(x₀, g(x₀))` and `g` is `C^n` at `x₀`.
+We have to insert a coordinate change from `x₀` to `g₁(x)` to make the derivative sensible.
+
+This is  similar to `cont_mdiff_at.mfderiv`, but where the continuous linear map is applied to a
+(variable) vector.
+-/
+lemma cont_mdiff_at.mfderiv_apply {x₀ : N'} (f : N → M → M') (g : N → M) (g₁ : N' → N)
+  (g₂ : N' → E)
+  (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (g₁ x₀, g (g₁ x₀)))
+  (hg : cont_mdiff_at J I m g (g₁ x₀))
+  (hg₁ : cont_mdiff_at J' J m g₁ x₀)
+  (hg₂ : cont_mdiff_at J' 𝓘(𝕜, E) m g₂ x₀) (hmn : m + 1 ≤ n) :
+  cont_mdiff_at J' 𝓘(𝕜, E') m
+    (λ x, in_tangent_coordinates I I' g (λ x, f x (g x)) (λ x, mfderiv I I' (f x) (g x))
+      (g₁ x₀) (g₁ x) (g₂ x))
+    x₀ :=
+((hf.mfderiv f g hg hmn).comp_of_eq hg₁ rfl).clm_apply hg₂
+
 end mfderiv
 
 /-! ### The tangent map of a smooth function is smooth -/
@@ -226,7 +251,7 @@ space are model spaces in models with corners. The general fact is proved in
 lemma cont_mdiff_on.continuous_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : cont_mdiff_on I I' n f s) (hn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+  continuous_on (tangent_map_within I I' f s) (π E (tangent_space I) ⁻¹' s) :=
 begin
   suffices h : continuous_on (λ (p : H × E), (f p.fst,
     (fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f) (I.symm ⁻¹' s ∩ range I)
@@ -236,7 +261,7 @@ begin
     have B := ((tangent_bundle_model_space_homeomorph H' I').symm.continuous.comp_continuous_on h)
       .comp' A,
     have : (univ ∩ ⇑(tangent_bundle_model_space_homeomorph H I) ⁻¹' (prod.fst ⁻¹' s)) =
-      π (tangent_space I) ⁻¹' s,
+      π E (tangent_space I) ⁻¹' s,
       by { ext ⟨x, v⟩, simp only with mfld_simps },
     rw this at B,
     apply B.congr,
@@ -285,7 +310,8 @@ are model spaces in models with corners. The general fact is proved in
 lemma cont_mdiff_on.cont_mdiff_on_tangent_map_within_aux
   {f : H → H'} {s : set H}
   (hf : cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+  cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
+    (π E (tangent_space I) ⁻¹' s) :=
 begin
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,
@@ -302,13 +328,13 @@ begin
   rw cont_mdiff_on_iff,
   refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
   have A : range I ×ˢ univ ∩
-      ((equiv.sigma_equiv_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
-        (π (tangent_space I) ⁻¹' s)
+      ((total_space.to_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
+        (π E (tangent_space I) ⁻¹' s)
       = (range I ∩ I.symm ⁻¹' s) ×ˢ univ,
-    by { ext ⟨x, v⟩, simp only with mfld_simps },
+    by { ext ⟨x, v⟩, simp only with mfld_simps, },
   suffices h : cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
-      (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
-      ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
+      (total_space.to_prod H' E')) ∘ tangent_map_within I I' f s ∘
+      ((total_space.to_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
     ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ univ),
     by simpa [A] using h,
   change cont_diff_on 𝕜 m (λ (p : E × E),
@@ -347,7 +373,7 @@ is `C^m` when `m+1 ≤ n`. -/
 theorem cont_mdiff_on.cont_mdiff_on_tangent_map_within
   (hf : cont_mdiff_on I I' n f s) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
   cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s)
-  (π (tangent_space I) ⁻¹' s) :=
+  (π E (tangent_space I) ⁻¹' s) :=
 begin
   /- The strategy of the proof is to avoid unfolding the definitions, and reduce by functoriality
   to the case of functions on the model spaces, where we have already proved the result.
@@ -385,20 +411,20 @@ begin
   let il := chart_at (model_prod H E) (tangent_map I I l p),
   let ir := chart_at (model_prod H' E') (tangent_map I I' (r ∘ f) p),
   let s' := f ⁻¹' r.source ∩ s ∩ l.source,
-  let s'_lift := π (tangent_space I) ⁻¹' s',
+  let s'_lift := π E (tangent_space I) ⁻¹' s',
   let s'l := l.target ∩ l.symm ⁻¹' s',
-  let s'l_lift := π (tangent_space I) ⁻¹' s'l,
+  let s'l_lift := π E (tangent_space I) ⁻¹' s'l,
   rcases continuous_on_iff'.1 hf'.1 r.source r.open_source with ⟨o, o_open, ho⟩,
   suffices h : cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) s'_lift,
-  { refine ⟨π (tangent_space I) ⁻¹' (o ∩ l.source), _, _, _⟩,
-    show is_open (π (tangent_space I) ⁻¹' (o ∩ l.source)), from
+  { refine ⟨π E (tangent_space I) ⁻¹' (o ∩ l.source), _, _, _⟩,
+    show is_open (π E (tangent_space I) ⁻¹' (o ∩ l.source)), from
       (is_open.inter o_open l.open_source).preimage (continuous_proj E _) ,
-    show p ∈ π (tangent_space I) ⁻¹' (o ∩ l.source),
+    show p ∈ π E (tangent_space I) ⁻¹' (o ∩ l.source),
     { simp,
       have : p.proj ∈ f ⁻¹' r.source ∩ s, by simp [hp],
       rw ho at this,
       exact this.1 },
-    { have : π (tangent_space I) ⁻¹' s ∩ π (tangent_space I) ⁻¹' (o ∩ l.source) = s'_lift,
+    { have : π E (tangent_space I) ⁻¹' s ∩ π E (tangent_space I) ⁻¹' (o ∩ l.source) = s'_lift,
       { dsimp only [s'_lift, s'], rw [ho], mfld_set_tac },
       rw this,
       exact h } },
@@ -525,10 +551,10 @@ end
 derivative is continuous there. -/
 theorem cont_mdiff_on.continuous_on_tangent_map_within
   (hf : cont_mdiff_on I I' n f s) (hmn : 1 ≤ n) (hs : unique_mdiff_on I s) :
-  continuous_on (tangent_map_within I I' f s) (π (tangent_space I) ⁻¹' s) :=
+  continuous_on (tangent_map_within I I' f s) (π E (tangent_space I) ⁻¹' s) :=
 begin
   have : cont_mdiff_on I.tangent I'.tangent 0 (tangent_map_within I I' f s)
-         (π (tangent_space I) ⁻¹' s) :=
+         (π E (tangent_space I) ⁻¹' s) :=
     hf.cont_mdiff_on_tangent_map_within hmn hs,
   exact this.continuous_on
 end
@@ -577,15 +603,15 @@ may seem.
 
 TODO define splittings of vector bundles; state this result invariantly. -/
 lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
-  tangent_map I I.tangent (zero_section (tangent_space I)) p = ⟨⟨p.proj, 0⟩, ⟨p.2, 0⟩⟩ :=
+  tangent_map I I.tangent (zero_section E (tangent_space I)) p = ⟨⟨p.proj, 0⟩, ⟨p.2, 0⟩⟩ :=
 begin
   rcases p with ⟨x, v⟩,
   have N : I.symm ⁻¹' (chart_at H x).target ∈ 𝓝 (I ((chart_at H x) x)),
   { apply is_open.mem_nhds,
     apply (local_homeomorph.open_target _).preimage I.continuous_inv_fun,
     simp only with mfld_simps },
-  have A : mdifferentiable_at I I.tangent (λ x, @total_space_mk M (tangent_space I) x 0) x,
-  { have : smooth I (I.prod 𝓘(𝕜, E)) (zero_section (tangent_space I : M → Type*)) :=
+  have A : mdifferentiable_at I I.tangent (λ x, @total_space.mk M E (tangent_space I) x 0) x,
+  { have : smooth I (I.prod 𝓘(𝕜, E)) (zero_section E (tangent_space I : M → Type*)) :=
     bundle.smooth_zero_section 𝕜 (tangent_space I : M → Type*),
     exact this.mdifferentiable_at },
   have B : fderiv_within 𝕜 (λ (x' : E), (x', (0 : E))) (set.range ⇑I) (I ((chart_at H x) x)) v
@@ -596,18 +622,39 @@ begin
     { exact differentiable_at_const _ },
     { exact model_with_corners.unique_diff_at_image I },
     { exact differentiable_at_id'.prod (differentiable_at_const _) } },
-  simp only [bundle.zero_section, tangent_map, mfderiv, total_space.proj_mk, A,
-    if_pos, chart_at, fiber_bundle.charted_space_chart_at, tangent_bundle.trivialization_at_apply,
+  simp only [bundle.zero_section, tangent_map, mfderiv, A, if_pos, chart_at,
+    fiber_bundle.charted_space_chart_at, tangent_bundle.trivialization_at_apply,
     tangent_bundle_core, function.comp, continuous_linear_map.map_zero] with mfld_simps,
-  rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
-  rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
-  congr' 2,
-  apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps },
-  { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
-    simp only with mfld_simps },
+  rw [← fderiv_within_inter N] at B,
+  rw [← fderiv_within_inter N, ← B],
+  congr' 1,
+  refine fderiv_within_congr (λ y hy, _) _,
   { simp only with mfld_simps at hy,
     simp only [hy, prod.mk.inj_iff] with mfld_simps },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle
+
+namespace cont_mdiff_map
+
+-- These helpers for dot notation have been moved here from `geometry.manifold.cont_mdiff_map`
+-- to avoid needing to import `geometry.manifold.cont_mdiff_mfderiv` there.
+-- (However as a consequence we import `geometry.manifold.cont_mdiff_map` here now.)
+-- They could be moved to another file (perhaps a new file) if desired.
+
+open_locale manifold
+
+protected lemma mdifferentiable' (f : C^n⟮I, M; I', M'⟯) (hn : 1 ≤ n) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable hn
+
+protected lemma mdifferentiable (f : C^∞⟮I, M; I', M'⟯) :
+  mdifferentiable I I' f :=
+f.cont_mdiff.mdifferentiable le_top
+
+protected lemma mdifferentiable_at (f : C^∞⟮I, M; I', M'⟯) {x} :
+  mdifferentiable_at I I' f x :=
+f.mdifferentiable x
+
+end cont_mdiff_map

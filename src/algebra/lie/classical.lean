@@ -14,6 +14,9 @@ import linear_algebra.symplectic_group
 /-!
 # Classical Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is the place to find definitions and basic properties of the classical Lie algebras:
   * Aₗ = sl(l+1)
   * Bₗ ≃ so(l+1, l) ≃ so(2l+1)

@@ -10,6 +10,9 @@ import analysis.asymptotics.specific_asymptotics
 /-!
 # Growth estimates on `x ^ y` for complex `x`, `y`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `l` be a filter on `ℂ` such that `complex.re` tends to infinity along `l` and `complex.im z`
 grows at a subexponential rate compared to `complex.re z`. Then
 

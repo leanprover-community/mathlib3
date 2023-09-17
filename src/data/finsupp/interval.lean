@@ -106,6 +106,15 @@ by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 end partial_order
 
+section lattice
+variables [lattice α] [has_zero α] [locally_finite_order α] (f g : ι →₀ α)
+
+lemma card_uIcc [decidable_eq ι] :
+  (uIcc f g).card = ∏ i in f.support ∪ g.support, (uIcc (f i) (g i)).card :=
+by { rw ←support_inf_union_support_sup, exact card_Icc _ _ }
+
+end lattice
+
 section canonically_ordered
 variables [canonically_ordered_add_monoid α] [locally_finite_order α]
 

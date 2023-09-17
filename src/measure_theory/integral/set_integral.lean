@@ -13,6 +13,9 @@ import topology.continuous_function.compact
 /-!
 # Set integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some properties of `∫ x in s, f x ∂μ`. Recall that this notation
 is defined as `∫ x, f x ∂(μ.restrict s)`. In `integral_indicator` we prove that for a measurable
 function `f` and a measurable set `s` this definition coincides with another natural definition:

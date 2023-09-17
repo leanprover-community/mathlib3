@@ -13,6 +13,9 @@ import tactic.wlog
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Question 6 of IMO1988 is somewhat (in)famous. Several expert problem solvers
 could not tackle the question within the given time limit.
 The problem lead to the introduction of a new proof technique,
@@ -27,6 +30,8 @@ To illustrate the technique, we also prove a similar result.
 
 local attribute [instance] classical.prop_decidable
 local attribute [simp] sq
+
+namespace imo1988_q6
 
 /-- Constant descent Vieta jumping.
 
@@ -182,6 +187,10 @@ begin
     simp [hV₁], }
     -- Hence p' = (c, m_x) lies on the upper branch, and we are done.
 end
+
+end imo1988_q6
+
+open imo1988_q6
 
 /--Question 6 of IMO1988. If a and b are two natural numbers
 such that a*b+1 divides a^2 + b^2, show that their quotient is a perfect square.-/

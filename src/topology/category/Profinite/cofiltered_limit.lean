@@ -12,6 +12,9 @@ import topology.category.Top.limits.konig
 /-!
 # Cofiltered limits of profinite sets.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some theorems about cofiltered limits of profinite sets.
 
 ## Main Results

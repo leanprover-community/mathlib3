@@ -8,6 +8,9 @@ import linear_algebra.tensor_power
 /-!
 # Tensor algebras as direct sums of tensor powers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we show that `tensor_algebra R M` is isomorphic to a direct sum of tensor powers, as
 `tensor_algebra.equiv_direct_sum`.
 -/

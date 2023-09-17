@@ -8,6 +8,9 @@ import logic.equiv.array
 
 /-!
 # `array n α` is a fintype when `α` is.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

@@ -10,6 +10,9 @@ import analysis.special_functions.pow.real
 /-!
 # Results on discretized exponentials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We state several auxiliary results pertaining to sequences of the form `⌊c^n⌋₊`.
 
 * `tendsto_div_of_monotone_of_tendsto_div_floor_pow`: If a monotone sequence `u` is such that

@@ -70,8 +70,6 @@ class is_R_or_C (K : Type*)
 
 end
 
-mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
-
 variables {K E : Type*} [is_R_or_C K]
 
 namespace is_R_or_C
@@ -491,6 +489,12 @@ lemma abs_im_div_norm_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
 begin
   rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
+end
+
+lemma norm_I_of_ne_zero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
+begin
+  rw [← mul_self_inj_of_nonneg (norm_nonneg I) zero_le_one, one_mul, ← norm_mul,
+    I_mul_I_of_nonzero hI, norm_neg, norm_one],
 end
 
 lemma re_eq_norm_of_mul_conj (x : K) : re (x * conj x) = ‖x * conj x‖ :=

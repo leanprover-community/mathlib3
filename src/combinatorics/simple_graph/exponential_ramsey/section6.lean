@@ -1012,73 +1012,67 @@ begin
   exact hl₃ k hlk μ hμl hμu n χ hχ ini hini (i - 1) ((nat.sub_le _ _).trans hi.le),
 end
 
-lemma six_one_explicit (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
-  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ →
+lemma six_one_ind_rearranged (μ₀ μ₁ p₀ : ℝ) (hμ₀ : 0 < μ₀) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ →
   ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
   ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
   ∀ ini : book_config χ, p₀ ≤ ini.p →
+  ∀ i, i ≤ final_step μ k l ini →
   ((1 - (k : ℝ) ^ (- 1 / 8 : ℝ)) * (1 - 3 * ε / ini.p)) ^ (2 * k) *
-    ini.p ^ ((red_steps μ k l ini).card + (density_steps μ k l ini).card) *
-    ini.Y.card ≤ (end_state μ k l ini).Y.card :=
+    ini.p ^ ((red_steps μ k l ini ∩ range i).card + (density_steps μ k l ini ∩ range i).card) *
+    ini.Y.card ≤ (algorithm μ k l ini i).Y.card :=
 begin
-  have h₄ : (0 : ℝ) < 1 / 4 := by norm_num,
-  have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
+  have h₅ : (0 : ℝ) < 1 / 4 := by norm_num,
+  have h₆ :=
+    ((tendsto_rpow_neg_at_top h₅).comp tendsto_coe_nat_at_top_at_top).eventually
+    (eventually_le_nhds (show 0 < p₀ / 3, by positivity)),
   filter_upwards [six_one_ind μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀,
-    top_adjuster (((tendsto_rpow_neg_at_top h₄).comp t).eventually
-    (eventually_le_nhds (show 0 < p₀ / 3, by positivity))),
-    top_adjuster (eventually_ge_at_top 1),
-    top_adjuster (eventually_gt_at_top 0)] with l hl hl' hl₁ hl₀
-    k hlk μ hμl hμu n χ hχ ini hini,
-  have : red_or_density_steps μ k l ini ∩ range (final_step μ k l ini) =
-    red_or_density_steps μ k l ini,
-  { rw [inter_eq_left_iff_subset],
-    exact filter_subset _ _ },
-  specialize hl k hlk μ hμl hμu n χ hχ ini hini _ le_rfl,
-  refine hl.trans' _,
-  refine mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
-  rw [this, ←red_steps_union_density_steps, card_disjoint_union red_steps_disjoint_density_steps],
-  have : (1 - 3 * ε / ini.p : ℝ) * ini.p = ini.p - 3 * ε,
-  { rw [one_sub_mul, div_mul_cancel],
-    exact (hp₀.trans_le hini).ne' },
-  rw [←this, ←mul_assoc, mul_pow _ _ (_ + _)],
-  refine mul_le_mul_of_nonneg_right _ (pow_nonneg col_density_nonneg _),
-  have : (k : ℝ) ^ (- 1 / 8 : ℝ) ≤ 1,
-  { refine rpow_le_one_of_one_le_of_nonpos _ (by norm_num),
-    rw nat.one_le_cast,
-    exact hl₁ k hlk },
-  refine pow_le_pow_of_le_one _ _ _,
-  { refine mul_nonneg _ _,
-    { rwa sub_nonneg },
-    { rw sub_nonneg,
-      refine div_le_one_of_le (hini.trans' _) col_density_nonneg,
-      rw [←le_div_iff', neg_div],
-      { exact hl' k hlk },
-      norm_num1 } },
-  { rw mul_comm,
-    refine mul_le_one _ (sub_nonneg_of_le this) _,
-    { rw sub_le_self_iff,
-      refine div_nonneg _ col_density_nonneg,
+    top_adjuster (eventually_gt_at_top 0), top_adjuster h₆] with l hl hl₀ hl'
+    k hlk μ hμl hμu n χ hχ ini hini i hi,
+  specialize hl k hlk μ hμl hμu n χ hχ ini hini i hi,
+  refine hl.trans' (mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _)),
+  have h₁ : (red_steps μ k l ini ∩ range i).card + (density_steps μ k l ini ∩ range i).card ≤ 2 * k,
+  { rw [two_mul],
+    refine add_le_add _ _,
+    { refine (card_le_of_subset (inter_subset_left _ _)).trans _,
+      exact (four_four_red μ (hl₀ _ hlk).ne' (hl₀ _ le_rfl).ne' hχ ini) },
+    { refine (card_le_of_subset (inter_subset_left _ _)).trans _,
+      have := (four_four_blue_density μ (hl₀ _ hlk).ne' (hl₀ _ le_rfl).ne' hχ ini),
+      exact hlk.trans' (this.trans' le_add_self) } },
+  have h₂ : (red_steps μ k l ini ∩ range i).card + (density_steps μ k l ini ∩ range i).card =
+    (red_or_density_steps μ k l ini ∩ range i).card,
+  { rw [←card_union_eq, ←red_steps_union_density_steps, inter_distrib_right],
+    exact red_steps_disjoint_density_steps.mono (inter_subset_left _ _) (inter_subset_left _ _) },
+  have hp₀' : 0 < ini.p := hp₀.trans_le hini,
+  have h₃ : (0 : ℝ) ≤ 1 - k ^ (-1 / 8 : ℝ),
+  { refine sub_nonneg_of_le (rpow_le_one_of_one_le_of_nonpos _ (by norm_num1)),
+    rw [nat.one_le_cast],
+    exact hl₀ k hlk },
+  have h₄ : (0 : ℝ) ≤ 1 - 3 * k ^ (-1 / 4 : ℝ) / ini.p,
+  { rw [sub_nonneg],
+    refine div_le_one_of_le (hini.trans' _) hp₀'.le,
+    rw [←le_div_iff', neg_div],
+    { exact hl' k hlk },
+    norm_num1 },
+  refine (mul_le_mul_of_nonneg_right (pow_le_pow_of_le_one _ _ h₁) _).trans _,
+  { refine mul_nonneg h₃ h₄ },
+  { refine mul_le_one _ h₄ _,
+    { rw [sub_le_self_iff],
       positivity },
-    { rw sub_le_self_iff,
+    { rw [sub_le_self_iff],
       positivity } },
-  rw two_mul,
-  refine add_le_add (four_four_red _ (hl₀ k hlk).ne' (hl₀ l le_rfl).ne' hχ ini) _,
-  refine ((four_four_blue_density μ (hl₀ k hlk).ne' (hl₀ l le_rfl).ne' hχ ini).trans hlk).trans' _,
-  exact le_add_self,
+  { exact pow_nonneg hp₀'.le _ },
+  rw [h₂, ←mul_pow, mul_assoc, one_sub_mul _ ini.p, div_mul_cancel _ hp₀'.ne'],
 end
 
 open asymptotics
 
-lemma six_one (p₀ : ℝ) (hp₀ : 0 < p₀) :
+lemma six_one_error (p₀ : ℝ) (hp₀ : 0 < p₀) :
   ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
-  ∀ μ₀ μ₁ : ℝ, 0 < μ₀ → μ₁ < 1 →
-  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ →
-  ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
-  ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
-  ∀ ini : book_config χ, p₀ ≤ ini.p →
-  (2 : ℝ) ^ f k *
-    ini.p ^ ((red_steps μ k l ini).card + (density_steps μ k l ini).card) *
-      ini.Y.card ≤ (end_state μ k l ini).Y.card :=
+  ∀ᶠ k : ℕ in at_top,
+  ∀ p, p₀ ≤ p →
+  (2 : ℝ) ^ f k ≤ ((1 - (k : ℝ) ^ (- 1 / 8 : ℝ)) * (1 - 3 * ε / p)) ^ (2 * k) :=
 begin
   let g : ℝ → ℝ := (λ k, -2 * k ^ (-1 / 8 : ℝ) - 2 * (3 * k ^ (-1 / 4 : ℝ) / p₀)),
   refine ⟨λ k : ℕ, g k * (2 * k), _, _⟩,
@@ -1092,21 +1086,13 @@ begin
     { simp_rw [div_eq_mul_one_div (_ * _), mul_comm _ (1 / p₀), ←mul_assoc],
       refine is_o.const_mul_left _ _,
       simpa using is_o_rpow_rpow (show - 1 / 4 < (0 : ℝ), by norm_num) } },
-  intros μ₀ μ₁ hμ₀ hμ₁,
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
   have h₈ := tendsto_rpow_neg_at_top (show (0 : ℝ) < 1 / 8, by norm_num),
   have h₄ := tendsto_rpow_neg_at_top (show (0 : ℝ) < 1 / 4, by norm_num),
-  filter_upwards [six_one_explicit μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀,
-    top_adjuster ((h₄.comp t).eventually
+  filter_upwards [((h₄.comp t).eventually
       (eventually_le_nhds (show 0 < p₀ / (2 * 3), by positivity))),
-    top_adjuster ((h₈.comp t).eventually (eventually_le_nhds (show (0 : ℝ) < 1 / 2, by norm_num)))]
-    with l hl hl₄ hl₈
-    k hlk μ hμl hμu n χ hχ ini hini,
-  refine (hl k hlk μ hμl hμu n χ hχ ini hini).trans' _,
-  clear hl,
-  rw [mul_assoc, mul_assoc],
-  refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg col_density_nonneg _)
-    (nat.cast_nonneg _)),
+    ((h₈.comp t).eventually (eventually_le_nhds (show (0 : ℝ) < 1 / 2, by norm_num)))]
+    with k hk₄ hk₈ p hp,
   rw [rpow_mul, ←nat.cast_two, ←nat.cast_mul, nat.cast_two, rpow_nat_cast],
   swap,
   { exact two_pos.le },
@@ -1114,18 +1100,71 @@ begin
   have h₁ : (2 : ℝ) ^ (-2 * (k : ℝ) ^ (- 1 / 8 : ℝ)) ≤ 1 - (k : ℝ) ^ (-1 / 8 : ℝ),
   { refine two_approx (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _) _,
     rw [neg_div],
-    exact hl₈ k hlk },
+    exact hk₈ },
   have h₂ : (2 : ℝ) ^ (-2 * (3 * (k : ℝ) ^ (-1 / 4 : ℝ) / p₀)) ≤
-    1 - 3 * (k : ℝ) ^ (-1 / 4 : ℝ) / ini.p,
+    1 - 3 * (k : ℝ) ^ (-1 / 4 : ℝ) / p,
   { refine (two_approx (by positivity) _).trans _,
     { rw [div_le_iff' hp₀, mul_one_div, ←le_div_iff', div_div, neg_div],
-      { exact hl₄ k hlk },
+      { exact hk₄ },
       { norm_num1 } },
     rw [sub_le_sub_iff_left],
-    exact div_le_div_of_le_left (by positivity) hp₀ hini },
+    exact div_le_div_of_le_left (by positivity) hp₀ hp },
   refine (mul_le_mul h₁ h₂ (rpow_nonneg_of_nonneg two_pos.le _) _).trans_eq' _,
   { exact h₁.trans' (rpow_nonneg_of_nonneg two_pos.le _) },
   rw [←rpow_add two_pos, neg_mul _ (_ / _), ←sub_eq_add_neg],
+end
+
+lemma six_one_general (p₀ : ℝ) (hp₀ : 0 < p₀) :
+  ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
+  ∀ μ₀ μ₁ : ℝ, 0 < μ₀ → μ₁ < 1 →
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
+  ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ →
+  ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
+  ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
+  ∀ ini : book_config χ, p₀ ≤ ini.p →
+  ∀ i, i ≤ final_step μ k l ini →
+  (2 : ℝ) ^ f k *
+    ini.p ^ ((red_steps μ k l ini ∩ range i).card + (density_steps μ k l ini ∩ range i).card) *
+    ini.Y.card ≤ (algorithm μ k l ini i).Y.card :=
+begin
+  obtain ⟨f, hf, hf'⟩ := six_one_error p₀ hp₀,
+  refine ⟨f, hf, _⟩,
+  intros μ₀ μ₁ hμ₀ hμ₁,
+  filter_upwards [top_adjuster hf', six_one_ind_rearranged μ₀ μ₁ p₀ hμ₀ hμ₁ hp₀] with l hl hl'
+    k hlk μ hμl hμu n χ hχ ini hini i hi,
+  specialize hl' k hlk μ hμl hμu n χ hχ ini hini i hi,
+  specialize hl k hlk ini.p hini,
+  refine hl'.trans' _,
+  rw [mul_assoc, mul_assoc],
+  refine mul_le_mul_of_nonneg_right hl (mul_nonneg _ (nat.cast_nonneg _)),
+  exact pow_nonneg col_density_nonneg _,
+end
+
+lemma six_one (p₀ : ℝ) (hp₀ : 0 < p₀) :
+  ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
+  ∀ μ₀ μ₁ : ℝ, 0 < μ₀ → μ₁ < 1 →
+  ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k → ∀ μ, μ₀ ≤ μ → μ ≤ μ₁ →
+  ∀ n : ℕ, ∀ χ : top_edge_labelling (fin n) (fin 2),
+  ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) →
+  ∀ ini : book_config χ, p₀ ≤ ini.p →
+  (2 : ℝ) ^ f k *
+    ini.p ^ ((red_steps μ k l ini).card + (density_steps μ k l ini).card) *
+      ini.Y.card ≤ (end_state μ k l ini).Y.card :=
+begin
+  obtain ⟨f, hf, hf'⟩ := six_one_general p₀ hp₀,
+  refine ⟨f, hf, _⟩,
+  intros μ₀ μ₁ hμ₀ hμ₁,
+  filter_upwards [hf' μ₀ μ₁ hμ₀ hμ₁] with l hl
+    k hlk μ hμl hμu n χ hχ ini hini,
+  have h₁ : red_steps μ k l ini ∩ range (final_step μ k l ini) = red_steps μ k l ini,
+  { rw [inter_eq_left_iff_subset],
+    exact red_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
+  have h₂ : density_steps μ k l ini ∩ range (final_step μ k l ini) = density_steps μ k l ini,
+  { rw [inter_eq_left_iff_subset],
+    exact density_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
+  specialize hl k hlk μ hμl hμu n χ hχ ini hini _ le_rfl,
+  rw [h₁, h₂] at hl,
+  exact hl
 end
 
 end simple_graph

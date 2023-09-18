@@ -128,7 +128,7 @@ begin
   exact ⟨(a, b), ha.prod_mk hb⟩,
 end
 
-instance  [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
+instance [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
   [Π i, bounded_ge_nhds_class (π i)] : bounded_ge_nhds_class (Π i, π i) :=
 begin
   refine ⟨λ x, _⟩,

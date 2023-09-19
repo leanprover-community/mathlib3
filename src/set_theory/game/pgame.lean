@@ -6,10 +6,14 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 import data.fin.basic
 import data.list.basic
 import logic.relation
+import logic.small.basic
 import order.game_add
 
 /-!
 # Combinatorial (pre-)games.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The basic theory of combinatorial games, following Conway's book `On Numbers and Games`. We
 construct "pregames", define an ordering and arithmetic operations on them, then show that the
@@ -487,6 +491,58 @@ condition. -/
 lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
   0 ≤ (x.move_right j).move_left (left_response h j) :=
 classical.some_spec $ (zero_le.1 h) j
+
+/-- An explicit upper bound for a family of pre-games, whose left moves are the union of the left
+moves of all the pre-games in the family. -/
+def upper_bound {ι : Type u} (f : ι → pgame.{u}) : pgame :=
+⟨Σ i, (f i).left_moves, pempty, λ x, move_left _ x.2, pempty.elim⟩
+
+instance upper_bound_right_moves_empty {ι : Type u} (f : ι → pgame.{u}) :
+  is_empty (upper_bound f).right_moves :=
+pempty.is_empty
+
+theorem le_upper_bound {ι : Type u} (f : ι → pgame.{u}) (i : ι) : f i ≤ upper_bound f :=
+begin
+  rw [upper_bound, le_iff_forall_lf],
+  dsimp,
+  simp only [and_true, is_empty.forall_iff],
+  exact λ j, @move_left_lf (upper_bound f) ⟨i, j⟩
+end
+
+lemma upper_bound_mem_upper_bounds (s : set pgame.{u}) [small.{u} s] :
+  upper_bound (subtype.val ∘ (equiv_shrink s).symm) ∈ upper_bounds s :=
+λ i hi, by simpa using
+  le_upper_bound (subtype.val ∘ (equiv_shrink s).symm) (equiv_shrink s ⟨i, hi⟩)
+
+/-- A small set `s` of pre-games is bounded above. -/
+lemma bdd_above_of_small (s : set pgame.{u}) [small.{u} s] : bdd_above s :=
+⟨_, upper_bound_mem_upper_bounds s⟩
+
+/-- An explicit lower bound for a family of pre-games, whose right moves are the union of the right
+moves of all the pre-games in the family. -/
+def lower_bound {ι : Type u} (f : ι → pgame.{u}) : pgame :=
+⟨pempty, Σ i, (f i).right_moves, pempty.elim, λ x, move_right _ x.2⟩
+
+instance lower_bound_left_moves_empty {ι : Type u} (f : ι → pgame.{u}) :
+  is_empty (lower_bound f).left_moves :=
+pempty.is_empty
+
+theorem lower_bound_le {ι : Type u} (f : ι → pgame.{u}) (i : ι) : lower_bound f ≤ f i :=
+begin
+  rw [lower_bound, le_iff_forall_lf],
+  dsimp,
+  simp only [is_empty.forall_iff, true_and],
+  exact λ j, @lf_move_right (lower_bound f) ⟨i, j⟩
+end
+
+lemma lower_bound_mem_lower_bounds (s : set pgame.{u}) [small.{u} s] :
+  lower_bound (subtype.val ∘ (equiv_shrink s).symm) ∈ lower_bounds s :=
+λ i hi, by simpa using
+  lower_bound_le (subtype.val ∘ (equiv_shrink s).symm) (equiv_shrink s ⟨i, hi⟩)
+
+/-- A small set `s` of pre-games is bounded below. -/
+lemma bdd_below_of_small (s : set pgame.{u}) [small.{u} s] : bdd_below s :=
+⟨_, lower_bound_mem_lower_bounds s⟩
 
 /-- The equivalence relation on pre-games. Two pre-games `x`, `y` are equivalent if `x ≤ y` and
 `y ≤ x`.

@@ -10,6 +10,9 @@ import topology.metric_space.basic
 /-!
 # Rectangular boxes in `ℝⁿ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define rectangular boxes in `ℝⁿ`. As usual, we represent `ℝⁿ` as the type of
 functions `ι → ℝ` (usually `ι = fin n` for some `n`). When we need to interpret a box `[l, u]` as a
 set, we use the product `{x | ∀ i, l i < x i ∧ x i ≤ u i}` of half-open intervals `(l i, u i]`. We

@@ -439,6 +439,12 @@ theorem mem_sphere' : y ∈ sphere x ε ↔ dist x y = ε := by rw [dist_comm, m
 theorem ne_of_mem_sphere (h : y ∈ sphere x ε) (hε : ε ≠ 0) : y ≠ x :=
 by { contrapose! hε, symmetry, simpa [hε] using h  }
 
+theorem nonneg_of_mem_sphere (hy : y ∈ sphere x ε) : 0 ≤ ε :=
+dist_nonneg.trans_eq hy
+
+@[simp] theorem sphere_eq_empty_of_neg (hε : ε < 0) : sphere x ε = ∅ :=
+set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, (nonneg_of_mem_sphere hy).not_lt hε
+
 theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   sphere x ε = ∅ :=
 set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, ne_of_mem_sphere hy hε (subsingleton.elim _ _)
@@ -455,6 +461,10 @@ show dist x x ≤ ε, by rw dist_self; assumption
 
 @[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
 by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
+
+/-- Closed balls and spheres coincide when the radius is non-positive -/
+theorem closed_ball_eq_sphere_of_nonpos (hε : ε ≤ 0) : closed_ball x ε = sphere x ε :=
+set.ext $ λ _, (hε.trans dist_nonneg).le_iff_eq
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
@@ -1562,6 +1572,20 @@ theorem closed_ball_prod_same (x : α) (y : β) (r : ℝ) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
+theorem sphere_prod (x : α × β) (r : ℝ) :
+  sphere x r = sphere x.1 r ×ˢ closed_ball x.2 r ∪ closed_ball x.1 r ×ˢ sphere x.2 r :=
+begin
+  obtain hr | rfl | hr := lt_trichotomy r 0,
+  { simp [hr], },
+  { cases x,
+    simp_rw [←closed_ball_eq_sphere_of_nonpos le_rfl, union_self, closed_ball_prod_same] },
+  { ext ⟨x', y'⟩,
+    simp_rw [set.mem_union, set.mem_prod, metric.mem_closed_ball, metric.mem_sphere,
+      prod.dist_eq, max_eq_iff],
+    refine or_congr (and_congr_right _) ((and_comm _ _).trans (and_congr_left _)),
+    all_goals { rintro rfl, refl } },
+end
+
 end prod
 
 theorem uniform_continuous_dist : uniform_continuous (λp:α×α, dist p.1 p.2) :=
@@ -1646,6 +1670,9 @@ is_closed_eq (continuous_id.dist continuous_const) continuous_const
 
 @[simp] theorem closure_closed_ball : closure (closed_ball x ε) = closed_ball x ε :=
 is_closed_ball.closure_eq
+
+@[simp] theorem closure_sphere : closure (sphere x ε) = sphere x ε :=
+is_closed_sphere.closure_eq
 
 theorem closure_ball_subset_closed_ball : closure (ball x ε) ⊆ closed_ball x ε :=
 closure_minimal ball_subset_closed_ball is_closed_ball
@@ -1799,11 +1826,25 @@ lemma nndist_pi_le_iff {f g : Πb, π b} {r : ℝ≥0} :
   nndist f g ≤ r ↔ ∀b, nndist (f b) (g b) ≤ r :=
 by simp [nndist_pi_def]
 
+lemma nndist_pi_lt_iff {f g : Πb, π b} {r : ℝ≥0} (hr : 0 < r) :
+  nndist f g < r ↔ ∀ b, nndist (f b) (g b) < r :=
+by simp [nndist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)]
+
+lemma nndist_pi_eq_iff {f g : Π b, π b} {r : ℝ≥0} (hr : 0 < r) :
+  nndist f g = r ↔ (∃ i, nndist (f i) (g i) = r) ∧ ∀ b, nndist (f b) (g b) ≤ r :=
+begin
+  rw [eq_iff_le_not_lt, nndist_pi_lt_iff hr, nndist_pi_le_iff, not_forall, and_comm],
+  simp_rw [not_lt, and.congr_left_iff, le_antisymm_iff],
+  intro h,
+  refine exists_congr (λ b, _),
+  apply (and_iff_right $ h _).symm,
+end
+
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
   lift r to ℝ≥0 using hr.le,
-  simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
+  exact nndist_pi_lt_iff hr,
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
@@ -1811,6 +1852,13 @@ lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
 begin
   lift r to ℝ≥0 using hr,
   exact nndist_pi_le_iff
+end
+
+lemma dist_pi_eq_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
+  dist f g = r ↔ (∃ i, dist (f i) (g i) = r) ∧ ∀ b, dist (f b) (g b) ≤ r :=
+begin
+  lift r to ℝ≥0 using hr.le,
+  simp_rw [←coe_nndist, nnreal.coe_eq, nndist_pi_eq_iff hr, nnreal.coe_le_coe],
 end
 
 lemma dist_pi_le_iff' [nonempty β] {f g : Π b, π b} {r : ℝ} :
@@ -1863,6 +1911,25 @@ for a version assuming `0 ≤ r` instead of `nonempty β`. -/
 lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
   closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 (le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
+
+/-- A sphere in a product space is a union of spheres on each component restricted to the closed
+ball. -/
+lemma sphere_pi (x : Πb, π b) {r : ℝ} (h : 0 < r ∨ nonempty β) :
+  sphere x r = (⋃ i : β, function.eval i ⁻¹' sphere (x i) r) ∩ closed_ball x r :=
+begin
+  obtain hr | rfl | hr := lt_trichotomy r 0,
+  { simp [hr], },
+  { rw [closed_ball_eq_sphere_of_nonpos le_rfl, eq_comm, set.inter_eq_right_iff_subset],
+    letI := h.resolve_left (lt_irrefl _),
+    inhabit β,
+    refine subset_Union_of_subset default _,
+    intros x hx,
+    replace hx := hx.le,
+    rw [dist_pi_le_iff le_rfl] at hx,
+    exact le_antisymm (hx default) dist_nonneg },
+  { ext,
+    simp [dist_pi_eq_iff hr,  dist_pi_le_iff hr.le] },
+end
 
 @[simp] lemma fin.nndist_insert_nth_insert_nth {n : ℕ} {α : fin (n + 1) → Type*}
   [Π i, pseudo_metric_space (α i)] (i : fin (n + 1)) (x y : α i) (f g : Π j, α (i.succ_above j)) :

@@ -9,6 +9,9 @@ import data.polynomial.eval
 /-!
 # Denominators of evaluation of polynomials at ratios
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `i : R → K` be a homomorphism of semirings.  Assume that `K` is commutative.  If `a` and
 `b` are elements of `R` such that `i b ∈ K` is invertible, then for any polynomial
 `f ∈ R[X]` the "mathematical" expression `b ^ f.nat_degree * f (a / b) ∈ K` is in

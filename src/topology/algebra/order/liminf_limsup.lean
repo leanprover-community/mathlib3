@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
+Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov, Yaël Dillies
 -/
 import algebra.big_operators.intervals
 import algebra.big_operators.order
 import algebra.indicator_function
 import order.liminf_limsup
 import order.filter.archimedean
+import order.filter.countable_Inter
 import topology.order.basic
 
 /-!
@@ -24,11 +25,10 @@ import topology.order.basic
 ## Implementation notes
 
 The same lemmas are true in `ℝ`, `ℝ × ℝ`, `ι → ℝ`, `euclidean_space ι ℝ`. To avoid code
-duplication, we provide `has_upper_lower_closure`, an ad hoc axiomatisation of the properties we
-need.
+duplication, we provide an ad hoc axiomatisation of the properties we need.
 -/
 
-open filter
+open filter topological_space
 open_locale topology classical
 
 universes u v
@@ -128,7 +128,7 @@ begin
   exact ⟨(a, b), ha.prod_mk hb⟩,
 end
 
-instance  [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
+instance [finite ι] [Π i, preorder (π i)] [Π i, topological_space (π i)]
   [Π i, bounded_ge_nhds_class (π i)] : bounded_ge_nhds_class (Π i, π i) :=
 begin
   refine ⟨λ x, _⟩,
@@ -144,7 +144,7 @@ instance order_top.to_bounded_le_nhds_class [order_top α] : bounded_le_nhds_cla
 ⟨λ a, is_bounded_le_of_top⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_bot.to_bounded_le_nhds_class [order_bot α] : bounded_ge_nhds_class α :=
+instance order_bot.to_bounded_ge_nhds_class [order_bot α] : bounded_ge_nhds_class α :=
 ⟨λ a, is_bounded_ge_of_bot⟩
 
 @[priority 100] -- See note [lower instance priority]
@@ -265,7 +265,44 @@ begin
   exact H a as b bs ab ⟨A, B⟩,
 end
 
+variables [first_countable_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+lemma eventually_le_limsup (hf : is_bounded_under (≤) f u . is_bounded_default) :
+  ∀ᶠ b in f, u b ≤ f.limsup u :=
+begin
+  obtain ha | ha := is_top_or_exists_gt (f.limsup u),
+  { exact eventually_of_forall (λ _, ha _) },
+  by_cases H : is_glb (set.Ioi (f.limsup u)) (f.limsup u),
+  { obtain ⟨u, -, -, hua, hu⟩ := H.exists_seq_antitone_tendsto ha,
+    have := λ n, eventually_lt_of_limsup_lt (hu n) hf,
+    exact (eventually_countable_forall.2 this).mono
+      (λ b hb, ge_of_tendsto hua $ eventually_of_forall $ λ n, (hb _).le) },
+  { obtain ⟨x, hx, xa⟩ : ∃ x, (∀ ⦃b⦄, f.limsup u < b → x ≤ b) ∧ f.limsup u < x,
+    { simp only [is_glb, is_greatest, lower_bounds, upper_bounds, set.mem_Ioi, set.mem_set_of_eq,
+        not_and, not_forall, not_le, exists_prop] at H,
+      exact H (λ x hx, le_of_lt hx) },
+    filter_upwards [eventually_lt_of_limsup_lt xa hf] with y hy,
+    contrapose! hy,
+    exact hx hy }
+end
+
+lemma eventually_liminf_le (hf : is_bounded_under (≥) f u . is_bounded_default) :
+  ∀ᶠ b in f, f.liminf u ≤ u b :=
+@eventually_le_limsup αᵒᵈ _ _ _ _ _ _ _ _ hf
+
 end conditionally_complete_linear_order
+
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [first_countable_topology α]
+  [order_topology α] {f : filter β} [countable_Inter_filter f] {u : β → α}
+
+@[simp] lemma limsup_eq_bot : f.limsup u = ⊥ ↔ u =ᶠ[f] ⊥ :=
+⟨λ h, (eventually_le.trans eventually_le_limsup $ eventually_of_forall $ λ _, h.le).mono $ λ x hx,
+  le_antisymm hx bot_le, λ h, by { rw limsup_congr h, exact limsup_const_bot }⟩
+
+@[simp] lemma liminf_eq_top : f.liminf u = ⊤ ↔ u =ᶠ[f] ⊤ := @limsup_eq_bot αᵒᵈ _ _ _ _ _ _ _ _
+
+end complete_linear_order
 
 end liminf_limsup
 

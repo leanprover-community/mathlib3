@@ -7,6 +7,9 @@ import analysis.seminorm
 /-!
 # The lattice of seminorms is not distributive
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide an example of three seminorms over the ℝ-vector space ℝ×ℝ which don't satisfy the lattice
 distributivity property `(p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)`.
 
@@ -19,6 +22,8 @@ This proves the lattice `seminorm ℝ (ℝ × ℝ)` is not distributive.
 
 open seminorm
 open_locale nnreal
+
+namespace counterexample
 
 namespace seminorm_not_distrib
 
@@ -68,3 +73,5 @@ begin
 end
 
 end seminorm_not_distrib
+
+end counterexample

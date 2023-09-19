@@ -11,6 +11,9 @@ import measure_theory.integral.average
 /-!
 # Jensen's inequality for integrals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several forms of Jensen's inequality for integrals.
 
 - for convex sets: `convex.average_mem`, `convex.set_average_mem`, `convex.integral_mem`;

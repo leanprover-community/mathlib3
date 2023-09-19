@@ -12,6 +12,9 @@ import linear_algebra.matrix.symmetric
 /-!
 # Quadratic forms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines quadratic forms over a `R`-module `M`.
 A quadratic form on a ring `R` is a map `Q : M → R` such that:
 * `quadratic_form.map_smul`: `Q (a • x) = a * a * Q x`
@@ -703,7 +706,7 @@ variables [invertible (2 : R₁)]
 
 /-- `associated` is the linear map that sends a quadratic form over a commutative ring to its
 associated symmetric bilinear form. -/
-abbreviation associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
+@[reducible] def associated : quadratic_form R₁ M →ₗ[R₁] bilin_form R₁ M :=
 associated_hom R₁
 
 @[simp] lemma associated_lin_mul_lin (f g : M →ₗ[R₁] R₁) :

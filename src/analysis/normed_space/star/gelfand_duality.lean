@@ -14,6 +14,9 @@ import topology.continuous_function.stone_weierstrass
 /-!
 # Gelfand Duality
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `gelfand_transform` is an algebra homomorphism from a topological `𝕜`-algebra `A` to
 `C(character_space 𝕜 A, 𝕜)`. In the case where `A` is a commutative complex Banach algebra, then
 the Gelfand transform is actually spectrum-preserving (`spectrum.gelfand_transform_eq`). Moreover,

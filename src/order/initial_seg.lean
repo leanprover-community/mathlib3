@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 
+import logic.equiv.set
 import order.rel_iso.set
 import order.well_founded
 
@@ -107,19 +108,18 @@ end⟩
 
 @[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
 
-theorem unique_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s] :
-  well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
+instance subsingleton_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s]
+  [is_well_founded α r] : subsingleton (r ≼i s) :=
 ⟨λ f g, begin
   ext a,
-  have := h a, induction this with a H IH,
+  apply is_well_founded.induction r a (λ b IH, _),
   refine extensional_of_trichotomous_of_irrefl s (λ x, _),
-  simp only [f.init_iff, g.init_iff],
+  rw [f.init_iff, g.init_iff],
   exact exists_congr (λ x, and_congr_left $ λ hx, IH _ hx ▸ iff.rfl)
 end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
-⟨λ a, @subsingleton.elim _ (unique_of_trichotomous_of_irrefl
-  (@rel_embedding.well_founded _ _ r s a is_well_founded.wf)) a⟩
+⟨λ a, by { letI := a.is_well_founded, apply subsingleton.elim }⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
@@ -311,6 +311,22 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 
 @[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
   (of_element r a).top = a := rfl
+
+/-- For any principal segment `r ≺i s`, there is a `subrel` of `s` order isomorphic to `r`. -/
+@[simps symm_apply]
+noncomputable def subrel_iso (f : r ≺i s) : subrel s {b | s b f.top} ≃r r :=
+rel_iso.symm
+{ to_equiv := ((equiv.of_injective f f.injective).trans (equiv.set_congr
+    (funext (λ x, propext f.down.symm)))),
+  map_rel_iff' := λ a₁ a₂, f.map_rel_iff }
+
+@[simp] theorem apply_subrel_iso (f : r ≺i s) (b : {b | s b f.top}) :
+  f (f.subrel_iso b) = b :=
+equiv.apply_of_injective_symm f.injective _
+
+@[simp] theorem subrel_iso_apply (f : r ≺i s) (a : α) :
+  f.subrel_iso ⟨f a, f.down.mpr ⟨a, rfl⟩⟩ = a :=
+equiv.of_injective_symm_apply f.injective _
 
 /-- Restrict the codomain of a principal segment -/
 def cod_restrict (p : set β) (f : r ≺i s)

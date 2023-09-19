@@ -10,6 +10,9 @@ import data.nat.modeq
 /-!
 # IMO 1964 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 (a) Find all positive integers $n$ for which $2^n-1$ is divisible by $7$.
 
 (b) Prove that there is no positive integer $n$ for which $2^n+1$ is divisible by $7$.

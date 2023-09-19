@@ -29,13 +29,12 @@ subgroup.copy (zpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
 
 @[simp] lemma mem_zpowers (g : G) : g ∈ zpowers g := ⟨1, zpow_one _⟩
 
+@[norm_cast] lemma coe_zpowers (g : G) : ↑(zpowers g) = set.range (λ n : ℤ, g ^ n) := rfl
+
 lemma zpowers_eq_closure (g : G) : zpowers g = closure {g} :=
 by { ext, exact mem_closure_singleton.symm }
 
 @[simp] lemma range_zpowers_hom (g : G) : (zpowers_hom G g).range = zpowers g := rfl
-
-lemma zpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : zpowers a ≤ K :=
-λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.zpow_mem h i end
 
 lemma mem_zpowers_iff {g h : G} :
   h ∈ zpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
@@ -78,9 +77,9 @@ add_subgroup.copy (zmultiples_hom A a).range (set.range ((• a) : ℤ → A)) r
 
 attribute [to_additive add_subgroup.zmultiples] subgroup.zpowers
 attribute [to_additive add_subgroup.mem_zmultiples] subgroup.mem_zpowers
+attribute [to_additive add_subgroup.coe_zmultiples] subgroup.coe_zpowers
 attribute [to_additive add_subgroup.zmultiples_eq_closure] subgroup.zpowers_eq_closure
 attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers_hom
-attribute [to_additive add_subgroup.zmultiples_subset] subgroup.zpowers_subset
 attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff
 attribute [to_additive add_subgroup.zsmul_mem_zmultiples] subgroup.zpow_mem_zpowers
 attribute [to_additive add_subgroup.nsmul_mem_zmultiples] subgroup.npow_mem_zpowers
@@ -140,6 +139,7 @@ begin
 end
 
 namespace subgroup
+variables {s : set G} {g : G}
 
 @[to_additive zmultiples_is_commutative]
 instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
@@ -150,25 +150,35 @@ instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
 lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=
 by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
 
+alias zpowers_le ↔ _ zpowers_le_of_mem
+alias add_subgroup.zmultiples_le ↔ _ _root_.add_subgroup.zmultiples_le_of_mem
+
+attribute [to_additive zmultiples_le_of_mem] zpowers_le_of_mem
+
 @[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
 by rw [eq_bot_iff, zpowers_le, mem_bot]
+
+@[to_additive zmultiples_ne_bot] lemma zpowers_ne_bot : zpowers g ≠ ⊥ ↔ g ≠ 1 :=
+zpowers_eq_bot.not
 
 @[simp, to_additive zmultiples_zero_eq_bot] lemma zpowers_one_eq_bot :
    subgroup.zpowers (1 : G) = ⊥ :=
 subgroup.zpowers_eq_bot.mpr rfl
 
 @[to_additive] lemma centralizer_closure (S : set G) :
-  (closure S).centralizer = ⨅ g ∈ S, (zpowers g).centralizer :=
-le_antisymm (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ zpowers_le.2 $ subset_closure hg)
+  centralizer (closure S : set G) = ⨅ g ∈ S, centralizer (zpowers g : set G) :=
+le_antisymm
+  (le_infi $ λ g, le_infi $ λ hg, centralizer_le $ set_like.coe_subset_coe.2 $
+    zpowers_le.2 $ subset_closure hg)
   $ le_centralizer_iff.1 $ (closure_le _).2
   $ λ g, set_like.mem_coe.2 ∘ zpowers_le.1 ∘ le_centralizer_iff.1 ∘ infi_le_of_le g ∘ infi_le _
 
 @[to_additive] lemma center_eq_infi (S : set G) (hS : closure S = ⊤) :
   center G = ⨅ g ∈ S, centralizer (zpowers g) :=
-by rw [←centralizer_top, ←hS, centralizer_closure]
+by rw [←centralizer_univ, ←coe_top, ←hS, centralizer_closure]
 
 @[to_additive] lemma center_eq_infi' (S : set G) (hS : closure S = ⊤) :
-  center G = ⨅ g : S, centralizer (zpowers g) :=
+  center G = ⨅ g : S, centralizer (zpowers (g : G) : set G) :=
 by rw [center_eq_infi S hS, ←infi_subtype'']
 
 end subgroup

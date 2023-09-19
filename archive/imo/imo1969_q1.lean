@@ -11,6 +11,9 @@ import data.set.finite
 /-!
 # IMO 1969 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Prove that there are infinitely many natural numbers $a$ with the following property:
 the number $z = n^4 + a$ is not prime for any natural number $n$.
 -/

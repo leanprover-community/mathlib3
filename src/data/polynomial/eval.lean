@@ -783,6 +783,15 @@ lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
+@[simp]
+lemma iterate_comp_eval₂ (k : ℕ) (t : S) :
+  eval₂ f t (p.comp^[k] q) = ((λ x, eval₂ f x p)^[k] (eval₂ f t q)) :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [function.iterate_succ_apply', function.iterate_succ_apply', eval₂_comp, IH] }
+end
+
 end
 
 section
@@ -807,6 +816,11 @@ begin
   { intros r s hr hs, simp [add_comp, hr, hs], },
   { intros n a, simp, }
 end
+
+@[simp]
+lemma iterate_comp_eval : ∀ (k : ℕ) (t : R),
+  (p.comp^[k] q).eval t = ((λ x, p.eval x)^[k] (q.eval t)) :=
+iterate_comp_eval₂ _
 
 /-- `comp p`, regarded as a ring homomorphism from `R[X]` to itself. -/
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=

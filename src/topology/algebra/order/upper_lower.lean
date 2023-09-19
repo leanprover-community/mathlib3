@@ -122,7 +122,7 @@ protected lemma is_upper_set.interior (h : is_upper_set s) : is_upper_set (inter
 by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure }
 
 protected lemma is_lower_set.interior (h : is_lower_set s) : is_lower_set (interior s) :=
-h.of_dual.interior
+h.to_dual.interior
 
 protected lemma set.ord_connected.interior (h : s.ord_connected) : (interior s).ord_connected :=
 begin

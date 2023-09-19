@@ -9,6 +9,9 @@ import order.filter.countable_Inter
 /-!
 # Measure spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines measure spaces, the almost-everywhere filter and ae_measurable functions.
 See `measure_theory.measure_space` for their properties and for extended documentation.
 
@@ -439,9 +442,9 @@ lemma inter_ae_eq_empty_of_ae_eq_empty_right (h : t =ᵐ[μ] (∅ : set α)) :
 by { convert ae_eq_set_inter (ae_eq_refl s) h, rw inter_empty, }
 
 @[to_additive]
-lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
-  (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-by simpa [filter.eventually_eq, ae_iff] using h
+lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α} :
+  s.mul_indicator f =ᵐ[μ] 1 ↔ μ (s ∩ f.mul_support) = 0 :=
+by simpa [eventually_eq, eventually_iff, measure.ae, compl_set_of]
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

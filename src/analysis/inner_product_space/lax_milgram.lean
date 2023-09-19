@@ -12,6 +12,9 @@ import topology.metric_space.antilipschitz
 /-!
 # The Lax-Milgram Theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 
@@ -40,10 +43,10 @@ open_locale real_inner_product_space nnreal
 universe u
 
 namespace is_coercive
-variables {V : Type u} [inner_product_space ℝ V] [complete_space V]
+variables {V : Type u} [normed_add_comm_group V] [inner_product_space ℝ V] [complete_space V]
 variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 
-local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _
+local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _ _
 
 lemma bounded_below (coercive : is_coercive B) :
   ∃ C, 0 < C ∧ ∀ v, C * ‖v‖ ≤ ‖B♯ v‖ :=

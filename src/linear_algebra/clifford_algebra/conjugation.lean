@@ -9,6 +9,9 @@ import algebra.module.opposites
 /-!
 # Conjugations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the grade reversal and grade involution functions on multivectors, `reverse` and
 `involute`.
 Together, these operations compose to form the "Clifford conjugate", hence the name of this file.

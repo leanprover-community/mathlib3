@@ -10,6 +10,9 @@ import category_theory.functor.reflects_isomorphisms
 /-!
 # Monads
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the categories of monads and comonads, and their forgetful functors to endofunctors.
 
 (Note that these are the category theorist's monads, not the programmers monads.
@@ -223,7 +226,6 @@ def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 
 instance : faithful (monad_to_functor C) := {}.
 
-@[simp]
 lemma monad_to_functor_map_iso_monad_iso_mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
   (monad_to_functor _).map_iso (monad_iso.mk f f_η f_μ) = f :=
 by { ext, refl }
@@ -246,7 +248,6 @@ def comonad_to_functor : comonad C ⥤ (C ⥤ C) :=
 
 instance : faithful (comonad_to_functor C) := {}.
 
-@[simp]
 lemma comonad_to_functor_map_iso_comonad_iso_mk {M N : comonad C} (f : (M : C ⥤ C) ≅ N) (f_ε f_δ) :
   (comonad_to_functor _).map_iso (comonad_iso.mk f f_ε f_δ) = f :=
 by { ext, refl }

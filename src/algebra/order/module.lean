@@ -209,6 +209,18 @@ lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) : bdd_below (c 
 
 end ordered_ring
 
+section linear_ordered_ring
+variables [linear_ordered_ring k] [linear_ordered_add_comm_group M] [module k M] [ordered_smul k M]
+  {a : k}
+
+lemma smul_max_of_nonpos (ha : a ≤ 0) (b₁ b₂ : M) : a • max b₁ b₂ = min (a • b₁) (a • b₂) :=
+(antitone_smul_left ha : antitone (_ : M → M)).map_max
+
+lemma smul_min_of_nonpos (ha : a ≤ 0) (b₁ b₂ : M) : a • min b₁ b₂ = max (a • b₁) (a • b₂) :=
+(antitone_smul_left ha : antitone (_ : M → M)).map_min
+
+end linear_ordered_ring
+
 section linear_ordered_field
 variables [linear_ordered_field k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
   {s : set M} {c : k}

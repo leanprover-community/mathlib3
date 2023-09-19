@@ -9,6 +9,9 @@ import topology.continuous_function.cocompact_map
 /-!
 # Continuous functions vanishing at infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of continuous functions vanishing at infinity. When the domain is compact
 `C(α, β) ≃ C₀(α, β)` via the identity map. When the codomain is a metric space, every continuous
 map which vanishes at infinity is a bounded continuous function. When the domain is a locally
@@ -411,7 +414,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
-{ norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }
+{ norm_smul_le := λ k f, (norm_smul_le k f.to_bcf : _) }
 
 end normed_space
 

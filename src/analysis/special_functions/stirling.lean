@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
-import analysis.special_functions.log.deriv
-import tactic.positivity
 import data.real.pi.wallis
 
 /-!
 # Stirling's formula
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves Stirling's formula for the factorial.
 It states that $n!$ grows asymptotically like $\sqrt{2\pi n}(\frac{n}{e})^n$.

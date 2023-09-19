@@ -10,6 +10,9 @@ import ring_theory.algebraic
 /-!
 # Minimal polynomials on an algebra over a field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file specializes the theory of minpoly to the setting of field extensions
 and derives some well-known properties, amongst which the fact that minimal polynomials
 are irreducible, and uniquely determined by their defining property.

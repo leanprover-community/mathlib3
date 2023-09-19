@@ -8,6 +8,9 @@ import data.fintype.basic
 /-!
 # Quotients of families indexed by a finite type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides `quotient.fin_choice`, a mechanism to go from a finite family of quotients
 to a quotient of finite families.
 

@@ -12,6 +12,9 @@ import data.zmod.basic
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains an easy source of zero-divisors in an `add_monoid_algebra`.
 If `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.
@@ -40,6 +43,8 @@ finitely supported function is lexicographic, matching the list notation.  The i
 `[1, 1] > [1, 0]`.
 -/
 open finsupp add_monoid_algebra
+
+namespace counterexample
 
 /--  This is a simple example showing that if `R` is a non-trivial ring and `A` is an additive
 monoid with an element `a` satisfying `n • a = a` and `(n - 1) • a ≠ a`, for some `2 ≤ n`,
@@ -230,3 +235,5 @@ begin
   { simpa [unique_add] },
   exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
 end
+
+end counterexample

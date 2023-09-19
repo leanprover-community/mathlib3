@@ -109,12 +109,19 @@ by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
+/-- If `r` is invertible and `s = r` and `si = ⅟r`, then `s` is invertible with `⅟s = si`. -/
+def invertible.copy' [mul_one_class α] {r : α} (hr : invertible r) (s : α) (si : α)
+  (hs : s = r) (hsi : si = ⅟r) :
+  invertible s :=
+{ inv_of := si,
+  inv_of_mul_self := by rw [hs, hsi, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, hsi, mul_inv_of_self] }
+
 /-- If `r` is invertible and `s = r`, then `s` is invertible. -/
+@[reducible]
 def invertible.copy [mul_one_class α] {r : α} (hr : invertible r) (s : α) (hs : s = r) :
   invertible s :=
-{ inv_of := ⅟r,
-  inv_of_mul_self := by rw [hs, inv_of_mul_self],
-  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+hr.copy' _ _ hs rfl
 
 /-- An `invertible` element is a unit. -/
 @[simps]
@@ -196,6 +203,11 @@ def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invert
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
+/-- A copy of `invertible_mul` for dot notation. -/
+@[reducible] def invertible.mul [monoid α] {a b : α} (ha : invertible a) (hb : invertible b) :
+  invertible (a * b) :=
+invertible_mul _ _
+
 theorem commute.inv_of_right [monoid α] {a b : α} [invertible b] (h : commute a b) :
   commute a (⅟b) :=
 calc a * (⅟b) = (⅟b) * (b * a * (⅟b)) : by simp [mul_assoc]
@@ -219,6 +231,43 @@ lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [in
 
 @[priority 100] instance invertible.ne_zero [mul_zero_one_class α] [nontrivial α] (a : α)
   [invertible a] : ne_zero a := ⟨nonzero_of_invertible a⟩
+
+section monoid
+variables [monoid α]
+
+/-- This is the `invertible` version of `units.is_unit_units_mul` -/
+@[reducible] def invertible_of_invertible_mul (a b : α) [invertible a] [invertible (a * b)] :
+  invertible b :=
+{ inv_of := ⅟(a * b) * a,
+  inv_of_mul_self := by rw [mul_assoc, inv_of_mul_self],
+  mul_inv_of_self := by rw [←(is_unit_of_invertible a).mul_right_inj, ←mul_assoc, ←mul_assoc,
+    mul_inv_of_self, mul_one, one_mul] }
+
+/-- This is the `invertible` version of `units.is_unit_mul_units` -/
+@[reducible] def invertible_of_mul_invertible (a b : α) [invertible (a * b)] [invertible b] :
+  invertible a :=
+{ inv_of := b * ⅟(a * b),
+  inv_of_mul_self := by rw [←(is_unit_of_invertible b).mul_left_inj, mul_assoc, mul_assoc,
+    inv_of_mul_self, mul_one, one_mul],
+  mul_inv_of_self := by rw [←mul_assoc, mul_inv_of_self] }
+
+/-- `invertible_of_invertible_mul` and `invertible_mul` as an equivalence. -/
+@[simps] def invertible.mul_left {a : α} (ha : invertible a) (b : α) :
+  invertible b ≃ invertible (a * b) :=
+{ to_fun := λ hb, by exactI invertible_mul a b,
+  inv_fun := λ hab, by exactI invertible_of_invertible_mul a _,
+  left_inv := λ hb, subsingleton.elim _ _,
+  right_inv := λ hab, subsingleton.elim _ _, }
+
+/-- `invertible_of_mul_invertible` and `invertible_mul` as an equivalence. -/
+@[simps] def invertible.mul_right (a : α) {b : α} (ha : invertible b) :
+  invertible a ≃ invertible (a * b) :=
+{ to_fun := λ hb, by exactI invertible_mul a b,
+  inv_fun := λ hab, by exactI invertible_of_mul_invertible _ b,
+  left_inv := λ hb, subsingleton.elim _ _,
+  right_inv := λ hab, subsingleton.elim _ _, }
+
+end monoid
 
 section monoid_with_zero
 variable [monoid_with_zero α]

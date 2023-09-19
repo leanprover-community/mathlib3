@@ -11,6 +11,9 @@ import ring_theory.witt_vector.is_poly
 
 # `init` and `tail`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a Witt vector `x`, we are sometimes interested
 in its components before and after an index `n`.
 This file defines those operations, proves that `init` is polynomial,

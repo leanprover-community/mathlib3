@@ -8,6 +8,9 @@ import tactic.linarith
 /-!
 # IMO 2019 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Determine all functions `f : ℤ → ℤ` such that, for all integers `a` and `b`,
 `f(2a) + 2f(b) = f(f(a+b))`.
 
@@ -19,7 +22,7 @@ Note that there is a much more compact proof of this fact in Isabelle/HOL
   - http://downthetypehole.de/paste/4YbGgqb4
 -/
 
-theorem imo2019Q1 (f : ℤ → ℤ) :
+theorem imo2019_q1 (f : ℤ → ℤ) :
   (∀ a b : ℤ, f (2 * a) + 2 * (f b) = f (f (a + b))) ↔
     (f = 0) ∨ ∃ c, f = λ x, 2 * x + c :=
 begin

@@ -22,52 +22,6 @@ We also prove lemmas specific to `ℝⁿ`. Those are helpful to prove that order
 are measurable.
 -/
 
-section
-variables {α : Type*} [linear_ordered_semifield α] {a : α}
-
-@[simp] lemma half_lt_self_iff : a / 2 < a ↔ 0 < a :=
-by rw [div_lt_iff (zero_lt_two' α), mul_two, lt_add_iff_pos_left]
-
-end
-
-section
-variables {ι E : Type*} [fintype ι] [seminormed_group E] [nonempty ι]
-
-open function
-
-@[simp, to_additive pi_norm_const''] lemma pi_norm_const''' (a : E) : ‖const ι a‖ = ‖a‖ :=
-pi_norm_const' a
-
-@[simp, to_additive pi_nnnorm_const''] lemma pi_nnnorm_const''' (a : E) : ‖const ι a‖₊ = ‖a‖₊ :=
-pi_nnnorm_const' a
-
-end
-
-section
-variables {ι : Type*} [fintype ι] [nonempty ι] {ε : ℝ}
-
-open function metric
-
-lemma pi.exists_gt_mem_ball (x : ι → ℝ) (hε : 0 < ε) : ∃ y, x < y ∧ dist y x < ε :=
-begin
-  refine ⟨x + const ι (ε / 2), lt_add_of_pos_right _ $ by positivity, _⟩,
-  simpa [@pi_norm_const'' ι ℝ _ _ _ (ε / 2), abs_of_nonneg hε.le],
-end
-
-lemma pi.exists_lt_mem_ball (x : ι → ℝ) (hε : 0 < ε) : ∃ y, y < x ∧ dist y x < ε :=
-begin
-  refine ⟨x - const ι (ε / 2), sub_lt_self _ $ by positivity, _⟩,
-  simpa [@pi_norm_const'' ι ℝ _ _ _ (ε / 2), abs_of_nonneg hε.le],
-end
-
-end
-
-namespace real
-
-@[simp] lemma to_nnreal_abs (x : ℝ) : |x|.to_nnreal = x.nnabs := nnreal.coe_injective $ by simp
-
-end real
-
 open function metric set
 open_locale pointwise
 
@@ -279,12 +233,14 @@ begin
   have hx' := interior_subset hx,
   rw [mem_interior_iff_mem_nhds, metric.mem_nhds_iff] at hx,
   obtain ⟨ε, hε, hx⟩ := hx,
-  obtain ⟨y, hy, hyx⟩ := pi.exists_gt_mem_ball x hε,
-  exact hs.not_lt hx' (hx hyx) hy,
+  refine hs.not_lt hx' (hx _) (lt_add_of_pos_right _ (by positivity : 0 < const ι (ε / 2))),
+  simpa [const, @pi_norm_const ι ℝ _ _ _ (ε / 2), abs_of_nonneg hε.lt.le],
 end
 
-/-
-Note: The closure and frontier of an antichain might not be antichains. Take for example the union
+/-!
+#### Note
+
+The closure and frontier of an antichain might not be antichains. Take for example the union
 of the open segments from `(0, 2)` to `(1, 1)` and from `(2, 1)` to `(3, 0)`. `(1, 1)` and `(2, 1)`
 are comparable and both in the closure/frontier.
 -/

@@ -23,16 +23,6 @@ The same lemmas are true in the additive/multiplicative worlds. To avoid code du
 provide `has_upper_lower_closure`, an ad hoc axiomatisation of the properties we need.
 -/
 
-section
-variables {α : Type*} [preorder α] {s : set α} {a : α}
-
-open set
-
-lemma mem_upper_bounds_iff_subset_Iic : a ∈ upper_bounds s ↔ s ⊆ Iic a := iff.rfl
-lemma mem_lower_bounds_iff_subset_Ici : a ∈ lower_bounds s ↔ s ⊆ Ici a := iff.rfl
-
-end
-
 open function set
 open_locale pointwise
 

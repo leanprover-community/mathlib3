@@ -289,16 +289,6 @@ open filter
 lemma f_deriv_aux {x : ℝ} (hx : x ≠ 2) : has_deriv_at (λ x : ℝ, 1 / (2 - x)) (1 / (2 - x) ^ 2) x :=
 by simpa using ((has_deriv_at_id' x).const_sub 2).inv (sub_ne_zero_of_ne hx.symm)
 
-lemma f1_zero_left {y : ℝ} : f1 0 y = y + 2 :=
-by rw [f1, sub_zero, bin_ent_one_half, zero_add, mul_one]
-
-lemma f1_one_left {y : ℝ} : f1 1 y = y + 1 := by { rw [add_comm y], norm_num [f1] }
-
---   - log x ≤ x ^ (-1 / e)
---   - log (y ^ (-e)) ≤ y      --  y = x ^ (-1 / e)
---   e log y ≤ y
---   log y ≤ y / e
-
 lemma f_deriv_aux2 {x : ℝ} (hx₁ : x ≠ 1) :
   has_deriv_at (λ x : ℝ, x * bin_ent 2 x) (2 * bin_ent 2 x + logb 2 (1 - x)) x :=
 begin
@@ -333,48 +323,54 @@ begin
   rw [neg_sub, ←neg_sub x, logb_of_neg],
 end
 
-lemma f1_deriv_helper {x : ℝ} (hx₁ : x ≠ 2) :
-  has_deriv_at (λ x, (2 - x) * bin_ent 2 (1 / (2 - x))) (logb 2 (1 - 1 / (2 - x))) x :=
+lemma important_rewrite {x : ℝ} (hx : x ≠ 2) : 1 - 1 / (2 - x) = (1 - x) / (2 - x) :=
+by { rw [one_sub_div (sub_ne_zero_of_ne hx.symm)], ring_nf }
+
+lemma important_rewrite' {x : ℝ} : logb 2 (1 - 1 / (2 - x)) = logb 2 ((1 - x) / (2 - x)) :=
 begin
-  sorry
-  -- have : has_deriv_at (λ x, (2 - x) * bin_ent (1 / (2 - x)))
+  rcases eq_or_ne x 2 with rfl | hx₂,
+  { norm_num },
+  rw important_rewrite hx₂
 end
 
-lemma f1_deriv {x y : ℝ} (hx₁ : x ≠ 1) (hx₂ : x ≠ 2) :
-  has_deriv_at (λ x', f1 x' y) (1 + logb 2 ((1 - x) / (2 - x))) x :=
+lemma important_rewrite2 {x : ℝ} :
+  logb 2 ((1 - x) / (2 - x)) = logb 2 (1 - x) - logb 2 (2 - x) :=
 begin
-  have : has_deriv_at (λ x', f1 x' y)
-      (1 + ((logb 2 (2 - x) - logb 2 (2 - x - 1)) * -1)) x,
-  { refine ((has_deriv_at_id' _).add_const _).add _,
-    refine (f_deriv_aux3 _ _).comp _ (has_deriv_at.const_sub 2 (has_deriv_at_id' x)),
+  rcases eq_or_ne x 1 with rfl | hx₁,
+  { norm_num },
+  rcases eq_or_ne x 2 with rfl | hx₂,
+  { norm_num },
+  rw [logb_div (sub_ne_zero_of_ne hx₁.symm) (sub_ne_zero_of_ne hx₂.symm)],
+end
+
+lemma f1_deriv_helper {x : ℝ} (hx₁ : x ≠ 1) (hx₂ : x ≠ 2) :
+  has_deriv_at (λ x, (2 - x) * bin_ent 2 (1 / (2 - x))) (logb 2 ((1 - x) / (2 - x))) x :=
+begin
+  have : has_deriv_at (λ x, (2 - x) * bin_ent 2 (1 / (2 - x)))
+      (((logb 2 (2 - x) - logb 2 (2 - x - 1)) * -1)) x,
+  { refine (f_deriv_aux3 _ _).comp _ (has_deriv_at.const_sub 2 (has_deriv_at_id' x)),
     { exact sub_ne_zero_of_ne hx₂.symm },
     contrapose! hx₁,
     linarith only [hx₁] },
   convert this using 1,
-  rw [add_right_inj, mul_neg_one, neg_sub, logb_div],
-  { ring_nf },
-  { contrapose! hx₁,
-    linarith only [hx₁] },
-  { exact sub_ne_zero_of_ne hx₂.symm },
+  rw [mul_neg_one, neg_sub, important_rewrite2],
+  ring_nf
 end
 
-#exit
+lemma f1_deriv {x y : ℝ} (hx₁ : x ≠ 1) (hx₂ : x ≠ 2) :
+  has_deriv_at (λ x', f1 x' y) (1 + logb 2 ((1 - x) / (2 - x))) x :=
+((has_deriv_at_id' _).add_const _).add (f1_deriv_helper hx₁ hx₂)
 
-lemma continuous_on_f1 {y : ℝ} : continuous_on (λ x, f1 x y) {2}ᶜ :=
+lemma continuous_on_f1 {y : ℝ} : continuous (λ x, f1 x y) :=
 begin
-  refine (continuous_id'.add continuous_const).continuous_on.add _,
-  refine (continuous_const.sub continuous_id').continuous_on.mul _,
-  refine continuous_on.comp bin_ent_continuous.continuous_on _ (set.maps_to_univ _ _),
-  simp only [one_div],
-  refine continuous_on.inv₀ (continuous_const.sub continuous_id').continuous_on _,
-  simp only [sub_ne_zero],
-  simp [eq_comm],
+  refine (continuous_id'.add continuous_const).add _,
+  exact continuous_on_mul_bin_ent_inv.comp (continuous_const.sub continuous_id'),
 end
 
 lemma strict_anti_on_f1 {y : ℝ} : strict_anti_on (λ x, f1 x y) (Icc (0 : ℝ) 1) :=
 begin
   refine convex.strict_anti_on_of_deriv_neg (convex_Icc _ _) _ _,
-  { exact continuous_on_f1.mono (by norm_num) },
+  { exact continuous_on_f1.continuous_on },
   rw [interior_Icc],
   intros x hx,
   rw (f1_deriv hx.2.ne (by linarith only [hx.2])).deriv,
@@ -389,15 +385,12 @@ lemma eq_on_f2 {y : ℝ} :
 begin
   rintro x hx,
   dsimp,
-  rw [f2, f1, sub_right_inj, one_sub_div],
-  { ring_nf },
-  rw [sub_ne_zero],
-  exact ne.symm hx
+  rw [f2, f1, important_rewrite hx],
 end
 
 lemma continuous_on_f2 {y : ℝ} : continuous_on (λ x, f2 x y) {2}ᶜ :=
 begin
-  refine (continuous_on_f1.sub (continuous_on_const.mul _)).congr eq_on_f2,
+  refine (continuous_on_f1.continuous_on.sub (continuous_on_const.mul _)).congr eq_on_f2,
   refine continuous_on_const.sub _,
   simp only [one_div],
   refine (continuous_const.sub continuous_id').continuous_on.inv₀ _,
@@ -532,6 +525,124 @@ end
 
 lemma logb_two_x_value_interval : logb 2 x_value ∈ Icc (0.8364148 : ℝ) 0.8364149 :=
 ⟨logb_x_value.1.le, logb_x_value.2.le⟩
+
+noncomputable def x_value2 : ℝ := 1 / (2 - 0.817)
+lemma x_value2_eq : x_value2 = 1000 / 1183 := by norm_num [x_value2]
+
+noncomputable def x_value3 : ℝ := 1 - 1 / (2 - 0.817)
+lemma x_value3_eq : x_value3 = 183 / 1183 := by norm_num [x_value3]
+
+lemma logb_approx_second : -0.24246 < logb 2 x_value2 ∧ logb 2 x_value2 < -0.242435 :=
+begin
+  rw [x_value2_eq],
+  refine log_base2_start (by norm_num1) le_rfl _,
+  refine log_base2_scale 1 _,
+  rw [int.cast_one],
+  norm_num1,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.429093 1.429094,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.021153 1.021155,
+  refine log_base2_square _,
+  weaken 1.042753 1.042758,
+  refine log_base2_square _,
+  weaken 1.087333 1.087345,
+  refine log_base2_square _,
+  weaken 1.182293 1.182320,
+  refine log_base2_square _,
+  weaken 1.397816 1.397890,
+  refine log_base2_square _,
+  weaken 1.95388 1.95410,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.90882 1.90926,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.82179 1.82264,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.65945 1.66101,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.37688 1.37948,
+  refine log_base2_square _,
+  weaken 1.8957 1.90297,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.7968 1.8107,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.614 1.640,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  weaken 1.30 1.35,
+  refine log_base2_square _,
+  weaken 1.5 1.9,
+  refine log_base2_square _,
+  refine log_base2_half _,
+  norm_num1,
+  exact log_base2_end (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1),
+end
+
+---2.692534520055745970309653458812168292098504470773201890789775983...
+lemma logb_approx_third : -2.69257 < logb 2 x_value3 ∧ logb 2 x_value3 < -2.69251 :=
+begin
+  rw [x_value3_eq],
+  refine log_base2_start (by norm_num1) le_rfl _,
+  refine log_base2_scale 3 _,
+  rw [int.cast_bit1, int.cast_one],
+  refine log_base2_square _,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.1727227026 1.1727227027,
+	refine log_base2_square _,  weaken 1.375278537 1.375278538,
+	refine log_base2_square _,  weaken 1.891391054 1.891391058,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.78868005 1.78868007,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.59968816 1.5996882,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.2795011 1.2795012,
+	refine log_base2_square _,  weaken 1.637123 1.637124,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.340085 1.340088,
+	refine log_base2_square _,  weaken 1.795827 1.795836,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.612497 1.612514,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.30007 1.30011,
+	refine log_base2_square _,  weaken 1.6901 1.6903,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.4282 1.4286,
+	refine log_base2_square _,
+	refine log_base2_half _,  weaken 1.018 1.021,
+	refine log_base2_square _,
+  norm_num1,
+  exact log_base2_end (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1),
+end
+
+lemma logb_two_x_value2_interval : logb 2 x_value2 ∈ Icc (-0.24246 : ℝ) (-0.242435) :=
+⟨logb_approx_second.1.le, logb_approx_second.2.le⟩
+
+lemma logb_two_x_value3_interval : logb 2 x_value3 ∈ Icc (-2.69257 : ℝ) (-2.69251) :=
+⟨logb_approx_third.1.le, logb_approx_third.2.le⟩
+
+-- 0.6214571360946745562130177514792899408284023668639053254437869822...
+-- 0.6214572992392223161453930684699915469146238377007607776838546069...
+-- lemma bin_ent_calc : bin_ent 2 (1 / (2 - 0.817)) ∈ Icc (0.621456 : ℝ) 0.621458 :=
+lemma bin_ent_calc : bin_ent 2 (1 / (2 - 0.817)) ∈ Icc (0.6214 : ℝ) 0.6214711 :=
+begin
+  rw [bin_ent],
+  refine interval_end
+    (sub_interval
+      (mul_interval_of_neg const_interval logb_two_x_value2_interval
+        (by norm_num1) (by norm_num1))
+      (mul_interval_of_pos_neg const_interval logb_two_x_value3_interval
+        (by norm_num1) (by norm_num1)))
+    (by norm_num1)
+    (by norm_num1),
+end
 
 end values
 
@@ -771,10 +882,220 @@ begin
   exact claim_a2_aux hy
 end
 
+noncomputable def f' (x : ℝ) : ℝ := 8 / 3 * x - 0.909 + (2 - x) * bin_ent 2 (1 / (2 - x))
+
+lemma continuous_f' : continuous f' :=
+begin
+  refine continuous.add (by continuity) _,
+  exact continuous_on_mul_bin_ent_inv.comp (continuous_const.sub continuous_id'),
+end
+
+lemma has_deriv_at_f' {x : ℝ} (hx₁ : x ≠ 1) (hx₂ : x ≠ 2) :
+  has_deriv_at f' (8 / 3 + logb 2 ((1 - x) / (2 - x))) x :=
+begin
+  have : has_deriv_at f' (_ + logb 2 ((1 - x) / (2 - x))) x,
+  { exact (((has_deriv_at_id' x).const_mul _).sub_const _).add (f1_deriv_helper hx₁ hx₂) },
+  rwa [mul_one] at this,
+end
+
+lemma f_inner_eq {x y : ℝ} (h : x = 3 / 5 * y + 0.5454) :
+  x + y + (2 - x) * bin_ent 2 (1 / (2 - x)) = f' x :=
+begin
+  have : y = 5 / 3 * x - 0.909,
+  { linarith only [h] },
+  rw [this, f', add_left_inj],
+  ring_nf,
+end
+
+lemma strict_mono_on_f' : strict_mono_on f' (Icc 0 0.75) :=
+begin
+  refine convex.strict_mono_on_of_deriv_pos (convex_Icc _ _) _ _,
+  { exact continuous_f'.continuous_on },
+  rw [interior_Icc],
+  rintro x ⟨hx₀, hx₁⟩,
+  have h₁ : 0 < 1 - x := by linarith only [hx₁],
+  have h₂ : 0 < 2 - x := by linarith only [h₁],
+  rw (has_deriv_at_f' _ _).deriv,
+  rotate,
+  { linarith only [h₁] },
+  { linarith only [h₁] },
+  have : 0.2 ≤ (1 - x) / (2 - x),
+  { rw [le_div_iff h₂],
+    linarith only [hx₁] },
+  have : - logb 2 5 ≤ logb 2 ((1 - x) / (2 - x)),
+  { rw [←logb_inv, ←one_div],
+    exact _root_.logb_le_logb_of_le (by norm_num1) (by norm_num1) this },
+  replace this := this.trans' (neg_le_neg logb_two_five_interval.2),
+  refine (add_le_add_left this _).trans_lt' _,
+  norm_num1,
+end
+
+lemma f'_max : f' 0.75 < 1.994 :=
+begin
+  have : logb 2 (4 / 5) = 2 - logb 2 5,
+  { rw [logb_div, (by norm_num1 : (4 : ℝ) = 2 ^ 2), _root_.logb_pow, logb_base],
+    { rw [nat.cast_two, mul_one] },
+    { norm_num1 },
+    { norm_num1 },
+    { norm_num1 },
+    { norm_num1 } },
+  rw [f', bin_ent],
+  norm_num1,
+  rw [this, one_div, logb_inv],
+  have : logb 2 5 < 2.3224 := logb_two_five_interval.2.trans_lt (by norm_num1),
+  ring_nf,
+  linarith only [this],
+end
+
 lemma claim_a3 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 0.75) (hy : y ∈ Icc (0 : ℝ) 0.75)
   (h : x = 3 / 5 * y + 0.5454) :
-  f1 x y < 1.9993 := sorry
+  f1 x y < 1.9993 :=
+begin
+  rw [f1, f_inner_eq h],
+  refine (strict_mono_on_f'.monotone_on hx (right_mem_Icc.2 (by norm_num1)) hx.2).trans_lt _,
+  exact f'_max.trans_le (by norm_num1),
+end
+
+noncomputable def f2' (x : ℝ) : ℝ := f' x - 1 / (log 2 * 40) * (1 - 1 / (2 - x))
+
+lemma f2'_eq {x : ℝ} : f2' x = f' x - (1 / log 2) * ((1 / 40) * (1 - 1 / (2 - x))) :=
+by rw [f2', ←one_div_mul_one_div, mul_assoc]
+
+noncomputable def f2'_deriv (x : ℝ) : ℝ :=
+  8 / 3 + logb 2 ((1 - x) / (2 - x)) + 1 / (log 2 * 40) * (1 / (2 - x) ^ 2)
+
+lemma has_deriv_at_f2' {x : ℝ} (hx : x < 1) :
+  has_deriv_at f2' (f2'_deriv x) x :=
+begin
+  have hx2 : x < 2 := by linarith only [hx],
+  have : has_deriv_at f2' (8 / 3 + logb 2 ((1 - x) / (2 - x)) - _) x,
+  { exact (has_deriv_at_f' hx.ne hx2.ne).sub
+      (((has_deriv_at_const _ _).sub (f_deriv_aux hx2.ne)).const_mul _) },
+  convert this using 1,
+  rw [f2'_deriv, zero_sub, mul_neg, sub_neg_eq_add],
+end
+
+-- for diff
+lemma f2_deriv'_eq {x : ℝ} :
+  f2'_deriv x = 8 / 3 + logb 2 (1 - x) - logb 2 (2 - x) + 1 / (log 2 * 40) * ((2 - x) ^ 2)⁻¹ :=
+by rw [f2'_deriv, important_rewrite2, one_div, one_div, add_sub_assoc]
+
+-- for eval
+lemma f2_deriv'_eq2 {x : ℝ} :
+  f2'_deriv x = 8 / 3 + logb 2 (1 - 1 / (2 - x)) + 1 / log 2 * (1 / (40 * (2 - x) ^ 2)) :=
+by rw [f2'_deriv, important_rewrite', one_div_mul_one_div, one_div_mul_one_div, mul_assoc]
+
+-- 20 y^2 - 79 y + 79
+-- 20 y ^ 2 - 80 y + 80 - (1 - y)
+-- 20 (y ^ 2 - 4 y + 4) - (1 - y)
+-- (1 - y) - 20 (2 - y) ^ 2
+
+lemma has_deriv_at_f2'_deriv {y : ℝ} (hy : y < 1) :
+  has_deriv_at (λ x, f2'_deriv x)
+    (((1 - y) - 20 * (2 - y) ^ 2) / (20 * (2 - y) ^ 3 * (1 - y) * log 2)) y :=
+begin
+  simp only [f2_deriv'_eq],
+  have hy2 : y < 2 := hy.trans_le one_le_two,
+  have : has_deriv_at (λ x, 8 / 3 + logb 2 (1 - x) - logb 2 (2 - x) +
+    1 / (log 2 * 40) * ((2 - x) ^ 2)⁻¹)
+    ((0 - 1) / ((1 - y) * log 2) - (0 - 1) / ((2 - y) * log 2) +
+      1 / (log 2 * 40) * (-(↑2 * (2 - y) ^ (2 - 1) * -1) / ((2 - y) ^ 2) ^ 2)) y,
+  { refine (((((has_deriv_at_const _ _).sub (has_deriv_at_id' _)).logb _).const_add _).sub
+      (((has_deriv_at_const _ _).sub (has_deriv_at_id' _)).logb _)).add
+      (has_deriv_at.const_mul _ _),
+    { exact sub_ne_zero_of_ne hy.ne' },
+    { exact sub_ne_zero_of_ne hy2.ne' },
+    refine (((has_deriv_at_id' _).const_sub _).pow _).inv _,
+    simp only [ne.def, pow_eq_zero_iff, zero_lt_bit0, nat.lt_one_iff, sub_eq_zero, hy2.ne',
+      not_false_iff] },
+  convert this using 1,
+  -- rw [nat.cast_two],
+  field_simp [(log_pos one_lt_two).ne', (sub_pos_of_lt hy).ne', (sub_pos_of_lt hy2).ne'],
+  ring_nf,
+end
+
+lemma strict_anti_on_f2'_deriv : strict_anti_on f2'_deriv (set.Ioo 0 1) :=
+begin
+  refine convex.strict_anti_on_of_has_deriv_at_neg (convex_Ioo 0 1)
+    (λ y hy, has_deriv_at_f2'_deriv hy.2) _,
+  rw [interior_Ioo],
+  rintro x ⟨hx₀, hx₁⟩,
+  suffices : 1 - x - 20 * (2 - x) ^ 2 < 0,
+  { refine div_neg_of_neg_of_pos this _,
+    have : 0 < 1 - x := sub_pos_of_lt hx₁,
+    have : 0 < 2 - x := by linarith only [hx₁],
+    have := log_pos one_lt_two,
+    positivity },
+  nlinarith,
+end
+
+-- deriv = -0.0000960352
+-- 1.9992712424
+-- lower bound here doesn't matter
+lemma f2'_eval_max : f2' 0.817 ∈ Icc (0 : ℝ) 1.9992877 :=
+begin
+  rw [f2'_eq, f'],
+  refine interval_end
+    (sub_interval
+      (add_interval const_interval
+        (mul_interval const_interval bin_ent_calc (by norm_num1) (by norm_num1)))
+      (mul_interval one_div_log_two_interval const_interval (by norm_num1) (by norm_num1)))
+    (by norm_num1) (by norm_num1),
+end
+-- sorry
+
+lemma f2'_deriv_eval_max : f2'_deriv 0.817 ∈ Icc (-0.00015 : ℝ) 0.00005 :=
+begin
+  rw [f2_deriv'_eq2],
+  refine interval_end
+    (add_interval
+      (add_interval const_interval logb_two_x_value3_interval)
+      (mul_interval one_div_log_two_interval const_interval (by norm_num1) (by norm_num1)))
+    (by norm_num)
+    (by norm_num1),
+end
+
+lemma claim_a4_aux {x : ℝ} (hx : x ∈ Ico (0.75 : ℝ) 1) : f2' x < 1.9993 :=
+begin
+  cases le_total x 0.817,
+  { have hdif : differentiable_on ℝ f2' (Icc 0.75 0.817),
+    { intros x hx,
+      refine (has_deriv_at_f2' _).differentiable_at.differentiable_within_at,
+      exact hx.2.trans_lt (by norm_num1) },
+    have hder : ∀ x ∈ interior (Icc (0.75 : ℝ) 0.817), -0.00015 ≤ deriv f2' x,
+    { rw [interior_Icc],
+      rintro x ⟨hx₀, hx₁⟩,
+      rw (has_deriv_at_f2' (hx₁.trans_le (by norm_num1))).deriv,
+      refine (strict_anti_on_f2'_deriv _ (by norm_num) hx₁).le.trans' f2'_deriv_eval_max.1,
+      exact ⟨hx₀.trans' (by norm_num1), hx₁.trans (by norm_num1)⟩ },
+    have := convex.mul_sub_le_image_sub_of_le_deriv (convex_Icc 0.75 0.817)
+      hdif.continuous_on (hdif.mono interior_subset) hder _ ⟨hx.1, h⟩ 0.817 (by norm_num) h,
+    rw le_sub_iff_add_le at this,
+    replace this := this.trans f2'_eval_max.2,
+    linarith only [this, hx.1] },
+  { have hdif : differentiable_on ℝ f2' (Ico 0.817 1),
+    { intros x hx,
+      exact (has_deriv_at_f2' hx.2).differentiable_at.differentiable_within_at },
+    have hder : ∀ x ∈ interior (Ico (0.817 : ℝ) 1), deriv f2' x ≤ 0.00005,
+    { rintro x hx,
+      rw [interior_Ico] at hx,
+      rw (has_deriv_at_f2' hx.2).deriv,
+      refine (strict_anti_on_f2'_deriv (by norm_num) _ hx.1).le.trans f2'_deriv_eval_max.2,
+      exact ⟨hx.1.trans' (by norm_num1), hx.2⟩ },
+    have := convex.image_sub_le_mul_sub_of_deriv_le (convex_Ico 0.817 1)
+      hdif.continuous_on (hdif.mono interior_subset) hder 0.817 (by norm_num) _ ⟨h, hx.2⟩ h,
+    rw sub_le_comm at this,
+    replace this := this.trans f2'_eval_max.2,
+    linarith only [this, hx.2] },
+end
 
 lemma claim_a4 {x y : ℝ} (hx : x ∈ Icc (0.75 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75)
   (h : x = 3 / 5 * y + 0.5454) :
-  f2 x y < 1.9993 := sorry
+  f2 x y < 1.9993 :=
+begin
+  have hx09 : x ≤ 0.9954 := by linarith only [h, hy.2],
+  have hx1 : x < 1 := hx09.trans_lt (by norm_num1),
+  have hx2 : x ≠ 2 := by linarith only [hx1],
+  rw [f2, f_inner_eq h, ←important_rewrite hx2, ←f2'],
+  exact claim_a4_aux ⟨hx.1, hx1⟩,
+end

@@ -71,14 +71,6 @@ begin
     linarith }
 end
 
-lemma claim_a3 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 0.75) (hy : y ∈ Icc (0 : ℝ) 0.75)
-  (h : x = 3 / 5 * y + 0.5454) :
-  f1 x y < 1.9993 := sorry
-
-lemma claim_a4 {x y : ℝ} (hx : x ∈ Icc (0.75 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75)
-  (h : x = 3 / 5 * y + 0.5454) :
-  f2 x y < 1.9993 := sorry
-
 lemma claim_a34 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75)
   (h : x = 3 / 5 * y + 0.5454) :
   f x y < 1.9993 :=
@@ -143,5 +135,23 @@ begin
   { exact pow_pos (by norm_num1) _ },
   { rwa nat.cast_pos }
 end
+
+theorem exponential_ramsey' : ∃ K : ℕ, ∀ k ≥ K, (ramsey_number ![k, k] : ℝ) ≤ 3.999 ^ k :=
+eventually_at_top.1 exponential_ramsey
+
+lemma theorem_one_explicit :
+  ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ (4 - 2 ^ (- 10 : ℤ)) ^ k :=
+by filter_upwards [exponential_ramsey] with k hk using
+  hk.trans (pow_le_pow_of_le_left (by norm_num1) (by norm_num1) _)
+
+theorem theorem_one : ∃ ε : ℝ, ε > 0 ∧ ∀ᶠ k : ℕ in at_top,  (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+⟨(2 : ℝ) ^ (-10 : ℤ), by norm_num1, theorem_one_explicit⟩
+
+theorem theorem_one' :
+  ∃ ε : ℝ, ε > 0 ∧ ∃ K : ℕ, ∀ k ≥ K, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+⟨(2 : ℝ) ^ (-10 : ℤ), by norm_num1, eventually_at_top.1 theorem_one_explicit⟩
+
+theorem theorem_one'' : ∃ c : ℝ, c < 4 ∧ ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ c ^ k :=
+⟨3.999, by norm_num1, exponential_ramsey⟩
 
 end simple_graph

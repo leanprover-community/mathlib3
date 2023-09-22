@@ -468,8 +468,14 @@ list_val.nth_succ l n
 list_val.ext
 
 /-- Apply a function to a value stored at the nth position of the list. -/
-@[simp] def list_blank.modify_nth {Γ} [inhabited Γ] (f : Γ → Γ) : ℕ → list_blank Γ → list_blank Γ :=
+def list_blank.modify_nth {Γ} [inhabited Γ] (f : Γ → Γ) : ℕ → list_blank Γ → list_blank Γ :=
 list_val.modify_nth f
+
+@[simp] lemma list_blank.modify_nth_zero {Γ} [inhabited Γ] (f : Γ → Γ) (L : list_blank Γ) :
+  L.modify_nth f 0 = L.tail.cons (f L.head) := rfl
+  
+@[simp] lemma list_blank.modify_nth_cons {Γ} [inhabited Γ] (f : Γ → Γ) (n : ℕ) (L : list_blank Γ) :
+  L.modify_nth f (n+1) = (L.tail.modify_nth n).cons L.head := rfl
 
 @[simp] lemma list_blank.modify_nth_zero {Γ} [inhabited Γ] (f : Γ → Γ) (L : list_blank Γ) :
   L.modify_nth f 0 = L.tail.cons (f L.head) := rfl

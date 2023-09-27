@@ -1816,6 +1816,14 @@ begin
   exact X_nonempty hj
 end
 
+lemma seven_one_calc {frk fbk fsk fdk μ β : ℝ} {s_ t_ : ℕ} :
+  2 ^ frk * 2 ^ fbk * 2 ^ fsk * 2 ^ fdk * μ ^ l * (1 - μ) ^ t_ *
+    (β ^ s_ * (μ ^ s_)⁻¹) =
+  2 ^ fbk *
+    (μ ^ l * (μ ^ s_)⁻¹) * (2 ^ frk * (1 - μ) ^ t_) *
+      (2 ^ fsk * β ^ s_) * 2 ^ fdk :=
+by ring_nf
+
 lemma seven_one (μ₁ : ℝ) (hμ₁ : μ₁ < 1) :
   ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
   ∀ μ₀ p₀ : ℝ, 0 < μ₀ → 0 < p₀ →
@@ -1860,7 +1868,7 @@ begin
     (2 ^ fd k),
   { rw [pow_sub₀ _ (hμ₀.trans_le hμl).ne' this, div_pow, div_eq_mul_inv, rpow_add two_pos,
       rpow_add two_pos, rpow_add two_pos],
-    ring_nf },
+    exact seven_one_calc },
   rw this,
   have : (0 : ℝ) ≤ ∏ i in ℛ,
     ((algorithm μ k l ini (i + 1)).X.card : ℝ) / ((algorithm μ k l ini i).X.card : ℝ),

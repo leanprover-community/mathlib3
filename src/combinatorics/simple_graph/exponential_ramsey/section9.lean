@@ -1,6 +1,14 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section8
 import analysis.special_functions.log.base
 
+/-!
+# Section 9
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey nat real
@@ -1607,7 +1615,7 @@ lemma nine_two_variant (γ₀ : ℝ) (hγ₀ : 0 < γ₀) :
   (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) :=
 begin
   filter_upwards [nine_two γ₀ hγ₀] with l hl
-    k γ δ η hγ hγl hγu hδ hη hηγ V _inst_1 _inst_2 χ hχ hn,
+    k γ δ η hγ hγl hγu hδ hη hηγ V _ _ χ hχ hn,
   resetI,
   obtain ⟨e⟩ := fintype.trunc_equiv_fin V,
   let χ' : top_edge_labelling (fin (fintype.card V)) (fin 2) := χ.pullback e.symm.to_embedding,
@@ -1892,7 +1900,8 @@ begin
   have hml := good_clique_bound hχ hx,
   rw [is_good_clique] at hx,
   have : ∀ i ∈ common_blues χ x, i ∉ x ∧
-    ¬ ((n : ℝ) * (U_lower_bound_ratio ξ k l (insert i x).card) ≤ (common_blues χ (insert i x)).card),
+    ¬ ((n : ℝ) * (U_lower_bound_ratio ξ k l (insert i x).card) ≤
+      (common_blues χ (insert i x)).card),
   { intros i hi,
     rw [common_blues, mem_filter] at hi,
     have : i ∉ x,

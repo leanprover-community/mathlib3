@@ -249,7 +249,8 @@ lemma top_edge_labelling.monochromatic_finset_singleton {x : V} :
   C.monochromatic_of ({x} : finset V) c :=
 by simp [top_edge_labelling.monochromatic_of]
 
-lemma top_edge_labelling.monochromatic_subsingleton (hm : set.subsingleton m) : C.monochromatic_of m c :=
+lemma top_edge_labelling.monochromatic_subsingleton (hm : set.subsingleton m) :
+  C.monochromatic_of m c :=
 λ x hx y hy h, by cases h (hm hx hy)
 
 lemma top_edge_labelling.monochromatic_subsingleton_colours [subsingleton K] :

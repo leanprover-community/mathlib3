@@ -1,4 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import analysis.special_functions.log.deriv
+
+/-!
+# Estimates on natural log of rationals close to 1
+-/
 
 open filter finset set
 open_locale topology big_operators

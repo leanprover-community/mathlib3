@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.necessary_log_estimates
 
+/-!
+# Section 12
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey nat real
@@ -144,7 +152,8 @@ lemma theorem_one_explicit :
 by filter_upwards [exponential_ramsey] with k hk using
   hk.trans (pow_le_pow_of_le_left (by norm_num1) (by norm_num1) _)
 
-theorem theorem_one : ∃ ε : ℝ, ε > 0 ∧ ∀ᶠ k : ℕ in at_top,  (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+theorem theorem_one :
+  ∃ ε : ℝ, ε > 0 ∧ ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
 ⟨(2 : ℝ) ^ (-10 : ℤ), by norm_num1, theorem_one_explicit⟩
 
 theorem theorem_one' :

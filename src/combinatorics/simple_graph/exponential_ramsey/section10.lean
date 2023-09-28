@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section9
 
+/-!
+# Section 10
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey nat real
@@ -265,7 +273,8 @@ begin
   refine hχ ⟨(end_state γ k l ini).A ∪ m, or.inl ⟨_, hm₂.trans _⟩⟩,
   { rw [finset.coe_union, top_edge_labelling.monochromatic_of_union],
     refine ⟨(end_state γ k l ini).red_A, hm₁, _⟩,
-    exact (end_state γ k l ini).red_XYA.symm.subset_right (hm₀.trans (finset.subset_union_right _ _)) },
+    exact (end_state γ k l ini).red_XYA.symm.subset_right
+      (hm₀.trans (finset.subset_union_right _ _)) },
   rwa [finset.card_union_eq, add_le_add_iff_right],
   { exact t_le_A_card γ (hk₀ k hlk).ne' (hk₀ l le_rfl).ne' ini },
   exact (end_state γ k l ini).hYA.symm.mono_right hm₀,
@@ -280,7 +289,7 @@ lemma ten_two_variant :
   (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card) :=
 begin
   filter_upwards [ten_two] with l hl
-    k γ η hγ hγl hγu hη hηγ V _inst_1 _inst_2 χ hχ hn,
+    k γ η hγ hγl hγu hη hηγ V _ _ χ hχ hn,
   resetI,
   obtain ⟨e⟩ := fintype.trunc_equiv_fin V,
   let χ' : top_edge_labelling (fin (fintype.card V)) (fin 2) := χ.pullback e.symm.to_embedding,
@@ -387,52 +396,6 @@ begin
     exact nat.choose_pos (by simp) },
   rw [add_zero, one_pow, mul_one],
 end
-
--- lemma U_lower_bound_ratio_lower_bound_aux {k l m n : ℕ} {γ δ : ℝ} (hml : m < l) (hk₀ : 0 < k)
---   (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
---   (hg : (l - m : ℝ) / (k + l - m) < (l / (k + l)) ^ 2)
---   (hn : exp (- δ * k) * (k + l).choose l ≤ n) :
---   (k : ℝ) ≤ n * U_lower_bound_ratio (1 / 16) k l m :=
--- begin
---   refine (U_lower_bound_ratio_lower_bound_aux_aux hml.le hk₀ hγ hδ hg hn).trans' _,
---   rw [nat.cast_le, add_tsub_assoc_of_le hml.le],
---   have : 1 ≤ l - m,
---   { rw [nat.succ_le_iff],
---     exact nat.sub_pos_of_lt hml },
---   refine (nat.choose_le_choose k (add_le_add_left this k)).trans' _,
---   rw [nat.choose_symm_add, nat.choose_one_right],
---   simp
--- end
-
--- lemma U_lower_bound_ratio_lower_bound' {k l m n : ℕ} {γ δ : ℝ} (hml : m < l) (hk₀ : 0 < k)
---   (hlk : l ≤ k) (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
---   (hn : exp (- δ * k) * (k + l).choose l ≤ n) (h : (k : ℝ) < (l - 2) * l) :
---   (k : ℝ) ≤ n * U_lower_bound_ratio (1 / 16) k l m :=
--- begin
---   cases lt_or_le ((l - m : ℝ) / (k + l - m)) ((l / (k + l)) ^ 2) with h' h',
---   { exact U_lower_bound_ratio_lower_bound_aux hml hk₀ hγ hδ h' hn },
---   let mst := ⌊(l * (k + l) : ℝ) / (k + 2 * l)⌋₊ + 1,
---   have hm : m < mst,
---   { rw [←not_lt, gamma'_le_gamma_iff hml.le hk₀, not_lt] at h',
---     rw [←@nat.cast_lt ℝ],
---     refine h'.trans_lt _,
---     rw nat.cast_add_one,
---     exact nat.lt_floor_add_one _ },
---   rw ←sub_pos at h,
---   have : mst < l,
---   { rw [←@nat.cast_lt ℝ, nat.cast_add_one, ←lt_sub_iff_add_lt],
---     refine (nat.floor_le (by positivity)).trans_lt _,
---     rw [div_lt_iff, ←sub_pos],
---     { ring_nf, exact h },
---     { positivity } },
---   refine (U_lower_bound_ratio_lower_bound_aux this hk₀ hγ hδ _ hn).trans (mul_le_mul_of_nonneg_left
---     (U_lower_bound_decreasing k l (by norm_num1) (by norm_num1) hlk hk₀ hm.le) (nat.cast_nonneg _)),
---   rw [gamma'_le_gamma_iff this.le hk₀, nat.cast_add_one],
---   exact nat.lt_floor_add_one _
--- end
-
--- lemma small_k {k l : ℕ} {γ γ₀ : ℝ} (hγ₀ : 0 < γ₀) (hγl : γ₀ ≤ γ) (hγ : γ = l / (k + l))
---   (hk₀ : 0 < k) : (k : ℝ) ≤ l * (γ₀⁻¹ - 1) :=
 
 lemma big_U' {U : ℕ} (hU : (801 : ℝ) ≤ U) : (U : ℝ) / (U - 1) * (1 + 0) ≤ 1 + 1 / 800 :=
 begin

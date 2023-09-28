@@ -1,5 +1,14 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.basic
 import combinatorics.simple_graph.exponential_ramsey.constructive
+
+/-!
+# Section 4
+-/
 
 lemma convex_on.mul {f g : ℝ → ℝ} {s : set ℝ} (hf : convex_on ℝ s f) (hg : convex_on ℝ s g)
   (hf' : monotone_on f s) (hg' : monotone_on g s)
@@ -56,7 +65,7 @@ begin
       (mul_le_mul_of_nonneg_left (le_max_right _ _) hb.le) },
 end
 
-lemma convex_on.congr {s : set ℝ} {f g : ℝ → ℝ} (hf : convex_on ℝ s f) (h : s.eq_on f g) :
+lemma convex_on.congr' {s : set ℝ} {f g : ℝ → ℝ} (hf : convex_on ℝ s f) (h : s.eq_on f g) :
   convex_on ℝ s g :=
 begin
   refine ⟨hf.1, _⟩,
@@ -162,8 +171,6 @@ end
 noncomputable def my_desc_factorial (x : ℝ) (k : ℕ) : ℝ :=
 if x < k - 1 then 0 else desc_factorial x k
 
--- lemma desc_factorial_convex : ∀ k : ℕ, convex_on ℝ (set.Ici ((k : ℝ) - 1)) (λ x, desc_factorial x k)
-
 lemma my_desc_factorial_eq_on {k : ℕ} :
   (set.Ici ((k : ℝ) - 1)).eq_on (λ x, my_desc_factorial x k) (λ x, desc_factorial x k) :=
 begin
@@ -185,12 +192,12 @@ end
 
 lemma my_desc_factorial_convex_on_Ici (k : ℕ) :
   convex_on ℝ (set.Ici ((k : ℝ) - 1)) (λ x, my_desc_factorial x k) :=
-(desc_factorial_convex _).congr my_desc_factorial_eq_on.symm
+(desc_factorial_convex _).congr' my_desc_factorial_eq_on.symm
 
 lemma my_desc_factorial_convex {k : ℕ} (hk : k ≠ 0):
   convex_on ℝ set.univ (λ x, my_desc_factorial x k) :=
 begin
-  refine my_convex ((desc_factorial_convex _).congr my_desc_factorial_eq_on.symm)
+  refine my_convex ((desc_factorial_convex _).congr' my_desc_factorial_eq_on.symm)
     ((desc_factorial_monotone_on _).congr my_desc_factorial_eq_on.symm) _,
   intros x hx,
   rw [my_desc_factorial, if_pos hx, my_desc_factorial, if_neg (lt_irrefl _)],
@@ -359,15 +366,6 @@ begin
   intros i hi,
   exact (four_two_aux''' hb hσ₀ hi).trans (four_two_aux'' hb hσ₀ hσ₁ hi),
 end
-
--- lemma four_two_right {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ < 1) :
---   my_generalized_binomial (σ * m) b ≤ σ ^ b * m.choose b :=
--- begin
---   rw [←div_le_iff, div_eq_mul_inv, four_two_aux_aux hb hσ₀, four_two_aux, four_two_aux' hb hσ₀ hσ₁],
---   { refine mul_le_of_le_one_right (by positivity) _,
---     refine finset.prod_le_one _ _,
---   }
--- end
 
 -- Fact 4.2
 lemma four_two_left {m b : ℕ} {σ : ℝ} (hb : (b : ℝ) ≤ σ * m / 2) (hσ₀ : 0 < σ) (hσ₁ : σ ≤ 1) :

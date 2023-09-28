@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section7
 
+/-!
+# Section 8
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey
@@ -290,7 +298,8 @@ lemma eight_two (μ₁ p₀ : ℝ) (hμ₁ : μ₁ < 1) (hp₀ : 0 < p₀) :
   ∀ (ini : book_config χ), p₀ ≤ ini.p →
   (1 - k ^ (- 1 / 8 : ℝ) : ℝ) *
     ∑ i in moderate_steps μ k l ini, (1 - blue_X_ratio μ k l ini i) / blue_X_ratio μ k l ini i ≤
-      ∑ h in Ico 1 (max_height k), ∑ i in density_steps μ k l ini, Δ' μ k l ini i h / α_function k h :=
+      ∑ h in Ico 1 (max_height k),
+        ∑ i in density_steps μ k l ini, Δ' μ k l ini i h / α_function k h :=
 begin
   have tt : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
   have hh₁ : (0 : ℝ) < 1 / 8, by norm_num,

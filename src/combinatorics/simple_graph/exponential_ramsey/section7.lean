@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section6
 
+/-!
+# Section 7
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey
@@ -1623,8 +1631,8 @@ begin
   specialize h712 k hlk μ hμl hμu n χ hχ ini hini,
   specialize h43 k hlk μ hμl n χ hχ ini,
   rw [degree_steps],
-  have : ((range (final_step μ k l ini)).filter even).image nat.succ ⊆ (range (final_step μ k l ini +
-    1)).filter (λ i, ¬ even i),
+  have : ((range (final_step μ k l ini)).filter even).image nat.succ ⊆
+    (range (final_step μ k l ini + 1)).filter (λ i, ¬ even i),
   { simp only [finset.subset_iff, mem_filter, mem_image, and_imp, exists_prop, and_assoc,
       mem_range, forall_exists_index, nat.succ_eq_add_one],
     rintro _ y hy hy' rfl,
@@ -1805,11 +1813,7 @@ begin
   induction j with j ih,
   { rw [prod_range_zero, algorithm_zero, div_self],
     rw [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
-    exact h,
-    -- intro h',
-    -- rw [book_config.p, h', col_density_empty_left] at h,
-    -- exact hp₀.not_le h
-    },
+    exact h },
   rw nat.succ_le_iff at hj,
   rw [prod_range_succ, ←ih hj.le, mul_comm, div_mul_div_cancel],
   rw [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],

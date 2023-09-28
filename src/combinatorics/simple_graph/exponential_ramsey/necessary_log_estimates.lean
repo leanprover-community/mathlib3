@@ -1,6 +1,15 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section11
 import combinatorics.simple_graph.exponential_ramsey.log2_estimates
 import combinatorics.simple_graph.exponential_ramsey.log_small
+
+/-!
+# Numerical calculations and appendix A
+-/
 
 open set real simple_graph
 

@@ -1,5 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.exponential_ramsey.section10
 
+/-!
+# Section 11
+-/
 namespace simple_graph
 
 open_locale big_operators exponential_ramsey nat real
@@ -291,11 +299,8 @@ begin
   rw [div_div_eq_mul_div, div_one],
 end
 
--- (1 + f k) *
---     ((density_steps μ k l ini).card / ((density_steps μ k l ini).card + (red_steps μ k l ini).card))
---     ≤ beta μ k l ini
-
-lemma eleven_two_aux_error_two (μ : ℝ) (hμ₀ : 0 < μ) (f : ℕ → ℝ) (hf : f =o[at_top] (λ i, (1 : ℝ))) :
+lemma eleven_two_aux_error_two (μ : ℝ) (hμ₀ : 0 < μ) (f : ℕ → ℝ)
+  (hf : f =o[at_top] (λ i, (1 : ℝ))) :
   ∃ g : ℕ → ℝ, g =o[at_top] (λ i, (i : ℝ)) ∧
     ∀ᶠ k in at_top, ∀ s t : ℕ, ∀ β : ℝ,
       0 < β →
@@ -535,10 +540,6 @@ lemma density_nonneg {V : Type*} [fintype V] [decidable_eq V] (G : simple_graph 
   [decidable_rel G.adj] : 0 ≤ G.density :=
 by { rw [simple_graph.density], positivity }
 
--- lemma top_edge_labelling.density_nonneg {V : Type*} [fintype V] [decidable_eq V] (χ : simple_graph V)
---   [decidable_rel G.adj] : 0 ≤ G.density :=
--- by { rw [simple_graph.density], positivity }
-
 lemma some_large_density {V : Type*} [fintype V] [decidable_eq V] (hV : 2 ≤ fintype.card V)
   (χ : top_edge_labelling V (fin 2)) :
   1 / 2 ≤ χ.density 0 ∨ 1 / 2 ≤ (χ.comp_right (equiv.swap 0 1)).density 0 :=
@@ -560,97 +561,7 @@ begin
   norm_num1
 end
 
--- lemma F_bounded_above {x y : ℝ} (hx₀ : 0 ≤ x) (hx : x ≤ 1) (hy : y ≤ 1) :
---   F x y ≤ 4 :=
--- begin
---   rw [F],
---   suffices : limsup (λ k : ℕ, logb 2 (ramsey_number ![k, ⌊(k : ℝ) - x * k⌋₊]) / k) at_top ≤ 2,
---   { linarith only [hx, hy, this] },
---   refine limsup_le_of_le _ _,
---   { refine is_cobounded.mk 0 _,
---     simp only [filter.mem_map, mem_at_top_sets, set.mem_preimage, exists_prop, forall_exists_index],
---     intros s k hs,
---     exact ⟨_, hs k le_rfl, div_nonneg (logb_coe_nonneg _ one_lt_two _) (nat.cast_nonneg _)⟩ },
---   filter_upwards [eventually_gt_at_top 0] with n hn,
---   cases nat.eq_zero_or_pos (ramsey_number ![n, ⌊(n - x * n : ℝ)⌋₊]) with h h,
---   { rw [h],
---     simp },
---   rw [div_le_iff, logb_le_iff_le_rpow one_lt_two],
---   rotate,
---   { positivity },
---   { positivity },
---   rw [←nat.cast_two, ←nat.cast_mul, rpow_nat_cast, ←nat.cast_pow, nat.cast_le],
---   refine ramsey_number_pair_le_two_pow'.trans _,
---   refine nat.pow_le_pow_of_le_right zero_lt_two _,
---   rw [two_mul, add_le_add_iff_left, ←@nat.cast_le ℝ],
---   refine (nat.floor_le _).trans _,
---   { rw [sub_nonneg],
---     exact mul_le_of_le_one_left (nat.cast_nonneg _) hx },
---   simp,
---   positivity
--- end
-
--- lemma min_F_G_bounded_above {μ x y : ℝ} (hx₀ : 0 ≤ x) (hx : x ≤ 1) (hy : y ≤ 1) :
---   min (F x y) (G μ x y) ≤ 4 :=
--- (min_le_left _ _).trans (F_bounded_above hx₀ hx hy)
-
--- lemma eleven_one_aux {μ η : ℝ} {k n : ℕ} {χ : top_edge_labelling (fin n) (fin 2)}
---   {ini : book_config χ}
---   (hx : ((red_steps μ k k ini).card : ℝ) / k ∈ set.Icc (0 : ℝ) 1)
---   (hy : ((density_steps μ k k ini).card : ℝ) / k ∈ set.Icc (0 : ℝ) 1)
---   (hy' : ((density_steps μ k k ini).card : ℝ) / k ≤
---     μ / (1 - μ) * (((red_steps μ k k ini).card) / k) + η) :
---   min
---     (F ((red_steps μ k k ini).card / k) ((density_steps μ k k ini).card / k))
---     (G μ ((red_steps μ k k ini).card / k) ((density_steps μ k k ini).card / k)) ≤
---   ⨆ (x ∈ set.Icc (0 : ℝ) 1) (y ∈ set.Icc (0 : ℝ) 1) (hy : y ≤ μ / (1 - μ) * x + η),
---     min (F x y) (G μ x y) :=
--- begin
---   refine le_csupr_of_le _ ((red_steps μ k k ini).card / k) _,
---   { refine ⟨4, _⟩,
---     rintro _ ⟨x, rfl⟩,
---     refine real.supr_le _ (by positivity),
---     rintro ⟨hx₀, hx₁⟩,
---     refine real.supr_le _ (by positivity),
---     intro y,
---     refine real.supr_le _ (by positivity),
---     rintro ⟨hi₁, hi₂⟩,
---     refine real.supr_le _ (by positivity),
---     intro hi',
---     exact min_F_G_bounded_above hx₀ hx₁ hi₂ },
---   refine le_csupr_of_le _ hx _,
---   { refine ⟨4, _⟩,
---     rintro _ ⟨hx, rfl⟩,
---     refine real.supr_le _ (by positivity),
---     intro y,
---     refine real.supr_le _ (by positivity),
---     rintro ⟨hy₁, hy₂⟩,
---     refine real.supr_le _ (by positivity),
---     rintro hy,
---     exact min_F_G_bounded_above hx.1 hx.2 hy₂ },
---   refine le_csupr_of_le _ ((density_steps μ k k ini).card / k) _,
---   { refine ⟨4, _⟩,
---     rintro _ ⟨y, rfl⟩,
---     refine real.supr_le _ (by positivity),
---     rintro ⟨hy₁, hy₂⟩,
---     refine real.supr_le _ (by positivity),
---     intro hy,
---     exact min_F_G_bounded_above hx.1 hx.2 hy₂ },
---   refine le_csupr_of_le _ hy _,
---   { refine ⟨4, _⟩,
---     rintro _ ⟨_, rfl⟩,
---     refine real.supr_le _ (by positivity),
---     intro hy',
---     exact min_F_G_bounded_above hx.1 hx.2 hy.2 },
---   refine le_csupr_of_le _ hy' _,
---   { refine ⟨4, _⟩,
---     rintro _ ⟨_, rfl⟩,
---     dsimp,
---     exact min_F_G_bounded_above hx.1 hx.2 hy.2, },
---   refl
--- end
-
-
+/-- The function `G` from the paper. -/
 noncomputable def G (μ x y : ℝ) : ℝ :=
   logb 2 μ⁻¹ + x * logb 2 (1 - μ)⁻¹ + y * logb 2 (μ * ((x + y) / y))
 

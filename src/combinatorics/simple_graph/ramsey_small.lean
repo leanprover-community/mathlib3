@@ -1,4 +1,18 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.ramsey
+
+/-!
+# Constructions to prove lower bounds on some small Ramsey numbers
+-/
+
+namespace simple_graph
+
+open fintype (card)
+open finset
 
 section paley
 
@@ -92,6 +106,7 @@ have hx' : x ≠ 0, from λ h, hx (h.symm ▸ is_square_zero F),
       ←quadratic_char_one_iff_is_square this, neg_mul, one_mul, neg_inj],
   end }
 
+/-- The Paley graph on a finite field `F` viewed as a labelling of edges. -/
 def paley_labelling (F : Type*) [field F] [fintype F] [decidable_eq F] :
   top_edge_labelling F (fin 2) := to_edge_labelling (paley_graph F)
 
@@ -350,6 +365,8 @@ begin
   exact parts_pair_get_spec hij
 end
 
+open top_edge_labelling
+
 def clebsch_colouring : top_edge_labelling (fin 4 → zmod 2) (fin 3) :=
 top_edge_labelling.mk parts_pair_get parts_pair_get_symm
 
@@ -373,7 +390,7 @@ begin
   have hyz' : y ∉ ({z} : set (fin 4 → zmod 2)), { simp [hyz] },
   simp only [coe_insert, coe_pair, monochromatic_of_insert hxyz, monochromatic_of_insert hyz',
     set.mem_singleton_iff, set.mem_insert_iff, monochromatic_of_singleton, true_and,
-    clebsch_colouring, top_edge_labelling.mk_get] at hm,
+    clebsch_colouring, mk_get] at hm,
   have hyz'' := parts_pair_get_spec' (hm.1 _ rfl),
   have hxy'' := parts_pair_get_spec' (hm.2 _ (or.inl rfl)),
   have hxz'' := parts_pair_get_spec' (hm.2 _ (or.inr rfl)),
@@ -399,3 +416,5 @@ begin
   rw [←ramsey_number_le_iff, fintype.card_fun, zmod.card, fintype.card_fin] at this,
   exact this
 end
+
+end simple_graph

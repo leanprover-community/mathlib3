@@ -1,9 +1,18 @@
-import combinatorics.simple_graph.ramsey
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
+import combinatorics.simple_graph.ramsey_small
 import order.partition.finpartition
 import data.finset.locally_finite
 import analysis.special_functions.explicit_stirling
 import analysis.asymptotics.asymptotics
 import data.complex.exponential_bounds
+
+/-!
+# Asymptotic lower bounds on ramsey numbers by probabilistic arguments
+-/
 
 open finset
 namespace simple_graph

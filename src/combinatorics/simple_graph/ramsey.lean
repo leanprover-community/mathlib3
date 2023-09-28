@@ -19,6 +19,13 @@ import tactic.fin_cases
 
 import combinatorics.simple_graph.ramsey_prereq
 
+/-!
+# Ramsey numbers
+
+Define edge labellings, monochromatic subsets and ramsey numbers, and prove basic properties of
+these.
+-/
+
 namespace simple_graph
 variables {V V' : Type*} {G : simple_graph V} {K K' : Type*}
 
@@ -233,18 +240,20 @@ decidable_of_iff' _ C.monochromatic_of_iff_pairwise
 
 variables {m : set V} {c : K}
 
-@[simp] lemma monochromatic_of_empty : C.monochromatic_of ∅ c.
+@[simp] lemma top_edge_labelling.monochromatic_of_empty : C.monochromatic_of ∅ c.
 
-@[simp] lemma monochromatic_of_singleton {x : V} : C.monochromatic_of {x} c :=
+@[simp] lemma top_edge_labelling.monochromatic_of_singleton {x : V} : C.monochromatic_of {x} c :=
 by simp [top_edge_labelling.monochromatic_of]
 
-lemma monochromatic_finset_singleton {x : V} : C.monochromatic_of ({x} : finset V) c :=
+lemma top_edge_labelling.monochromatic_finset_singleton {x : V} :
+  C.monochromatic_of ({x} : finset V) c :=
 by simp [top_edge_labelling.monochromatic_of]
 
-lemma monochromatic_subsingleton (hm : set.subsingleton m) : C.monochromatic_of m c :=
+lemma top_edge_labelling.monochromatic_subsingleton (hm : set.subsingleton m) : C.monochromatic_of m c :=
 λ x hx y hy h, by cases h (hm hx hy)
 
-lemma monochromatic_subsingleton_colours [subsingleton K] : C.monochromatic_of m c :=
+lemma top_edge_labelling.monochromatic_subsingleton_colours [subsingleton K] :
+  C.monochromatic_of m c :=
 λ x hx y hy h, subsingleton.elim _ _
 
 lemma top_edge_labelling.monochromatic_of.comp_right (e : K → K') (h : C.monochromatic_of m c) :
@@ -495,9 +504,9 @@ end
 
 open_locale big_operators
 
-variables [decidable_eq K] [fintype K] [decidable_eq K'] [fintype K'] {n : K → ℕ}
+variables [decidable_eq K'] [fintype K'] {n : K → ℕ}
 
-theorem ramsey_fin_induct_aux {V : Type*} [decidable_eq V]
+theorem ramsey_fin_induct_aux {V : Type*} [decidable_eq K]
   {n : K → ℕ} (N : K → ℕ) {C : top_edge_labelling V K}
   (m : K → finset V) (x : V)
   (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1)))
@@ -526,7 +535,7 @@ begin
   rwa function.update_same at hk',
 end
 
-theorem ramsey_fin_induct (n : K → ℕ) (N : K → ℕ)
+theorem ramsey_fin_induct [decidable_eq K] [fintype K] (n : K → ℕ) (N : K → ℕ)
   (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1))) :
   is_ramsey_valid (fin (∑ k, (N k - 1) + 2)) n :=
 begin
@@ -573,9 +582,10 @@ begin
   { simp },
 end
 
-theorem ramsey_fin_exists (n : K → ℕ) :
+theorem ramsey_fin_exists [finite K] (n : K → ℕ) :
   ∃ N, is_ramsey_valid (fin N) n :=
 begin
+  classical,
   refine @well_founded_lt.induction _ _ _ (λ a, ∃ N, is_ramsey_valid (fin N) a) n _,
   clear n,
   intros n ih,
@@ -589,6 +599,7 @@ begin
     exact nat.pred_lt (h k) },
   have := λ k, ih _ (this k),
   choose N hN using this,
+  casesI nonempty_fintype K,
   exact ⟨_, ramsey_fin_induct _ _ hN⟩,
 end
 
@@ -600,7 +611,7 @@ eq_tsub_of_add_eq $ by rw [←finset.sum_add_distrib];
   exact finset.sum_congr rfl (λ x hx, tsub_add_cancel_of_le $ hfg _ hx)
 
 -- hn can be weakened but it's just a nontriviality assumption
-lemma ramsey_fin_induct' (n : K → ℕ) (N : K → ℕ)
+lemma ramsey_fin_induct' [decidable_eq K] [fintype K] (n : K → ℕ) (N : K → ℕ)
   (hn : ∀ k, 2 ≤ n k) (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1))) :
   is_ramsey_valid (fin (∑ k, N k + 2 - card K)) n :=
 begin
@@ -764,8 +775,14 @@ begin
     exact ⟨hi', hj', hk'⟩ }
 end
 
-variables {N : ℕ} [fintype V]
+variables {N : ℕ} [fintype V] [decidable_eq K] [fintype K]
 
+/--
+Given a tuple `n : K → ℕ` of naturals indexed by `K`, define the ramsey number as the smallest
+`N` such that any labelling of the complete graph on `N` vertices with `K` labels contains a
+subset of size `n k` in which every edge is labelled `k`.
+While this definition is computable, it is not at all efficient to compute.
+-/
 def ramsey_number (n : K → ℕ) : ℕ := nat.find (ramsey_fin_exists n)
 
 lemma ramsey_number_spec_fin (n : K → ℕ) : is_ramsey_valid (fin (ramsey_number n)) n :=
@@ -790,13 +807,13 @@ lemma ramsey_number_eq_of (h : is_ramsey_valid (fin (N + 1)) n) (h' : ¬ is_rams
   ramsey_number n = N + 1 :=
 by { rw ←ramsey_number_le_iff_fin at h h', exact h.antisymm (lt_of_not_le h') }
 
-lemma ramsey_number_congr [decidable_eq K'] [fintype K'] {n' : K' → ℕ}
+lemma ramsey_number_congr {n' : K' → ℕ}
   (h : ∀ N, is_ramsey_valid (fin N) n ↔ is_ramsey_valid (fin N) n') :
   ramsey_number n = ramsey_number n' :=
 (ramsey_number_min_fin ((h _).2 (ramsey_number_spec_fin _))).antisymm
   (ramsey_number_min_fin ((h _).1 (ramsey_number_spec_fin _)))
 
-lemma ramsey_number_equiv [decidable_eq K'] [fintype K'] (f : K' ≃ K) :
+lemma ramsey_number_equiv (f : K' ≃ K) :
   ramsey_number (n ∘ f) = ramsey_number n :=
 ramsey_number_congr (λ _, is_ramsey_valid_equiv_right f)
 
@@ -1047,7 +1064,7 @@ begin
     exact zero_le' },
   refine (ramsey_number_le_choose i j).trans _,
   refine (nat.choose_le_choose _ add_tsub_add_le_tsub_add_tsub).trans _,
-  refine (choose_add_le_pow_left _ _).trans_eq _,
+  refine (nat.choose_add_le_pow_left _ _).trans_eq _,
   rw nat.sub_add_cancel hj,
 end
 
@@ -1057,5 +1074,3 @@ lemma ramsey_number_le_right_pow_left' {i j : ℕ} : ramsey_number ![i, j] ≤ j
 (ramsey_number_le_right_pow_left (i + 1) j).trans' $ ramsey_number.mono_two (by simp) le_rfl
 
 end simple_graph
-
-#lint

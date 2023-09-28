@@ -1,4 +1,13 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.degree_sum
+
+/-!
+# Stuff for combinatorics.simple_graph.degree_sum
+-/
 
 namespace simple_graph
 variables {V V' : Type*} {G : simple_graph V} {K K' : Type*}

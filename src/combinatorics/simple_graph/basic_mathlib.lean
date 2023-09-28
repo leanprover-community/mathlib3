@@ -7,6 +7,10 @@ Authors: Bhavik Mehta
 import combinatorics.simple_graph.basic
 import data.sym.card
 
+/-!
+# Stuff for combinatorics.simple_graph.basic
+-/
+
 namespace simple_graph
 variables {V V' : Type*} {G : simple_graph V} {K K' : Type*}
 

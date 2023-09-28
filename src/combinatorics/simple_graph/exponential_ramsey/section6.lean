@@ -12,7 +12,7 @@ namespace simple_graph
 
 open_locale big_operators exponential_ramsey
 
-open filter finset nat real
+open filter finset real
 
 variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
 variables {k l : ℕ} {ini : book_config χ} {i : ℕ}
@@ -108,7 +108,7 @@ begin
   rw [degree_regularisation_applied hi, book_config.degree_regularisation_step_X,
     book_config.degree_regularisation_step_Y],
   set C := algorithm μ k l ini i,
-  set α := α_function k (C.height k ini.p),
+  set α := α_function k (height k ini.p C.p),
   rw col_density_eq_average,
   have : C.X.filter (λ x, (C.p - k ^ (1 / 8 : ℝ) * α) * C.Y.card ≤
     ((col_neighbors χ 0 x ∩ C.Y).card)) = C.X.filter (λ x, C.p - k ^ (1 / 8 : ℝ) * α ≤
@@ -153,7 +153,7 @@ begin
   rw [col_density_eq_average],
   let C := algorithm μ k l ini i,
   let C' := algorithm μ k l ini (i + 1),
-  have : ∀ x ∈ (C'.big_blue_step μ).X, C.p - k ^ (1 / 8 : ℝ) * α_function k (C.height k ini.p) ≤
+  have : ∀ x ∈ (C'.big_blue_step μ).X, C.p - k ^ (1 / 8 : ℝ) * α_function k (height k ini.p C.p) ≤
     (red_neighbors χ x ∩ C.Y).card / C.Y.card,
   { intros x hx,
     have : x ∈ (algorithm μ k l ini (i + 1)).X := book_config.get_book_snd_subset hx,
@@ -167,7 +167,6 @@ begin
   refine (div_le_div_of_le _ (card_nsmul_le_sum _ _ _ this)).trans' _,
   { exact nat.cast_nonneg _ },
   rw [book_config.big_blue_step_X, nsmul_eq_mul, mul_div_cancel_left],
-  { refl },
   rw [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
   refine book_config.get_book_snd_nonempty hμ₀ _,
   exact X_nonempty h,
@@ -320,7 +319,7 @@ end
 lemma convex_thing_aux {x : ℝ} (hε : 0 ≤ x) (hx' : x ≤ 2 / 7) :
   exp (-(7 * log 2 / 4 * x)) ≤ 1 - 7 / 2 * (1 - 1 / sqrt 2) * x :=
 begin
-  have h' : 0 < log 2 := log_pos (by norm_num),
+  have h' : (0 : ℝ) < log 2 := log_pos (by norm_num),
   let a := - log 2 / 2,
   have : - log 2 / 2 ≠ 0,
   { norm_num },

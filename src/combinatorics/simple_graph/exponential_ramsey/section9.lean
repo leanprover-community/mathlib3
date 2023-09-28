@@ -629,10 +629,10 @@ lemma strict_convex_on.const_mul {c : ℝ} {s : set ℝ} {f : ℝ → ℝ} (hf :
   hc).trans_eq (by simp only [smul_eq_mul]; ring_nf)⟩
 
 lemma convex_on_inv : convex_on ℝ (set.Ioi (0 : ℝ)) (λ x, x⁻¹) :=
-convex_on.congr (convex_on_zpow (-1)) (by simp)
+convex_on.congr' (convex_on_zpow (-1)) (by simp)
 
 lemma convex_on_one_div : convex_on ℝ (set.Ioi (0 : ℝ)) (λ x, 1 / x) :=
-convex_on.congr (convex_on_zpow (-1)) (by simp)
+convex_on.congr' (convex_on_zpow (-1)) (by simp)
 
 lemma quadratic_is_concave {a b c : ℝ} (ha : 0 < a) :
   strict_convex_on ℝ set.univ (λ x, a * x ^ 2 + b * x + c) :=

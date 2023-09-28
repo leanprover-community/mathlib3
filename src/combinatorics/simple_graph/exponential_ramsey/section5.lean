@@ -29,7 +29,7 @@ namespace simple_graph
 
 open_locale exponential_ramsey
 
-open filter finset nat
+open filter finset
 
 lemma top_adjuster {α : Type*} [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∀ᶠ k : α in at_top, p k) :
@@ -134,7 +134,7 @@ begin
   rw [rpow_def_of_pos, ←mul_assoc, ←mul_assoc, mul_comm, ←rpow_def_of_pos hk₀'],
   swap,
   { positivity },
-  have : real.log 2 * (4 / 5 * 2) ≤ log (1 + ε) * (4 / 5) * (2 / ε),
+  have : log 2 * (4 / 5 * 2) ≤ log (1 + ε) * (4 / 5) * (2 / ε),
   { rw [mul_div_assoc' _ _ ε, le_div_iff' hε, ←mul_assoc, mul_assoc (real.log _)],
     refine mul_le_mul_of_nonneg_right (mul_log_two_le_log_one_add hε.le hε₁) _,
     norm_num1 },
@@ -686,13 +686,13 @@ begin
   rw [degree_regularisation_applied hi, book_config.degree_regularisation_step_X, mem_filter] at hx,
   rw [degree_steps, mem_filter, mem_range] at hi,
   change (1 - (k : ℝ) ^ (- 1 / 8 : ℝ)) * C.p * C.Y.card ≤ (red_neighbors χ x ∩ C.Y).card,
-  change x ∈ C.X ∧ (C.p - _ * α_function k (C.height k ini.p)) * (C.Y.card : ℝ) ≤
+  change x ∈ C.X ∧ (C.p - _ * α_function k (height k ini.p C.p)) * (C.Y.card : ℝ) ≤
     (red_neighbors χ x ∩ C.Y).card at hx,
   have : 1 / (k : ℝ) < C.p := one_div_k_lt_p_of_lt_final_step hi.1,
   refine hx.2.trans' (mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _)),
   rw [one_sub_mul, sub_le_sub_iff_left],
   cases le_total C.p (q_function k ini.p 0) with h' h',
-  { rw [book_config.height, five_seven_extra, α_one, mul_div_assoc', ←rpow_add' (nat.cast_nonneg _),
+  { rw [five_seven_extra, α_one, mul_div_assoc', ←rpow_add' (nat.cast_nonneg _),
       div_eq_mul_one_div],
     { refine (mul_le_mul_of_nonneg_left this.le (rpow_nonneg_of_nonneg (nat.cast_nonneg _)
         _)).trans_eq _,

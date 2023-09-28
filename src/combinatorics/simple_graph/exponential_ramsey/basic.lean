@@ -455,9 +455,6 @@ def degree_regularisation_step_basic (C : book_config χ) (U : finset V) (h : U 
   blue_B := C.blue_B,
   blue_XB := C.blue_XB.subset_left h }
 
--- TODO: kill this
-noncomputable def height (k : ℕ) (p₀ : ℝ) (C : book_config χ) : ℕ := height k p₀ C.p
-
 /-- Take a degree regularisation step, choosing the set of vertices as in the paper. -/
 noncomputable def degree_regularisation_step (k : ℕ) (p₀ : ℝ) (C : book_config χ) :
   book_config χ :=
@@ -469,7 +466,7 @@ degree_regularisation_step_basic C
 
 lemma degree_regularisation_step_X {k : ℕ} {p₀ : ℝ} {C : book_config χ} :
   (degree_regularisation_step k p₀ C).X =
-    C.X.filter (λ x, (C.p - k ^ (1 / 8 : ℝ) * α_function k (C.height k p₀)) * C.Y.card ≤
+    C.X.filter (λ x, (C.p - k ^ (1 / 8 : ℝ) * α_function k (height k p₀ C.p)) * C.Y.card ≤
       (red_neighbors χ x ∩ C.Y).card) :=
 rfl
 
@@ -485,6 +482,8 @@ lemma degree_regularisation_step_B {k : ℕ} {p₀ : ℝ} {C : book_config χ} :
 lemma degree_regularisation_step_X_subset {k : ℕ} {p₀ : ℝ} {C : book_config χ} :
   (degree_regularisation_step k p₀ C).X ⊆ C.X := filter_subset _ _
 
+/-- Get the set of appropriately sized blue books contained in `X`. We will take a maximal
+one of these later. -/
 noncomputable def useful_blue_books (χ : top_edge_labelling V (fin 2)) (μ : ℝ) (X : finset V) :
   finset (finset V × finset V) :=
 (X.powerset.product X.powerset).filter
@@ -542,6 +541,7 @@ lemma exists_maximal_blue_book_aux (χ : top_edge_labelling V (fin 2)) (μ : ℝ
     finset.card (prod.fst ST') ≤ finset.card (prod.fst ST) :=
 finset.exists_max_image (useful_blue_books χ μ X) (λ ST, ST.1.card) (exists_useful_blue_book _ _)
 
+/-- Get a maximal book contained in `X`. -/
 noncomputable def get_book (χ : top_edge_labelling V (fin 2)) (μ : ℝ) (X : finset V) :
   finset V × finset V :=
 (exists_maximal_blue_book_aux χ μ X).some
@@ -591,6 +591,7 @@ begin
   exact get_book_disjoints
 end
 
+/-- The number of vertices with a large blue neighbourhood. -/
 noncomputable def num_big_blues (μ : ℝ) (C : book_config χ) : ℕ :=
   (C.X.filter (λ x, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card)).card
 
@@ -608,6 +609,7 @@ begin
   positivity,
 end
 
+/-- Perform a big blue step, picking an appropriate blue book. -/
 noncomputable def big_blue_step (μ : ℝ) (C : book_config χ) : book_config χ :=
 big_blue_step_basic C (get_book χ μ C.X).1 (get_book χ μ C.X).2 get_book_fst_subset
   get_book_snd_subset get_book_blue_fst get_book_disjoints get_book_blue_fst_snd
@@ -624,6 +626,7 @@ lemma big_blue_step_A {μ : ℝ} {C : book_config χ} :
 lemma big_blue_step_B {μ : ℝ} {C : book_config χ} :
   (big_blue_step μ C).B = C.B ∪ (get_book χ μ C.X).1 := rfl
 
+/-- The set of viable central vertices. -/
 noncomputable def central_vertices (μ : ℝ) (C : book_config χ) : finset V :=
 C.X.filter (λ x, ↑(blue_neighbors χ x ∩ C.X).card ≤ μ * C.X.card)
 
@@ -632,6 +635,7 @@ lemma exists_central_vertex (μ : ℝ) (C : book_config χ)
   ∃ x ∈ central_vertices μ C, ∀ y ∈ central_vertices μ C, weight χ C.X C.Y y ≤ weight χ C.X C.Y x :=
 exists_max_image _ _ (by rwa [central_vertices, filter_nonempty_iff])
 
+/-- Get the central vertex as in step 3. -/
 noncomputable def get_central_vertex (μ : ℝ) (C : book_config χ)
   (hX : ∃ x ∈ C.X, ↑(blue_neighbors χ x ∩ C.X).card ≤ μ * C.X.card) : V :=
 (exists_central_vertex μ C hX).some
@@ -675,6 +679,7 @@ end
 
 end book_config
 
+/-- The book algorithm as an infinite sequence which is eventually constantly nothing. -/
 noncomputable def algorithm_option (μ : ℝ) (k l : ℕ) (ini : book_config χ) :
     ℕ → option (book_config χ)
 | 0 := some ini
@@ -692,7 +697,7 @@ noncomputable def algorithm_option (μ : ℝ) (k l : ℕ) (ini : book_config χ)
           then C.big_blue_step μ
           else
         let x := C.get_central_vertex μ (C.get_central_vertex_condition h h') in
-        if C.p - α_function k (C.height k ini.p) ≤
+        if C.p - α_function k (height k ini.p C.p) ≤
             red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
           then C.red_step_basic x (C.get_central_vertex_mem_X _ _)
           else C.density_boost_step_basic x (C.get_central_vertex_mem_X _ _)
@@ -779,12 +784,23 @@ begin
   linarith only [this],
 end
 
+/-- The index of the final step. Also the number of steps the algorithm takes.
+The previous two sentences may have an off-by-one error.  -/
 noncomputable def final_step (μ : ℝ) (k l : ℕ) (ini : book_config χ) : ℕ :=
 Inf {i | algorithm_option μ k l ini (i + 1) = none}
 
+/--
+The book algorithm. `algorithm μ k l ini i` is the state of the algorithm after the `i`th step,
+when initialised with `μ`, `k, l` and initial configuration `ini`.
+
+If we are *after* the termination has applied, this just gives `ini`. That is, this is the correct
+definition of the book algorithm *as long as* `i ≤ final_step μ k l ini`, in other words it's
+correct as long as the book algorithm hasn't finished.
+-/
 noncomputable def algorithm (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) : book_config χ :=
 (algorithm_option μ k l ini i).get_or_else ini
 
+/-- The configuration at the end of the book algorithm. -/
 noncomputable def end_state (μ : ℝ) (k l : ℕ) (ini : book_config χ) : book_config χ :=
   algorithm μ k l ini (final_step μ k l ini)
 
@@ -873,7 +889,7 @@ lemma algorithm_succ (hi : i < final_step μ k l ini) :
     else
   let x := C.get_central_vertex μ
             (C.get_central_vertex_condition (succeed_of_final_step_le' hi) h') in
-  if C.p - α_function k (C.height k ini.p) ≤
+  if C.p - α_function k (height k ini.p C.p) ≤
       red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
     then C.red_step_basic x (C.get_central_vertex_mem_X _ _)
     else C.density_boost_step_basic x (C.get_central_vertex_mem_X _ _) :=
@@ -884,14 +900,17 @@ begin
     algorithm_option._match_1, dif_neg (succeed_of_final_step_le' hi)],
 end
 
+/-- The set of degree regularisation steps. Note this is indexed differently than the paper. -/
 noncomputable def degree_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 (range (final_step μ k l ini)).filter even
 
+/-- The set of big blue steps. Note this is indexed differently than the paper. -/
 noncomputable def big_blue_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 (range (final_step μ k l ini)).filter
   (λ i, ¬ even i ∧ ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤
     (algorithm μ k l ini i).num_big_blues μ)
 
+/-- The set of red or density steps. Note this is indexed differently than the paper. -/
 noncomputable def red_or_density_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 (range (final_step μ k l ini)).filter
   (λ i, ¬ even i ∧
@@ -932,6 +951,7 @@ begin
   exact hi.2.2,
 end
 
+/-- The choice of `x` in a red or density step. -/
 noncomputable def get_x (hi : i ∈ red_or_density_steps μ k l ini) : V :=
 (algorithm μ k l ini i).get_central_vertex μ
   ((algorithm μ k l ini i).get_central_vertex_condition
@@ -941,19 +961,21 @@ lemma get_x_mem_central_vertices (i : ℕ) (hi : i ∈ red_or_density_steps μ k
   get_x hi ∈ (algorithm μ k l ini i).central_vertices μ :=
 (algorithm μ k l ini i).get_central_vertex_mem _ _
 
+/-- The set of red steps. -/
 noncomputable def red_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
   λ i, let x := get_x i.prop,
            C := algorithm μ k l ini i in
-    C.p - α_function k (C.height k ini.p) ≤
+    C.p - α_function k (height k ini.p C.p) ≤
       red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y)
 
+/-- The set of density boost steps. -/
 noncomputable def density_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
 finset.image coe $ (red_or_density_steps μ k l ini).attach.filter $
   λ i, let x := get_x i.prop,
            C := algorithm μ k l ini i in
     red_density χ (red_neighbors χ x ∩ C.X) (red_neighbors χ x ∩ C.Y) <
-      C.p - α_function k (C.height k ini.p)
+      C.p - α_function k (height k ini.p C.p)
 
 lemma red_steps_subset_red_or_density_steps :
   red_steps μ k l ini ⊆ red_or_density_steps μ k l ini :=
@@ -1163,6 +1185,7 @@ begin
     refl },
 end
 
+/-- Define `β` from the paper. -/
 noncomputable def blue_X_ratio (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) : ℝ :=
 if h : i ∈ red_or_density_steps μ k l ini
   then

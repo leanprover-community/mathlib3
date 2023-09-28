@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import data.nat.choose.bounds
 import data.nat.choose.central
 import data.nat.choose.cast
@@ -5,6 +10,9 @@ import analysis.special_functions.stirling
 import analysis.special_functions.exponential
 import topology.metric_space.cau_seq_filter
 
+/-!
+# Unconditional bounds on the central binomial coefficient from Stirling approximations
+-/
 noncomputable theory
 
 open_locale topology real nat
@@ -219,12 +227,3 @@ end
 
 lemma choose_upper_bound' {n t : ℕ} : (n.choose t : ℝ) ≤ exp t * (n / t) ^ t :=
 choose_upper_bound.trans_eq $ by rw [mul_div_assoc, mul_pow, ←exp_one_rpow t, rpow_nat_cast]
-
--- example {a b c : ℕ → ℝ} {L : ℝ} (ha : monotone a) (hb : tendsto b at_top (𝓝 L)) (hc : antitone c)
---   (hab : tendsto (λ x, a x / b x) at_top (𝓝 1))
---   (hbc : tendsto (λ x, b x / c x) at_top (𝓝 1))
---   (ha_pos : ∀ n, 0 < a n) (hb_pos : ∀ n, 0 < b n) (hc_pos : ∀ n, 0 < c n) :
---   ∀ n, a n ≤ b n ∧ b n ≤ c n :=
--- begin
-
--- end

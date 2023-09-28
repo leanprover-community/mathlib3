@@ -110,7 +110,7 @@ lemma one_lt_q_function : ∀ᶠ k : ℕ in at_top,
   ∀ p₀ : ℝ, 0 ≤ p₀ →
   1 ≤ q_function k p₀ ⌊2 / ((k : ℝ) ^ (-1 / 4 : ℝ)) * log k⌋₊ :=
 begin
-  have hc : (1 : ℝ) < log 2 * (4 / 5 * 2),
+  have hc : (1 : ℝ) < real.log 2 * (4 / 5 * 2),
   { rw [←div_lt_iff],
     { exact log_two_gt_d9.trans_le' (by norm_num) },
     norm_num },
@@ -134,7 +134,7 @@ begin
   rw [rpow_def_of_pos, ←mul_assoc, ←mul_assoc, mul_comm, ←rpow_def_of_pos hk₀'],
   swap,
   { positivity },
-  have : log 2 * (4 / 5 * 2) ≤ log (1 + ε) * (4 / 5) * (2 / ε),
+  have : real.log 2 * (4 / 5 * 2) ≤ log (1 + ε) * (4 / 5) * (2 / ε),
   { rw [mul_div_assoc' _ _ ε, le_div_iff' hε, ←mul_assoc, mul_assoc (log _)],
     refine mul_le_mul_of_nonneg_right (mul_log_two_le_log_one_add hε.le hε₁) _,
     norm_num1 },
@@ -147,9 +147,9 @@ end
 lemma height_upper_bound : ∀ᶠ k : ℕ in at_top,
   ∀ p₀ : ℝ, 0 ≤ p₀ →
   ∀ p : ℝ, p ≤ 1 →
-  (height k p₀ p : ℝ) ≤ 2 / (k : ℝ) ^ (-1 / 4 : ℝ) * log k :=
+  (height k p₀ p : ℝ) ≤ 2 / (k : ℝ) ^ (-1 / 4 : ℝ) * real.log k :=
 begin
-  have : tendsto (λ k : ℝ, ⌊2 / (k : ℝ) ^ (-1 / 4 : ℝ) * log k⌋₊) at_top at_top,
+  have : tendsto (λ k : ℝ, ⌊2 / (k : ℝ) ^ (-1 / 4 : ℝ) * real.log k⌋₊) at_top at_top,
   { refine tendsto_nat_floor_at_top.comp _,
     rw neg_div,
     refine tendsto.at_top_mul_at_top _ tendsto_log_at_top,
@@ -243,7 +243,7 @@ lemma log_le_log_of_le {x y : ℝ} (hx : 0 < x) (hxy : x ≤ y) :
 (log_le_log hx (hx.trans_le hxy)).2 hxy
 
 lemma log_n_large (c : ℝ) : ∀ᶠ l : ℕ in at_top, ∀ k : ℕ, l ≤ k →
-  c ≤ 1 / 128 * (l : ℝ) ^ (3 / 4 : ℝ) * log k :=
+  c ≤ 1 / 128 * (l : ℝ) ^ (3 / 4 : ℝ) * real.log k :=
 begin
   have t : tendsto (coe : ℕ → ℝ) at_top at_top := tendsto_coe_nat_at_top_at_top,
   have h34 : (0 : ℝ) < 3 / 4, { norm_num },

@@ -135,7 +135,7 @@ begin
   swap,
   { positivity },
   have : real.log 2 * (4 / 5 * 2) ≤ log (1 + ε) * (4 / 5) * (2 / ε),
-  { rw [mul_div_assoc' _ _ ε, le_div_iff' hε, ←mul_assoc, mul_assoc (log _)],
+  { rw [mul_div_assoc' _ _ ε, le_div_iff' hε, ←mul_assoc, mul_assoc (real.log _)],
     refine mul_le_mul_of_nonneg_right (mul_log_two_le_log_one_add hε.le hε₁) _,
     norm_num1 },
   refine (rpow_le_rpow_of_exponent_le hk₁ this).trans' _,

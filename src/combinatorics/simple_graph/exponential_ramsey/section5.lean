@@ -110,7 +110,7 @@ lemma one_lt_q_function : ∀ᶠ k : ℕ in at_top,
   ∀ p₀ : ℝ, 0 ≤ p₀ →
   1 ≤ q_function k p₀ ⌊2 / ((k : ℝ) ^ (-1 / 4 : ℝ)) * log k⌋₊ :=
 begin
-  have hc : 1 < log 2 * (4 / 5 * 2),
+  have hc : (1 : ℝ) < log 2 * (4 / 5 * 2),
   { rw [←div_lt_iff],
     { exact log_two_gt_d9.trans_le' (by norm_num) },
     norm_num },

@@ -58,16 +58,111 @@ by rw [col_density, edge_density_empty_right, rat.cast_zero]
 localized "notation `red_density` χ:1024 := simple_graph.col_density χ 0" in exponential_ramsey
 localized "notation `blue_density` χ:1024 := simple_graph.col_density χ 1" in exponential_ramsey
 
+/-- the set of neighbours of x which are connected to it by edges labelled k -/
 def col_neighbors [fintype V] [decidable_eq V] [decidable_eq K] (χ : top_edge_labelling V K)
   (k : K) (x : V) : finset V :=
 neighbor_finset (χ.label_graph k) x
+
+section
+
+variables {χ : top_edge_labelling V K}
+
+namespace top_edge_labelling
+
+/-- The predicate `χ.monochromatic_between X Y k` says every edge between `X` and `Y` is labelled
+`k` by the labelling `χ`. -/
+def monochromatic_between (χ : top_edge_labelling V K) (X Y : finset V) (k : K) : Prop :=
+∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → x ≠ y → χ.get x y = k
+
+instance [decidable_eq V] [decidable_eq K] {X Y : finset V} {k : K} :
+  decidable (monochromatic_between χ X Y k) :=
+finset.decidable_dforall_finset
+
+@[simp] lemma monochromatic_between_empty_left {Y : finset V} {k : K} :
+  χ.monochromatic_between ∅ Y k :=
+by simp [monochromatic_between]
+
+@[simp] lemma monochromatic_between_empty_right {X : finset V} {k : K} :
+  χ.monochromatic_between X ∅ k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_singleton_left {x : V} {Y : finset V} {k : K} :
+  χ.monochromatic_between {x} Y k ↔ ∀ ⦃y⦄, y ∈ Y → x ≠ y → χ.get x y = k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_singleton_right {y : V} {X : finset V} {k : K} :
+  χ.monochromatic_between X {y} k ↔ ∀ ⦃x⦄, x ∈ X → x ≠ y → χ.get x y = k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_union_left [decidable_eq V] {X Y Z : finset V} {k : K} :
+  χ.monochromatic_between (X ∪ Y) Z k ↔
+    χ.monochromatic_between X Z k ∧ χ.monochromatic_between Y Z k :=
+by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
+
+lemma monochromatic_between_union_right [decidable_eq V] {X Y Z : finset V} {k : K} :
+  χ.monochromatic_between X (Y ∪ Z) k ↔
+    χ.monochromatic_between X Y k ∧ χ.monochromatic_between X Z k :=
+by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
+
+lemma monochromatic_between_self {X : finset V} {k : K} :
+  χ.monochromatic_between X X k ↔ χ.monochromatic_of X k :=
+by simp only [monochromatic_between, monochromatic_of, mem_coe]
+
+lemma _root_.disjoint.monochromatic_between {X Y : finset V} {k : K} (h : disjoint X Y) :
+  χ.monochromatic_between X Y k ↔
+    ∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → χ.get x y (h.forall_ne_finset ‹_› ‹_›) = k :=
+forall₄_congr $ λ x hx y hy, by simp [h.forall_ne_finset hx hy]
+
+lemma monochromatic_between.subset_left {X Y Z : finset V} {k : K}
+  (hYZ : χ.monochromatic_between Y Z k) (hXY : X ⊆ Y) :
+  χ.monochromatic_between X Z k :=
+λ x hx y hy h, hYZ (hXY hx) hy _
+
+lemma monochromatic_between.subset_right {X Y Z : finset V} {k : K}
+  (hXZ : χ.monochromatic_between X Z k) (hXY : Y ⊆ Z) :
+  χ.monochromatic_between X Y k :=
+λ x hx y hy h, hXZ hx (hXY hy) _
+
+lemma monochromatic_between.subset {W X Y Z : finset V} {k : K}
+  (hWX : χ.monochromatic_between W X k) (hYW : Y ⊆ W) (hZX : Z ⊆ X) :
+  χ.monochromatic_between Y Z k :=
+λ x hx y hy h, hWX (hYW hx) (hZX hy) _
+
+lemma monochromatic_between.symm {X Y : finset V} {k : K}
+  (hXY : χ.monochromatic_between X Y k) :
+  χ.monochromatic_between Y X k :=
+λ y hy x hx h, by { rw get_swap _ _ h.symm, exact hXY hx hy _ }
+
+lemma monochromatic_between.comm {X Y : finset V} {k : K} :
+  χ.monochromatic_between Y X k ↔ χ.monochromatic_between X Y k :=
+⟨monochromatic_between.symm, monochromatic_between.symm⟩
+
+lemma monochromatic_of_union {X Y : finset V} {k : K} :
+  χ.monochromatic_of (X ∪ Y) k ↔
+    χ.monochromatic_of X k ∧ χ.monochromatic_of Y k ∧ χ.monochromatic_between X Y k :=
+begin
+  have : χ.monochromatic_between X Y k ∧ χ.monochromatic_between Y X k ↔
+    χ.monochromatic_between X Y k := (and_iff_left_of_imp (monochromatic_between.symm)),
+  rw ←this,
+  simp only [monochromatic_of, set.mem_union, or_imp_distrib, forall_and_distrib, mem_coe,
+    monochromatic_between],
+  tauto,
+end
+
+end top_edge_labelling
+
+end
 
 localized "notation `red_neighbors` χ:1024 := simple_graph.col_neighbors χ 0" in exponential_ramsey
 localized "notation `blue_neighbors` χ:1024 := simple_graph.col_neighbors χ 1" in exponential_ramsey
 
 open_locale exponential_ramsey
 
-variables [fintype V] [decidable_eq V]
+variables [decidable_eq V]
+
+section
+
+variables [fintype V]
 
 lemma mem_col_neighbors [decidable_eq K] {χ : top_edge_labelling V K} {x y : V} {k : K} :
   y ∈ col_neighbors χ k x ↔ ∃ (H : x ≠ y), χ.get x y = k :=
@@ -83,6 +178,8 @@ by rw [mem_col_neighbors, mem_col_neighbors']
 
 lemma not_mem_col_neighbors [decidable_eq K] {χ : top_edge_labelling V K} {x : V} {k : K} :
   x ∉ col_neighbors χ k x := not_mem_neighbor_finset_self _ _
+
+end
 
 lemma interedges_card_eq_sum {V : Type*} [decidable_eq V] [fintype V] {G : simple_graph V}
   [decidable_rel G.adj] {A B : finset V} :
@@ -104,7 +201,7 @@ begin
   simp only [function.embedding.coe_fn_mk, mem_neighbor_finset, iff_self, implies_true_iff],
 end
 
-lemma col_density_eq_sum {K : Type*} [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
+lemma col_density_eq_sum {K : Type*} [fintype V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
   {A B : finset V} :
   col_density χ k A B = (∑ x in A, (col_neighbors χ k x ∩ B).card) / (A.card * B.card) :=
 begin
@@ -112,6 +209,10 @@ begin
   simp only [nat.cast_sum, rat.cast_div, rat.cast_sum, rat.cast_coe_nat, rat.cast_mul],
   refl,
 end
+
+section
+
+variable [fintype V]
 
 /--
 Define the weight of an ordered pair for the book algorithm.
@@ -128,6 +229,8 @@ Define the weight of a vertex for the book algorithm.
 -/
 noncomputable def weight (χ : top_edge_labelling V (fin 2)) (X Y : finset V) (x : V) : ℝ :=
 ∑ y in X.erase x, pair_weight χ X Y x y
+
+end
 
 /-- Define the function `q` from the paper, see equation (5).  -/
 noncomputable def q_function (k : ℕ) (p₀ : ℝ) (h : ℕ) : ℝ :=
@@ -195,99 +298,14 @@ begin
     sub_sub_sub_cancel_right, pow_succ, ←sub_one_mul, add_sub_cancel', nat.add_sub_cancel]
 end
 
-section
-
-variables {χ : top_edge_labelling V K}
-
-namespace top_edge_labelling
-
-/-- The predicate `χ.monochromatic_between X Y k` says every edge between `X` and `Y` is labelled
-`k` by the labelling `χ`. -/
-def monochromatic_between (χ : top_edge_labelling V K) (X Y : finset V) (k : K) : Prop :=
-∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → x ≠ y → χ.get x y = k
-
-instance [decidable_eq K] {X Y : finset V} {k : K} : decidable (monochromatic_between χ X Y k) :=
-finset.decidable_dforall_finset
-
-@[simp] lemma monochromatic_between_empty_left {Y : finset V} {k : K} :
-  χ.monochromatic_between ∅ Y k :=
-by simp [monochromatic_between]
-
-@[simp] lemma monochromatic_between_empty_right {X : finset V} {k : K} :
-  χ.monochromatic_between X ∅ k :=
-by simp [monochromatic_between]
-
-lemma monochromatic_between_singleton_left {x : V} {Y : finset V} {k : K} :
-  χ.monochromatic_between {x} Y k ↔ ∀ ⦃y⦄, y ∈ Y → x ≠ y → χ.get x y = k :=
-by simp [monochromatic_between]
-
-lemma monochromatic_between_singleton_right {y : V} {X : finset V} {k : K} :
-  χ.monochromatic_between X {y} k ↔ ∀ ⦃x⦄, x ∈ X → x ≠ y → χ.get x y = k :=
-by simp [monochromatic_between]
-
-lemma monochromatic_between_union_left {X Y Z : finset V} {k : K} :
-  χ.monochromatic_between (X ∪ Y) Z k ↔
-    χ.monochromatic_between X Z k ∧ χ.monochromatic_between Y Z k :=
-by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
-
-lemma monochromatic_between_union_right {X Y Z : finset V} {k : K} :
-  χ.monochromatic_between X (Y ∪ Z) k ↔
-    χ.monochromatic_between X Y k ∧ χ.monochromatic_between X Z k :=
-by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
-
-lemma monochromatic_between_self {X : finset V} {k : K} :
-  χ.monochromatic_between X X k ↔ χ.monochromatic_of X k :=
-by simp only [monochromatic_between, monochromatic_of, mem_coe]
-
-lemma _root_.disjoint.monochromatic_between {X Y : finset V} {k : K} (h : disjoint X Y) :
-  χ.monochromatic_between X Y k ↔
-    ∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → χ.get x y (h.forall_ne_finset ‹_› ‹_›) = k :=
-forall₄_congr $ λ x hx y hy, by simp [h.forall_ne_finset hx hy]
-
-lemma monochromatic_between.subset_left {X Y Z : finset V} {k : K}
-  (hYZ : χ.monochromatic_between Y Z k) (hXY : X ⊆ Y) :
-  χ.monochromatic_between X Z k :=
-λ x hx y hy h, hYZ (hXY hx) hy _
-
-lemma monochromatic_between.subset_right {X Y Z : finset V} {k : K}
-  (hXZ : χ.monochromatic_between X Z k) (hXY : Y ⊆ Z) :
-  χ.monochromatic_between X Y k :=
-λ x hx y hy h, hXZ hx (hXY hy) _
-
-lemma monochromatic_between.subset {W X Y Z : finset V} {k : K}
-  (hWX : χ.monochromatic_between W X k) (hYW : Y ⊆ W) (hZX : Z ⊆ X) :
-  χ.monochromatic_between Y Z k :=
-λ x hx y hy h, hWX (hYW hx) (hZX hy) _
-
-lemma monochromatic_between.symm {X Y : finset V} {k : K}
-  (hXY : χ.monochromatic_between X Y k) :
-  χ.monochromatic_between Y X k :=
-λ y hy x hx h, by { rw get_swap _ _ h.symm, exact hXY hx hy _ }
-
-lemma monochromatic_between.comm {X Y : finset V} {k : K} :
-  χ.monochromatic_between Y X k ↔ χ.monochromatic_between X Y k :=
-⟨monochromatic_between.symm, monochromatic_between.symm⟩
-
-lemma monochromatic_of_union {X Y : finset V} {k : K} :
-  χ.monochromatic_of (X ∪ Y) k ↔
-    χ.monochromatic_of X k ∧ χ.monochromatic_of Y k ∧ χ.monochromatic_between X Y k :=
-begin
-  have : χ.monochromatic_between X Y k ∧ χ.monochromatic_between Y X k ↔
-    χ.monochromatic_between X Y k := (and_iff_left_of_imp (monochromatic_between.symm)),
-  rw ←this,
-  simp only [monochromatic_of, set.mem_union, or_imp_distrib, forall_and_distrib, mem_coe,
-    monochromatic_between],
-  tauto,
-end
-
-end top_edge_labelling
-
-end
-
 variable {χ : top_edge_labelling V (fin 2)}
 
 open top_edge_labelling
 
+/--
+the quadruple of sets X,Y,A,B that we keep track of in the book algorithm, bundled with the
+properties which are needed for it
+-/
 structure book_config (χ : top_edge_labelling V (fin 2)) :=
   (X Y A B : finset V)
   (hXY : disjoint X Y)
@@ -306,12 +324,19 @@ namespace book_config
 /-- Define `p` from the paper at a given configuration. -/
 def p (C : book_config χ) : ℝ := red_density χ C.X C.Y
 
+section
+
+variable [fintype V]
+
 /-- Given a vertex set `X`, construct the initial configuration where `X` is as given. -/
 def start (X : finset V) : book_config χ :=
 begin
   refine ⟨X, Xᶜ, ∅, ∅, disjoint_compl_right, _, _, _, _, _, _, _, _, _⟩,
   all_goals { simp }
 end
+
+-- todo: this instance shouldn't need fintype; just use everything empty
+instance : inhabited (book_config χ) := ⟨start ∅⟩
 
 /-- Take a red step for the book algorithm, given `x ∈ X`. -/
 def red_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : book_config χ :=
@@ -366,6 +391,10 @@ lemma red_step_basic_A {C : book_config χ} {x : V} (hx : x ∈ C.X) :
 lemma red_step_basic_B {C : book_config χ} {x : V} (hx : x ∈ C.X) :
   (red_step_basic C x hx).B = C.B := rfl
 
+end
+
+section
+
 /-- Take a big blue step for the book algorithm, given a blue book `(S, T)` contained in `X`. -/
 def big_blue_step_basic (C : book_config χ) (S T : finset V) (hS : S ⊆ C.X) (hT : T ⊆ C.X)
   (hSS : χ.monochromatic_of S 1) (hST : disjoint S T) (hST' : χ.monochromatic_between S T 1) :
@@ -389,6 +418,8 @@ def big_blue_step_basic (C : book_config χ) (S T : finset V) (hS : S ⊆ C.X) (
     rw [top_edge_labelling.monochromatic_between_union_right],
     exact ⟨C.blue_XB.subset_left hT, hST'.symm⟩,
   end }
+
+variable [fintype V]
 
 /-- Take a density boost step for the book algorithm, given `x ∈ X`. -/
 def density_boost_step_basic (C : book_config χ) (x : V) (hx : x ∈ C.X) : book_config χ :=
@@ -439,6 +470,10 @@ lemma density_boost_step_basic_A {C : book_config χ} {x : V} (hx : x ∈ C.X) :
 lemma density_boost_step_basic_B {C : book_config χ} {x : V} (hx : x ∈ C.X) :
   (density_boost_step_basic C x hx).B = insert x C.B := rfl
 
+end
+
+section
+
 /-- Take a degree regularisation step for the book algorithm, given `U ⊆ X` for the vertices we want
 to keep in `X`. -/
 def degree_regularisation_step_basic (C : book_config χ) (U : finset V) (h : U ⊆ C.X) :
@@ -454,6 +489,8 @@ def degree_regularisation_step_basic (C : book_config χ) (U : finset V) (h : U 
   red_XYA := C.red_XYA.subset_left (union_subset_union h subset.rfl),
   blue_B := C.blue_B,
   blue_XB := C.blue_XB.subset_left h }
+
+variable [fintype V]
 
 /-- Take a degree regularisation step, choosing the set of vertices as in the paper. -/
 noncomputable def degree_regularisation_step (k : ℕ) (p₀ : ℝ) (C : book_config χ) :
@@ -482,15 +519,19 @@ lemma degree_regularisation_step_B {k : ℕ} {p₀ : ℝ} {C : book_config χ} :
 lemma degree_regularisation_step_X_subset {k : ℕ} {p₀ : ℝ} {C : book_config χ} :
   (degree_regularisation_step k p₀ C).X ⊆ C.X := filter_subset _ _
 
+end
+
 /-- Get the set of appropriately sized blue books contained in `X`. We will take a maximal
 one of these later. -/
-noncomputable def useful_blue_books (χ : top_edge_labelling V (fin 2)) (μ : ℝ) (X : finset V) :
+noncomputable def useful_blue_books {V : Type*} [decidable_eq V] (χ : top_edge_labelling V (fin 2))
+  (μ : ℝ) (X : finset V) :
   finset (finset V × finset V) :=
 (X.powerset.product X.powerset).filter
   (λ ST, disjoint ST.1 ST.2 ∧ χ.monochromatic_of ST.1 1 ∧ χ.monochromatic_between ST.1 ST.2 1
     ∧ μ ^ ST.1.card * X.card / 2 ≤ ST.2.card)
 
-lemma mem_useful_blue_books {μ : ℝ} {X : finset V} {ST : finset V × finset V} :
+lemma mem_useful_blue_books
+  {μ : ℝ} {X : finset V} {ST : finset V × finset V} :
   ST ∈ useful_blue_books χ μ X ↔
     ST.1 ⊆ X ∧ ST.2 ⊆ X ∧ disjoint ST.1 ST.2 ∧ χ.monochromatic_of ST.1 1 ∧
       χ.monochromatic_between ST.1 ST.2 1 ∧ μ ^ ST.1.card * X.card / 2 ≤ ST.2.card :=
@@ -512,7 +553,7 @@ begin
   exact half_le_self (nat.cast_nonneg _),
 end
 
-lemma exists_blue_book_one_le_S (μ : ℝ) (X : finset V)
+lemma exists_blue_book_one_le_S [fintype V] (μ : ℝ) (X : finset V)
   (hX : ∃ x ∈ X, μ * X.card ≤ (blue_neighbors χ x ∩ X).card) :
   ∃ ST : finset V × finset V, ST ∈ useful_blue_books χ μ X ∧ 1 ≤ ST.1.card :=
 begin
@@ -536,7 +577,8 @@ begin
   positivity
 end
 
-lemma exists_maximal_blue_book_aux (χ : top_edge_labelling V (fin 2)) (μ : ℝ) (X : finset V) :
+lemma exists_maximal_blue_book_aux (χ : top_edge_labelling V (fin 2))
+  (μ : ℝ) (X : finset V) :
   ∃ (ST ∈ useful_blue_books χ μ X), ∀ (ST' ∈ useful_blue_books χ μ X),
     finset.card (prod.fst ST') ≤ finset.card (prod.fst ST) :=
 finset.exists_max_image (useful_blue_books χ μ X) (λ ST, ST.1.card) (exists_useful_blue_book _ _)
@@ -572,6 +614,10 @@ lemma get_book_relative_card {μ : ℝ} {X : finset V} :
 lemma get_book_max {μ : ℝ} {X : finset V} (S T : finset V)
   (hST : (S, T) ∈ useful_blue_books χ μ X) : S.card ≤ (get_book χ μ X).1.card :=
 (exists_maximal_blue_book_aux χ μ X).some_spec.some_spec (S, T) hST
+
+section
+
+variable [fintype V]
 
 lemma one_le_card_get_book_fst {μ : ℝ} {X : finset V}
   (hX : ∃ x ∈ X, μ * X.card ≤ (blue_neighbors χ x ∩ X).card) :
@@ -609,6 +655,8 @@ begin
   positivity,
 end
 
+end
+
 /-- Perform a big blue step, picking an appropriate blue book. -/
 noncomputable def big_blue_step (μ : ℝ) (C : book_config χ) : book_config χ :=
 big_blue_step_basic C (get_book χ μ C.X).1 (get_book χ μ C.X).2 get_book_fst_subset
@@ -625,6 +673,10 @@ lemma big_blue_step_A {μ : ℝ} {C : book_config χ} :
 
 lemma big_blue_step_B {μ : ℝ} {C : book_config χ} :
   (big_blue_step μ C).B = C.B ∪ (get_book χ μ C.X).1 := rfl
+
+section
+
+variable [fintype V]
 
 /-- The set of viable central vertices. -/
 noncomputable def central_vertices (μ : ℝ) (C : book_config χ) : finset V :=
@@ -677,7 +729,11 @@ begin
   simp,
 end
 
+end
+
 end book_config
+
+variable [fintype V]
 
 /-- The book algorithm as an infinite sequence which is eventually constantly nothing. -/
 noncomputable def algorithm_option (μ : ℝ) (k l : ℕ) (ini : book_config χ) :

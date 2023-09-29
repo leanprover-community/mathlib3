@@ -9,6 +9,7 @@ import data.finset.locally_finite
 import analysis.special_functions.explicit_stirling
 import analysis.asymptotics.asymptotics
 import data.complex.exponential_bounds
+import data.real.pi.bounds
 
 /-!
 # Asymptotic lower bounds on ramsey numbers by probabilistic arguments
@@ -34,22 +35,21 @@ begin
   simp,
 end
 
-@[simp] lemma edge_finset_bot' [decidable_eq V]
-  [fintype (edge_set (⊥ : simple_graph V))] :
+lemma edge_finset_bot' [fintype (edge_set (⊥ : simple_graph V))] :
   (⊥ : simple_graph V).edge_finset = ∅ :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sup' [decidable_eq V]
+lemma edge_finset_sup' [decidable_eq V]
   [fintype (edge_set G₁)] [fintype (edge_set G₂)] [fintype (edge_set (G₁ ⊔ G₂))]:
   (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_inf' [decidable_eq V]
+lemma edge_finset_inf' [decidable_eq V]
   [fintype (edge_set G₁)] [fintype (edge_set G₂)] [fintype (edge_set (G₁ ⊓ G₂))] :
   (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sdiff' [decidable_eq V]
+lemma edge_finset_sdiff' [decidable_eq V]
   [fintype (edge_set G₁)] [fintype (edge_set G₂)] [fintype (edge_set (G₁ \ G₂))] :
   (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
 by simp [edge_finset]
@@ -114,26 +114,28 @@ begin
   apply not_is_diag_of_mem_edge_set
 end
 
-variables [fintype V] {p : ℝ} {s : finset (sym2 V)}
+variables {p : ℝ} {s : finset (sym2 V)}
 
-def weighting_aux (p : ℝ) (s : finset (sym2 V)) : ℝ :=
+/-- a helper function for the weighting associated to a simple graph -/
+def weighting_aux [fintype V] (p : ℝ) (s : finset (sym2 V)) : ℝ :=
 p ^ s.card * (1 - p) ^ ((card V).choose 2 - s.card)
 
-lemma weighting_aux_pos (hp₀ : 0 < p) (hp₁ : p < 1) : 0 < weighting_aux p s :=
+lemma weighting_aux_pos [fintype V] (hp₀ : 0 < p) (hp₁ : p < 1) : 0 < weighting_aux p s :=
 mul_pos (pow_pos hp₀ _) (pow_pos (sub_pos_of_lt hp₁) _)
 
+/-- the probability of the simple graph G appearing in the G(|V|,p) model of random graphs -/
 def weighting (V : Type*) [fintype V] (p : ℝ) (G : simple_graph V) [fintype G.edge_set] :
   ℝ := weighting_aux p G.edge_finset
 
-lemma weighting_pos [fintype G.edge_set] (hp₀ : 0 < p) (hp₁ : p < 1) :
+lemma weighting_pos [fintype V] [fintype G.edge_set] (hp₀ : 0 < p) (hp₁ : p < 1) :
   0 < weighting V p G :=
 weighting_aux_pos hp₀ hp₁
 
-lemma weighting_eq [fintype G.edge_set] [fintype Gᶜ.edge_set] :
+lemma weighting_eq [fintype V] [fintype G.edge_set] [fintype Gᶜ.edge_set] :
   weighting V p G = p ^ G.edge_finset.card * (1 - p) ^ Gᶜ.edge_finset.card :=
 by rw [weighting, weighting_aux, card_compl_edge_finset_eq]
 
-lemma weighting_compl [fintype G.edge_set] [fintype Gᶜ.edge_set] :
+lemma weighting_compl [fintype V] [fintype G.edge_set] [fintype Gᶜ.edge_set] (p : ℝ) :
   weighting V (1 - p) Gᶜ = weighting V p G :=
 begin
   rw [weighting, weighting, weighting_aux, weighting_aux, sub_sub_self,
@@ -174,7 +176,8 @@ section
 
 open_locale classical
 
-lemma weighting_aux_sum_between [decidable_eq V] (H₁ H₂ : simple_graph V) (h : H₁ ≤ H₂) :
+lemma weighting_aux_sum_between [fintype V] [decidable_eq V] (H₁ H₂ : simple_graph V)
+  (h : H₁ ≤ H₂) :
   ∑ G in finset.Icc H₁ H₂, weighting V p G =
     p ^ H₁.edge_finset.card * (1 - p) ^ H₂ᶜ.edge_finset.card :=
 begin
@@ -242,7 +245,7 @@ begin
   exact union_subset hx.2 (edge_finset_subset_edge_finset.2 h),
 end
 
-lemma sum_weighting : ∑ G, weighting V p G = 1 :=
+lemma sum_weighting [fintype V] : ∑ G, weighting V p G = 1 :=
 begin
   have : Icc (⊥ : simple_graph V) ⊤ = finset.univ,
   { rw [←coe_inj, coe_Icc, set.Icc_bot_top, coe_univ] },
@@ -270,9 +273,11 @@ begin
   exact (fintype.card_of_bijective this).symm,
 end
 
+/-- is s a clique in G -/
 def clique_on (G : simple_graph V) (s : set V) : Prop :=
 spanning_coe (⊤ : simple_graph s) ≤ G
 
+/-- is s independent in G -/
 def indep_on (G : simple_graph V) (t : set V) : Prop :=
 G ≤ (spanning_coe (⊤ : simple_graph t))ᶜ
 
@@ -282,11 +287,12 @@ by rw [clique_on, indep_on, le_compl_comm]
 lemma indep_on_iff {t : set V} : indep_on G t ↔ disjoint G (spanning_coe (⊤ : simple_graph t)) :=
 by rw [indep_on, le_compl_iff_disjoint_right]
 
-instance decidable_adj_map {V' : Type*} [decidable_eq V'] {G : simple_graph V}
+instance decidable_adj_map [fintype V] {V' : Type*} [decidable_eq V'] {G : simple_graph V}
   [decidable_rel G.adj] {f : V ↪ V'} : decidable_rel (G.map f).adj :=
 λ x y, decidable_of_iff' _ (G.map_adj f _ _)
 
-lemma card_edge_set_spanning_coe_top [decidable_eq V] (s : finset V) :
+-- todo: lhs should probably have an explicit fintype instance
+lemma card_edge_set_spanning_coe_top [fintype V] [decidable_eq V] (s : finset V) :
   fintype.card (spanning_coe (⊤ : simple_graph s)).edge_set = s.card.choose 2 :=
 begin
   rw [card_edge_set_map, card_top_edge_set],
@@ -294,19 +300,20 @@ begin
   rw fintype.card_coe,
 end
 
-instance decidable_le {H : simple_graph V} [decidable_rel G.adj] [decidable_rel H.adj] :
+instance decidable_le [fintype V] {H : simple_graph V} [decidable_rel G.adj] [decidable_rel H.adj] :
   decidable (G ≤ H) :=
 fintype.decidable_forall_fintype
 
-instance decidable_pred_clique_on [decidable_eq V] [decidable_rel G.adj] :
+instance decidable_pred_clique_on [fintype V] [decidable_eq V] [decidable_rel G.adj] :
   decidable_pred (λ s : finset V, clique_on G s) :=
 λ s, simple_graph.decidable_le
 
-instance decidable_pred_indep_on [decidable_eq V] [decidable_rel G.adj] :
+instance decidable_pred_indep_on [fintype V] [decidable_eq V] [decidable_rel G.adj] :
   decidable_pred (λ s : finset V, indep_on G s) :=
 λ s, simple_graph.decidable_le
 
-lemma le.def {G H : simple_graph V} : G ≤ H ↔ ∀ ⦃x y : V⦄, G.adj x y → H.adj x y := iff.rfl
+lemma le.def {V : Type*} {G H : simple_graph V} : G ≤ H ↔ ∀ ⦃x y : V⦄, G.adj x y → H.adj x y :=
+iff.rfl
 
 lemma fin.fin_two_eq_zero_iff_ne_one {x : fin 2} : x = 0 ↔ x ≠ 1 :=
 begin
@@ -341,13 +348,18 @@ lemma indep_on_monochromatic_of (C : top_edge_labelling V (fin 2)) (m : set V) :
   indep_on (C.label_graph 1) m ↔ C.monochromatic_of m 0 :=
 by rw [←clique_on_compl, label_graph_fin_two_compl, clique_on_monochromatic_of]
 
-def number_of_cliques [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj] (k : ℕ) : ℕ :=
+/-- the number of cliques of size k in the graph G -/
+def number_of_cliques [fintype V] [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+  (k : ℕ) : ℕ :=
 ((univ.powerset_len k).filter (λ (s : finset V), G.clique_on s)).card
 
-def number_of_indeps [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj] (l : ℕ) : ℕ :=
+/-- the number of independent sets of size l in the graph G -/
+def number_of_indeps [fintype V] [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+  (l : ℕ) : ℕ :=
 ((univ.powerset_len l).filter (λ (s : finset V), G.indep_on s)).card
 
-lemma number_of_cliques_compl [decidable_eq V] [decidable_rel G.adj] [decidable_rel Gᶜ.adj]
+lemma number_of_cliques_compl [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  [decidable_rel Gᶜ.adj]
   {k : ℕ} :
   number_of_cliques Gᶜ k = number_of_indeps G k :=
 begin
@@ -355,12 +367,16 @@ begin
   simp only [clique_on_compl],
 end
 
-def number_of_things [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj] (k l : ℕ) : ℕ :=
+/-- the number of cliques of size k + the number of independent sets of size l -/
+def number_of_things [fintype V] [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+  (k l : ℕ) : ℕ :=
 G.number_of_cliques k + G.number_of_indeps l
 
 section
 
 open_locale classical
+
+variable [fintype V]
 
 lemma weighted_number_cliques [decidable_eq V] {k : ℕ} :
   ∑ G, weighting V p G * G.number_of_cliques k = ((card V).choose k) * p ^ k.choose 2 :=
@@ -393,7 +409,7 @@ lemma weighted_number_indeps [decidable_eq V] {k : ℕ} :
   ∑ G, weighting V p G * G.number_of_indeps k = ((card V).choose k) * (1 - p) ^ k.choose 2 :=
 begin
   simp only [←number_of_cliques_compl],
-  simp only [←@weighting_compl _ _ _ p],
+  simp only [←weighting_compl p],
   rw ←weighted_number_cliques,
   refine (sum_bij' (λ G _, Gᶜ) (λ _ _, mem_univ _) _ (λ G _, Gᶜ) (λ _ _, mem_univ _) _ _),
   { intros a ha,
@@ -419,7 +435,7 @@ by simp only [number_of_things, nat.cast_add, mul_add, sum_add_distrib, weighted
 
 end
 
-lemma basic_bound {k l : ℕ} {p : ℝ} (hp : 0 < p) (hp' : p < 1)
+lemma basic_bound [fintype V] {k l : ℕ} {p : ℝ} (hp : 0 < p) (hp' : p < 1)
   (hV : ((card V).choose k : ℝ) * p ^ k.choose 2 + (card V).choose l * (1 - p) ^ l.choose 2 < 1) :
   ∃ (G : simple_graph V),
     (∀ X : finset V, X.card = k → ¬ G.clique_on X) ∧
@@ -428,7 +444,7 @@ begin
   letI := classical.dec_eq V,
   by_contra',
   refine hV.not_le _,
-  rw [←weighted_number_things, ←@sum_weighting V _ p],
+  rw [←weighted_number_things, ←@sum_weighting V p _],
   refine sum_le_sum _,
   intros i hi,
   refine le_mul_of_one_le_right _ _,
@@ -602,11 +618,62 @@ begin
   norm_num
 end
 
+/-- An Erdos-Szekeres upper bound on Ramsey numbers, with the error term made precise -/
+lemma diagonal_ramsey_upper_bound_refined {k : ℕ} :
+  (diagonal_ramsey k : ℝ) ≤ 4 ^ (k - 1) / sqrt (real.pi * (k - 3 / 4)) :=
+begin
+  rcases k.eq_zero_or_pos with rfl | hk,
+  { rw [diagonal_ramsey_zero, nat.cast_zero, nat.zero_sub, pow_zero, one_div, inv_nonneg],
+    exact sqrt_nonneg _ },
+  refine (nat.cast_le.2 (diagonal_ramsey_le_central_binom k)).trans _,
+  refine (central_binomial_upper_bound (k - 1)).trans _,
+  have : (1 : ℝ) ≤ k,
+  { rwa [nat.one_le_cast, nat.succ_le_iff] },
+  refine div_le_div_of_le_left (by positivity) (sqrt_pos_of_pos (mul_pos pi_pos _)) _,
+  { linarith only [this] },
+  refine sqrt_le_sqrt (mul_le_mul_of_nonneg_left _ pi_pos.le),
+  rw [nat.cast_sub, nat.cast_one],
+  { linarith only },
+  rwa nat.one_le_cast at this
+end
+
+lemma diagonal_ramsey_upper_bound_simpler {k : ℕ} : (diagonal_ramsey k : ℝ) ≤ 4 ^ k / sqrt k :=
+begin
+  rcases k.eq_zero_or_pos with rfl | hk,
+  { rw [diagonal_ramsey_zero, nat.cast_zero, pow_zero, sqrt_zero, div_zero] },
+  refine diagonal_ramsey_upper_bound_refined.trans _,
+  rw [pow_sub₀ _ _ hk, ←div_eq_mul_inv, div_div],
+  swap, { positivity },
+  refine div_le_div_of_le_left (by positivity) (by positivity) _,
+  have : (4 : ℝ) ^ 1 = sqrt 16,
+  { have : (16 : ℝ) = 4 ^ 2 := by norm_num,
+    rw [pow_one, this, sqrt_sq],
+    norm_num },
+  rw [this, ←sqrt_mul],
+  swap, { norm_num1 },
+  refine sqrt_le_sqrt _,
+  suffices : (12 * real.pi) ≤ k * (16 * real.pi - 1),
+  { linarith },
+  have : 49 ≤ 16 * real.pi - 1,
+  { linarith only [pi_gt_3141592] },
+  refine (mul_le_mul_of_nonneg_left this (nat.cast_nonneg _)).trans' _,
+  have : 12 * real.pi ≤ 38 := by linarith only [pi_lt_315],
+  have : (1 : ℝ) ≤ k := nat.one_le_cast.2 hk,
+  linarith
+end
+
 section
 
 open filter
 
-lemma little_o_ramsey_bound :
+/--
+A lower bound on diagonal Ramsey numbers, as given on wikipedia. This is within a factor 2 of the
+best known lower bound.
+It says R(k, k) ≥ (1 + o(1)) * k / (e √2) * 2 ^ (k / 2)
+`diagonal_ramsey_bound_refined_again` makes the o(1) term more precise, and
+`diagonal_ramsey_lower_bound_simpler` simplifies the lower order terms for convenience.
+-/
+lemma little_o_lower_ramsey_bound :
   ∃ f : ℕ → ℝ, f =o[at_top] (λ _, 1 : _ → ℝ) ∧
     ∀ k, (1 + f k) * k / (sqrt 2 * exp 1) * (sqrt 2) ^ k ≤ diagonal_ramsey k :=
 begin
@@ -619,13 +686,6 @@ begin
   rw [neg_div, ←sub_eq_add_neg, div_eq_mul_inv, mul_comm (sqrt 2), mul_comm (_ * _) (_⁻¹),
     ←mul_assoc],
 end
-
--- lemma slightly_off_diagonal_lower_ramsey :
---   ∃ c : ℝ, 0 < c ∧ ∀ᶠ l : ℕ in at_top, ∀ k, l ≤ k →
---     real.exp (c * l ^ (3 / 4 : ℝ) * log k) ≤ ramsey_number ![k, ⌊(l : ℝ) ^ (3 / 4 : ℝ)⌋₊] :=
--- begin
-
--- end
 
 end
 

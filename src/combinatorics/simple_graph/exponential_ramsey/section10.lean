@@ -276,7 +276,7 @@ begin
     exact (end_state γ k l ini).red_XYA.symm.subset_right
       (hm₀.trans (finset.subset_union_right _ _)) },
   rwa [finset.card_union_eq, add_le_add_iff_right],
-  { exact t_le_A_card γ (hk₀ k hlk).ne' (hk₀ l le_rfl).ne' ini },
+  { exact t_le_A_card γ k l ini },
   exact (end_state γ k l ini).hYA.symm.mono_right hm₀,
 end
 

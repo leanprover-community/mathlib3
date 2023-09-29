@@ -462,6 +462,7 @@ end
 section values
 open real
 
+/-- the first x value to estimate log2 for -/
 noncomputable def x_value : ℝ := (0.4339 + 2727 / 8000) / 0.4339
 lemma x_value_eq : x_value = 30991 / 17356 := by norm_num [x_value]
 
@@ -535,9 +536,11 @@ end
 lemma logb_two_x_value_interval : logb 2 x_value ∈ Icc (0.8364148 : ℝ) 0.8364149 :=
 ⟨logb_x_value.1.le, logb_x_value.2.le⟩
 
+/-- the second x value to estimate log2 for -/
 noncomputable def x_value2 : ℝ := 1 / (2 - 0.817)
 lemma x_value2_eq : x_value2 = 1000 / 1183 := by norm_num [x_value2]
 
+/-- the third x value to estimate log2 for -/
 noncomputable def x_value3 : ℝ := 1 - 1 / (2 - 0.817)
 lemma x_value3_eq : x_value3 = 183 / 1183 := by norm_num [x_value3]
 
@@ -658,6 +661,7 @@ end values
 open real simple_graph
 
 -- this expression is nicer to compare to g
+/-- the special case of g on the line -/
 noncomputable def g' (y : ℝ) := logb 2 (5 / 2) + (3 / 5 * y + 0.5454) * logb 2 (5 / 3) +
     y * logb 2 ((y + 2727 / 8000) / ((25 / 16) * y))
 
@@ -726,11 +730,11 @@ begin
   linarith
 end
 
--- for diff
+/-- an expression for the derivative of g' which is convenient to differentiate -/
 noncomputable def g'_deriv (y : ℝ) : ℝ := ((4 - 7 / 5 * logb 2 5 - 3 / 5 * logb 2 3) +
     ((logb 2 (y + 2727 / 8000) - logb 2 y) - 2727 / 8000 / log 2 / (y + 2727 / 8000)))
 
--- for eval
+/-- an expression for the derivative of g' which is convenient to evaluate -/
 noncomputable def g'_deriv_alt (y : ℝ) : ℝ := ((4 - 7 / 5 * logb 2 5 - 3 / 5 * logb 2 3) +
     ((logb 2 ((y + 2727 / 8000) / y)) - 2727 / 8000 / (y + 2727 / 8000) * (1 / log 2)))
 
@@ -874,15 +878,15 @@ begin
     linarith only [this, hy.2] },
 end
 
-lemma claim_a2 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75)
+lemma claim_a2 {x y : ℝ} (hy : y ∈ Icc (0 : ℝ) 0.75)
   (h : x = 3 / 5 * y + 0.5454) :
   simple_graph.g x y < 1.9993 :=
 begin
-  clear hx,
   rw [g_line h],
   exact claim_a2_aux hy
 end
 
+/-- the function `f` on the line -/
 noncomputable def f' (x : ℝ) : ℝ := 8 / 3 * x - 0.909 + (2 - x) * bin_ent 2 (1 / (2 - x))
 
 lemma continuous_f' : continuous f' :=
@@ -948,7 +952,7 @@ begin
   linarith only [this],
 end
 
-lemma claim_a3 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 0.75) (hy : y ∈ Icc (0 : ℝ) 0.75)
+lemma claim_a3 {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 0.75)
   (h : x = 3 / 5 * y + 0.5454) :
   f1 x y < 1.9993 :=
 begin
@@ -957,11 +961,13 @@ begin
   exact f'_max.trans_le (by norm_num1),
 end
 
+/-- an expression for f2 on the line -/
 noncomputable def f2' (x : ℝ) : ℝ := f' x - 1 / (log 2 * 40) * (1 - 1 / (2 - x))
 
 lemma f2'_eq {x : ℝ} : f2' x = f' x - (1 / log 2) * ((1 / 40) * (1 - 1 / (2 - x))) :=
 by rw [f2', ←one_div_mul_one_div, mul_assoc]
 
+/-- an expression for the derivative of f2 -/
 noncomputable def f2'_deriv (x : ℝ) : ℝ :=
   8 / 3 + logb 2 ((1 - x) / (2 - x)) + 1 / (log 2 * 40) * (1 / (2 - x) ^ 2)
 

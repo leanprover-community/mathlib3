@@ -321,6 +321,12 @@ end
 
 section
 
+/--
+A triple of vectors in F₂ ^ 4, which encodes the data of the clebsch colouring in a convenient and
+compact way.
+For our purposes, it is enough to show that the colouring this induces, `clebsch_colouring`, does
+not contain a monochromatic triangle
+-/
 def parts : fin 3 → finset (fin 4 → zmod 2) :=
 ![{(![1, 1, 0, 0]), (![0, 0, 1, 1]), (![1, 0, 0, 1]), (![1, 1, 1, 0]), (![1, 0, 0, 0])},
   {(![1, 0, 1, 0]), (![0, 1, 0, 1]), (![0, 1, 1, 0]), (![1, 1, 0, 1]), (![0, 1, 0, 0])},
@@ -344,6 +350,7 @@ lemma parts_pair_get_aux : ∀ i j : fin 4 → zmod 2, i ≠ j →
   ∃! k, k ∈ (univ : finset (fin 3)) ∧ i - j ∈ parts k :=
 λ i j hij, parts_get_aux _ (sub_ne_zero_of_ne hij)
 
+/-- given two distinct vertices in F₂ ^ 4, get the label it should have in the clebsch colouring. -/
 def parts_pair_get (i j : fin 4 → zmod 2) (hij : i ≠ j) : fin 3 :=
 finset.choose _ _ (parts_pair_get_aux i j hij)
 
@@ -367,6 +374,10 @@ end
 
 open top_edge_labelling
 
+/--
+an explicit definition of the clebsch colouring
+TODO: find the source i used for this
+-/
 def clebsch_colouring : top_edge_labelling (fin 4 → zmod 2) (fin 3) :=
 top_edge_labelling.mk parts_pair_get parts_pair_get_symm
 

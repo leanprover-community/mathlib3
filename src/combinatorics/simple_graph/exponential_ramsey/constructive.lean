@@ -16,7 +16,10 @@ namespace product
 
 open finset
 
-
+/--
+an explicit two-labelling of [k] x [l] which should, by construction, not contain an 0-labelled k+1
+or 1-labelled l+1 clique
+-/
 def my_labelling (k l : ℕ) : top_edge_labelling (fin k × fin l) (fin 2) :=
 top_edge_labelling.mk (λ x y h, if x.2 = y.2 then 0 else 1)
   (λ x y h, by simp only [@eq_comm (fin l)])
@@ -58,20 +61,10 @@ begin
   rwa [←ramsey_number_le_iff, fintype.card_prod, fintype.card_fin, fintype.card_fin, not_le] at this
 end
 
-def my_other_labelling (k l : ℕ) : top_edge_labelling (fin (k + 2) × fin l) (fin 2) :=
-top_edge_labelling.mk
-  (λ x y h,
-    if x.1 = y.1 ∨
-      ((⟦(x.1, y.1)⟧ : sym2 (fin (k + 2))) = ⟦(0, 1)⟧ ∧ x.2 = y.2) ∨
-      ((⟦(x.1, y.1)⟧ : sym2 (fin (k + 2))) ≠ ⟦(0, 1)⟧ ∧ x.2 ≠ y.2)
-    then 1
-    else 0)
-  begin
-    intros x y h,
-    refine if_congr _ rfl rfl,
-    rw [sym2.eq_swap, ne.def y.2, @eq_comm _ y.1, @eq_comm _ y.2],
-  end
-
+/--
+an explicit two-labelling of α x [l] which should, by construction, not contain an 0-labelled |α|
+clique or 1-labelled l+2 clique
+-/
 def my_other_labelling' (α : Type*) [decidable_eq α] (l : ℕ) (a b : α) :
   top_edge_labelling (α × fin l) (fin 2) :=
 top_edge_labelling.mk
@@ -159,10 +152,11 @@ begin
   rw [←h₂ z hxz.symm, h₃ z hyz.symm],
 end
 
-lemma is_ramsey_valid_my_other_labelling_one {α : Type*} [decidable_eq α] [fintype α] {l : ℕ}
+lemma is_ramsey_valid_my_other_labelling_one {α : Type*} [decidable_eq α] [finite α] {l : ℕ}
   {m : finset (α × fin l)} (x y : α) (h : x ≠ y) :
   ¬ ((my_other_labelling' α l x y).monochromatic_of m 1 ∧ l + 2 = m.card) :=
 begin
+  casesI nonempty_fintype α,
   rintro ⟨hm, hm'⟩,
   let f' : α → finset (α × fin l) := λ i, m.filter (λ x, x.1 = i),
   -- let s₁₂ : finset α := {x}ᶜ,

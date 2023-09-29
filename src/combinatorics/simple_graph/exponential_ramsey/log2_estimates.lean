@@ -33,6 +33,7 @@ lemma logb_div_base' {b x : ℝ} (hb : 0 < b) (hb' : b ≠ 1) (hx : x ≠ 0) :
   logb b (x / b) = logb b x - 1 :=
 by rw [logb_div hx hb.ne', logb_base hb hb']
 
+/-- the form of goal which is used to prove log2 estimates -/
 def log_base2_goal (x₁ x₂ a₁ a₂ : ℝ) : Prop :=
 0 < x₁ → x₁ ≤ x₂ → a₁ < logb 2 x₁ ∧ logb 2 x₂ < a₂
 
@@ -86,6 +87,7 @@ namespace interactive
 
 setup_tactic_parser
 
+/-- a quick macro to simplify log2 estimate proofs -/
 meta def weaken (t u : parse parser.pexpr) : tactic unit :=
 `[refine log_base2_weaken %%t %%u _ (by norm_num1) (by norm_num1) (by norm_num1)]
 

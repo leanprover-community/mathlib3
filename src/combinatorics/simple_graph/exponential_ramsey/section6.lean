@@ -134,7 +134,8 @@ begin
   exact mul_nonneg (rpow_nonneg_of_nonneg (nat.cast_nonneg _) _) (α_nonneg _ _),
 end
 
-lemma book_config.get_book_snd_nonempty {μ : ℝ} (hμ₀ : 0 < μ) {X : finset V} (hX : X.nonempty) :
+lemma book_config.get_book_snd_nonempty {V : Type*} [decidable_eq V] {χ} {μ : ℝ} (hμ₀ : 0 < μ)
+  {X : finset V} (hX : X.nonempty) :
   (book_config.get_book χ μ X).2.nonempty :=
 begin
   rw [←card_pos, ←@nat.cast_pos ℝ],
@@ -622,7 +623,7 @@ begin
   have : (RZ.card : ℝ) ≤ k,
   { rw nat.cast_le,
     refine (card_le_of_subset (filter_subset _ _)).trans _,
-    exact four_four_red μ (hl₀.trans_le hlk).ne' hl₀.ne' hχ ini },
+    exact four_four_red μ hχ ini },
   rw [nsmul_eq_mul],
   refine (mul_le_mul_of_nonneg_right this _).trans_eq _,
   { positivity },
@@ -1051,7 +1052,7 @@ begin
   { rw [two_mul],
     refine add_le_add _ _,
     { refine (card_le_of_subset (inter_subset_left _ _)).trans _,
-      exact (four_four_red μ (hl₀ _ hlk).ne' (hl₀ _ le_rfl).ne' hχ ini) },
+      exact (four_four_red μ hχ ini) },
     { refine (card_le_of_subset (inter_subset_left _ _)).trans _,
       have := (four_four_blue_density μ (hl₀ _ hlk).ne' (hl₀ _ le_rfl).ne' hχ ini),
       exact hlk.trans' (this.trans' le_add_self) } },

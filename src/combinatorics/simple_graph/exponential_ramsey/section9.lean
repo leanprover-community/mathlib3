@@ -443,7 +443,7 @@ begin
       ←inv_rpow (sub_nonneg_of_le hγ₁.le)],
     refine rpow_le_rpow (exp_pos _).le (exp_le_one_sub_inv hγ₁) (sub_nonneg_of_le _),
     rw nat.cast_le,
-    exact four_four_red _ (hk₀ _ hlk).ne' (hk₀ _ le_rfl).ne' hχ _ },
+    exact four_four_red _ hχ _ },
   rw mul_right_comm at h₁,
   clear hn hδ hχ hini hn' hγ,
   replace h₁ := (mul_le_mul_of_nonneg_left this (by positivity)).trans h₁,
@@ -987,7 +987,7 @@ begin
   specialize hβ₀ k hlk γ hγl hγu n χ ini hp₀',
   specialize hf₂ k γ η hγl hη hγη n χ hχ ini hini hγu hγ₁ hlk hp₀',
   have htk : (red_steps γ k l ini).card ≤ k :=
-    four_four_red _ (hk₀ _ hlk).ne' (hk₀ _ le_rfl).ne' hχ _,
+    four_four_red _ hχ _,
   have : 2 ^ (-2 : ℝ) * (n : ℝ) ≤ ini.Y.card,
   { refine (nat.cast_le.2 hn').trans' ((ge_floor _).trans_eq' _),
     { rw [one_le_div (zero_lt_two' ℝ)],
@@ -1572,7 +1572,7 @@ begin
     refine ⟨(end_state γ k l ini).red_A, hm₁, _⟩,
     exact (end_state γ k l ini).red_XYA.symm.subset_right (hm₀.trans (subset_union_right _ _)) },
   rwa [card_union_eq, add_le_add_iff_right],
-  { exact t_le_A_card γ (hk₀ k hlk).ne' (hk₀ l le_rfl).ne' ini },
+  { exact t_le_A_card γ k l ini },
   exact (end_state γ k l ini).hYA.symm.mono_right hm₀,
 end
 

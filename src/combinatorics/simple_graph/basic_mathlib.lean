@@ -26,6 +26,11 @@ begin
   cases hi.ne (subsingleton.elim _ _)
 end
 
+/--
+The edge set of the complete graph on V is in bijection with the off-diagonal elements of sym2 V
+TODO: maybe this should be an equality of sets?
+and then turn it into a bijection of types
+-/
 def top_edge_set_equiv : (⊤ : simple_graph V).edge_set ≃ {a : sym2 V // ¬a.is_diag} :=
 equiv.subtype_equiv_right $ λ i, sym2.induction_on i $ λ x y, iff.rfl
 
@@ -54,6 +59,7 @@ lemma top_hom_injective (f : (⊤ : simple_graph V') →g G) :
   function.injective f :=
 λ x y h, by_contra (λ z, (f.map_rel z).ne h)
 
+/-- graph embeddings from a complete graph are in bijection with graph homomorphisms from it -/
 def top_hom_graph_equiv :
   ((⊤ : simple_graph V') ↪g G) ≃ ((⊤ : simple_graph V') →g G) :=
 { to_fun := λ f, f,

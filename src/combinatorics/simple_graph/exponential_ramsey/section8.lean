@@ -793,8 +793,8 @@ begin
   refine hl.trans _,
   refine (add_le_add hk₂ (mul_le_mul_of_nonneg_right hk₁ (nat.cast_nonneg _))).trans _,
   rw [add_comm, one_add_mul, add_assoc, add_le_add_iff_left, ←le_sub_iff_add_le, ←sub_mul],
-  refine (mul_le_mul_of_nonneg_left (nat.cast_le.2 (four_four_red μ (hk₀ _ hlk).ne'
-    (hk₀ _ le_rfl).ne' hχ ini)) (by positivity)).trans _,
+  refine (mul_le_mul_of_nonneg_left (nat.cast_le.2 (four_four_red μ hχ ini))
+    (by positivity)).trans _,
   rw [mul_assoc, ←rpow_add_one],
   { norm_num },
   rw nat.cast_ne_zero,

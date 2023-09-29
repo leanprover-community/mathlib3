@@ -55,6 +55,10 @@ begin
   all_goals { positivity },
 end
 
+/--
+an explicit function of the central binomial coefficient which we will show is always less than
+√π, to get a lower bound on the central binomial coefficient
+-/
 def central_binomial_lower (n : ℕ) : ℝ := central_binom n * sqrt (n + 1 / 4) / 4 ^ n
 
 lemma central_binomial_lower_monotone : monotone central_binomial_lower :=
@@ -72,6 +76,10 @@ begin
   { positivity }
 end
 
+/--
+an explicit function of the central binomial coefficient which we will show is always more than
+√π, to get an upper bound on the central binomial coefficient
+-/
 def central_binomial_upper (n : ℕ) : ℝ := central_binom n * sqrt (n + 1 / 3) / 4 ^ n
 
 lemma central_binomial_upper_monotone : antitone central_binomial_upper :=

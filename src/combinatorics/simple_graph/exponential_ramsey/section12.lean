@@ -85,7 +85,7 @@ begin
   rw [f],
   split_ifs with h₁ h₁,
   { exact claim_a4 ⟨h₁, hx.2⟩ hy h },
-  exact claim_a3 ⟨hx.1, le_of_not_le h₁⟩ hy h,
+  exact claim_a3 ⟨hx.1, le_of_not_le h₁⟩ h,
 end
 
 lemma main_calculation {x y : ℝ} (hx : x ∈ Icc (0 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75) :
@@ -98,7 +98,7 @@ begin
   set xy := 3 / 5 * y + 0.5454,
   cases le_total x xy,
   { refine (min_le_right _ _).trans_lt _,
-    refine (claim_a2 hxy hy rfl).trans_le' _,
+    refine (claim_a2 hy rfl).trans_le' _,
     exact g_monotone hy.1 (hy.2.trans (by norm_num1)) hx.1 h },
   refine (min_le_left _ _).trans_lt _,
   refine (claim_a34 hxy hy rfl).trans_le' _,
@@ -161,5 +161,36 @@ theorem theorem_one' :
 
 theorem theorem_one'' : ∃ c < 4, ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ c ^ k :=
 ⟨3.999, by norm_num1, exponential_ramsey⟩
+
+-- -- (4 ^ x / sqrt x) ^ (1 / x) ≤ 4 - c
+-- -- 4 * (1 / sqrt x) ^ (1 / x) ≤ 4 - c
+-- -- (1 / sqrt x) ^ (1 / x) ≤ 1 - c / 4
+-- -- c / 4 ≤ 1 - (1 / sqrt x) ^ (1 / x)
+-- -- c ≤ 4 - 4 * (1 / sqrt x) ^ (1 / x)
+-- theorem global_bound : ∃ ε > 0, ∀ k, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+-- begin
+--   obtain ⟨K, hK⟩ := exponential_ramsey',
+--   rcases K.eq_zero_or_pos with rfl | hK',
+--   { exact ⟨0.001, by norm_num1, λ k, (hK _ (by simp)).trans (by norm_num) ⟩ },
+--   let c := 4 - 4 * (1 / sqrt K) ^ (1 / K : ℝ),
+--   have : 0 < c,
+--   { rw [sub_pos, one_div, inv_rpow (sqrt_nonneg _), mul_lt_iff_lt_one_right],
+--     swap, { norm_num1 },
+--     refine inv_lt_one _,
+--     refine one_lt_rpow _ (by positivity),
+--     simp
+--     -- refine one_lt_p
+
+--     -- simp only [one_div, inv_pow, mul_lt_iff_lt_one_right, zero_lt_bit0, zero_lt_one],
+
+--   },
+--   refine ⟨min 0.001 c, lt_min (by norm_num1) sorry, _⟩,
+--   intro k,
+--   cases le_total K k,
+--   { refine (hK k h).trans _,
+--     refine pow_le_pow_of_le_left (by norm_num1) sorry _ },
+--   refine diagonal_ramsey_upper_bound_simpler.trans _,
+
+-- end
 
 end simple_graph

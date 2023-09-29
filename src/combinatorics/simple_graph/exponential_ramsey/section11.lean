@@ -356,7 +356,7 @@ begin
   clear hf₁ hf₂ hf₅,
   have hsk : (density_steps μ k k ini).card ≤ k,
   { exact (four_four_blue_density μ hk₀.ne' hk₀.ne' hχ ini).trans' le_add_self },
-  have htk : (red_steps μ k k ini).card ≤ k := four_four_red μ hk₀.ne' hk₀.ne' hχ ini,
+  have htk : (red_steps μ k k ini).card ≤ k := four_four_red μ hχ ini,
   specialize hf₁' n hn'' χ hχ ini hini hn',
   specialize hf₂' k le_rfl μ le_rfl le_rfl n χ hχ ini hini,
   specialize hβ k le_rfl μ le_rfl le_rfl n χ ini hini,
@@ -388,7 +388,7 @@ begin
     exact hf₅' (hf₂' hk) },
 end
 
-lemma Y_small {μ k n} (hk : k ≠ 0) {χ : top_edge_labelling (fin n) (fin 2)} {ini : book_config χ}
+lemma Y_small {μ k n} {χ : top_edge_labelling (fin n) (fin 2)} {ini : book_config χ}
   (hχ : ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, k] c ≤ m.card))
   {i : ℕ} (hi : i ≤ final_step μ k k ini) :
   (algorithm μ k k ini i).Y.card ≤
@@ -408,7 +408,7 @@ begin
     refine (algorithm μ k k ini i).red_XYA.subset_left _,
     exact hm.1.trans (finset.subset_union_right _ _) },
   rw [finset.card_union_eq],
-  { exact add_le_add_left (four_four_red_aux hk hk _ _ hi) _ },
+  { exact add_le_add_left (four_four_red_aux _ _ hi) _ },
   exact (algorithm μ k k ini i).hYA.mono_left hm.1,
 end
 
@@ -434,7 +434,7 @@ begin
     n hn χ hχ ini hini hn' i hi,
   clear hf',
   specialize hf k le_rfl μ le_rfl le_rfl n χ hχ ini hini i hi,
-  replace hf := hf.trans (nat.cast_le.2 (Y_small hk₀.ne' hχ hi)),
+  replace hf := hf.trans (nat.cast_le.2 (Y_small hχ hi)),
   rw mul_right_comm at hf,
   have : 2 ^ (- ((red_steps μ k k ini ∩ finset.range i).card +
                  (density_steps μ k k ini ∩ finset.range i).card : ℝ)) ≤
@@ -929,7 +929,7 @@ begin
   suffices : (red_steps (2 / 5) k k ini).card ≤ k,
   { refine ⟨this, div_le_one_of_le _ (nat.cast_nonneg _)⟩,
     rwa nat.cast_le },
-  exact four_four_red _ hk₀.ne' hk₀.ne' hχ _
+  exact four_four_red _ hχ _
 end
 
 lemma y_le_3_4 :
@@ -950,7 +950,7 @@ begin
   have : ((red_steps (2 / 5) k k ini).card : ℝ) / k ≤ 1,
   { refine div_le_one_of_le _ (nat.cast_nonneg _),
     rw nat.cast_le,
-    exact four_four_red _ hk₀.ne' hk₀.ne' hχ _ },
+    exact four_four_red _ hχ _ },
   norm_num1,
   linarith only [this],
 end

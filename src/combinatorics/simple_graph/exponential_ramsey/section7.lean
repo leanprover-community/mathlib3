@@ -127,7 +127,7 @@ begin
   { rw [neg_div, neg_div, neg_le_neg_iff],
     exact div_le_div_of_le_left (by norm_num1) (sub_pos_of_lt hμ₁) (sub_le_sub_left hμu _) },
   { rw nat.cast_le,
-    exact four_four_red μ (hk₀ k hlk).ne' (hk₀ l le_rfl).ne' hχ ini },
+    exact four_four_red μ hχ ini },
   exact div_nonpos_of_nonpos_of_nonneg (by norm_num) (sub_pos_of_lt (hμu.trans_lt hμ₁)).le,
 end
 
@@ -413,7 +413,7 @@ begin
   filter_upwards [top_adjuster (eventually_gt_at_top 0),
     six_five_red, six_five_degree] with l hl₀ hk hk'
     k hlk μ n χ hχ ini,
-  have := four_four_red μ (hl₀ k hlk).ne' (hl₀ l le_rfl).ne' hχ ini,
+  have := four_four_red μ hχ ini,
   rw ←@nat.cast_le ℝ at this,
   refine (mul_le_mul_of_nonpos_left this (by norm_num1)).trans _,
   rw [mul_comm, ←nsmul_eq_mul],
@@ -1061,7 +1061,7 @@ begin
   have h₁ : (-2 : ℝ) * k ≤ ∑ i in red_or_density_steps μ k l ini,
     ((height k ini.p (algorithm μ k l ini (i + 1)).p : ℝ) -
       height k ini.p (algorithm μ k l ini i).p),
-  { have := four_four_red μ (hl₀ k hlk).ne' (hl₀ l le_rfl).ne' hχ ini,
+  { have := four_four_red μ hχ ini,
     rw ←@nat.cast_le ℝ at this,
     refine (mul_le_mul_of_nonpos_left this (by norm_num1)).trans _,
     rw [mul_comm, ←nsmul_eq_mul, ←red_steps_union_density_steps,
@@ -1270,7 +1270,7 @@ begin
     k hlk μ n χ hχ ini,
   refine (card_nsmul_le_sum _ _ _ (hr k hlk μ n χ hχ ini)).trans' _,
   rw [nsmul_eq_mul', neg_mul, neg_mul, neg_mul, neg_le_neg_iff],
-  refine mul_le_mul _ (nat.cast_le.2 (four_four_red μ (h₀ _ hlk).ne' (h₀ _ le_rfl).ne' hχ ini))
+  refine mul_le_mul _ (nat.cast_le.2 (four_four_red μ hχ ini))
     (nat.cast_nonneg _) (mul_nonneg zero_lt_two.le (α_nonneg _ _)),
   rw [α_one, α_function, mul_div_assoc', mul_comm, nat.add_succ_sub_one],
   refine div_le_div_of_le (nat.cast_nonneg _) (mul_le_mul_of_nonneg_right _ (by positivity)),

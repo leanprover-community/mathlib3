@@ -74,6 +74,7 @@ begin
   exact hf.2 hx hy ha hb hab,
 end
 
+/-- the descending factorial but with a more general setting -/
 def desc_factorial {α : Type*} [has_one α] [has_mul α] [has_sub α] [has_nat_cast α] (x : α) : ℕ → α
 | 0 := 1
 | (k + 1) := (x - k) * desc_factorial k
@@ -168,6 +169,7 @@ begin
 end
 
 -- is equal to desc_factorial for all naturals x, and for all x ≥ k - 1
+/-- a variant of the descending factorial which truncates at k-1 -/
 noncomputable def my_desc_factorial (x : ℝ) (k : ℕ) : ℝ :=
 if x < k - 1 then 0 else desc_factorial x k
 
@@ -208,6 +210,7 @@ begin
   exact nat.pred_lt hk,
 end
 
+/-- a definition of the generalized binomial coefficient -/
 noncomputable def my_generalized_binomial (x : ℝ) (k : ℕ) : ℝ :=
 (k.factorial : ℝ)⁻¹ • my_desc_factorial x k
 
@@ -588,6 +591,7 @@ begin
   rwa nat.cast_pos,
 end
 
+/-- the set of vertices which are connected to S by only blue edges -/
 def common_blues (χ : top_edge_labelling V (fin 2)) (S : finset V) :
   finset V := univ.filter (λ i, ∀ j ∈ S, i ∈ blue_neighbors χ j)
 
@@ -964,7 +968,7 @@ begin
   rwa nat.cast_pos
 end
 
-lemma four_four_red_aux {μ : ℝ} {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_red_aux {μ : ℝ} {k l : ℕ}
   (ini : book_config χ) (i : ℕ) (hi : i ≤ final_step μ k l ini) :
   (red_steps μ k l ini ∩ range i).card ≤ (algorithm μ k l ini i).A.card :=
 begin
@@ -1019,10 +1023,10 @@ begin
   exact book_config.get_central_vertex_mem_X _ _ _,
 end
 
-lemma t_le_A_card (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0) (ini : book_config χ) :
+lemma t_le_A_card (μ : ℝ) (k l : ℕ) (ini : book_config χ) :
   (red_steps μ k l ini).card ≤ (end_state μ k l ini).A.card :=
 begin
-  have hl := four_four_red_aux hk hl ini (final_step μ k l ini) le_rfl,
+  have hl := four_four_red_aux ini (final_step μ k l ini) le_rfl,
   have : red_steps μ k l ini ∩ range (final_step μ k l ini) = red_steps μ k l ini,
   { rw [inter_eq_left_iff_subset],
     exact red_steps_subset_red_or_density_steps.trans (filter_subset _ _) },
@@ -1030,12 +1034,12 @@ begin
 end
 
 -- observation 4.4
-lemma four_four_red (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
+lemma four_four_red (μ : ℝ) {k l : ℕ}
   (h : ¬ (∃ (m : finset V) (c : fin 2), χ.monochromatic_of m c ∧ ![k, l] c ≤ m.card))
   (ini : book_config χ) :
   (red_steps μ k l ini).card ≤ k :=
 begin
-  have hl := t_le_A_card μ hk hl ini,
+  have hl := t_le_A_card μ k l ini,
   simp only [fin.exists_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
     exists_or_distrib, not_or_distrib, not_exists, not_and, not_le] at h,
   exact hl.trans (h.1 _ (end_state μ k l ini).red_A).le,
@@ -1069,7 +1073,7 @@ lemma four_four_degree (μ : ℝ) {k l : ℕ} (hk : k ≠ 0) (hl : l ≠ 0)
 begin
   refine (num_degree_steps_le_add).trans _,
   rw [add_le_add_iff_right, add_assoc],
-  exact add_le_add (four_four_red μ hk hl h _) (four_four_blue_density μ hk hl h _),
+  exact add_le_add (four_four_red μ h _) (four_four_blue_density μ hk hl h _),
 end
 
 end simple_graph

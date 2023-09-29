@@ -17,12 +17,19 @@ open filter finset real
 variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
 variables {k l : ℕ} {ini : book_config χ} {i : ℕ}
 
+/-- dumb thing -/
 meta def my_p : tactic unit := tactic.to_expr ```((algorithm μ k l ini Ᾰ).p) >>= tactic.exact
+/-- dumb thing -/
 meta def my_p' : tactic unit := tactic.to_expr ```(λ i, (algorithm μ k l ini i).p) >>= tactic.exact
+/-- dumb thing -/
 meta def my_R : tactic unit := tactic.to_expr ```(red_steps μ k l ini) >>= tactic.exact
+/-- dumb thing -/
 meta def my_B : tactic unit := tactic.to_expr ```(big_blue_steps μ k l ini) >>= tactic.exact
+/-- dumb thing -/
 meta def my_S : tactic unit := tactic.to_expr ```(density_steps μ k l ini) >>= tactic.exact
+/-- dumb thing -/
 meta def my_D : tactic unit := tactic.to_expr ```(degree_steps μ k l ini) >>= tactic.exact
+/-- dumb thing -/
 meta def my_ε : tactic unit := tactic.to_expr ```((k : ℝ) ^ (- 1 / 4 : ℝ)) >>= tactic.exact
 
 local notation `p_` := λ Ᾰ, by my_p
@@ -454,6 +461,7 @@ begin
   exact hkε k hlk (rpow_pos_of_pos (nat.cast_pos.2 hk₀) _),
 end
 
+/-- the set of steps on which p is below p₀ and decreases in two steps -/
 noncomputable def decrease_steps (μ : ℝ) (k l : ℕ) (ini : book_config χ) : finset ℕ :=
   (red_steps μ k l ini ∪ big_blue_steps μ k l ini ∪ density_steps μ k l ini).filter
     (λ i, (algorithm μ k l ini (i + 1)).p < (algorithm μ k l ini (i - 1)).p ∧

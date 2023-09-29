@@ -17,7 +17,7 @@ open filter finset nat real asymptotics
 variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
 variables {k l : ℕ} {ini : book_config χ} {i : ℕ}
 
--- force x to live in [a,b], and assume a ≤ b
+/-- force x to live in [a,b], and assume a ≤ b -/
 noncomputable def clamp (a b x : ℝ) : ℝ :=
 max a $ min b x
 
@@ -43,6 +43,7 @@ begin
   rw [h'.1, eq_sub_iff_add_eq', min_add_max],
 end
 
+/-- p' in section 8 -/
 noncomputable def p' (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) (h : ℕ) : ℝ :=
 if h = 1
   then min (q_function k ini.p h) (algorithm μ k l ini i).p
@@ -66,20 +67,17 @@ lemma min_add_clamp_self {a b x y : ℝ} (h : a ≤ b) :
   (min a x - min a y) + (clamp a b x - clamp a b y) = min b x - min b y :=
 by { rw [yael h, yael h], ring }
 
+/-- Δ' in section 8 -/
 noncomputable def Δ' (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) (h : ℕ) : ℝ :=
 p' μ k l ini (i + 1) h - p' μ k l ini i h
 
+/-- Δ in section 8 -/
 noncomputable def Δ (μ : ℝ) (k l : ℕ) (ini : book_config χ) (i : ℕ) : ℝ :=
 (algorithm μ k l ini (i + 1)).p - (algorithm μ k l ini i).p
-
-meta def my_Δ : tactic unit := tactic.to_expr ```(Δ μ k l ini Ᾰ) >>= tactic.exact
-meta def my_Δ' : tactic unit := tactic.to_expr ```(Δ' μ k l ini Ᾰ Ῐ) >>= tactic.exact
 
 local notation `X_` := λ Ᾰ, by my_X
 local notation `p_` := λ Ᾰ, by my_p
 local notation `h_` := λ Ᾰ, by my_h
-local notation `Δ_` := λ Ᾰ, by my_Δ
-local notation `Δ'_` := λ Ᾰ Ῐ, by my_Δ'
 local notation `ℛ` := by my_R
 local notation `ℬ` := by my_B
 local notation `𝒮` := by my_S
@@ -108,6 +106,7 @@ begin
   { exact nat.succ_le_succ (by simp) },
 end
 
+/-- The maximum value of the height, for the sums in section 8 -/
 noncomputable def max_height (k : ℕ) : ℕ :=
 ⌊2 / ((k : ℝ) ^ (-1 / 4 : ℝ)) * log k⌋₊ + 1
 

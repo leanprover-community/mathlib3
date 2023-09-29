@@ -381,7 +381,7 @@ end
 --   { positivity },
 -- end
 
-lemma U_lower_bound_ratio_lower_bound_ten {k l m n : ℕ} {δ : ℝ} (hml : m ≤ l) (hk₀ : 0 < k)
+lemma U_lower_bound_ratio_lower_bound_ten {k l m n : ℕ} {δ : ℝ} (hml : m ≤ l)
   (hn : exp δ * (k + l).choose l ≤ n) :
   exp δ * ((k + l - m).choose k : ℝ) ≤ n * U_lower_bound_ratio 0 k l m :=
 begin
@@ -664,7 +664,7 @@ lemma ten_one_a (n k l : ℕ) (γ δ : ℝ)
   false :=
 begin
   have h₁ := k_ratio hk9l h5lk hxy.1,
-  have h₂ := U_lower_bound_ratio_lower_bound_ten hml.le (hl₀.trans_le hlk) hm.le,
+  have h₂ := U_lower_bound_ratio_lower_bound_ten hml.le hm.le,
   replace h₂ := (large_number hγu hδ hml.le h₁ (hl₀.trans_le hlk) (hk₈.trans hlk)).trans h₂,
   replace h₂ := h₂.trans hx.2,
   have h₃ : 2 ≤ (common_blues χ x).card,
@@ -712,7 +712,7 @@ begin
   suffices : (ramsey_number ![k, l - x.card] : ℝ) ≤ (common_blues χ x).card,
   { rw nat.cast_le at this,
     exact nine_one_end hχ hx (ramsey_number_le_finset this χ) },
-  have := (U_lower_bound_ratio_lower_bound_ten hml.le (hl₀.trans_le hlk) hm.le).trans hx.2,
+  have := (U_lower_bound_ratio_lower_bound_ten hml.le hm.le).trans hx.2,
   refine this.trans' _,
   refine h₉₁.trans _,
   rw [←nat.choose_symm_add, nat.add_sub_assoc hml.le],

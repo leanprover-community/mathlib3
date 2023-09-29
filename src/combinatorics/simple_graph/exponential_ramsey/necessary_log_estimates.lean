@@ -657,14 +657,6 @@ end values
 
 open real simple_graph
 
-lemma has_deriv_at.logb {f : ℝ → ℝ} {x b f' : ℝ} (hf : has_deriv_at f f' x)
-  (hx : f x ≠ 0) : has_deriv_at (λ y, logb b (f y)) (f' / (f x * log b)) x :=
-by simpa [div_div] using (hf.log hx).div_const (log b)
-
-lemma has_deriv_at_logb {x b : ℝ} (hx : x ≠ 0) :
-  has_deriv_at (logb b) (1 / (x * log b)) x :=
-(has_deriv_at_id' _).logb hx
-
 -- this expression is nicer to compare to g
 noncomputable def g' (y : ℝ) := logb 2 (5 / 2) + (3 / 5 * y + 0.5454) * logb 2 (5 / 3) +
     y * logb 2 ((y + 2727 / 8000) / ((25 / 16) * y))

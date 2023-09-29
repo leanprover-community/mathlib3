@@ -15,7 +15,7 @@ open_locale big_operators exponential_ramsey nat real
 open filter nat real set asymptotics
 
 lemma g_monotone {x₀ x₁ y : ℝ} (hy₀ : 0 ≤ y) (hy₁ : y ≤ 1)
-  (hx₀ : 0 ≤ x₀) (hx : x₀ ≤ x₁) (hx₁ : x₁ ≤ 1) :
+  (hx₀ : 0 ≤ x₀) (hx : x₀ ≤ x₁) :
   g x₀ y ≤ g x₁ y :=
 begin
   rw [g_eq, g_eq, add_assoc, add_assoc, add_le_add_iff_left],
@@ -28,7 +28,7 @@ begin
   exact div_le_div_of_le hy₀.le (add_le_add_right hx _)
 end
 
-lemma f_antitone_aux {y : ℝ} (hy₀ : 0 ≤ y) (hy₁ : y ≤ 1)
+lemma f_antitone_aux {y : ℝ}
   (hl : ∀ x₀ x₁, 0 ≤ x₀ → x₀ ≤ x₁ → x₁ ≤ 1 → f1 x₁ y ≤ f1 x₀ y)
   (hu : ∀ x₀ x₁, 0.75 ≤ x₀ → x₀ ≤ x₁ → x₁ ≤ 1 → f2 x₁ y ≤ f2 x₀ y) :
   ∀ x₀ x₁, 0 ≤ x₀ → x₀ ≤ x₁ → x₁ ≤ 1 → f x₁ y ≤ f x₀ y :=
@@ -50,11 +50,10 @@ begin
   exact hl _ _ hx₀ hx hx₁,
 end
 
-lemma f_antitone {x₀ x₁ y : ℝ} (hx₀ : 0 ≤ x₀) (hx : x₀ ≤ x₁) (hx₁ : x₁ ≤ 1)
-  (hy₀ : 0 ≤ y) (hy₁ : y ≤ 1) :
+lemma f_antitone {x₀ x₁ y : ℝ} (hx₀ : 0 ≤ x₀) (hx : x₀ ≤ x₁) (hx₁ : x₁ ≤ 1) :
   f x₁ y ≤ f x₀ y :=
 begin
-  refine f_antitone_aux hy₀ hy₁ _ _ _ _ hx₀ hx hx₁,
+  refine f_antitone_aux _ _ _ _ hx₀ hx hx₁,
   { rw ←antitone_on_Icc_iff,
     exact strict_anti_on_f1.antitone_on },
   { rw ←antitone_on_Icc_iff,
@@ -100,10 +99,10 @@ begin
   cases le_total x xy,
   { refine (min_le_right _ _).trans_lt _,
     refine (claim_a2 hxy hy rfl).trans_le' _,
-    exact g_monotone hy.1 (hy.2.trans (by norm_num1)) hx.1 h hxy.2 },
+    exact g_monotone hy.1 (hy.2.trans (by norm_num1)) hx.1 h },
   refine (min_le_left _ _).trans_lt _,
   refine (claim_a34 hxy hy rfl).trans_le' _,
-  exact f_antitone hxy.1 h hx.2 hy.1 (hy.2.trans (by norm_num1)),
+  exact f_antitone hxy.1 h hx.2,
 end
 
 lemma main_calculation_useful {x y z : ℝ} (hx : x ∈ Icc (0 : ℝ) 1) (hy : y ∈ Icc (0 : ℝ) 0.75) :
@@ -153,14 +152,14 @@ by filter_upwards [exponential_ramsey] with k hk using
   hk.trans (pow_le_pow_of_le_left (by norm_num1) (by norm_num1) _)
 
 theorem theorem_one :
-  ∃ ε : ℝ, ε > 0 ∧ ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+  ∃ ε > 0, ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
 ⟨(2 : ℝ) ^ (-10 : ℤ), by norm_num1, theorem_one_explicit⟩
 
 theorem theorem_one' :
-  ∃ ε : ℝ, ε > 0 ∧ ∃ K : ℕ, ∀ k ≥ K, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+  ∃ ε > 0, ∃ K : ℕ, ∀ k ≥ K, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
 ⟨(2 : ℝ) ^ (-10 : ℤ), by norm_num1, eventually_at_top.1 theorem_one_explicit⟩
 
-theorem theorem_one'' : ∃ c : ℝ, c < 4 ∧ ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ c ^ k :=
+theorem theorem_one'' : ∃ c < 4, ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ c ^ k :=
 ⟨3.999, by norm_num1, exponential_ramsey⟩
 
 end simple_graph

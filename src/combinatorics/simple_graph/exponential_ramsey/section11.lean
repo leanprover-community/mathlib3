@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import combinatorics.simple_graph.exponential_ramsey.section10
+import information_theory.binary_entropy
+import analysis.calculus.mean_value_mathlib
+import analysis.special_functions.log.base_mathlib
 
 /-!
 # Section 11
@@ -13,19 +16,6 @@ namespace simple_graph
 open_locale big_operators exponential_ramsey nat real
 
 open filter finset nat real asymptotics
-
--- lemma eleven_one_start (μ : ℝ) (hμ₀ : 0 < μ) (hμ₁ : μ < 1) :
---   ∃ f : ℕ → ℝ, f =o[at_top] (λ i, (i : ℝ)) ∧
---     ∀ᶠ k : ℕ in at_top,
---     ∀ n : ℕ, 2 ≤ n →
---     ∀ χ : top_edge_labelling (fin n) (fin 2),
---     ¬ (∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of m c ∧ ![k, k] c ≤ m.card) →
---     ∀ (ini : book_config χ), 1 / 2 ≤ ini.p → ⌊(n / 2 : ℝ)⌋₊ ≤ ini.X.card →
---     let s := (density_steps μ k k ini).card,
---         t := (red_steps μ k k ini).card
---     in logb 2 n ≤ k * logb 2 μ⁻¹ + t * logb 2 (1 - μ)⁻¹ + s * logb 2 (μ * (s + t) / s) + f k :=
--- begin
--- end
 
 lemma large_X (n m : ℕ) (hn'' : 2 ≤ n) (hn' : ⌊(n / 2 : ℝ)⌋₊ ≤ m) : (2 : ℝ) ^ (-2 : ℝ) * n ≤ m :=
 begin
@@ -658,6 +648,10 @@ begin
   exact ⟨χ, λ _, ⟨hχ, hχ'⟩⟩
 end
 
+/--
+Get a choice of colouring with the appropriate properties: more than half red edges and no
+monochromatic cliques of size k.
+-/
 noncomputable def get_χ (k : ℕ) :
   top_edge_labelling (fin ⌈(ramsey_number ![k, k] : ℝ) / 2⌉₊) (fin 2) :=
 (exists_nicer_χ k).some
@@ -686,6 +680,7 @@ begin
   exact ⟨ini, λ _, ⟨hini, hiniX, hiniY⟩⟩,
 end
 
+/-- Get the start configuration which has the appropriate density and sizes -/
 noncomputable def get_ini (k : ℕ) : book_config (get_χ k) := (exists_nicer_ini k).some
 lemma get_ini_p {k : ℕ} (hk : 4 ≤ k) : (get_χ k).density 0 ≤ (get_ini k).p :=
 ((exists_nicer_ini k).some_spec hk).1
@@ -711,50 +706,6 @@ begin
     positivity },
   rw [nat.cast_pos],
   positivity
-end
-
-noncomputable def bin_ent (b p : ℝ) : ℝ := - p * logb b p - (1 - p) * logb b (1 - p)
-@[simp] lemma bin_ent_zero {b : ℝ} : bin_ent b 0 = 0 := by simp [bin_ent]
-lemma bin_ent_symm {b p : ℝ} : bin_ent b (1 - p) = bin_ent b p :=
-  by { rw [bin_ent, sub_sub_cancel, bin_ent], ring }
-@[simp] lemma bin_ent_one {b : ℝ} : bin_ent b 1 = 0 := by simp [bin_ent]
-
-lemma bin_ent_nonneg {b p : ℝ} (hb : 1 < b) (hp₀ : 0 ≤ p) (hp₁ : p ≤ 1) : 0 ≤ bin_ent b p :=
-begin
-  have : ∀ x, 0 ≤ x → x ≤ 1 → 0 ≤ -(x * logb b x),
-  { intros x hx₀ hx₁,
-    rw [right.nonneg_neg_iff],
-    exact mul_nonpos_of_nonneg_of_nonpos hx₀ (logb_nonpos hb hx₀ hx₁) },
-  rw [bin_ent, sub_eq_add_neg, neg_mul],
-  exact add_nonneg (this _ hp₀ hp₁) (this _ (sub_nonneg_of_le hp₁) (sub_le_self _ hp₀)),
-end
-
-lemma bin_ent_eq {b p : ℝ} : bin_ent b p = (- (p * log p) + -((1 - p) * log (1 - p))) / log b :=
-by rw [bin_ent, logb, logb, neg_mul, sub_eq_add_neg, add_div, mul_div_assoc', mul_div_assoc',
-  neg_div, neg_div]
-
--- exists_deriv_eq_slope
-
-theorem convex.strict_mono_on_of_has_deriv_at_pos {D : set ℝ} (hD : convex ℝ D) {f f' : ℝ → ℝ}
-  (hf : ∀ x ∈ D, has_deriv_at f (f' x) x) (hf' : ∀ x ∈ interior D, 0 < f' x) :
-  strict_mono_on f D :=
-begin
-  refine convex.strict_mono_on_of_deriv_pos hD _ _,
-  { exact has_deriv_at.continuous_on hf },
-  intros x hx,
-  rw has_deriv_at.deriv (hf x (interior_subset hx)),
-  exact hf' x hx
-end
-
-theorem convex.strict_anti_on_of_has_deriv_at_neg {D : set ℝ} (hD : convex ℝ D) {f f' : ℝ → ℝ}
-  (hf : ∀ x ∈ D, has_deriv_at f (f' x) x) (hf' : ∀ x ∈ interior D, f' x < 0) :
-  strict_anti_on f D :=
-begin
-  refine convex.strict_anti_on_of_deriv_neg hD _ _,
-  { exact has_deriv_at.continuous_on hf },
-  intros x hx,
-  rw has_deriv_at.deriv (hf x (interior_subset hx)),
-  exact hf' x hx
 end
 
 lemma bin_ent_deriv_aux (x : ℝ) (hx₀ : x ≠ 0) (hx₁ : x ≠ 1) :
@@ -855,11 +806,15 @@ begin
   exact h _ _ hx₁ hxy hy₂
 end
 
+/-- Function f1 from the paper -/
 noncomputable def f1 (x y : ℝ) : ℝ := x + y + (2 - x) * bin_ent 2 (1 / (2 - x))
+/-- Function f2 from the paper -/
 noncomputable def f2 (x y : ℝ) : ℝ := x + y + (2 - x) * bin_ent 2 (1 / (2 - x)) -
   1 / (log 2 * 40) * ((1 - x) / (2 - x))
 
+/-- Function f from the paper -/
 noncomputable def f (x y : ℝ) : ℝ := if 3 / 4 ≤ x then f2 x y else f1 x y
+/-- Function g from the paper -/
 noncomputable def g (x y : ℝ) : ℝ := G (2 / 5) x y
 
 lemma f_eq (x y : ℝ) : f x y =

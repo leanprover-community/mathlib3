@@ -25,9 +25,13 @@ end
 variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
 variables {k l : ℕ} {ini : book_config χ} {i : ℕ}
 
+/-- delete -/
 meta def my_X : tactic unit := tactic.to_expr ```((algorithm μ k l ini Ᾰ).X) >>= tactic.exact
+/-- all -/
 meta def my_t : tactic unit := tactic.to_expr ```((red_steps μ k l ini).card) >>= tactic.exact
+/-- of -/
 meta def my_s : tactic unit := tactic.to_expr ```((density_steps μ k l ini).card) >>= tactic.exact
+/-- these -/
 meta def my_h : tactic unit := tactic.to_expr ```(height k ini.p Ᾰ) >>= tactic.exact
 
 local notation `X_` := λ Ᾰ, by my_X
@@ -237,10 +241,12 @@ end
 
 lemma height_p_zero {p₀ : ℝ} : height k p₀ p₀ = 1 := height_eq_one le_rfl
 
+/-- The set of moderate steps, S* -/
 noncomputable def moderate_steps (μ) (k l) (ini : book_config χ) : finset ℕ :=
 (density_steps μ k l ini).filter $
   λ i, (height k ini.p (p_ (i + 1)) : ℝ) - height k ini.p (p_ i) ≤ k ^ (1 / 16 : ℝ)
 
+/-- ugh -/
 meta def my_S_star : tactic unit := tactic.to_expr ```(moderate_steps μ k l ini) >>= tactic.exact
 
 local notation `𝒮⁺` := by my_S_star
@@ -488,6 +494,7 @@ begin
   exact hk' k hlk
 end
 
+/-- The parameter `β` of the algorithm. -/
 noncomputable def beta (μ : ℝ) (k l : ℕ) (ini : book_config χ) : ℝ :=
 if 𝒮⁺ = ∅ then μ
   else (moderate_steps μ k l ini).card * (∑ i in 𝒮⁺, 1 / blue_X_ratio μ k l ini i)⁻¹
@@ -1104,6 +1111,7 @@ begin
   exact hl₀ k hlk
 end
 
+/-- `q*` -/
 noncomputable def q_star (k : ℕ) (p₀ : ℝ) : ℝ := p₀ + k ^ (1 / 16 : ℝ) * α_function k 1
 lemma q_star_eq (k : ℕ) (p₀ : ℝ) : q_star k p₀ = p₀ + k ^ (-19 / 16 : ℝ) :=
 begin

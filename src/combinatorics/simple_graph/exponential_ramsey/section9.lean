@@ -1024,6 +1024,7 @@ open fintype
 
 section
 
+/-- The density of a simple graph. -/
 def density (G : simple_graph V) [decidable_rel G.adj] : ℚ :=
 G.edge_finset.card / (card V).choose 2
 
@@ -1034,7 +1035,7 @@ begin
   refl
 end
 
-lemma univ_image_quotient_mk {α : Type*} (s : finset α) [fintype α] [decidable_eq α] :
+lemma univ_image_quotient_mk {α : Type*} (s : finset α) [decidable_eq α] :
   s.off_diag.image quotient.mk = s.sym2.filter (λ a, ¬ a.is_diag) :=
 (sym2.filter_image_quotient_mk_not_is_diag _).symm
 
@@ -1155,7 +1156,7 @@ begin
   { simp },
 end
 
-lemma sum_powerset_len_insert {α β : Type*} [fintype α] [decidable_eq α] [add_comm_monoid β] {n : ℕ}
+lemma sum_powerset_len_insert {α β : Type*} [decidable_eq α] [add_comm_monoid β] {n : ℕ}
   {s : finset α} (f : finset α → α → β) :
   ∑ U in powerset_len (n + 1) s, ∑ x in U, f U x =
     ∑ x in s, ∑ U in powerset_len n (s.erase x), f (insert x U) x :=
@@ -1289,6 +1290,7 @@ end
 
 end
 
+/--  The density of a label in the edge labelling. -/
 def top_edge_labelling.density {K : Type*} [decidable_eq K] (χ : top_edge_labelling V K) (k : K) :
   ℝ := density (χ.label_graph k)
 
@@ -1336,7 +1338,7 @@ begin
   { norm_num },
 end
 
-lemma nine_two_numeric {γ η : ℝ} (hγl : 0 ≤ γ) (hγu : γ ≤ 1 / 10) (hηγ : η ≤ γ / 15) :
+lemma nine_two_numeric {γ η : ℝ} (hγu : γ ≤ 1 / 10) (hηγ : η ≤ γ / 15) :
   exp (- 1 / 3 + 1 / 5) ≤ (1 - γ - η) ^ (1 / (1 - γ)) :=
 begin
   refine (nine_two_numeric_aux hγu hηγ).trans' _,
@@ -1444,7 +1446,7 @@ lemma nine_two_part_five {k t : ℕ} {η γ γ₀ δ fk : ℝ} (hη₀ : 0 ≤ �
 begin
   rw [mul_right_comm _ ((1 - γ - η) ^ (_ : ℝ)), mul_right_comm, mul_assoc],
   refine (mul_le_mul_of_nonneg_left (nine_two_part_two hγ₀'.le hγu hηγ ht hk
-    (nine_two_numeric hγ₀'.le hγu hηγ)) _).trans' _,
+    (nine_two_numeric hγu hηγ)) _).trans' _,
   { exact mul_nonneg (exp_pos _).le (pow_nonneg (div_nonneg h₂
       (sub_pos_of_lt hγ₁).le) _) },
   rw [mul_right_comm, ←real.exp_add],
@@ -1482,7 +1484,7 @@ end
 -- TODO: move
 section
 
-variables {V K : Type*} [decidable_eq K] [fintype K] {n : K → ℕ}
+variables {V K : Type*} {n : K → ℕ}
 
 lemma ramsey_number_le_finset_aux {s : finset V} (C : top_edge_labelling V K)
   (h : ∃ (m : finset s) (c : K),
@@ -1499,8 +1501,8 @@ end
 
 -- there should be a version of this for is_ramsey_valid and it should be useful *for* the proof
 -- that ramsey numbers exist
-lemma ramsey_number_le_finset {s : finset V} (h : ramsey_number n ≤ s.card)
-  (C : top_edge_labelling V K) :
+lemma ramsey_number_le_finset [decidable_eq K] [fintype K] {s : finset V}
+  (h : ramsey_number n ≤ s.card) (C : top_edge_labelling V K) :
   ∃ (m : finset V) (c : K), m ⊆ s ∧ C.monochromatic_of m c ∧ n c ≤ m.card :=
 begin
   have : ramsey_number n ≤ fintype.card s, { rwa fintype.card_coe },
@@ -1574,6 +1576,7 @@ begin
   exact (end_state γ k l ini).hYA.symm.mono_right hm₀,
 end
 
+/-- A finite set viewed as a finset is equivalent to itself. -/
 def equiv.to_finset {α : Type*} {s : set α} [fintype s] : s.to_finset ≃ s :=
 ⟨λ x, ⟨x, by simpa using x.2⟩, λ x, ⟨x, by simp⟩, λ x, subtype.ext rfl, λ x, subtype.ext rfl⟩
 
@@ -1596,6 +1599,7 @@ begin
   exact equiv.to_finset.trans (e.map_edge_set.trans equiv.to_finset.symm),
 end
 
+/-- Pulling back a colouring along an equivalence induces a graph isomorphism -/
 def label_graph_iso {V V' K : Type*} {χ : top_edge_labelling V K} (k : K) (f : V' ≃ V) :
   (χ.pullback f.to_embedding).label_graph k ≃g χ.label_graph k :=
 { to_equiv := f,
@@ -1667,6 +1671,7 @@ begin
   { positivity },
 end
 
+/-- Part of the right hand side of (50) -/
 noncomputable def U_lower_bound_ratio (ξ : ℝ) (k l m : ℕ) : ℝ :=
 (1 + ξ) ^ m * ∏ i in range m, (l - i) / (k + l - i)
 
@@ -1817,6 +1822,7 @@ begin
   positivity
 end
 
+/-- Cliques which are useful for section 9 and 10 -/
 def is_good_clique {n : ℕ} (ξ : ℝ) (k l : ℕ)
   (χ : top_edge_labelling (fin n) (fin 2)) (x : finset (fin n)) : Prop :=
 χ.monochromatic_of x 1 ∧
@@ -1988,10 +1994,9 @@ begin
   exact nine_one_end hχ hx this
 end
 
-lemma nine_one_part_three {k l m n : ℕ} {γ γ' δ : ℝ} {χ : top_edge_labelling (fin n) (fin 2)}
-  (hχ : ¬∃ (m : finset (fin n)) (c : fin 2), χ.monochromatic_of ↑m c ∧ ![k, l] c ≤ m.card)
-  (hml : m < l) (hk₀ : 0 < k)
-  (hγ : γ = l / (k + l)) (hδ : δ = γ / 20) (hγ' : γ' = (l - m) / (k + l - m))
+lemma nine_one_part_three {k l m : ℕ} {γ γ' δ : ℝ}
+  (hml : m < l) (hk₀ : 0 < k) (hγ : γ = l / (k + l)) (hδ : δ = γ / 20)
+  (hγ' : γ' = (l - m) / (k + l - m))
   (h : exp (-δ * k) * ((k + l).choose l) * U_lower_bound_ratio (1 / 16) k l m <
     exp (-(γ' / 20) * k) * ↑((k + (l - m)).choose (l - m))) :
   false :=
@@ -2033,7 +2038,7 @@ begin
   { positivity },
 end
 
-lemma l_minus_m_big (γ₀ : ℝ) (hγ₀ : 0 < γ₀) {k l m : ℕ} (hml : m ≤ l) (hl₀ : 0 < l)
+lemma l_minus_m_big (γ₀ : ℝ) {k l m : ℕ} (hml : m ≤ l) (hl₀ : 0 < l)
   (hkl : (k : ℝ) ≤ l * (γ₀⁻¹ - 1))
   (h₁ : 0 < γ₀⁻¹ - 1 + 2)
   (h₂ : 0 < (γ₀⁻¹ - 1 + 2)⁻¹)
@@ -2105,7 +2110,7 @@ begin
   have hγ'γ : γ' ≤ γ := (gamma'_le_gamma (hl₀.trans_le hlk) hml.le).trans_eq hγ.symm,
   have hlm : ⌈(l : ℝ) * (γ₀⁻¹ - 1 + 2)⁻¹⌉₊ ≤ l - m,
   { rw [←not_lt, gamma'_le_gamma_iff hml.le (hl₀.trans_le hlk), not_lt] at hγ',
-    exact l_minus_m_big _ hγ₀ hml.le hl₀ hkl h₁ h₂ hγ' },
+    exact l_minus_m_big _ hml.le hl₀ hkl h₁ h₂ hγ' },
   have hγ'_eq : γ' = ↑(l - m) / (↑k + ↑(l - m)),
   { rw [nat.cast_sub hml.le, add_sub_assoc'] },
   have hγ'₀ : 0 ≤ γ',
@@ -2124,7 +2129,7 @@ begin
   replace hk₉₂ := hx.2.trans hk₉₂.le,
   replace hk₉₂ := (mul_lt_mul_of_pos_right hm (U_lower_bound_ratio_pos (by norm_num1)
     hml.le)).trans_le hk₉₂,
-  exact nine_one_part_three hχ hml (hl₀.trans_le hlk) hγ hδ rfl hk₉₂,
+  exact nine_one_part_three hml (hl₀.trans_le hlk) hγ hδ rfl hk₉₂,
 end
 
 lemma nine_one_o_filter (γ₀ : ℝ) (hγ₀ : 0 < γ₀) :

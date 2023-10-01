@@ -201,8 +201,8 @@ begin
   simp only [function.embedding.coe_fn_mk, mem_neighbor_finset, iff_self, implies_true_iff],
 end
 
-lemma col_density_eq_sum {K : Type*} [fintype V] [decidable_eq K] {χ : top_edge_labelling V K} {k : K}
-  {A B : finset V} :
+lemma col_density_eq_sum {K : Type*} [fintype V] [decidable_eq K] {χ : top_edge_labelling V K}
+  {k : K} {A B : finset V} :
   col_density χ k A B = (∑ x in A, (col_neighbors χ k x ∩ B).card) / (A.card * B.card) :=
 begin
   rw [col_density, edge_density_def, interedges_card_eq_sum],

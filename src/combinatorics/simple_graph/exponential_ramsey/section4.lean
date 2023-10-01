@@ -391,9 +391,9 @@ end
 open filter finset real
 
 namespace simple_graph
-variables {V : Type*} [decidable_eq V] [fintype V] {χ : top_edge_labelling V (fin 2)}
+variables {V : Type*} [decidable_eq V] {χ : top_edge_labelling V (fin 2)}
 
-lemma four_one_part_one (μ : ℝ) (l k : ℕ) (C : book_config χ)
+lemma four_one_part_one [fintype V] (μ : ℝ) (l k : ℕ) (C : book_config χ)
   (hC : ramsey_number ![k, ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊] ≤ C.num_big_blues μ)
   (hR : ¬ (∃ m : finset V, χ.monochromatic_of m 0 ∧ k ≤ m.card)) :
   ∃ U : finset V, χ.monochromatic_of U 1 ∧ U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊ ∧
@@ -421,7 +421,7 @@ begin
   rw [card_map, hU''],
 end
 
-lemma col_density_mul {k : fin 2} {A B : finset V} :
+lemma col_density_mul [fintype V] {k : fin 2} {A B : finset V} :
   col_density χ k A B * A.card = (∑ x in B, (col_neighbors χ k x ∩ A).card) / B.card :=
 begin
   rcases A.eq_empty_or_nonempty with rfl | hA,
@@ -431,7 +431,7 @@ begin
   rwa [nat.cast_ne_zero, ←pos_iff_ne_zero, card_pos],
 end
 
-lemma col_density_mul_mul {k : fin 2} {A B : finset V} :
+lemma col_density_mul_mul [fintype V] {k : fin 2} {A B : finset V} :
   col_density χ k A B * (A.card * B.card) = ∑ x in B, (col_neighbors χ k x ∩ A).card :=
 begin
   rcases B.eq_empty_or_nonempty with rfl | hA,
@@ -442,7 +442,7 @@ end
 
 
 -- (10)
-lemma four_one_part_two (μ : ℝ) {l : ℕ} {C : book_config χ} {U : finset V}
+lemma four_one_part_two [fintype V] (μ : ℝ) {l : ℕ} {C : book_config χ} {U : finset V}
   (hl : l ≠ 0)
   (hU : U.card = ⌈(l : ℝ) ^ (2 / 3 : ℝ)⌉₊)
   (hU' : U ⊆ C.X) (hU'' : ∀ x ∈ U, μ * C.X.card ≤ (blue_neighbors χ x ∩ C.X).card) :
@@ -513,7 +513,7 @@ begin
   linarith only [hk₆],
 end
 
-variables {k l : ℕ} {C : book_config χ} {U : finset V} {μ₀ : ℝ}
+variables [fintype V] {k l : ℕ} {C : book_config χ} {U : finset V} {μ₀ : ℝ}
 
 lemma ceil_lt_two_mul {x : ℝ} (hx : 1 / 2 < x) : (⌈x⌉₊ : ℝ) < 2 * x :=
 begin

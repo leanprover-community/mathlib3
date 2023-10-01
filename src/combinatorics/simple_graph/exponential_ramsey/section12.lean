@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import combinatorics.simple_graph.exponential_ramsey.necessary_log_estimates
+import analysis.special_functions.log.monotone
 
 /-!
 # Section 12
@@ -162,35 +163,83 @@ theorem theorem_one' :
 theorem theorem_one'' : ∃ c < 4, ∀ᶠ k : ℕ in at_top, (ramsey_number ![k, k] : ℝ) ≤ c ^ k :=
 ⟨3.999, by norm_num1, exponential_ramsey⟩
 
--- -- (4 ^ x / sqrt x) ^ (1 / x) ≤ 4 - c
--- -- 4 * (1 / sqrt x) ^ (1 / x) ≤ 4 - c
--- -- (1 / sqrt x) ^ (1 / x) ≤ 1 - c / 4
--- -- c / 4 ≤ 1 - (1 / sqrt x) ^ (1 / x)
--- -- c ≤ 4 - 4 * (1 / sqrt x) ^ (1 / x)
--- theorem global_bound : ∃ ε > 0, ∀ k, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
--- begin
---   obtain ⟨K, hK⟩ := exponential_ramsey',
---   rcases K.eq_zero_or_pos with rfl | hK',
---   { exact ⟨0.001, by norm_num1, λ k, (hK _ (by simp)).trans (by norm_num) ⟩ },
---   let c := 4 - 4 * (1 / sqrt K) ^ (1 / K : ℝ),
---   have : 0 < c,
---   { rw [sub_pos, one_div, inv_rpow (sqrt_nonneg _), mul_lt_iff_lt_one_right],
---     swap, { norm_num1 },
---     refine inv_lt_one _,
---     refine one_lt_rpow _ (by positivity),
---     simp
---     -- refine one_lt_p
+-- With the main theorem done, we take a short detour to get a version which holds for all k
+-- but not with an explicit ε
+lemma error_increasing : antitone_on (λ x : ℝ, sqrt x ^ x⁻¹) {x | exp 1 ≤ x} :=
+begin
+  have : ∀ x, 0 < x → sqrt x ^ x⁻¹ = exp ((log x / x) * 2⁻¹),
+  { intros x hx,
+    rw [sqrt_eq_rpow, ←rpow_mul hx.le, rpow_def_of_pos hx, one_div, div_eq_mul_inv, ←mul_assoc,
+      mul_right_comm] },
+  intros x hx y hy h,
+  dsimp,
+  rw [this _ ((exp_pos _).trans_le hx), this _ ((exp_pos _).trans_le hy), exp_le_exp],
+  refine mul_le_mul_of_nonneg_right _ (by norm_num1),
+  exact real.log_div_self_antitone_on hx hy h
+end
 
---     -- simp only [one_div, inv_pow, mul_lt_iff_lt_one_right, zero_lt_bit0, zero_lt_one],
+-- for really small numbers, use the known values to get an exponential improvement
+theorem tiny_bound : ∀ k ≤ 4, (ramsey_number ![k, k] : ℝ) ≤ (4 - 1) ^ k
+| 0 _ := by simp
+| 1 _ := by norm_num [ramsey_number_one_succ]
+| 2 _ := by norm_num [ramsey_number_two_left]
+| 3 _ := by rw [←diagonal_ramsey, diagonal_ramsey_three]; norm_num
+| 4 _ := by rw [←diagonal_ramsey, diagonal_ramsey_four]; norm_num
+| (n+5) h := by linarith [h]
 
---   },
---   refine ⟨min 0.001 c, lt_min (by norm_num1) sorry, _⟩,
---   intro k,
---   cases le_total K k,
---   { refine (hK k h).trans _,
---     refine pow_le_pow_of_le_left (by norm_num1) sorry _ },
---   refine diagonal_ramsey_upper_bound_simpler.trans _,
+-- for moderate numbers, use Erdos-Szekeres with Stirling to get an exponential improvement
+-- note this works precisely because we have a constant upper bound on k
+theorem medium_bound {K k : ℕ} {c : ℝ} (hkl : 4 < k) (hk' : k ≤ K)
+  (hc : c = 4 - 4 * (sqrt K) ^ (-K⁻¹ : ℝ)) :
+  (ramsey_number ![k, k] : ℝ) ≤ (4 - c) ^ k :=
+begin
+  refine diagonal_ramsey_upper_bound_simpler.trans _,
+  rw [hc, sub_sub_self, mul_pow, div_eq_mul_inv],
+  refine mul_le_mul_of_nonneg_left _ (by positivity),
+  have h₁ : (0 : ℝ) < k := by positivity,
+  have h₂ : (0 : ℝ) < k⁻¹ := by positivity,
+  rw [←rpow_le_rpow_iff _ _ h₂, ←rpow_nat_cast _ k, ←rpow_mul, mul_inv_cancel h₁.ne', rpow_one,
+    rpow_neg (sqrt_nonneg _), inv_rpow (sqrt_nonneg _)],
+  rotate,
+  { positivity },
+  { positivity },
+  { positivity },
+  refine inv_le_inv_of_le (rpow_pos_of_pos (sqrt_pos_of_pos (nat.cast_pos.2 (by linarith))) _) _,
+  have h₃ : exp 1 ≤ k := (nat.cast_le.2 hkl.le).trans' (exp_one_lt_d9.le.trans (by norm_num1)),
+  have h₄ : (k : ℝ) ≤ K := nat.cast_le.2 hk',
+  exact error_increasing h₃ (h₃.trans h₄) h₄
+end
 
--- end
+-- Without making the lower bound explicit in `exponential_ramsey`, we can't make `ε` here explicit
+-- either.
+theorem global_bound : ∃ ε > 0, ∀ k, (ramsey_number ![k, k] : ℝ) ≤ (4 - ε) ^ k :=
+begin
+  obtain ⟨K, hK₄, hK : ∀ k : ℕ, _ ≤ _ → _ ≤ _⟩ := (at_top_basis' 4).mem_iff.1 exponential_ramsey,
+  let c := 4 - 4 * (sqrt K) ^ (-K⁻¹ : ℝ),
+  have : 0 < c,
+  { rw [sub_pos, mul_lt_iff_lt_one_right, rpow_neg (sqrt_nonneg _)],
+    swap, { norm_num1 },
+    refine inv_lt_one (one_lt_rpow _ _),
+    { rw [lt_sqrt zero_le_one, one_pow, nat.one_lt_cast],
+      linarith only [hK₄] },
+    positivity },
+  refine ⟨min 0.001 c, lt_min (by norm_num1) this, _⟩,
+  intro k,
+  cases le_total K k,
+  { refine (hK k h).trans (pow_le_pow_of_le_left (by norm_num1) _ _),
+    rw [le_sub_comm],
+    refine (min_le_left _ _).trans (by norm_num1) },
+  cases le_or_lt k 4 with h₄ h₄,
+  { refine (tiny_bound k h₄).trans _,
+    refine pow_le_pow_of_le_left (by norm_num1) _ _,
+    rw [le_sub_comm],
+    exact (min_le_left _ _).trans (by norm_num1) },
+  refine (medium_bound h₄ h rfl).trans _,
+  refine pow_le_pow_of_le_left _ _ _,
+  { rw [sub_sub_self],
+    positivity },
+  rw [sub_le_sub_iff_left],
+  exact min_le_right _ _
+end
 
 end simple_graph

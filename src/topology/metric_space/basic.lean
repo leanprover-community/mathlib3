@@ -52,7 +52,7 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topology big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal pointwise
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}
@@ -2171,6 +2171,13 @@ end
 @[simp] lemma bounded_empty : bounded (∅ : set α) :=
 ⟨0, by simp⟩
 
+lemma nonempty_of_unbounded (h : ¬ bounded s) : s.nonempty :=
+begin
+  rw nonempty_iff_ne_empty,
+  rintro rfl,
+  exact h bounded_empty
+end
+
 lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
 ⟨λ h _ _, h, λ H,
   s.eq_empty_or_nonempty.elim
@@ -2452,6 +2459,8 @@ diam_subsingleton subsingleton_empty
 /-- A singleton has zero diameter -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
+
+@[simp, to_additive] lemma diam_one [has_one α] : diam (1 : set α) = 0 := diam_singleton
 
 -- Does not work as a simp-lemma, since {x, y} reduces to (insert y {x})
 lemma diam_pair : diam ({x, y} : set α) = dist x y :=

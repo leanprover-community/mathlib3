@@ -1,23 +1,27 @@
-# Lean mathlib
+# Lean 3's mathlib
+
+> [!WARNING]  
+> Lean 3 and Mathlib 3 are no longer actively maintained.
+> It is strongly recommended that you use [mathlib4](https://github.com/leanprover-community/mathlib4) for Lean 4 instead.
 
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
 [![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://leanprover.zulipchat.com)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/leanprover-community/mathlib)
 
-[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
+[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean 3 theorem prover](https://github.com/leanprover-community/lean).
 It contains both programming infrastructure and mathematics,
 as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 
-You can find detailed instructions to install Lean, mathlib, and supporting tools on [our website](https://leanprover-community.github.io/get_started.html).
+You can find detailed instructions to install Lean, mathlib, and supporting tools on [our website](https://leanprover-community.github.io/lean3/get_started.html).
 
 ## Experimenting
 
-Got everything installed? Why not start with the [tutorial project](https://leanprover-community.github.io/install/project.html)?
+Got everything installed? Why not start with the [tutorial project](https://leanprover-community.github.io/lean3/install/project.html)?
 
-For more pointers, see [Learning Lean](https://leanprover-community.github.io/learn.html).
+For more pointers, see [Learning Lean](https://leanprover-community.github.io/lean3/learn.html).
 
 ## Documentation
 
@@ -50,7 +54,7 @@ welcomed.
 ## Contributing
 
 The complete documentation for contributing to ``mathlib`` is located
-[on the community guide contribute to mathlib](https://leanprover-community.github.io/contribute/index.html)
+[on the community guide contribute to mathlib](https://leanprover-community.github.io/lean3/contribute/index.html)
 
 The process is different from other projects where one should not fork the repository.
 Instead write permission for non-master branches should be requested on [Zulip](https://leanprover.zulipchat.com)

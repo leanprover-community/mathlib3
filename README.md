@@ -15,7 +15,7 @@ as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 
-You can find detailed instructions to install Lean, mathlib, and supporting tools on [our website](https://leanprover-community.github.io/lean3/get_started.html).
+You can find detailed instructions to install Lean 3, mathlib 3, and supporting tools on [our website](https://leanprover-community.github.io/lean3/get_started.html).
 
 ## Experimenting
 
@@ -26,7 +26,7 @@ For more pointers, see [Learning Lean](https://leanprover-community.github.io/le
 ## Documentation
 
 Besides the installation guides above and [Lean's general
-documentation](https://leanprover.github.io/documentation/), the documentation
+documentation](https://leanprover.github.io/lean3/documentation/), the documentation
 of mathlib consists of:
 
 - [The mathlib docs](https://leanprover-community.github.io/mathlib_docs): documentation [generated
@@ -37,10 +37,10 @@ of mathlib consists of:
   - [hole commands](https://leanprover-community.github.io/mathlib_docs/hole_commands.html), and
   - [attributes](https://leanprover-community.github.io/mathlib_docs/attributes.html).
 - A description of [currently covered theories](https://leanprover-community.github.io/theories.html),
-  as well as an [overview](https://leanprover-community.github.io/mathlib-overview.html) for mathematicians.
+  as well as an [overview](https://leanprover-community.github.io/lean3/mathlib-overview.html) for mathematicians.
 - A couple of [tutorial Lean files](docs/tutorial/)
-- Some [extra Lean documentation](https://leanprover-community.github.io/learn.html) not specific to mathlib (see "Miscellaneous topics")
-- Documentation for people who would like to [contribute to mathlib](https://leanprover-community.github.io/contribute/index.html)
+- Some [extra Lean documentation](https://leanprover-community.github.io/lean3/learn.html) not specific to mathlib (see "Miscellaneous topics")
+- Documentation for people who would like to [contribute to mathlib3](https://leanprover-community.github.io/lean3/contribute/index.html)
 
 Much of the discussion surrounding mathlib occurs in a
 [Zulip chat room](https://leanprover.zulipchat.com/). Since this
@@ -53,6 +53,9 @@ welcomed.
 
 ## Contributing
 
+> [!WARNING]  
+> Contributions are no longer accepted to mathlib 3; contribute to mathlib 4 instead!
+
 The complete documentation for contributing to ``mathlib`` is located
 [on the community guide contribute to mathlib](https://leanprover-community.github.io/lean3/contribute/index.html)
 
@@ -64,9 +67,9 @@ by introducing yourself, providing your GitHub handle and what contribution you 
 
 Mathlib has the following guidelines and conventions that must be followed
 
- - The [style guide](https://leanprover-community.github.io/contribute/style.html)
- - A guide on the [naming convention](https://leanprover-community.github.io/contribute/naming.html)
- - The [documentation style](https://leanprover-community.github.io/contribute/doc.html)
+ - The [style guide](https://leanprover-community.github.io/lean3/contribute/style.html)
+ - A guide on the [naming convention](https://leanprover-community.github.io/lean3/contribute/naming.html)
+ - The [documentation style](https://leanprover-community.github.io/lean3/contribute/doc.html)
  - The [commit naming conventions](https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md)
 
 Note: the title of a PR should follow the commit naming convention.

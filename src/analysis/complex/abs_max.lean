@@ -11,6 +11,9 @@ import topology.algebra.order.extr_closure
 /-!
 # Maximum modulus principle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove several versions of the maximum modulus principle. There are several
 statements that can be called "the maximum modulus principle" for maps between normed complex
 spaces. They differ by assumptions on the domain (any space, a nontrivial space, a finite

@@ -3,8 +3,7 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import algebra.algebra.spectrum
-import analysis.special_functions.pow
+import field_theory.is_alg_closed.spectrum
 import analysis.complex.liouville
 import analysis.complex.polynomial
 import analysis.analytic.radius_liminf
@@ -12,6 +11,9 @@ import topology.algebra.module.character_space
 import analysis.normed_space.exponential
 /-!
 # The spectrum of elements in a complete normed algebra
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains the basic theory for the resolvent and spectrum of a Banach algebra.
 
@@ -312,7 +314,7 @@ begin
     simpa only [norm_to_nnreal, real.to_nnreal_coe]
       using real.to_nnreal_mono (mem_closed_ball_zero_iff.mp z_mem) },
   have H₁ : differentiable 𝕜 (λ w : 𝕜, 1 - w • a) := (differentiable_id.smul_const a).const_sub 1,
-  exact differentiable_at.comp z (differentiable_at_inverse hu.unit) (H₁.differentiable_at),
+  exact differentiable_at.comp z (differentiable_at_inverse hu) (H₁.differentiable_at),
 end
 
 end one_sub_smul

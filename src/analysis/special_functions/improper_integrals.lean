@@ -3,13 +3,17 @@ Copyright (c) 2023 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-import measure_theory.integral.integral_eq_improper
+import analysis.special_functions.integrals
 import measure_theory.group.integration
 import measure_theory.integral.exp_decay
-import analysis.special_functions.integrals
+import measure_theory.integral.integral_eq_improper
+import measure_theory.measure.lebesgue.integral
 
 /-!
 # Evaluation of specific improper integrals
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains some integrability results, and evaluations of integrals, over `ℝ` or over
 half-infinite intervals in `ℝ`.

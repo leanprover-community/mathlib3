@@ -9,6 +9,9 @@ import category_theory.limits.preserves.shapes.equalizers
 
 /-!
 # The category of bimodule objects over a pair of monoid objects.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes v₁ v₂ u₁ u₂

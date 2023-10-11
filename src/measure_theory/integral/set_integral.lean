@@ -13,6 +13,9 @@ import topology.continuous_function.compact
 /-!
 # Set integral
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some properties of `∫ x in s, f x ∂μ`. Recall that this notation
 is defined as `∫ x, f x ∂(μ.restrict s)`. In `integral_indicator` we prove that for a measurable
 function `f` and a measurable set `s` this definition coincides with another natural definition:
@@ -47,6 +50,8 @@ Note that the set notations are defined in the file `measure_theory/integral/boc
 but we reference them here because all theorems about set integrals are in this file.
 
 -/
+
+assert_not_exists inner_product_space
 
 noncomputable theory
 open set filter topological_space measure_theory function
@@ -1170,29 +1175,6 @@ begin
     rw [integral_undef hf, integral_undef, zero_smul],
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
-
-section inner
-
-variables {E' : Type*}
-variables [normed_add_comm_group E'] [inner_product_space 𝕜 E']
-variables [complete_space E'] [normed_space ℝ E']
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
-
-lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
-  ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
-((innerSL 𝕜 c).restrict_scalars ℝ).integral_comp_comm hf
-
-variables (𝕜)
--- variable binder update doesn't work for lemmas which refer to `𝕜` only via the notation
-local notation (name := inner_with_explicit) `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
-
-lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
-  (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :
-  ∫ x, f x ∂μ = 0 :=
-by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
-
-end inner
 
 lemma integral_with_density_eq_integral_smul
   {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) :

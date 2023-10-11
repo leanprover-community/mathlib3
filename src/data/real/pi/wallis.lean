@@ -7,6 +7,9 @@ import analysis.special_functions.integrals
 
 /-! # The Wallis formula for Pi
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes the Wallis product for `π` (`real.tendsto_prod_pi_div_two`). Our proof is
 largely about analyzing the behaviour of the sequence `∫ x in 0..π, sin x ^ n` as `n → ∞`.
 See: https://en.wikipedia.org/wiki/Wallis_product

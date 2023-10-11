@@ -1215,6 +1215,10 @@ by rw [to_nat_apply_of_lt_aleph_0 h, ← classical.some_spec (lt_aleph_0.1 h)]
 lemma cast_to_nat_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_aleph_0_le h, nat.cast_zero]
 
+lemma to_nat_eq_iff_eq_of_lt_aleph_0 {c d : cardinal} (hc : c < ℵ₀) (hd : d < ℵ₀) :
+  c.to_nat = d.to_nat ↔ c = d :=
+by rw [←nat_cast_inj, cast_to_nat_of_lt_aleph_0 hc, cast_to_nat_of_lt_aleph_0 hd]
+
 lemma to_nat_le_iff_le_of_lt_aleph_0 {c d : cardinal} (hc : c < ℵ₀) (hd : d < ℵ₀) :
   c.to_nat ≤ d.to_nat ↔ c ≤ d :=
 by rw [←nat_cast_le, cast_to_nat_of_lt_aleph_0 hc, cast_to_nat_of_lt_aleph_0 hd]
@@ -1357,9 +1361,83 @@ to_part_enat_apply_of_aleph_0_le (infinite_iff.1 h)
 @[simp] theorem aleph_0_to_part_enat : to_part_enat ℵ₀ = ⊤ :=
 to_part_enat_apply_of_aleph_0_le le_rfl
 
+lemma to_part_enat_eq_top_iff_le_aleph_0 {c : cardinal} :
+  to_part_enat c = ⊤ ↔ aleph_0 ≤ c :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  simp only [to_part_enat_apply_of_lt_aleph_0 hc, part_enat.coe_ne_top, false_iff, not_le, hc],
+  simp only [to_part_enat_apply_of_aleph_0_le hc, eq_self_iff_true, true_iff],
+  exact hc,
+end
+
+lemma to_part_enat_le_iff_le_of_le_aleph_0 {c c' : cardinal} (h : c ≤ aleph_0) :
+  to_part_enat c ≤ to_part_enat c' ↔ c ≤ c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  rw to_part_enat_apply_of_lt_aleph_0 hc,
+  cases lt_or_ge c' aleph_0 with hc' hc',
+  { rw to_part_enat_apply_of_lt_aleph_0 hc',
+    rw part_enat.coe_le_coe,
+    exact to_nat_le_iff_le_of_lt_aleph_0 hc hc', },
+  { simp only [to_part_enat_apply_of_aleph_0_le hc',
+    le_top, true_iff],
+    exact le_trans h hc', },
+  { rw to_part_enat_apply_of_aleph_0_le hc,
+    simp only [top_le_iff, to_part_enat_eq_top_iff_le_aleph_0,
+    le_antisymm h hc], },
+end
+
+lemma to_part_enat_le_iff_le_of_lt_aleph_0 {c c' : cardinal} (hc' : c' < aleph_0) :
+  to_part_enat c ≤ to_part_enat c' ↔ c ≤ c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  { rw to_part_enat_apply_of_lt_aleph_0 hc,
+    rw to_part_enat_apply_of_lt_aleph_0 hc',
+    rw part_enat.coe_le_coe,
+    exact to_nat_le_iff_le_of_lt_aleph_0 hc hc', },
+  { rw to_part_enat_apply_of_aleph_0_le hc,
+    simp only [top_le_iff, to_part_enat_eq_top_iff_le_aleph_0],
+    rw [← not_iff_not, not_le, not_le],
+    simp only [hc', lt_of_lt_of_le hc' hc], },
+end
+
+lemma to_part_enat_eq_iff_eq_of_le_aleph_0 {c c' : cardinal}
+  (hc : c ≤ aleph_0) (hc' : c' ≤ aleph_0) :
+  to_part_enat c = to_part_enat c' ↔ c = c' := by
+rw [le_antisymm_iff, le_antisymm_iff,
+  to_part_enat_le_iff_le_of_le_aleph_0 hc, to_part_enat_le_iff_le_of_le_aleph_0 hc']
+
+lemma to_part_enat_mono {c c' : cardinal} (h : c ≤ c') :
+  to_part_enat c ≤ to_part_enat c' :=
+begin
+  cases lt_or_ge c aleph_0 with hc hc,
+  rw to_part_enat_apply_of_lt_aleph_0 hc,
+  cases lt_or_ge c' aleph_0 with hc' hc',
+  rw to_part_enat_apply_of_lt_aleph_0 hc',
+  simp only [part_enat.coe_le_coe],
+  exact to_nat_le_of_le_of_lt_aleph_0 hc' h,
+  rw to_part_enat_apply_of_aleph_0_le hc',
+  exact le_top,
+  rw [to_part_enat_apply_of_aleph_0_le hc,
+  to_part_enat_apply_of_aleph_0_le (le_trans hc h)],
+end
+
 lemma to_part_enat_surjective : surjective to_part_enat :=
 λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
   λ n, ⟨n, to_part_enat_cast n⟩
+
+lemma to_part_enat_lift (c : cardinal.{v}) : (lift.{u v} c).to_part_enat = c.to_part_enat :=
+begin
+  cases lt_or_ge c ℵ₀ with hc hc,
+  { rw [to_part_enat_apply_of_lt_aleph_0 hc, cardinal.to_part_enat_apply_of_lt_aleph_0 _],
+    simp only [to_nat_lift],
+    rw [← lift_aleph_0, lift_lt], exact hc },
+  { rw [to_part_enat_apply_of_aleph_0_le hc, cardinal.to_part_enat_apply_of_aleph_0_le _],
+  rw [← lift_aleph_0, lift_le], exact hc }
+end
+
+lemma to_part_enat_congr {β : Type v} (e : α ≃ β) : (#α).to_part_enat = (#β).to_part_enat :=
+by rw [←to_part_enat_lift, lift_mk_eq.mpr ⟨e⟩, to_part_enat_lift]
 
 lemma mk_to_part_enat_eq_coe_card [fintype α] : (#α).to_part_enat = fintype.card α :=
 by simp
@@ -1369,7 +1447,8 @@ lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ
 lemma mk_pnat : #ℕ+ = ℵ₀ := mk_denumerable ℕ+
 
 /-- **König's theorem** -/
-theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
+theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) :
+sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   haveI : inhabited (Π (i : ι), (g i).out),
   { refine ⟨λ i, classical.choice $ mk_ne_zero_iff.1 _⟩,

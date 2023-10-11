@@ -8,6 +8,9 @@ import number_theory.number_field.embeddings
 /-!
 # Canonical embedding of a number field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The canonical embedding of a number field `K` of signature `(r₁, r₂)` is the ring homomorphism
 `K →+* ℝ^r₁ × ℂ^r₂` that sends `x ∈ K` to `(φ_₁(x),...,φ_r₁(x)) × (ψ_₁(x),..., ψ_r₂(x))` where
 `φ_₁,...,φ_r₁` are its real embeddings and `ψ_₁,..., ψ_r₂` are its complex embeddings (up to

@@ -10,6 +10,9 @@ import set_theory.game.birthday
 /-!
 # Short games
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A combinatorial game is `short` [Conway, ch.9][conway2001] if it has only finitely many positions.
 In particular, this means there is a finite set of moves at every point.
 

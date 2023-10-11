@@ -10,6 +10,9 @@ import analysis.normed_space.continuous_linear_map
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the typeclass `is_R_or_C` intended to have only two instances:
 ℝ and ℂ. It is meant for definitions and theorems which hold for both the real and the complex case,
 and in particular when the real case follows directly from the complex case by setting `re` to `id`,
@@ -66,8 +69,6 @@ class is_R_or_C (K : Type*)
 (mul_im_I_ax : ∀ (z : K), (im z) * im I = im z)
 
 end
-
-mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
 variables {K E : Type*} [is_R_or_C K]
 
@@ -488,6 +489,12 @@ lemma abs_im_div_norm_le_one (z : K) : |im z / ‖z‖| ≤ 1 :=
 begin
   rw [abs_div, abs_norm],
   exact div_le_one_of_le (abs_im_le_norm _) (norm_nonneg _)
+end
+
+lemma norm_I_of_ne_zero (hI : (I : K) ≠ 0) : ‖(I : K)‖ = 1 :=
+begin
+  rw [← mul_self_inj_of_nonneg (norm_nonneg I) zero_le_one, one_mul, ← norm_mul,
+    I_mul_I_of_nonzero hI, norm_neg, norm_one],
 end
 
 lemma re_eq_norm_of_mul_conj (x : K) : re (x * conj x) = ‖x * conj x‖ :=

@@ -10,6 +10,9 @@ import data.fintype.card
 /-!
 # Ax-Grothendieck for algebraic extensions of `zmod p`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves that if `R` is an algebraic extension of a finite field,
 then any injective polynomial map `R^n -> R^n` is also surjective.
 

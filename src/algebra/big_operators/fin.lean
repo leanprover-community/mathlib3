@@ -194,15 +194,14 @@ begin
 end)
 
 @[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
-  (g : G) (f : fin n → G) (i : fin n) :
-  ((g • partial_prod f) i)⁻¹ * (g • partial_prod f) i.succ = f i :=
+  (f : fin n → G) (i : fin n) :
+  (partial_prod f i.cast_succ)⁻¹ * partial_prod f i.succ = f i :=
 begin
   cases i with i hn,
   induction i with i hi generalizing hn,
-  { simp [←fin.succ_mk, partial_prod_succ] },
+  { simp [-fin.succ_mk, partial_prod_succ] },
   { specialize hi (lt_trans (nat.lt_succ_self i) hn),
-    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
-      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    simp only [fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk] at hi ⊢,
     rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],
     simp only [partial_prod_succ, mul_inv_rev, fin.cast_succ_mk],
     assoc_rw [hi, inv_mul_cancel_left] }
@@ -223,15 +222,13 @@ lemma inv_partial_prod_mul_eq_contract_nth {G : Type*} [group G]
   (partial_prod g (j.succ.succ_above k.cast_succ))⁻¹ * partial_prod g (j.succ_above k).succ
     = j.contract_nth has_mul.mul g k :=
 begin
-  have := partial_prod_right_inv (1 : G) g,
-  simp only [one_smul, coe_eq_cast_succ] at this,
   rcases lt_trichotomy (k : ℕ) j with (h|h|h),
-  { rwa [succ_above_below, succ_above_below, this, contract_nth_apply_of_lt],
+  { rwa [succ_above_below, succ_above_below, partial_prod_right_inv, contract_nth_apply_of_lt],
     { assumption },
     { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
       exact le_of_lt h }},
   { rwa [succ_above_below, succ_above_above, partial_prod_succ, cast_succ_fin_succ, ←mul_assoc,
-      this, contract_nth_apply_of_eq],
+      partial_prod_right_inv, contract_nth_apply_of_eq],
     { simpa only [le_iff_coe_le_coe, ←h] },
     { rw [cast_succ_lt_iff_succ_le, succ_le_succ_iff, le_iff_coe_le_coe],
       exact le_of_eq h }},

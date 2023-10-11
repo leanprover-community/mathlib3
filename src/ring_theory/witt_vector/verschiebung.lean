@@ -11,6 +11,9 @@ import ring_theory.witt_vector.is_poly
 /-!
 ## The Verschiebung operator
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## References
 
 * [Hazewinkel, *Witt Vectors*][Haze09]

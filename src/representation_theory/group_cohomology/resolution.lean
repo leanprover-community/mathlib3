@@ -12,6 +12,9 @@ import representation_theory.Rep
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains facts about an important `k[G]`-module structure on `k[Gⁿ]`, where `k` is a
 commutative ring and `G` is a group. The module structure arises from the representation
 `G →* End(k[Gⁿ])` induced by the diagonal action of `G` on `Gⁿ.`
@@ -89,7 +92,7 @@ def Action_diagonal_succ (G : Type u) [group G] : Π (n : ℕ),
   (equiv.pi_fin_succ_above_equiv (λ j, G) 0).symm.to_iso (λ g, rfl))
 
 lemma Action_diagonal_succ_hom_apply {G : Type u} [group G] {n : ℕ} (f : fin (n + 1) → G) :
-  (Action_diagonal_succ G n).hom.hom f = (f 0, λ i, (f i)⁻¹ * f i.succ) :=
+  (Action_diagonal_succ G n).hom.hom f = (f 0, λ i, (f i.cast_succ)⁻¹ * f i.succ) :=
 begin
   induction n with n hn,
   { exact prod.ext rfl (funext $ λ x, fin.elim0 x) },
@@ -100,7 +103,7 @@ begin
         left_regular_tensor_iso_hom_hom, tensor_iso_hom, mk_iso_hom_hom, equiv.to_iso_hom,
         tensor_hom, equiv.pi_fin_succ_above_equiv_symm_apply, tensor_apply, types_id_apply,
         tensor_rho, monoid_hom.one_apply, End.one_def, hn (λ (j : fin (n + 1)), f j.succ),
-        fin.coe_eq_cast_succ, fin.insert_nth_zero'],
+        fin.insert_nth_zero'],
       refine fin.cases (fin.cons_zero _ _) (λ i, _) x,
       { simp only [fin.cons_succ, mul_left_inj, inv_inj, fin.cast_succ_fin_succ], }}}
 end
@@ -145,7 +148,7 @@ variables {k G n}
 
 lemma diagonal_succ_hom_single (f : Gⁿ⁺¹) (a : k) :
   (diagonal_succ k G n).hom.hom (single f a) =
-  single (f 0) 1 ⊗ₜ single (λ i, (f i)⁻¹ * f i.succ) a :=
+  single (f 0) 1 ⊗ₜ single (λ i, (f i.cast_succ)⁻¹ * f i.succ) a :=
 begin
   dunfold diagonal_succ,
   simpa only [iso.trans_hom, iso.symm_hom, Action.comp_hom, Module.comp_def, linear_map.comp_apply,
@@ -268,7 +271,7 @@ inverse map sends a function `f : Gⁿ → A` to the representation morphism sen
 to `A`. -/
 lemma diagonal_hom_equiv_symm_apply (f : (fin n → G) → A) (x : fin (n + 1) → G) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
-    = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
+    = A.ρ (x 0) (f (λ (i : fin n), (x i.cast_succ)⁻¹ * x i.succ)) :=
 begin
   unfold diagonal_hom_equiv,
   simp only [linear_equiv.trans_symm, linear_equiv.symm_symm, linear_equiv.trans_apply,
@@ -276,7 +279,7 @@ begin
     iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
     iso.trans_hom, Module.comp_def, linear_map.comp_apply, representation.Rep_of_tprod_iso_apply,
     diagonal_succ_hom_single x (1 : k), tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
-    finsupp.lift_apply, Rep.ihom_obj_ρ, representation.lin_hom_apply, finsupp.sum_single_index,
+    finsupp.lift_apply, ihom_obj_ρ_def, Rep.ihom_obj_ρ_apply, finsupp.sum_single_index,
     zero_smul, one_smul, Rep.of_ρ, Rep.Action_ρ_eq_ρ, Rep.trivial_def (x 0)⁻¹,
     finsupp.llift_apply A k k],
 end
@@ -290,7 +293,7 @@ lemma diagonal_hom_equiv_symm_partial_prod_succ
     = f (fin.contract_nth a (*) g) :=
 begin
   simp only [diagonal_hom_equiv_symm_apply, function.comp_app, fin.succ_succ_above_zero,
-    fin.partial_prod_zero, map_one, fin.coe_eq_cast_succ, fin.succ_succ_above_succ,
+    fin.partial_prod_zero, map_one, fin.succ_succ_above_succ,
     linear_map.one_apply, fin.partial_prod_succ],
   congr,
   ext,

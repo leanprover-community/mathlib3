@@ -3,8 +3,8 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, David Loeffler
 -/
+import analysis.special_functions.exp_deriv
 import analysis.special_functions.complex.circle
-import topology.instances.add_circle
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
@@ -16,6 +16,9 @@ import measure_theory.integral.fund_thm_calculus
 /-!
 
 # Fourier analysis on the additive circle
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains basic results on Fourier series for functions on the additive circle
 `add_circle T = ℝ / ℤ • T`.

@@ -58,10 +58,10 @@ lemma pi.cons_ne {s : finset α} {a a' : α} {b : δ a} {f : Πa, a ∈ s → δ
   pi.cons s a b f a' h = f a' ((mem_insert.1 h).resolve_left ha.symm) :=
 multiset.pi.cons_ne _ _
 
-lemma pi_cons_injective  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
+lemma pi.cons_injective  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
   function.injective (pi.cons s a b) :=
 assume e₁ e₂ eq,
-@multiset.pi_cons_injective α _ δ a b s.1 hs _ _ $
+@multiset.pi.cons_injective α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
   have pi.cons s a b e₁ e (by simpa only [multiset.mem_cons, mem_insert] using h) =
     pi.cons s a b e₂ e (by simpa only [multiset.mem_cons, mem_insert] using h),
@@ -84,7 +84,7 @@ begin
   subst s', rw pi_cons,
   congr, funext b,
   refine ((pi s t).nodup.map _).dedup.symm,
-  exact multiset.pi_cons_injective ha,
+  exact multiset.pi.cons_injective ha,
 end
 
 lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :

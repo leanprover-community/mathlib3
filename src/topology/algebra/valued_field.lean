@@ -11,6 +11,9 @@ import topology.algebra.uniform_field
 /-!
 # Valued fields and their completions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we study the topology of a field `K` endowed with a valuation (in our application
 to adic spaces, `K` will be the valuation field associated to some valuation on a ring, defined in
 valuation.basic).

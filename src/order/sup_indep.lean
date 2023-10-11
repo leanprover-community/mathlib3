@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
+import data.finset.sigma
 import data.finset.pairwise
 import data.finset.powerset
 import data.fintype.basic
@@ -77,11 +78,44 @@ end
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
 
+lemma sup_indep.le_sup_iff (hs : s.sup_indep f) (hts : t ⊆ s) (hi : i ∈ s) (hf : ∀ i, f i ≠ ⊥) :
+  f i ≤ t.sup f ↔ i ∈ t :=
+begin
+  refine ⟨λ h, _, le_sup⟩,
+  by_contra hit,
+  exact hf i (disjoint_self.1 $ (hs hts hi hit).mono_right h),
+end
+
 /-- The RHS looks like the definition of `complete_lattice.independent`. -/
 lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
   s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
+
+lemma sup_indep.image [decidable_eq ι] {s : finset ι'} {g : ι' → ι} (hs : s.sup_indep (f ∘ g)) :
+  (s.image g).sup_indep f :=
+begin
+  intros t ht i hi hit,
+  rw mem_image at hi,
+  obtain ⟨i, hi, rfl⟩ := hi,
+  haveI : decidable_eq ι' := classical.dec_eq _,
+  suffices hts : t ⊆ (s.erase i).image g,
+  { refine (sup_indep_iff_disjoint_erase.1 hs i hi).mono_right ((sup_mono hts).trans _),
+    rw sup_image },
+  rintro j hjt,
+  obtain ⟨j, hj, rfl⟩ := mem_image.1 (ht hjt),
+  exact mem_image_of_mem _ (mem_erase.2 ⟨ne_of_apply_ne g (ne_of_mem_of_not_mem hjt hit), hj⟩),
+end
+
+lemma sup_indep_map {s : finset ι'} {g : ι' ↪ ι} : (s.map g).sup_indep f ↔ s.sup_indep (f ∘ g) :=
+begin
+  refine ⟨λ hs t ht i hi hit, _, λ hs, _⟩,
+  { rw ←sup_map,
+    exact hs (map_subset_map.2 ht) ((mem_map' _).2 hi) (by rwa mem_map') },
+  { classical,
+    rw map_eq_image,
+    exact hs.image }
+end
 
 @[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
@@ -117,7 +151,7 @@ begin
   exact sup_indep_pair this,
 end
 
-lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
+lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (λ a, f a) :=
 begin
   intros t ht i _ hi,
   classical,
@@ -126,6 +160,18 @@ begin
   rw mem_image at hi',
   obtain ⟨j, hj, hji⟩ := hi',
   rwa subtype.ext hji at hj,
+end
+
+@[simp] lemma sup_indep_attach : s.attach.sup_indep (λ a, f a) ↔ s.sup_indep f :=
+begin
+  refine ⟨λ h t ht i his hit, _, sup_indep.attach⟩,
+  classical,
+  convert h (filter_subset (λ i, (i : ι) ∈ t) _) (mem_attach _ ⟨i, ‹_›⟩)
+    (λ hi, hit $ by simpa using hi) using 1,
+  refine eq_of_forall_ge_iff _,
+  simp only [finset.sup_le_iff, mem_filter, mem_attach, true_and, function.comp_app, subtype.forall,
+    subtype.coe_mk],
+  exact λ a, forall_congr (λ j, ⟨λ h _, h, λ h hj, h (ht hj) hj⟩),
 end
 
 end lattice
@@ -155,6 +201,58 @@ lemma sup_indep.bUnion [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι
   (hs : s.sup_indep (λ i, (g i).sup f)) (hg : ∀ i' ∈ s, (g i').sup_indep f) :
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
+
+/-- Bind operation for `sup_indep`. -/
+lemma sup_indep.sigma {β : ι → Type*} {s : finset ι} {g : Π i, finset (β i)} {f : sigma β → α}
+  (hs : s.sup_indep $ λ i, (g i).sup $ λ b, f ⟨i, b⟩)
+  (hg : ∀ i ∈ s, (g i).sup_indep $ λ b, f ⟨i, b⟩) :
+  (s.sigma g).sup_indep f :=
+begin
+  rintro t ht ⟨i, b⟩ hi hit,
+  rw finset.disjoint_sup_right,
+  rintro ⟨j, c⟩ hj,
+  have hbc := (ne_of_mem_of_not_mem hj hit).symm,
+  replace hj := ht hj,
+  rw mem_sigma at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { exact (hg _ hj.1).pairwise_disjoint hi.2 hj.2 (sigma_mk_injective.ne_iff.1 hbc) },
+  { refine (hs.pairwise_disjoint hi.1 hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
+
+lemma sup_indep.product {s : finset ι} {t : finset ι'} {f : ι × ι' → α}
+  (hs : s.sup_indep $ λ i, t.sup $ λ i', f (i, i'))
+  (ht : t.sup_indep $ λ i', s.sup $ λ i, f (i, i')) :
+  (s.product t).sup_indep f :=
+begin
+  rintro u hu ⟨i, i'⟩ hi hiu,
+  rw finset.disjoint_sup_right,
+  rintro ⟨j, j'⟩ hj,
+  have hij := (ne_of_mem_of_not_mem hj hiu).symm,
+  replace hj := hu hj,
+  rw mem_product at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { refine (ht.pairwise_disjoint hi.2 hj.2 $ (prod.mk.inj_left _).ne_iff.1 hij).mono _ _,
+    { convert le_sup hi.1 },
+    { convert le_sup hj.1 } },
+  { refine (hs.pairwise_disjoint hi.1 hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
+
+lemma sup_indep_product_iff {s : finset ι} {t : finset ι'} {f : ι × ι' → α} :
+  (s.product t).sup_indep f ↔
+    s.sup_indep (λ i, t.sup $ λ i', f (i, i')) ∧ t.sup_indep (λ i', s.sup $ λ i, f (i, i')) :=
+begin
+  refine ⟨_, λ h, h.1.product h.2⟩,
+  simp_rw sup_indep_iff_pairwise_disjoint,
+  refine (λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩);
+    simp_rw [function.on_fun, finset.disjoint_sup_left, finset.disjoint_sup_right];
+      intros i' hi' j' hj',
+  { exact h (mk_mem_product hi hi') (mk_mem_product hj hj') (ne_of_apply_ne prod.fst hij) },
+  { exact h (mk_mem_product hi' hi) (mk_mem_product hj' hj) (ne_of_apply_ne prod.snd hij) }
+end
 
 end distrib_lattice
 end finset

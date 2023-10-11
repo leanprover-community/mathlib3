@@ -12,6 +12,9 @@ import data.pnat.defs
 /-!
 # Hash maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a hash map data structure, representing a finite key-value map
 with a value type that may depend on the key type.  The structure
 requires a `nat`-valued hash function to associate keys to buckets.

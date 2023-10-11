@@ -9,6 +9,9 @@ import topology.algebra.module.locally_convex
 /-!
 # Local convexity of the strong topology
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the strong topology on `E →L[ℝ] F` is locally convex provided that `F` is
 locally convex.
 

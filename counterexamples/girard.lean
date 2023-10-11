@@ -8,6 +8,9 @@ import logic.basic
 /-!
 # Girard's paradox
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Girard's paradox is a proof that `Type : Type` entails a contradiction. We can't say this directly
 in Lean because `Type : Type 1` and it's not possible to give `Type` a different type via an axiom,
 so instead we axiomatize the behavior of the Pi type and application if the typing rule for Pi was
@@ -23,6 +26,8 @@ Based on Watkins' LF implementation of Hurkens' simplification of Girard's parad
 
 * `girard`: there are no Girard universes.
 -/
+
+namespace counterexample
 
 /-- **Girard's paradox**: there are no universes `u` such that `Type u : Type u`.
 Since we can't actually change the type of Lean's `Π` operator, we assume the existence of
@@ -43,3 +48,5 @@ let ω : set (set U) := {p | ∀ x, p ∈ σ x → x ∈ p} in
 let δ (S : set (set U)) := ∀ p, p ∈ S → τ S ∈ p in
 have δ ω := λ p d, d (τ ω) $ στ.2 $ λ x h, d (τ (σ x)) (στ.2 h),
 this {y | ¬ δ (σ y)} (λ x e f, f _ e (λ p h, f _ (στ.1 h))) (λ p h, this _ (στ.1 h))
+
+end counterexample

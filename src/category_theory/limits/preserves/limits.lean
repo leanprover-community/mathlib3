@@ -8,6 +8,9 @@ import category_theory.limits.preserves.basic
 /-!
 # Isomorphisms about functors which preserve (co)limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `G` preserves limits, and `C` and `D` have limits, then for any diagram `F : J ⥤ C` we have a
 canonical isomorphism `preserves_limit_iso : G.obj (limit F) ≅ limit (F ⋙ G)`.
 We also show that we can commute `is_limit.lift` of a preserved limit with `functor.map_cone`:

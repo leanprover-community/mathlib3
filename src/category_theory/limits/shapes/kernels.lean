@@ -8,6 +8,9 @@ import category_theory.limits.preserves.shapes.zero
 /-!
 # Kernels and cokernels
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is
 the equalizer of `f` and `0 : X ⟶ Y`. (Similarly the cokernel is the coequalizer.)
 
@@ -47,7 +50,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u' u₂
+universes v v₂ u u' u₂
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -128,7 +131,7 @@ def is_limit_aux (t : kernel_fork f)
 This is a more convenient formulation to show that a `kernel_fork` constructed using
 `kernel_fork.of_ι` is a limit cone.
 -/
-def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
+def kernel_fork.is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
   (uniq :
@@ -182,11 +185,11 @@ is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
 /-- Given any morphism `k : W ⟶ X` satisfying `k ≫ f = 0`, `k` factors through `kernel.ι f`
     via `kernel.lift : W ⟶ kernel f`. -/
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
-limit.lift (parallel_pair f 0) (kernel_fork.of_ι k h)
+(kernel_is_kernel f).lift (kernel_fork.of_ι k h)
 
 @[simp, reassoc]
 lemma kernel.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : kernel.lift f k h ≫ kernel.ι f = k :=
-limit.lift_π _ _
+(kernel_is_kernel f).fac (kernel_fork.of_ι k h) walking_parallel_pair.zero
 
 @[simp]
 lemma kernel.lift_zero {W : C} {h} : kernel.lift f (0 : W ⟶ X) h = 0 :=
@@ -465,7 +468,7 @@ def is_colimit_aux (t : cokernel_cofork f)
 This is a more convenient formulation to show that a `cokernel_cofork` constructed using
 `cokernel_cofork.of_π` is a limit cone.
 -/
-def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
+def cokernel_cofork.is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
   (uniq :
@@ -522,12 +525,12 @@ is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by ti
 /-- Given any morphism `k : Y ⟶ W` such that `f ≫ k = 0`, `k` factors through `cokernel.π f`
     via `cokernel.desc : cokernel f ⟶ W`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
-colimit.desc (parallel_pair f 0) (cokernel_cofork.of_π k h)
+(cokernel_is_cokernel f).desc (cokernel_cofork.of_π k h)
 
 @[simp, reassoc]
 lemma cokernel.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   cokernel.π f ≫ cokernel.desc f k h = k :=
-colimit.ι_desc _ _
+(cokernel_is_cokernel f).fac (cokernel_cofork.of_π k h) walking_parallel_pair.one
 
 @[simp]
 lemma cokernel.desc_zero {W : C} {h} : cokernel.desc f (0 : Y ⟶ W) h = 0 :=
@@ -822,7 +825,7 @@ end transport
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 /--
@@ -846,6 +849,16 @@ lemma map_lift_kernel_comparison [has_kernel f] [has_kernel (G.map f)]
       kernel.lift _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
 by { ext, simp [← G.map_comp] }
 
+@[reassoc] lemma kernel_comparison_comp_kernel_map {X' Y' : C} [has_kernel f]
+  [has_kernel (G.map f)] (g : X' ⟶ Y') [has_kernel g] [has_kernel (G.map g)] (p : X ⟶ X')
+  (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
+  kernel_comparison f G ≫ (kernel.map (G.map f) (G.map g) (G.map p) (G.map q)
+    (by rw [←G.map_comp, hpq, G.map_comp])) =
+  G.map (kernel.map f g p q hpq) ≫ kernel_comparison g G :=
+kernel.lift_map _ _ (by rw [←G.map_comp, kernel.condition, G.map_zero]) _ _
+  (by rw [←G.map_comp, kernel.condition, G.map_zero]) _ _ _
+  (by simp only [←G.map_comp]; exact G.congr_map (kernel.lift_ι _ _ _).symm) _
+
 /-- The comparison morphism for the cokernel of `f`. -/
 def cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
   cokernel (G.map f) ⟶ G.obj (cokernel f) :=
@@ -863,6 +876,15 @@ lemma cokernel_comparison_map_desc [has_cokernel f] [has_cokernel (G.map f)]
   cokernel_comparison f G ≫ G.map (cokernel.desc _ h w) =
     cokernel.desc _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
 by { ext, simp [← G.map_comp] }
+
+@[reassoc] lemma cokernel_map_comp_cokernel_comparison {X' Y' : C} [has_cokernel f]
+  [has_cokernel (G.map f)] (g : X' ⟶ Y') [has_cokernel g] [has_cokernel (G.map g)]
+  (p : X ⟶ X') (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
+  cokernel.map (G.map f) (G.map g) (G.map p) (G.map q) (by rw [←G.map_comp, hpq, G.map_comp])
+    ≫ cokernel_comparison _ G = cokernel_comparison _ G ≫ G.map (cokernel.map f g p q hpq) :=
+cokernel.map_desc _ _ (by rw [←G.map_comp, cokernel.condition, G.map_zero]) _ _
+  (by rw [←G.map_comp, cokernel.condition, G.map_zero]) _ _ _ _
+  (by simp only [←G.map_comp]; exact G.congr_map (cokernel.π_desc _ _ _))
 
 end comparison
 

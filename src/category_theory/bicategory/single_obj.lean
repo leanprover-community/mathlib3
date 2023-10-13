@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.bicategory.End
-import category_theory.monoidal.functorial
+import category_theory.monoidal.functor
 
 /-!
 # Promoting a monoidal category to a single object bicategory.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A monoidal category can be thought of as a bicategory with a single object.
 

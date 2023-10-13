@@ -3,15 +3,16 @@ Copyright (c) 2022 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.W.cardinal
 import ring_theory.algebraic_independent
 import field_theory.is_alg_closed.basic
-import field_theory.intermediate_field
 import data.polynomial.cardinal
 import data.mv_polynomial.cardinal
 import data.zmod.algebra
 /-!
 # Classification of Algebraically closed fields
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains results related to classifying algebraically closed fields.
 
@@ -61,13 +62,8 @@ calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   cardinal_mk_le_sigma_polynomial R L halg
 ... = cardinal.sum (λ p : R[X], #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
-... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) : sum_le_sum _ _
-  (λ p, le_of_lt begin
-    rw [lt_aleph_0_iff_finite],
-    classical,
-    simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
-    exact set.finite_mem_finset _,
-  end)
+... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) :
+  sum_le_sum _ _ $ λ p, (multiset.finite_to_set _).lt_aleph_0.le
 ... = #R[X] * ℵ₀ : sum_const' _ _
 ... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _
 ... ≤ max (max (max (#R) ℵ₀) ℵ₀) ℵ₀ :
@@ -162,10 +158,9 @@ variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
-@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
-  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
   cases exists_is_transcendence_basis ℤ
     (show function.injective (algebra_map ℤ K),
       from int.cast_injective) with s hs,
@@ -181,9 +176,10 @@ begin
 end
 
 private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
-  [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+  [char_p K p] [char_p L p] (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
+  letI : algebra (zmod p) K := zmod.algebra _ _,
+  letI : algebra (zmod p) L := zmod.algebra _ _,
   cases exists_is_transcendence_basis (zmod p)
     (show function.injective (algebra_map (zmod p) K),
       from ring_hom.injective _) with s hs,
@@ -192,9 +188,9 @@ begin
       from ring_hom.injective _) with t ht,
   have : #s = #t,
   { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs
-      (lt_aleph_0_of_fintype (zmod p)).le hK,
+      (lt_aleph_0_of_finite (zmod p)).le hK,
         ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht
-      (lt_aleph_0_of_fintype (zmod p)).le, hKL],
+      (lt_aleph_0_of_finite (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
@@ -202,18 +198,19 @@ end
 
 /-- Two uncountable algebraically closed fields are isomorphic
 if they have the same cardinality and the same characteristic. -/
-@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
-  (hK : ℵ₀ < #K) (hKL : #K = #L) : K ≃+* L :=
+lemma ring_equiv_of_cardinal_eq_of_char_eq (p : ℕ) [char_p K p] [char_p L p]
+  (hK : ℵ₀ < #K) (hKL : #K = #L) : nonempty (K ≃+* L) :=
 begin
-  apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,
   { haveI : fact p.prime := ⟨hp⟩,
-    exact ⟨ring_equiv_of_cardinal_eq_of_char_p p hK hKL⟩ },
+    letI : algebra (zmod p) K := zmod.algebra _ _,
+    letI : algebra (zmod p) L := zmod.algebra _ _,
+    exact ring_equiv_of_cardinal_eq_of_char_p p hK hKL },
   { rw [hp] at *,
     resetI,
     letI : char_zero K := char_p.char_p_to_char_zero K,
     letI : char_zero L := char_p.char_p_to_char_zero L,
-    exact ⟨ring_equiv_of_cardinal_eq_of_char_zero hK hKL⟩ }
+    exact ring_equiv_of_cardinal_eq_of_char_zero hK hKL }
 end
 
 end is_alg_closed

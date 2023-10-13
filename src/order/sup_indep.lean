@@ -3,11 +3,16 @@ Copyright (c) 2021 Aaron Anderson, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
+import data.finset.sigma
 import data.finset.pairwise
-import data.set.finite
+import data.finset.powerset
+import data.fintype.basic
 
 /-!
 # Supremum independence
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define supremum independence of indexed sets. An indexed family `f : ι → α` is
 sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint.
@@ -73,11 +78,44 @@ end
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
 
+lemma sup_indep.le_sup_iff (hs : s.sup_indep f) (hts : t ⊆ s) (hi : i ∈ s) (hf : ∀ i, f i ≠ ⊥) :
+  f i ≤ t.sup f ↔ i ∈ t :=
+begin
+  refine ⟨λ h, _, le_sup⟩,
+  by_contra hit,
+  exact hf i (disjoint_self.1 $ (hs hts hi hit).mono_right h),
+end
+
 /-- The RHS looks like the definition of `complete_lattice.independent`. -/
 lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
   s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
+
+lemma sup_indep.image [decidable_eq ι] {s : finset ι'} {g : ι' → ι} (hs : s.sup_indep (f ∘ g)) :
+  (s.image g).sup_indep f :=
+begin
+  intros t ht i hi hit,
+  rw mem_image at hi,
+  obtain ⟨i, hi, rfl⟩ := hi,
+  haveI : decidable_eq ι' := classical.dec_eq _,
+  suffices hts : t ⊆ (s.erase i).image g,
+  { refine (sup_indep_iff_disjoint_erase.1 hs i hi).mono_right ((sup_mono hts).trans _),
+    rw sup_image },
+  rintro j hjt,
+  obtain ⟨j, hj, rfl⟩ := mem_image.1 (ht hjt),
+  exact mem_image_of_mem _ (mem_erase.2 ⟨ne_of_apply_ne g (ne_of_mem_of_not_mem hjt hit), hj⟩),
+end
+
+lemma sup_indep_map {s : finset ι'} {g : ι' ↪ ι} : (s.map g).sup_indep f ↔ s.sup_indep (f ∘ g) :=
+begin
+  refine ⟨λ hs t ht i hi hit, _, λ hs, _⟩,
+  { rw ←sup_map,
+    exact hs (map_subset_map.2 ht) ((mem_map' _).2 hi) (by rwa mem_map') },
+  { classical,
+    rw map_eq_image,
+    exact hs.image }
+end
 
 @[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
@@ -113,7 +151,7 @@ begin
   exact sup_indep_pair this,
 end
 
-lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
+lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (λ a, f a) :=
 begin
   intros t ht i _ hi,
   classical,
@@ -124,6 +162,18 @@ begin
   rwa subtype.ext hji at hj,
 end
 
+@[simp] lemma sup_indep_attach : s.attach.sup_indep (λ a, f a) ↔ s.sup_indep f :=
+begin
+  refine ⟨λ h t ht i his hit, _, sup_indep.attach⟩,
+  classical,
+  convert h (filter_subset (λ i, (i : ι) ∈ t) _) (mem_attach _ ⟨i, ‹_›⟩)
+    (λ hi, hit $ by simpa using hi) using 1,
+  refine eq_of_forall_ge_iff _,
+  simp only [finset.sup_le_iff, mem_filter, mem_attach, true_and, function.comp_app, subtype.forall,
+    subtype.coe_mk],
+  exact λ a, forall_congr (λ j, ⟨λ h _, h, λ h hj, h (ht hj) hj⟩),
+end
+
 end lattice
 
 section distrib_lattice
@@ -131,10 +181,10 @@ variables [distrib_lattice α] [order_bot α] {s : finset ι} {f : ι → α}
 
 lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_disjoint f :=
 ⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
-  disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
+  finset.disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
-alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
-  set.pairwise_disjoint.sup_indep
+alias sup_indep_iff_pairwise_disjoint ↔ sup_indep.pairwise_disjoint
+  _root_.set.pairwise_disjoint.sup_indep
 
 /-- Bind operation for `sup_indep`. -/
 lemma sup_indep.sup [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
@@ -152,6 +202,58 @@ lemma sup_indep.bUnion [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι
   (s.bUnion g).sup_indep f :=
 by { rw ←sup_eq_bUnion, exact hs.sup hg }
 
+/-- Bind operation for `sup_indep`. -/
+lemma sup_indep.sigma {β : ι → Type*} {s : finset ι} {g : Π i, finset (β i)} {f : sigma β → α}
+  (hs : s.sup_indep $ λ i, (g i).sup $ λ b, f ⟨i, b⟩)
+  (hg : ∀ i ∈ s, (g i).sup_indep $ λ b, f ⟨i, b⟩) :
+  (s.sigma g).sup_indep f :=
+begin
+  rintro t ht ⟨i, b⟩ hi hit,
+  rw finset.disjoint_sup_right,
+  rintro ⟨j, c⟩ hj,
+  have hbc := (ne_of_mem_of_not_mem hj hit).symm,
+  replace hj := ht hj,
+  rw mem_sigma at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { exact (hg _ hj.1).pairwise_disjoint hi.2 hj.2 (sigma_mk_injective.ne_iff.1 hbc) },
+  { refine (hs.pairwise_disjoint hi.1 hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
+
+lemma sup_indep.product {s : finset ι} {t : finset ι'} {f : ι × ι' → α}
+  (hs : s.sup_indep $ λ i, t.sup $ λ i', f (i, i'))
+  (ht : t.sup_indep $ λ i', s.sup $ λ i, f (i, i')) :
+  (s.product t).sup_indep f :=
+begin
+  rintro u hu ⟨i, i'⟩ hi hiu,
+  rw finset.disjoint_sup_right,
+  rintro ⟨j, j'⟩ hj,
+  have hij := (ne_of_mem_of_not_mem hj hiu).symm,
+  replace hj := hu hj,
+  rw mem_product at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { refine (ht.pairwise_disjoint hi.2 hj.2 $ (prod.mk.inj_left _).ne_iff.1 hij).mono _ _,
+    { convert le_sup hi.1 },
+    { convert le_sup hj.1 } },
+  { refine (hs.pairwise_disjoint hi.1 hj.1 hij).mono _ _,
+    { convert le_sup hi.2 },
+    { convert le_sup hj.2 } }
+end
+
+lemma sup_indep_product_iff {s : finset ι} {t : finset ι'} {f : ι × ι' → α} :
+  (s.product t).sup_indep f ↔
+    s.sup_indep (λ i, t.sup $ λ i', f (i, i')) ∧ t.sup_indep (λ i', s.sup $ λ i, f (i, i')) :=
+begin
+  refine ⟨_, λ h, h.1.product h.2⟩,
+  simp_rw sup_indep_iff_pairwise_disjoint,
+  refine (λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩);
+    simp_rw [function.on_fun, finset.disjoint_sup_left, finset.disjoint_sup_right];
+      intros i' hi' j' hj',
+  { exact h (mk_mem_product hi hi') (mk_mem_product hj hj') (ne_of_apply_ne prod.fst hij) },
+  { exact h (mk_mem_product hi' hi) (mk_mem_product hj' hj) (ne_of_apply_ne prod.snd hij) }
+end
+
 end distrib_lattice
 end finset
 
@@ -161,7 +263,7 @@ end finset
 namespace complete_lattice
 variables [complete_lattice α]
 
-open set
+open set function
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
@@ -235,11 +337,11 @@ variables {t : ι → α} (ht : independent t)
 theorem independent_def : independent t ↔ ∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j) :=
 iff.rfl
 
-theorem independent_def' {ι : Type*} {t : ι → α} :
+theorem independent_def' :
   independent t ↔ ∀ i, disjoint (t i) (Sup (t '' {j | j ≠ i})) :=
 by {simp_rw Sup_image, refl}
 
-theorem independent_def'' {ι : Type*} {t : ι → α} :
+theorem independent_def'' :
   independent t ↔ ∀ i, disjoint (t i) (Sup {a | ∃ j ≠ i, t j = a}) :=
 by {rw independent_def', tidy}
 
@@ -253,27 +355,56 @@ lemma independent_pempty (t : pempty → α) : independent t.
 lemma independent.pairwise_disjoint : pairwise (disjoint on t) :=
 λ x y h, disjoint_Sup_right (ht x) ⟨y, supr_pos h.symm⟩
 
-lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
+lemma independent.mono
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
 λ i, (hs i).mono (hst i) $ supr₂_mono $ λ j _, hst j
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
-lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
-  {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
-  independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right $ begin
+lemma independent.comp {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent t) (hf : injective f) :
+  independent (t ∘ f) :=
+λ i, (ht (f i)).mono_right $ begin
   refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
   exact supr_const_mono hf.ne,
+end
+
+lemma independent.comp' {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent $ t ∘ f) (hf : surjective f) :
+  independent t :=
+begin
+  intros i,
+  obtain ⟨i', rfl⟩ := hf i,
+  rw ← hf.supr_comp,
+  exact (ht i').mono_right (bsupr_mono $ λ j' hij, mt (congr_arg f) hij),
+end
+
+lemma independent.set_independent_range (ht : independent t) :
+  set_independent $ range t :=
+begin
+  rw set_independent_iff,
+  rw ← coe_comp_range_factorization t at ht,
+  exact ht.comp' surjective_onto_range,
+end
+
+lemma independent.injective (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : injective t :=
+begin
+  intros i j h,
+  by_contra' contra,
+  apply h_ne_bot j,
+  suffices : t j ≤ ⨆ k (hk : k ≠ i), t k,
+  { replace ht := (ht i).mono_right this,
+    rwa [h, disjoint_self] at ht, },
+  replace contra : j ≠ i, { exact ne.symm contra, },
+  exact le_supr₂ j contra,
 end
 
 lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
   independent t ↔ disjoint (t i) (t j) :=
 begin
   split,
-  { intro h,
-    exact h.pairwise_disjoint _ _ hij, },
+  { exact λ h, h.pairwise_disjoint hij },
   { rintros h k,
     obtain rfl | rfl := huniv k,
     { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
@@ -342,11 +473,11 @@ lemma set_independent_iff_pairwise_disjoint {s : set α} :
 ⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
   hs hi hj.1 $ ne.symm hj.2⟩
 
-alias set_independent_iff_pairwise_disjoint ↔ _ set.pairwise_disjoint.set_independent
+alias set_independent_iff_pairwise_disjoint ↔ _ _root_.set.pairwise_disjoint.set_independent
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,
-  hs _ _ hij.symm⟩
+  hs hij.symm⟩
 
 end complete_lattice
 

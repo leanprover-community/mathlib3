@@ -3,10 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.card
 import data.multiset.sum
+import data.finset.card
+
 /-!
 # Disjoint sum of finsets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the disjoint sum of two finsets as `finset (α ⊕ β)`. Beware not to confuse with
 the `finset.sum` operation which computes the additive sum.
@@ -34,6 +38,14 @@ val_inj.1 $ multiset.disj_sum_zero _
 
 @[simp] lemma card_disj_sum : (s.disj_sum t).card = s.card + t.card := multiset.card_disj_sum _ _
 
+lemma disjoint_map_inl_map_inr : disjoint (s.map embedding.inl) (t.map embedding.inr) :=
+by { simp_rw [disjoint_left, mem_map], rintro x ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
+
+@[simp]
+lemma map_inl_disj_union_map_inr :
+  (s.map embedding.inl).disj_union (t.map embedding.inr) (disjoint_map_inl_map_inr _ _) =
+    s.disj_sum t := rfl
+
 variables {s t} {s₁ s₂ : finset α} {t₁ t₂ : finset β} {a : α} {b : β} {x : α ⊕ β}
 
 lemma mem_disj_sum : x ∈ s.disj_sum t ↔ (∃ a, a ∈ s ∧ inl a = x) ∨ ∃ b, b ∈ t ∧ inr b = x :=
@@ -41,6 +53,8 @@ multiset.mem_disj_sum
 
 @[simp] lemma inl_mem_disj_sum : inl a ∈ s.disj_sum t ↔ a ∈ s := inl_mem_disj_sum
 @[simp] lemma inr_mem_disj_sum : inr b ∈ s.disj_sum t ↔ b ∈ t := inr_mem_disj_sum
+
+@[simp] lemma disj_sum_eq_empty : s.disj_sum t = ∅ ↔ s = ∅ ∧ t = ∅ := by simp [ext_iff]
 
 lemma disj_sum_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁.disj_sum t₁ ⊆ s₂.disj_sum t₂ :=
 val_le_iff.1 $ disj_sum_mono (val_le_iff.2 hs) (val_le_iff.2 ht)

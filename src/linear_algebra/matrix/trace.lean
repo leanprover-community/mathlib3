@@ -8,6 +8,9 @@ import data.matrix.basic
 /-!
 # Trace of a matrix
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the trace of a matrix, the map sending a matrix to the sum of its diagonal
 entries.
 
@@ -89,7 +92,7 @@ finset.sum_neg_distrib
 end add_comm_group
 
 section one
-variables [decidable_eq n]  [add_comm_monoid R] [has_one R]
+variables [decidable_eq n] [add_comm_monoid_with_one R]
 
 @[simp] lemma trace_one : trace (1 : matrix n n R) = fintype.card n :=
 by simp_rw [trace, diag_one, pi.one_def, finset.sum_const, nsmul_one, finset.card_univ]

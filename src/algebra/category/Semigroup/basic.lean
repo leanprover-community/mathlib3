@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import algebra.pempty_instances
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import category_theory.concrete_category.bundled_hom
 import category_theory.functor.reflects_isomorphisms
 import category_theory.elementwise
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce the bundled categories:
 * `Magma`

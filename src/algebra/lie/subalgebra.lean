@@ -9,6 +9,9 @@ import ring_theory.noetherian
 /-!
 # Lie subalgebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Lie subalgebras of a Lie algebra and provides basic related definitions and
 results.
 
@@ -57,7 +60,7 @@ instance : set_like (lie_subalgebra R L) L :=
   coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
 
 instance : add_subgroup_class (lie_subalgebra R L) L :=
-{ add_mem := λ L', L'.add_mem',
+{ add_mem := λ L' _ _, L'.add_mem',
   zero_mem := λ L', L'.zero_mem',
   neg_mem := λ L' x hx, show -x ∈ (L' : submodule R L), from neg_mem hx }
 
@@ -74,18 +77,21 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
-instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
   [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
+
+instance (L' : lie_subalgebra R L) [is_noetherian R L] : is_noetherian R L' :=
+is_noetherian_submodule' ↑L'
 
 end
 
@@ -239,11 +245,11 @@ end
 
 /-- A Lie algebra is equivalent to its range under an injective Lie algebra morphism. -/
 noncomputable def equiv_range_of_injective (h : function.injective f) : L ≃ₗ⁅R⁆ f.range :=
-lie_equiv.of_bijective f.range_restrict (λ x y hxy,
+lie_equiv.of_bijective f.range_restrict ⟨λ x y hxy,
 begin
   simp only [subtype.mk_eq_mk, range_restrict_apply] at hxy,
   exact h hxy,
-end) f.surjective_range_restrict
+end, f.surjective_range_restrict⟩
 
 @[simp] lemma equiv_range_of_injective_apply (h : function.injective f) (x : L) :
   f.equiv_range_of_injective h x = ⟨f x, mem_range_self f x⟩ :=
@@ -255,7 +261,7 @@ lemma submodule.exists_lie_subalgebra_coe_eq_iff (p : submodule R L) :
   (∃ (K : lie_subalgebra R L), ↑K = p) ↔ ∀ (x y : L), x ∈ p → y ∈ p → ⁅x, y⁆ ∈ p :=
 begin
   split,
-  { rintros ⟨K, rfl⟩, exact K.lie_mem', },
+  { rintros ⟨K, rfl⟩ _ _, exact K.lie_mem', },
   { intros h, use { lie_mem' := h, ..p }, exact lie_subalgebra.coe_to_submodule_mk p _, },
 end
 
@@ -378,10 +384,10 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
 
-/-- This is not an instance, as it would stop `⊥` being the simp-normal form (via `bot_eq_zero`). -/
-def canonically_ordered_add_monoid : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+instance : canonically_ordered_add_monoid (lie_subalgebra R L) :=
 { add_le_add_left := λ a b, sup_le_sup_left,
-  le_iff_exists_add := λ a b, le_iff_exists_sup,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
   ..lie_subalgebra.add_comm_monoid,
   ..lie_subalgebra.complete_lattice }
 
@@ -397,11 +403,10 @@ by rw [← mem_coe_submodule, ← mem_coe_submodule, ← mem_coe_submodule, inf_
 lemma eq_bot_iff : K = ⊥ ↔ ∀ (x : L), x ∈ K → x = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
+instance subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_subalgebra.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 

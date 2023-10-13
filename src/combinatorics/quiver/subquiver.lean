@@ -3,11 +3,14 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.set.basic
+import order.bounded_order
 import combinatorics.quiver.basic
 
 /-!
 ## Wide subquivers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A wide subquiver `H` of a quiver `H` consists of a subset of the edge set `a ⟶ b` for
 every pair of vertices `a b : V`. We include 'wide' in the name to emphasize that these
@@ -25,7 +28,7 @@ def wide_subquiver (V) [quiver.{v+1} V] :=
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
 instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
@@ -34,7 +37,7 @@ instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
 
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
-⟨λ a b, H a b⟩
+⟨λ a b, { f // f ∈ H a b }⟩
 
 namespace quiver
 
@@ -44,7 +47,7 @@ instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
 -- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
 (left : V)
 (right : V)

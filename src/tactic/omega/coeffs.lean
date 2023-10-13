@@ -111,10 +111,9 @@ lemma val_between_set {a : int} {l n : nat} :
 @[simp] lemma val_set {m : nat} {a : int} :
   val v ([] {m ↦ a}) = a * v m :=
 begin
-  apply val_between_set, apply zero_le,
-  apply lt_of_lt_of_le (lt_add_one _),
-  simp only [length_set, zero_add, le_max_right],
-  apply_instance,
+  apply val_between_set (zero_le _),
+  rw [length_set, zero_add],
+  exact lt_max_of_lt_right (lt_add_one _),
 end
 
 lemma val_between_neg {as : list int} {l : nat} :

@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gihan Marasingha
 -/
 import .basic
+import data.list.count
 import data.nat.modeq
 import tactic.ring
 
 /-!
 # Decision procedure: necessary condition
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce a condition `decstr` and show that if a string `en` is `derivable`, then `decstr en`
 holds.
@@ -57,7 +61,7 @@ begin
   cases h2,
   { rw h2, exact h1, },
   { cases h1,
-    { right, simpa [h2,mul_mod,h1], },
+    { right, simp [h2,mul_mod,h1, nat.succ_lt_succ] },
     { left, simpa [h2,mul_mod,h1], }, },
 end
 

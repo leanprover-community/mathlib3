@@ -3,28 +3,33 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.specific_limits.basic
 import topology.urysohns_lemma
 import topology.continuous_function.bounded
+import topology.uniform_space.cauchy
 
 /-!
-# Metrizability of a regular topological space with second countable topology
+# Metrizability of a T₃ topological space with second countable topology
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define metrizable topological spaces, i.e., topological spaces for which there
 exists a metric space structure that generates the same topology.
 
-We also show that a regular topological space with second countable topology `X` is metrizable.
+We also show that a T₃ topological space with second countable topology `X` is metrizable.
 
 First we prove that `X` can be embedded into `l^∞`, then use this embedding to pull back the metric
 space structure.
 -/
 
 open set filter metric
-open_locale bounded_continuous_function filter topological_space
+open_locale bounded_continuous_function filter topology
 
 namespace topological_space
 
 variables {ι X Y : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
-  [fintype ι] [Π i, topological_space (π i)]
+  [finite ι] [Π i, topological_space (π i)]
 
 /-- A topological space is *pseudo metrizable* if there exists a pseudo metric space structure
 compatible with the topology. To endow such a space with a compatible distance, use
@@ -62,13 +67,24 @@ begin
   exact ⟨⟨hf.comap_pseudo_metric_space, rfl⟩⟩
 end
 
+/-- Every pseudo-metrizable space is first countable. -/
+@[priority 100]
+instance pseudo_metrizable_space.first_countable_topology [h : pseudo_metrizable_space X] :
+  topological_space.first_countable_topology X :=
+begin
+  unfreezingI { rcases h with ⟨_, hm⟩, rw ←hm },
+  exact @uniform_space.first_countable_topology X pseudo_metric_space.to_uniform_space
+    emetric.uniformity.filter.is_countably_generated,
+end
+
 instance pseudo_metrizable_space.subtype [pseudo_metrizable_space X]
   (s : set X) : pseudo_metrizable_space s :=
 inducing_coe.pseudo_metrizable_space
 
 instance pseudo_metrizable_space_pi [Π i, pseudo_metrizable_space (π i)] :
   pseudo_metrizable_space (Π i, π i) :=
-by { letI := λ i, pseudo_metrizable_space_pseudo_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, pseudo_metrizable_space_pseudo_metric (π i),
+  apply_instance }
 
 /-- A topological space is metrizable if there exists a metric space structure compatible with the
 topology. To endow such a space with a compatible distance, use
@@ -117,15 +133,15 @@ instance metrizable_space.subtype [metrizable_space X] (s : set X) : metrizable_
 embedding_subtype_coe.metrizable_space
 
 instance metrizable_space_pi [Π i, metrizable_space (π i)] : metrizable_space (Π i, π i) :=
-by { letI := λ i, metrizable_space_metric (π i), apply_instance }
+by { casesI nonempty_fintype ι, letI := λ i, metrizable_space_metric (π i), apply_instance }
 
-variables (X) [regular_space X] [second_countable_topology X]
+variables (X) [t3_space X] [second_countable_topology X]
 
-/-- A regular topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
+/-- A T₃ topological space with second countable topology can be embedded into `l^∞ = ℕ →ᵇ ℝ`.
 -/
 lemma exists_embedding_l_infty : ∃ f : X → (ℕ →ᵇ ℝ), embedding f :=
 begin
-  haveI : normal_space X := normal_space_of_regular_second_countable X,
+  haveI : normal_space X := normal_space_of_t3_second_countable X,
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
@@ -135,9 +151,8 @@ begin
   -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`
   -- with the discrete topology and deal with `s →ᵇ ℝ` instead.
   letI : topological_space s := ⊥, haveI : discrete_topology s := ⟨rfl⟩,
-  suffices : ∃ f : X → (s →ᵇ ℝ), embedding f,
-  { rcases this with ⟨f, hf⟩,
-    exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
+  rsuffices ⟨f, hf⟩ : ∃ f : X → (s →ᵇ ℝ), embedding f,
+  { exact ⟨λ x, (f x).extend (encodable.encode' s) 0, (bounded_continuous_function.isometry_extend
       (encodable.encode' s) (0 : ℕ →ᵇ ℝ)).embedding.comp hf⟩ },
   have hd : ∀ UV : s, disjoint (closure UV.1.1) (UV.1.2ᶜ) :=
     λ UV, disjoint_compl_right.mono_right (compl_subset_compl.2 UV.2.2),
@@ -203,12 +218,12 @@ begin
     exacts [hy _ hle, (real.dist_le_of_mem_Icc (hf0ε _ _) (hf0ε _ _)).trans (by rwa sub_zero)] }
 end
 
-/-- *Urysohn's metrization theorem* (Tychonoff's version): a regular topological space with second
+/-- *Urysohn's metrization theorem* (Tychonoff's version): a T₃ topological space with second
 countable topology `X` is metrizable, i.e., there exists a metric space structure that generates the
 same topology. -/
-lemma metrizable_space_of_regular_second_countable : metrizable_space X :=
+lemma metrizable_space_of_t3_second_countable : metrizable_space X :=
 let ⟨f, hf⟩ := exists_embedding_l_infty X in hf.metrizable_space
 
-instance : metrizable_space ennreal := metrizable_space_of_regular_second_countable ennreal
+instance : metrizable_space ennreal := metrizable_space_of_t3_second_countable ennreal
 
 end topological_space

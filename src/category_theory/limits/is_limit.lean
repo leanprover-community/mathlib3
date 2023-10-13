@@ -9,6 +9,9 @@ import category_theory.limits.cones
 /-!
 # Limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We set up the general theory of limits and colimits in a category.
 In this introduction we only describe the setup for limits;
 it is repeated, with slightly different names, for colimits.
@@ -50,7 +53,7 @@ cone morphism to `t`.
 
 See <https://stacks.math.columbia.edu/tag/002E>.
   -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure is_limit (t : cone F) :=
 (lift  : Π (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), lift s ≫ t.π.app j = s.π.app j . obviously)
@@ -504,7 +507,7 @@ cocone morphism from `t`.
 
 See <https://stacks.math.columbia.edu/tag/002F>.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure is_colimit (t : cocone F) :=
 (desc  : Π (s : cocone F), t.X ⟶ s.X)
 (fac'  : ∀ (s : cocone F) (j : J), t.ι.app j ≫ desc s = s.ι.app j . obviously)

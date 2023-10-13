@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
+import ring_theory.derivation.lie
 import geometry.manifold.derivation_bundle
 
 /-!
 
 # Left invariant derivations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define the concept of left invariant derivation for a Lie group. The concept is
 analogous to the more classical concept of left invariant vector fields, and it holds that the
@@ -23,8 +27,8 @@ noncomputable theory
 
 open_locale lie_group manifold derivation
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 
@@ -112,16 +116,16 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
-instance has_nat_scalar : has_scalar ℕ (left_invariant_derivation I G) :=
+instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
 
-instance has_int_scalar : has_scalar ℤ (left_invariant_derivation I G) :=
+instance has_int_scalar : has_smul ℤ (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
 
 instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
-instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
+instance : has_smul 𝕜 (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul, left_invariant']⟩ }
 
 variables (r X)

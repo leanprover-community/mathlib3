@@ -151,7 +151,7 @@ newly introduced local constant.
 Otherwise returns `none`.
 -/
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
-do t ← target,
+do t ← target >>= instantiate_mvars,
    match get_contr_lemma_name_and_type t with
    | some (nm, tp) :=
      do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
@@ -207,7 +207,7 @@ to only those that are comparisons over the type `restr_type`.
 -/
 meta def filter_hyps_to_type (restr_type : expr) (hyps : list expr) : tactic (list expr) :=
 hyps.mfilter $ λ h, do
-  ht ← infer_type h,
+  ht ← infer_type h >>= instantiate_mvars,
   match get_contr_lemma_name_and_type ht with
   | some (_, htype) := succeeds $ unify htype restr_type
   | none := return ff
@@ -238,7 +238,7 @@ expressions.
 meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
   (cfg : linarith_config := {}) : tactic unit :=
 focus1 $
-do t ← target,
+do t ← target >>= instantiate_mvars,
 -- if the target is an equality, we run `linarith` twice, to prove ≤ and ≥.
 if t.is_eq.is_some then
   linarith_trace "target is an equality: splitting" >>
@@ -257,7 +257,7 @@ do hyps ← hyps.mmap $ λ e, i_to_expr e >>= note_anon none,
      else fail "linarith failed: target is not a valid comparison",
    let cfg := cfg.update_reducibility reduce_semi,
    let (pref_type, new_var) :=
-     pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+     pref_type_and_new_var_from_tgt.elim (none, none) (prod.map some some),
    -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
    hyps ← if only_on then return (new_var.elim [] singleton ++ hyps)
           else (++ hyps) <$> local_context,

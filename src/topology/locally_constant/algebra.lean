@@ -3,11 +3,14 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import algebra.algebra.basic
+import algebra.algebra.pi
 import topology.locally_constant.basic
 
 /-!
 # Algebraic structure on locally constant functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file puts algebraic structure (`add_group`, etc)
 on the type of locally constant functions.
@@ -120,6 +123,12 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
 { mul := (*),
   .. locally_constant.semigroup, .. locally_constant.mul_one_class }
 
+instance [add_monoid_with_one Y] : add_monoid_with_one (locally_constant X Y) :=
+{ nat_cast := λ n, const X n,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  .. locally_constant.add_monoid, .. locally_constant.has_one }
+
 @[to_additive] instance [comm_monoid Y] : comm_monoid (locally_constant X Y) :=
 { .. locally_constant.comm_semigroup, .. locally_constant.monoid }
 
@@ -144,7 +153,8 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 { .. locally_constant.semigroup, .. locally_constant.non_unital_non_assoc_semiring }
 
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
-{ .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
+{ .. locally_constant.mul_one_class, .. locally_constant.add_monoid_with_one,
+  .. locally_constant.non_unital_non_assoc_semiring }
 
 /-- The constant-function embedding, as a ring hom.  -/
 @[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
@@ -153,8 +163,7 @@ instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
   .. const_add_monoid_hom, }
 
 instance [semiring Y] : semiring (locally_constant X Y) :=
-{ .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
-  .. locally_constant.distrib, .. locally_constant.mul_zero_class }
+{ .. locally_constant.non_assoc_semiring, .. locally_constant.monoid }
 
 instance [non_unital_comm_semiring Y] : non_unital_comm_semiring (locally_constant X Y) :=
 { .. locally_constant.non_unital_semiring, .. locally_constant.comm_semigroup }
@@ -183,14 +192,14 @@ instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 
 variables {R : Type*}
 
-instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
+instance [has_smul R Y] : has_smul R (locally_constant X Y) :=
 { smul := λ r f,
   { to_fun := r • f,
-    is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
+    is_locally_constant := (f.is_locally_constant.comp ((•) r) : _), } }
 
-@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_smul [has_smul R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
 
-lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
+lemma smul_apply [has_smul R Y] (r : R) (f : locally_constant X Y) (x : X) :
   (r • f) x = r • (f x) :=
 rfl
 

@@ -9,6 +9,9 @@ import algebra.category.Module.basic
 /-!
 # The forgetful functor from `R`-modules preserves filtered colimits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Forgetful functors from algebraic categories usually don't preserve colimits. However, they tend
 to preserve _filtered_ colimits.
 
@@ -71,7 +74,7 @@ begin
 end
 
 /-- Scalar multiplication in the colimit. See also `colimit_smul_aux`. -/
-instance colimit_has_scalar : has_scalar R M :=
+instance colimit_has_smul : has_smul R M :=
 { smul := λ r x, begin
     refine quot.lift (colimit_smul_aux F r) _ x,
     intros x y h,

@@ -385,6 +385,22 @@ begin
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
 end
 
+lemma edge_set_disjoint_diag (G : simple_graph V) : disjoint G.edge_set {e | e.is_diag} :=
+begin
+  rw set.disjoint_iff,
+  rintro _ ⟨xG,xd⟩,
+  exact G.not_is_diag_of_mem_edge_set xG xd,
+end
+
+lemma edge_set_subset_iff {G G' : simple_graph V} :
+  G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=
+begin
+  refine ⟨_, λ _, by mono⟩,
+  intros h v w,
+  simp_rw [← mem_edge_set],
+  exact λ h', h h',
+end
+
 /--
 Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
@@ -470,6 +486,10 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj],
   from_edge_set s ⊔ from_edge_set t = from_edge_set (s ∪ t) :=
 by { ext v w, simp [set.mem_union, or_and_distrib_right], }
 
+@[simp] lemma from_edge_set_compl (s : set (sym2 V)) :
+  (from_edge_set s)ᶜ = from_edge_set sᶜ :=
+by { ext v w, split; simp { contextual := tt }, }
+
 @[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
   from_edge_set s \ from_edge_set t = from_edge_set (s \ t) :=
 by { ext v w, split; simp { contextual := tt }, }
@@ -480,6 +500,120 @@ begin
   rintro v w,
   simp only [from_edge_set_adj, ne.def, not_false_iff, and_true, and_imp] {contextual := tt},
   exact λ vws _, h vws,
+end
+
+lemma from_edge_set_le_from_edge_set_iff {s t : set (sym2 V)} :
+  from_edge_set s ≤ from_edge_set t ↔ (s \ {e | e.is_diag}) ⊆ (t \ {e | e.is_diag}) :=
+begin
+  split,
+  { rintros h ⟨u,v⟩,
+    simp only [set.mem_diff, set.mem_set_of_eq, not_false_iff, and_true, and_imp]
+              {contextual := tt},
+    exact λ uvs ne, (h ⟨uvs,ne⟩).left, },
+  { exact λ h u v a,  ⟨(h ⟨a.left, a.right⟩).left,a.ne⟩, },
+end
+
+lemma from_edge_set_eq_from_edge_set_iff {s t : set (sym2 V)} :
+  from_edge_set s = from_edge_set t ↔ (s \ (set_of sym2.is_diag)) = (t \ (set_of sym2.is_diag)) :=
+by simp [le_antisymm_iff, from_edge_set_le_from_edge_set_iff]
+
+lemma le_from_edge_set_iff  (s : set (sym2 V)) (G : simple_graph V) :
+  G ≤ from_edge_set s ↔ G.edge_set ⊆ s :=
+begin
+  split,
+  { rintro h ⟨u,v⟩ a, exact (h a).left, },
+  { rintro h u v a, refine ⟨h _, a.ne⟩, exact a,},
+end
+
+lemma from_edge_set_le_iff (s : set (sym2 V)) (G : simple_graph V) :
+  from_edge_set s ≤ G ↔ (s \ (set_of sym2.is_diag)) ⊆ G.edge_set :=
+begin
+  nth_rewrite 0 ←from_edge_set_edge_set G,
+  rw from_edge_set_le_from_edge_set_iff,
+  rw _root_.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+
+end
+
+lemma from_edge_set_le {s : set (sym2 V)} {G : simple_graph V} (h : s ⊆ G.edge_set) :
+  from_edge_set s ≤ G :=
+begin
+  rw from_edge_set_le_iff,
+  exact (set.diff_subset _ _).trans h,
+end
+
+lemma from_edge_set_eq_iff (s : set (sym2 V)) (G : simple_graph V) :
+  from_edge_set s = G ↔ (s \ {e | e.is_diag}) = G.edge_set :=
+begin
+  nth_rewrite 0 ←from_edge_set_edge_set G,
+  rw from_edge_set_eq_from_edge_set_iff,
+  rw sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+end
+
+lemma from_edge_set_disjoint_from_edge_set_iff (s t : set (sym2 V)) :
+  disjoint (from_edge_set s) (from_edge_set t) ↔
+  disjoint (s \ {e | e.is_diag}) (t \ {e | e.is_diag}) :=
+begin
+  have : (s ∩ t) \ {e | e.is_diag} = (s \ {e | e.is_diag}) ∩ (t \ {e | e.is_diag}), by
+  { ext, simp, tauto, },
+  simp only [disjoint_iff, from_edge_set_inf, set.inf_eq_inter, set.bot_eq_empty,
+             from_edge_set_eq_iff, edge_set_bot, this],
+end
+
+lemma from_edge_set_disjoint_iff (s : set (sym2 V)) (G : simple_graph V) :
+  disjoint (from_edge_set s) G ↔ disjoint s G.edge_set :=
+begin
+  nth_rewrite 0 ←from_edge_set_edge_set G,
+  rw from_edge_set_disjoint_from_edge_set_iff,
+  nth_rewrite 0 disjoint.comm,
+  rw [sdiff_disjoint_sdiff_iff_sdiff_disjoint],
+  simp [sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
+end
+
+lemma add_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G ⊔ from_edge_set {⟦(u, v)⟧} = G ↔ G.adj u v :=
+begin
+  simp only [sup_eq_left],
+  split,
+  { exact λ h, h (⟨rfl,huv⟩ : (from_edge_set {⟦(u, v)⟧}).adj u v), },
+  { rintro h,
+    apply from_edge_set_le,
+    simp only [set.singleton_subset_iff, mem_edge_set],
+    exact h, },
+end
+
+lemma delete_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G \ from_edge_set {⟦(u, v)⟧} = G ↔ ¬ G.adj u v :=
+begin
+  split,
+  { rintro h a,
+    rw ←h at a,
+    simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
+    exact huv a.right, },
+  { rintro na,
+    rw [←from_edge_set_edge_set G, sdiff_eq_left, from_edge_set_edge_set, disjoint.comm,
+        from_edge_set_disjoint_iff, set.disjoint_iff],
+    rintro e ⟨euv,eG⟩,
+    simp only [set.mem_singleton_iff] at euv,
+    rw euv at eG,
+    exact na eG, },
+end
+
+lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
+  (G ⊔ (from_edge_set{⟦(u, v)⟧})) \ (from_edge_set{⟦(u, v)⟧}) = G :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],
+  congr,
+  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, sdiff_eq_left,
+             set.disjoint_singleton_right, mem_edge_set],
+  exact h
+end
+
+lemma inf_from_edge_set_singleton_non_adj (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
+  G ⊓ from_edge_set {⟦(u, v)⟧} = ⊥ :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_inf, ←from_edge_set_empty],
+  congr,
+  simp only [h, set.inter_singleton_eq_empty, mem_edge_set, not_false_iff],
 end
 
 instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=

@@ -652,6 +652,48 @@ begin
     exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
+section
+
+local attribute [instance] classical.prop_decidable
+
+/-- Replace all occurences of an edge [its reverse] by a walk [its reverse]. -/
+@[simp] noncomputable def substitute_edge : Π {u v : V} (p : G.walk u v) {x y : V}
+  (r : G.walk x y) (h : (⟦⟨x,y⟩⟧ : sym2 V) ∉ r.edges), G.walk u v
+| _ _ walk.nil _ _ _ _ := walk.nil
+| _ _ (walk.cons' u v w a p) x y r h :=
+  if fwd : x = u ∧ y = v then by
+    { rw ←fwd.1, let p' := p.substitute_edge r h, rw ←fwd.2 at p', exact r.append p', }
+  else if bwd : x = v ∧ y = u then by
+    { rw ←bwd.2, let p' := p.substitute_edge r h, rw ←bwd.1 at p', exact r.reverse.append p', }
+  else
+    walk.cons a (p.substitute_edge r h)
+
+
+lemma substitute_edge_not_mem  {u v : V} (p : G.walk u v) {x y : V}
+  (r : G.walk x y) (h : (⟦⟨x,y⟩⟧ : sym2 V) ∉ r.edges) :
+  (⟦⟨x,y⟩⟧ : sym2 V) ∉ (p.substitute_edge r h).edges :=
+begin
+  induction p,
+  { simp only [substitute_edge, edges_nil, list.not_mem_nil, not_false_iff], },
+  { dsimp only [substitute_edge],
+    split_ifs with fwd bwd,
+    { rcases fwd with ⟨rfl,rfl⟩,
+      simp only [eq_mp_eq_cast, cast_eq, eq_mpr_eq_cast, edges_append, list.mem_append],
+      push_neg,
+      exact ⟨h,p_ih,⟩ },
+      { rcases bwd with ⟨rfl,rfl⟩,
+        simp only [eq_mp_eq_cast, cast_eq, eq_mpr_eq_cast, edges_append, edges_reverse,
+                   list.mem_append, list.mem_reverse],
+        push_neg,
+        exact ⟨h, p_ih⟩, },
+      { simp only [edges_cons, list.mem_cons_iff, quotient.eq, sym2.rel_iff],
+        rintro ((fwd'|bwd')|r),
+        exact fwd fwd', exact bwd bwd',
+        exact p_ih r, }, },
+end
+
+end
+
 /-! ### Trails, paths, circuits, cycles -/
 
 /-- A *trail* is a walk with no repeating edges. -/
@@ -1567,6 +1609,12 @@ structure connected : Prop :=
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
+
+lemma connected.mono {G H : simple_graph V} (Hc : H.connected) : H ≤ G → G.connected :=
+begin
+  rintro h, rw connected_iff at Hc ⊢, refine ⟨_,Hc.2⟩,
+  exact λ u v, ⟨(Hc.1 u v).some.map (simple_graph.hom.map_spanning_subgraphs h)⟩,
+end
 
 lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.connected) : H.connected :=

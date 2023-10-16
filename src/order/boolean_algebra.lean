@@ -280,6 +280,25 @@ end
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
+lemma sdiff_eq_self_of_disjoint (h : disjoint x y) : x \ y = x :=
+begin
+  apply le_antisymm sdiff_le,
+  simp only [le_sdiff, le_refl, true_and],
+  exact h,
+end
+
+lemma sdiff_disjoint_sdiff_iff_sdiff_disjoint :
+  disjoint (x \ z) (y \ z) ↔ disjoint (x \ z) y :=
+begin
+  suffices : (x \ z) ⊓ (y \ z) = (x \ z) ⊓ y, by {simp [disjoint_iff, this], },
+  apply le_antisymm (inf_le_inf (le_refl _) (sdiff_le)),
+  apply le_inf (inf_le_left),
+  simp only [le_sdiff, inf_le_right, true_and],
+  rintro w wl wr,
+  simp only [le_inf_iff, le_sdiff] at wl,
+  exact wl.1.2 (le_refl w) wr,
+end
+
 lemma sdiff_lt_sdiff_right (h : x < y) (hz : z ≤ x) : x \ z < y \ z :=
 (sdiff_le_sdiff_right h.le).lt_of_not_le $ λ h', h.not_le $
   le_sdiff_sup.trans $ sup_le_of_le_sdiff_right h' hz

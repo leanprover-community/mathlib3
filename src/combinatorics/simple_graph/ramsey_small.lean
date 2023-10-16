@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import combinatorics.simple_graph.ramsey
+import number_theory.legendre_symbol.quadratic_char.gauss_sum
+import number_theory.legendre_symbol.quadratic_char.basic_mathlib
 
 /-!
 # Constructions to prove lower bounds on some small Ramsey numbers
@@ -18,15 +20,11 @@ section paley
 
 variables {F : Type*} [field F] [fintype F]
 
-lemma symmetric_is_square (hF : card F % 4 ≠ 3) :
-  symmetric (λ x y : F, is_square (x - y)) :=
-λ _ _ h, by simpa using h.mul (finite_field.is_square_neg_one_iff.2 hF)
-
 /--
 If `F` is a finite field with `|F| = 3 mod 4`, the Paley graph on `F` has an edge `x ~ y` if
 `x - y` is a (non-zero) quadratic residue.
-The definition should only be used if `card F % 4 ≠ 3`. If this condition fails, the graph is `⊤`,
-but it is still defined for convenience.
+The definition should only be used if `card F % 4 ≠ 3`. If this condition fails, the graph should
+be directed, but we define it here to just be `⊤` for convenience.
 -/
 def {u} paley_graph (F : Type*) [field F] [fintype F] : simple_graph F :=
 { adj := λ x y, x ≠ y ∧ (is_square (x - y) ∨ card F % 4 = 3),
@@ -83,7 +81,7 @@ def rescale (x : F) (hx : is_square x) (hx' : x ≠ 0) :
   end }
 
 /--
-The graph isomorphism witnessing that the Paley graph is self complementary: rescalingby a
+The graph isomorphism witnessing that the Paley graph is self complementary: rescaling by a
 non-square.
 -/
 @[simps]
@@ -111,6 +109,13 @@ def paley_labelling (F : Type*) [field F] [fintype F] [decidable_eq F] :
   top_edge_labelling F (fin 2) := to_edge_labelling (paley_graph F)
 
 -- smaller `k` don't need the paley construction
+/--
+If |F| is 1 mod 4, and the paley labelling contans a monochromatic subset of size k + 2, then `F`
+contains a subset of size k not containing 0 or 1, all of whose elements are squares and one more
+than squares; and all pairwise differences are square.
+For small `k` and `|F|`, this reduction is enough to brute-force check that such a configuration
+can be avoided.
+-/
 lemma no_paley_mono_set [decidable_eq F] {k : ℕ} (hF : card F % 4 = 1)
   (h : ∃ (m : finset F) c, (paley_labelling F).monochromatic_of m c ∧ k + 2 = m.card) :
   ∃ (m : finset F), m.card = k ∧ (0 : F) ∉ m ∧ (1 : F) ∉ m ∧
@@ -184,45 +189,6 @@ begin
   exact is_square_sub_of_paley_graph_adj card_not_three_mod_four (f.map_rel_iff.2 (ne.symm h)),
 end
 
--- #lint
-
-lemma card_non_zero_square_non_square {F : Type*} [fintype F] [field F] [decidable_eq F]
-  (hF : ring_char F ≠ 2) :
-  (univ.filter (λ x : F, x ≠ 0 ∧ is_square x)).card = card F / 2 ∧
-  (univ.filter (λ x : F, ¬ is_square x)).card = card F / 2 :=
-begin
-  have : (univ.filter (λ x : F, ¬ is_square x)) = (univ.filter (λ x : F, x ≠ 0 ∧ ¬ is_square x)),
-  { refine filter_congr _,
-    simp [not_imp_not] {contextual := tt} },
-  rw this,
-  have cf := quadratic_char_sum_zero hF,
-  simp only [quadratic_char_apply, quadratic_char_fun] at cf,
-  rw [sum_ite, sum_const_zero, zero_add, sum_ite, sum_const, sum_const, nsmul_eq_mul, nsmul_eq_mul,
-    mul_neg, mul_one, mul_one, add_neg_eq_zero, nat.cast_inj, filter_filter, filter_filter] at cf,
-  rw [←cf, and_self],
-  have : (univ.filter (λ x : F, x ≠ 0 ∧ is_square x)) ∪
-    (univ.filter (λ x : F, x ≠ 0 ∧ ¬ is_square x)) ∪ {0} = univ,
-  { simp only [←filter_or, ←and_or_distrib_left, em, and_true, filter_ne'],
-    rw [union_comm, ←insert_eq, insert_erase],
-    exact mem_univ _ },
-  have h' := congr_arg finset.card this,
-  rw [card_disjoint_union, card_disjoint_union, card_singleton, card_univ, ←cf, ←two_mul,
-    ←bit0_eq_two_mul, ←bit1] at h',
-  { rw [←h', nat.bit1_div_two] },
-  { rw finset.disjoint_left,
-    simp {contextual := tt} },
-  { simp },
-end
-
-lemma card_square (F : Type*) [fintype F] [field F] (hF : ring_char F ≠ 2) :
-  ((univ : finset F).filter is_square).card = card F / 2 + 1 :=
-begin
-  rw [←(card_non_zero_square_non_square hF).1],
-  simp only [and_comm, ←filter_filter, filter_ne'],
-  rw card_erase_add_one,
-  simp
-end
-
 lemma paley_five_bound : ¬ is_ramsey_valid (zmod 5) ![3, 3] :=
 begin
   haveI : fact (nat.prime 5) := ⟨by norm_num⟩,
@@ -244,6 +210,7 @@ lemma paley_seventeen_helper :
   ∀ (a : zmod 17), a ≠ 0 → a ≠ 1 → is_square a → is_square (a - 1) → a = 2 ∨ a = 9 ∨ a = 16 :=
 by dec_trivial
 
+-- No pair from {2, 9, 16} has difference a square.
 lemma paley_seventeen_bound : ¬ is_ramsey_valid (zmod 17) ![4, 4] :=
 begin
   haveI : fact (nat.prime 17) := ⟨by norm_num⟩,
@@ -275,13 +242,15 @@ end
 
 end paley
 
-lemma diagonal_ramsey_three : diagonal_ramsey 3 = 6 :=
+lemma ramsey_number_three_three : ramsey_number ![3, 3] = 6 :=
 begin
   refine le_antisymm _ _,
   { exact (ramsey_number_two_colour_bound 3 3 (by norm_num)).trans_eq (by simp) },
-  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 5, diagonal_ramsey.def, ramsey_number_le_iff],
+  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 5, ramsey_number_le_iff],
   exact paley_five_bound
 end
+
+lemma diagonal_ramsey_three : diagonal_ramsey 3 = 6 := ramsey_number_three_three
 
 lemma ramsey_number_three_four_upper : ramsey_number ![3, 4] ≤ 9 :=
 begin
@@ -295,16 +264,18 @@ begin
   { norm_num },
 end
 
-lemma diagonal_ramsey_four : diagonal_ramsey 4 = 18 :=
+lemma ramsey_number_four_four : ramsey_number ![4, 4] = 18 :=
 begin
   refine le_antisymm _ _,
   { refine (ramsey_number_two_colour_bound 4 4 (by norm_num)).trans _,
     simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
     rw ramsey_number_pair_swap 4,
     linarith [ramsey_number_three_four_upper] },
-  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 17, diagonal_ramsey.def, ramsey_number_le_iff],
+  rw [←not_lt, nat.lt_succ_iff, ←zmod.card 17, ramsey_number_le_iff],
   exact paley_seventeen_bound
 end
+
+lemma diagonal_ramsey_four : diagonal_ramsey 4 = 18 := ramsey_number_four_four
 
 lemma ramsey_number_three_four : ramsey_number ![3, 4] = 9 :=
 begin
@@ -376,7 +347,7 @@ open top_edge_labelling
 
 /--
 an explicit definition of the clebsch colouring
-TODO: find the source i used for this
+TODO: find the source I used for this
 -/
 def clebsch_colouring : top_edge_labelling (fin 4 → zmod 2) (fin 3) :=
 top_edge_labelling.mk parts_pair_get parts_pair_get_symm

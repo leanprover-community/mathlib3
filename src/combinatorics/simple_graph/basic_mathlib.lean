@@ -143,4 +143,10 @@ by { rw [←disjoint_coe, coe_neighbor_finset, coe_neighbor_finset], exact neigh
 
 end
 
+lemma degree_eq_zero_iff {v : V} [fintype (G.neighbor_set v)] : G.degree v = 0 ↔ ∀ w, ¬ G.adj v w :=
+by rw [←not_exists, ←degree_pos_iff_exists_adj, not_lt, le_zero_iff]
+
+lemma comap_comap {V W X : Type*} {G : simple_graph V} {f : W → V} {g : X → W} :
+  (G.comap f).comap g = G.comap (f ∘ g) := rfl
+
 end simple_graph

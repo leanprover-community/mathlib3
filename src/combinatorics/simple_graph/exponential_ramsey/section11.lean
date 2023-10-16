@@ -509,9 +509,8 @@ lemma comp_right_density_apply {V K K' : Type*} [fintype V] [decidable_eq V] [de
   [decidable_eq K'] (k : K) {χ : top_edge_labelling V K} (f : K → K') (hf : function.injective f) :
   (χ.comp_right f).density (f k) = χ.density k :=
 begin
-  rw [top_edge_labelling.density],
-  simp only [comp_right_label_graph_apply _ hf],
-  refl
+  rw [top_edge_labelling.density, top_edge_labelling.density, rat.cast_inj],
+  exact density_congr _ _ (comp_right_label_graph_apply _ hf),
 end
 
 lemma density_sum {V : Type*} [fintype V] [decidable_eq V] (hV : 2 ≤ fintype.card V)

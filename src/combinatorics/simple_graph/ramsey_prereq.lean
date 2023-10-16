@@ -11,6 +11,7 @@ import data.nat.choose.basic_mathlib
 import data.nat.choose.central_mathlib
 import data.nat.choose.sum_mathlib
 import data.nat.factorial.basic_mathlib
+import data.fin.vec_notation_mathlib
 
 /-!
 # Misc prereqs and collect imports

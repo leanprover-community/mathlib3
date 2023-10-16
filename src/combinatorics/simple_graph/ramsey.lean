@@ -13,8 +13,6 @@ import data.fin.vec_notation
 import data.finite.card
 import data.finset.pairwise
 import data.sym.card
-import field_theory.finite.basic
-import number_theory.legendre_symbol.quadratic_char.gauss_sum
 import tactic.fin_cases
 
 import combinatorics.simple_graph.ramsey_prereq
@@ -238,46 +236,48 @@ instance [decidable_eq K] [decidable_eq V] (C : top_edge_labelling V K)
   (m : finset V) (c : K) : decidable (C.monochromatic_of m c) :=
 decidable_of_iff' _ C.monochromatic_of_iff_pairwise
 
+namespace top_edge_labelling
+
 variables {m : set V} {c : K}
 
-@[simp] lemma top_edge_labelling.monochromatic_of_empty : C.monochromatic_of ∅ c.
+@[simp] lemma monochromatic_of_empty : C.monochromatic_of ∅ c.
 
-@[simp] lemma top_edge_labelling.monochromatic_of_singleton {x : V} : C.monochromatic_of {x} c :=
+@[simp] lemma monochromatic_of_singleton {x : V} : C.monochromatic_of {x} c :=
 by simp [top_edge_labelling.monochromatic_of]
 
-lemma top_edge_labelling.monochromatic_finset_singleton {x : V} :
+lemma monochromatic_finset_singleton {x : V} :
   C.monochromatic_of ({x} : finset V) c :=
 by simp [top_edge_labelling.monochromatic_of]
 
-lemma top_edge_labelling.monochromatic_subsingleton (hm : set.subsingleton m) :
+lemma monochromatic_subsingleton (hm : m.subsingleton) :
   C.monochromatic_of m c :=
 λ x hx y hy h, by cases h (hm hx hy)
 
-lemma top_edge_labelling.monochromatic_subsingleton_colours [subsingleton K] :
+lemma monochromatic_subsingleton_colours [subsingleton K] :
   C.monochromatic_of m c :=
 λ x hx y hy h, subsingleton.elim _ _
 
-lemma top_edge_labelling.monochromatic_of.comp_right (e : K → K') (h : C.monochromatic_of m c) :
+lemma monochromatic_of.comp_right (e : K → K') (h : C.monochromatic_of m c) :
   (C.comp_right e).monochromatic_of m (e c) :=
 λ x hx y hy h', by rw [top_edge_labelling.comp_right_get, h hx hy h']
 
-lemma top_edge_labelling.monochromatic_of_injective (e : K → K') (he : function.injective e) :
+lemma monochromatic_of_injective (e : K → K') (he : function.injective e) :
   (C.comp_right e).monochromatic_of m (e c) ↔ C.monochromatic_of m c :=
 forall₅_congr (λ x hx y hy h', by simp [he.eq_iff])
 
-lemma top_edge_labelling.monochromatic_of.subset {m' : set V} (h' : m' ⊆ m)
+lemma monochromatic_of.subset {m' : set V} (h' : m' ⊆ m)
   (h : C.monochromatic_of m c) : C.monochromatic_of m' c :=
 λ x hx y hy h'', h (h' hx) (h' hy) h''
 
-lemma top_edge_labelling.monochromatic_of.image {C : top_edge_labelling V' K} {f : V ↪ V'}
+lemma monochromatic_of.image {C : top_edge_labelling V' K} {f : V ↪ V'}
   (h : (C.pullback f).monochromatic_of m c) : C.monochromatic_of (f '' m) c :=
 by simpa [top_edge_labelling.monochromatic_of]
 
-lemma top_edge_labelling.monochromatic_of.map {C : top_edge_labelling V' K} {f : V ↪ V'}
+lemma monochromatic_of.map {C : top_edge_labelling V' K} {f : V ↪ V'}
   {m : finset V} (h : (C.pullback f).monochromatic_of m c) : C.monochromatic_of (m.map f) c :=
-by simpa [top_edge_labelling.monochromatic_of]
+by { rw [coe_map], exact h.image }
 
-lemma top_edge_labelling.monochromatic_of_insert {x : V} (hx : x ∉ m) :
+lemma monochromatic_of_insert {x : V} (hx : x ∉ m) :
   C.monochromatic_of (insert x m) c ↔
     C.monochromatic_of m c ∧ ∀ y ∈ m, C.get x y (H.ne_of_not_mem hx).symm = c :=
 begin
@@ -292,6 +292,88 @@ begin
   rw top_edge_labelling.get_swap,
   exact h₂ y hy,
 end
+
+/-- The predicate `χ.monochromatic_between X Y k` says every edge between `X` and `Y` is labelled
+`k` by the labelling `χ`. -/
+def monochromatic_between (C : top_edge_labelling V K) (X Y : finset V) (k : K) : Prop :=
+∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → x ≠ y → C.get x y = k
+
+instance [decidable_eq V] [decidable_eq K] {X Y : finset V} {k : K} :
+  decidable (monochromatic_between C X Y k) :=
+finset.decidable_dforall_finset
+
+@[simp] lemma monochromatic_between_empty_left {Y : finset V} {k : K} :
+  C.monochromatic_between ∅ Y k :=
+by simp [monochromatic_between]
+
+@[simp] lemma monochromatic_between_empty_right {X : finset V} {k : K} :
+  C.monochromatic_between X ∅ k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_singleton_left {x : V} {Y : finset V} {k : K} :
+  C.monochromatic_between {x} Y k ↔ ∀ ⦃y⦄, y ∈ Y → x ≠ y → C.get x y = k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_singleton_right {y : V} {X : finset V} {k : K} :
+  C.monochromatic_between X {y} k ↔ ∀ ⦃x⦄, x ∈ X → x ≠ y → C.get x y = k :=
+by simp [monochromatic_between]
+
+lemma monochromatic_between_union_left [decidable_eq V] {X Y Z : finset V} {k : K} :
+  C.monochromatic_between (X ∪ Y) Z k ↔
+    C.monochromatic_between X Z k ∧ C.monochromatic_between Y Z k :=
+by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
+
+lemma monochromatic_between_union_right [decidable_eq V] {X Y Z : finset V} {k : K} :
+  C.monochromatic_between X (Y ∪ Z) k ↔
+    C.monochromatic_between X Y k ∧ C.monochromatic_between X Z k :=
+by simp only [monochromatic_between, mem_union, or_imp_distrib, forall_and_distrib]
+
+lemma monochromatic_between_self {X : finset V} {k : K} :
+  C.monochromatic_between X X k ↔ C.monochromatic_of X k :=
+by simp only [monochromatic_between, monochromatic_of, mem_coe]
+
+lemma _root_.disjoint.monochromatic_between {X Y : finset V} {k : K} (h : disjoint X Y) :
+  C.monochromatic_between X Y k ↔
+    ∀ ⦃x⦄, x ∈ X → ∀ ⦃y⦄, y ∈ Y → C.get x y (h.forall_ne_finset ‹_› ‹_›) = k :=
+forall₄_congr $ λ x hx y hy, by simp [h.forall_ne_finset hx hy]
+
+lemma monochromatic_between.subset_left {X Y Z : finset V} {k : K}
+  (hYZ : C.monochromatic_between Y Z k) (hXY : X ⊆ Y) :
+  C.monochromatic_between X Z k :=
+λ x hx y hy h, hYZ (hXY hx) hy _
+
+lemma monochromatic_between.subset_right {X Y Z : finset V} {k : K}
+  (hXZ : C.monochromatic_between X Z k) (hXY : Y ⊆ Z) :
+  C.monochromatic_between X Y k :=
+λ x hx y hy h, hXZ hx (hXY hy) _
+
+lemma monochromatic_between.subset {W X Y Z : finset V} {k : K}
+  (hWX : C.monochromatic_between W X k) (hYW : Y ⊆ W) (hZX : Z ⊆ X) :
+  C.monochromatic_between Y Z k :=
+λ x hx y hy h, hWX (hYW hx) (hZX hy) _
+
+lemma monochromatic_between.symm {X Y : finset V} {k : K}
+  (hXY : C.monochromatic_between X Y k) :
+  C.monochromatic_between Y X k :=
+λ y hy x hx h, by { rw get_swap _ _ h.symm, exact hXY hx hy _ }
+
+lemma monochromatic_between.comm {X Y : finset V} {k : K} :
+  C.monochromatic_between Y X k ↔ C.monochromatic_between X Y k :=
+⟨monochromatic_between.symm, monochromatic_between.symm⟩
+
+lemma monochromatic_of_union {X Y : finset V} {k : K} :
+  C.monochromatic_of (X ∪ Y) k ↔
+    C.monochromatic_of X k ∧ C.monochromatic_of Y k ∧ C.monochromatic_between X Y k :=
+begin
+  have : C.monochromatic_between X Y k ∧ C.monochromatic_between Y X k ↔
+    C.monochromatic_between X Y k := (and_iff_left_of_imp monochromatic_between.symm),
+  rw ←this,
+  simp only [monochromatic_of, set.mem_union, or_imp_distrib, forall_and_distrib, mem_coe,
+    monochromatic_between],
+  tauto,
+end
+
+end top_edge_labelling
 
 open top_edge_labelling
 
@@ -604,13 +686,6 @@ begin
   exact ⟨_, ramsey_fin_induct _ _ hN⟩,
 end
 
-lemma sum_tsub {α β : Type*} [add_comm_monoid β] [partial_order β] [has_exists_add_of_le β]
-  [covariant_class β β (+) (≤)] [contravariant_class β β (+) (≤)] [has_sub β] [has_ordered_sub β]
-  (s : finset α) {f g : α → β} (hfg : ∀ x ∈ s, g x ≤ f x) :
-  ∑ x in s, (f x - g x) = ∑ x in s, f x - ∑ x in s, g x :=
-eq_tsub_of_add_eq $ by rw [←finset.sum_add_distrib];
-  exact finset.sum_congr rfl (λ x hx, tsub_add_cancel_of_le $ hfg _ hx)
-
 -- hn can be weakened but it's just a nontriviality assumption
 lemma ramsey_fin_induct' [decidable_eq K] [fintype K] (n : K → ℕ) (N : K → ℕ)
   (hn : ∀ k, 2 ≤ n k) (hN : ∀ k, is_ramsey_valid (fin (N k)) (function.update n k (n k - 1))) :
@@ -637,49 +712,6 @@ end
 
 open matrix (vec_cons)
 
-lemma function.update_head {α : Type*} {i : ℕ} {x y : α} {t : fin i → α} :
-  function.update (vec_cons x t) 0 y = vec_cons y t :=
-begin
-  rw [function.funext_iff, fin.forall_fin_succ],
-  refine ⟨rfl, λ j, _⟩,
-  rw function.update_noteq,
-  { simp only [vec_cons, fin.cons_succ] },
-  exact fin.succ_ne_zero j
-end
-
-lemma function.update_one {α : Type*} {i : ℕ} {x y z : α} {t : fin i → α} :
-  function.update (vec_cons x (vec_cons y t)) 1 z = vec_cons x (vec_cons z t) :=
-begin
-  simp only [function.funext_iff, fin.forall_fin_succ],
-  refine ⟨rfl, rfl, λ j, _⟩,
-  rw function.update_noteq,
-  { simp only [vec_cons, fin.cons_succ] },
-  exact (fin.succ_injective _).ne (fin.succ_ne_zero _),
-end
-
-lemma function.update_two {α : Type*} {i : ℕ} {w x y z : α} {t : fin i → α} :
-  function.update (vec_cons w (vec_cons x (vec_cons y t))) 2 z =
-    vec_cons w (vec_cons x (vec_cons z t)) :=
-begin
-  simp only [function.funext_iff, fin.forall_fin_succ],
-  refine ⟨rfl, rfl, rfl, λ j, _⟩,
-  rw function.update_noteq,
-  { simp only [vec_cons, fin.cons_succ] },
-  exact (fin.succ_injective _).ne ((fin.succ_injective _).ne (fin.succ_ne_zero _))
-end
-
-lemma function.swap_cons {α : Type*} {i : ℕ} {x y : α} {t : fin i → α} :
-  vec_cons x (vec_cons y t) ∘ equiv.swap 0 1 = vec_cons y (vec_cons x t) :=
-begin
-  rw [function.funext_iff],
-  simp only [fin.forall_fin_succ],
-  refine ⟨rfl, rfl, λ j, _⟩,
-  simp only [vec_cons, fin.cons_succ, function.comp_apply],
-  rw [equiv.swap_apply_of_ne_of_ne, fin.cons_succ, fin.cons_succ],
-  { exact fin.succ_ne_zero _ },
-  exact (fin.succ_injective _).ne (fin.succ_ne_zero _)
-end
-
 theorem ramsey_fin_induct_two {i j Ni Nj : ℕ} (hi : 2 ≤ i) (hj : 2 ≤ j)
   (hi' : is_ramsey_valid (fin Ni) ![i - 1, j])
   (hj' : is_ramsey_valid (fin Nj) ![i, j - 1]) :
@@ -691,7 +723,7 @@ begin
   { rwa this at h },
   { rw fin.forall_fin_two,
     exact ⟨hi, hj⟩ },
-  { rw [fin.forall_fin_two, function.update_head, function.update_one],
+  { rw [fin.forall_fin_two, function.update_head, function.update_cons_one],
     exact ⟨hi', hj'⟩ },
 end
 
@@ -750,7 +782,7 @@ begin
     rw [add_add_add_comm, ←add_assoc, e] at this,
     simpa only [add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero] using this },
   refine ramsey_fin_induct_aux ![Ni, Nj] m x _ (by simp) _ _,
-  { rw [fin.forall_fin_two, function.update_head, function.update_one],
+  { rw [fin.forall_fin_two, function.update_head, function.update_cons_one],
     exact ⟨hi', hj'⟩ },
   { rwa fin.exists_fin_two },
   { rw [fin.forall_fin_two],
@@ -772,7 +804,7 @@ begin
   { rw [fin.forall_fin_succ, fin.forall_fin_two],
     exact ⟨hi, hj, hk⟩ },
   { rw [fin.forall_fin_succ, fin.forall_fin_two, function.update_head, fin.succ_zero_eq_one',
-      fin.succ_one_eq_two', function.update_one, function.update_two],
+      fin.succ_one_eq_two', function.update_cons_one, function.update_cons_two],
     exact ⟨hi', hj', hk'⟩ }
 end
 

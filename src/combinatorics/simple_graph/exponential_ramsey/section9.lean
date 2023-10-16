@@ -1019,16 +1019,26 @@ end
 
 section
 
-variables {V : Type*} [fintype V] [decidable_eq V]
+variables {V : Type*}
 open fintype
 
 section
 
 /-- The density of a simple graph. -/
-def density (G : simple_graph V) [decidable_rel G.adj] : ℚ :=
+def density [fintype V] (G : simple_graph V) [fintype G.edge_set] : ℚ :=
 G.edge_finset.card / (card V).choose 2
 
-lemma edge_finset_eq_filter (G : simple_graph V) [decidable_rel G.adj] :
+lemma density_congr [fintype V] (G₁ G₂ : simple_graph V) [fintype G₁.edge_set] [fintype G₂.edge_set]
+  (h : G₁ = G₂) : G₁.density = G₂.density :=
+begin
+  rw [density, density, edge_finset_card, edge_finset_card],
+  congr' 2,
+  refine card_congr' _,
+  rw h
+end
+
+lemma edge_finset_eq_filter
+  [fintype (sym2 V)] (G : simple_graph V) [fintype G.edge_set] [decidable_rel G.adj] :
   G.edge_finset = univ.filter (∈ sym2.from_rel G.symm) :=
 begin
   rw [←finset.coe_inj, coe_edge_finset, coe_filter, coe_univ, set.sep_univ],
@@ -1039,7 +1049,8 @@ lemma univ_image_quotient_mk {α : Type*} (s : finset α) [decidable_eq α] :
   s.off_diag.image quotient.mk = s.sym2.filter (λ a, ¬ a.is_diag) :=
 (sym2.filter_image_quotient_mk_not_is_diag _).symm
 
-lemma edge_finset_eq_filter_filter (G : simple_graph V) [decidable_rel G.adj] :
+lemma edge_finset_eq_filter_filter [decidable_eq V] [fintype (sym2 V)] (G : simple_graph V)
+  [fintype G.edge_set] [decidable_rel G.adj] :
   G.edge_finset = (univ.filter (λ a : sym2 V, ¬ a.is_diag)).filter (∈ sym2.from_rel G.symm) :=
 begin
   rw [edge_finset_eq_filter, filter_filter],
@@ -1051,7 +1062,8 @@ begin
   exact h.ne,
 end
 
-lemma edge_finset_eq_filter' (G : simple_graph V) [decidable_rel G.adj] :
+lemma edge_finset_eq_filter' [fintype V] [decidable_eq V] (G : simple_graph V) [fintype G.edge_set]
+  [decidable_rel G.adj] :
   G.edge_finset = (univ.off_diag.image quotient.mk).filter (∈ sym2.from_rel G.symm) :=
 by rw [edge_finset_eq_filter_filter, ←sym2_univ, ←univ_image_quotient_mk]
 
@@ -1092,7 +1104,8 @@ begin
   simp [h.1, h.2.2, ne.symm h.2.1],
 end
 
-lemma density_eq_average (G : simple_graph V) [decidable_rel G.adj] :
+lemma density_eq_average [fintype V] [decidable_eq V] (G : simple_graph V) [fintype G.edge_set]
+  [decidable_rel G.adj] :
   G.density =
     (card V * (card V - 1))⁻¹ * ∑ x : V, ∑ y in univ.erase x, if G.adj x y then 1 else 0 :=
 begin
@@ -1102,16 +1115,18 @@ begin
   refl
 end
 
-lemma density_eq_average' (G : simple_graph V) [decidable_rel G.adj] :
-  G.density =
-    (card V * (card V - 1))⁻¹ * ∑ x y : V, if G.adj x y then 1 else 0 :=
+lemma density_eq_average' [fintype V] (G : simple_graph V) [fintype G.edge_set]
+  [decidable_rel G.adj] :
+  G.density = (card V * (card V - 1))⁻¹ * ∑ x y : V, if G.adj x y then 1 else 0 :=
 begin
+  classical,
   rw [density_eq_average],
   congr' 2 with x : 1,
   simp
 end
 
-lemma density_eq_average_neighbors (G : simple_graph V) [decidable_rel G.adj] :
+lemma density_eq_average_neighbors [fintype V] (G : simple_graph V) [fintype G.edge_set]
+  [decidable_rel G.adj] :
   G.density = (card V * (card V - 1))⁻¹ * ∑ x : V, (G.neighbor_finset x).card :=
 begin
   rw [density_eq_average'],
@@ -1119,7 +1134,8 @@ begin
   simp [neighbor_finset_eq_filter],
 end
 
-lemma density_compl (G : simple_graph V) [decidable_rel G.adj] (h : 2 ≤ card V) :
+lemma density_compl [fintype V] (G : simple_graph V) [fintype G.edge_set] [fintype Gᶜ.edge_set]
+  (h : 2 ≤ card V) :
   Gᶜ.density = 1 - G.density :=
 begin
   rw [simple_graph.density, card_compl_edge_finset_eq, nat.cast_sub edge_finset_card_le,
@@ -1230,7 +1246,10 @@ begin
   { linarith }
 end
 
-lemma density_eq_average_partition (G : simple_graph V) [decidable_rel G.adj] (n : ℕ)
+variables [fintype V]
+
+lemma density_eq_average_partition [decidable_eq V]
+  (G : simple_graph V) [decidable_rel G.adj] [fintype G.edge_set] (n : ℕ)
   (hn₀ : 0 < n) (hn : n < card V) :
   G.density = ((card V).choose n)⁻¹ * ∑ U in powerset_len n univ, G.edge_density U Uᶜ :=
 begin
@@ -1259,8 +1278,9 @@ begin
   rw [choose_helper hn],
 end
 
-lemma exists_density_edge_density (G : simple_graph V) [decidable_rel G.adj] (n : ℕ)
-  (hn₀ : 0 < n) (hn : n < card V) :
+lemma exists_density_edge_density [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+  [fintype G.edge_set]
+  (n : ℕ) (hn₀ : 0 < n) (hn : n < card V) :
   ∃ U : finset V, U.card = n ∧ G.density ≤ G.edge_density U Uᶜ :=
 begin
   suffices : ∃ U ∈ powerset_len n (univ : finset V), G.density ≤ G.edge_density U Uᶜ,
@@ -1275,10 +1295,12 @@ begin
 end
 
 lemma exists_equibipartition_edge_density (G : simple_graph V) [decidable_rel G.adj]
+  [fintype G.edge_set]
   (hn : 2 ≤ card V) :
   ∃ X Y : finset V, disjoint X Y ∧ ⌊(card V / 2 : ℝ)⌋₊ ≤ X.card ∧ ⌊(card V / 2 : ℝ)⌋₊ ≤ Y.card
     ∧ G.density ≤ G.edge_density X Y :=
 begin
+  classical,
   rw [←nat.cast_two, nat.floor_div_eq_div],
   have h₁ : 0 < card V / 2 := nat.div_pos hn two_pos,
   have h₂ : card V / 2 < card V := nat.div_lt_self (pos_of_gt hn) one_lt_two,
@@ -1291,7 +1313,8 @@ end
 end
 
 /--  The density of a label in the edge labelling. -/
-def top_edge_labelling.density {K : Type*} [decidable_eq K] (χ : top_edge_labelling V K) (k : K) :
+def top_edge_labelling.density [fintype V] {K : Type*} [decidable_eq K] (χ : top_edge_labelling V K)
+  (k : K) [fintype (χ.label_graph k).edge_set] :
   ℝ := density (χ.label_graph k)
 
 lemma exists_equibipartition_col_density {n : ℕ}
@@ -1306,12 +1329,16 @@ begin
   all_goals { simp }
 end
 
-lemma density_zero_one (χ : top_edge_labelling V (fin 2)) (h : 2 ≤ card V) :
+lemma density_zero_one [fintype V] (χ : top_edge_labelling V (fin 2))
+  [fintype (χ.label_graph 0).edge_set] [fintype (χ.label_graph 1).edge_set]
+  (h : 2 ≤ card V) :
   χ.density 0 = 1 - χ.density 1 :=
 begin
+  classical,
   rw [top_edge_labelling.density, top_edge_labelling.density, ←rat.cast_one, ←rat.cast_sub,
-    rat.cast_inj, ←density_compl _ h],
-  simp only [←to_edge_labelling_label_graph_compl, label_graph_to_edge_labelling χ],
+    rat.cast_inj, ←density_compl (χ.label_graph 1) h],
+  refine density_congr _ _ _,
+  rw [←to_edge_labelling_label_graph_compl, label_graph_to_edge_labelling],
 end
 
 end

@@ -146,7 +146,7 @@ lemma dist_le_dist_of_le (ha : a₂ ≤ a₁) (h₁ : a₁ ≤ b₁) (hb : b₁ 
 (dist_mono_right h₁ (h₁.trans hb) hb).trans $
   dist_anti_left (ha.trans $ h₁.trans hb) (h₁.trans hb) ha
 
-protected lemma metric.bounded.bdd_below : metric.bounded s → bdd_below s :=
+protected lemma metric.bounded.bdd_below : bounded s → bdd_below s :=
 begin
   rintro ⟨r, hr⟩,
   obtain rfl | ⟨x, hx⟩ := s.eq_empty_or_nonempty,

@@ -36,6 +36,9 @@ open_locale topology
 
 variables {ι : Type*} [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
 
+/-- If we can fit a small ball inside a set `s` intersected with any neighborhood of `x`, then the
+density of `s` near `x` is not `0`. Along with `aux₁`, this proves that `x` is a Lebesgue point of
+`s`. This will be used to prove that the frontier of an order-connected set is null. -/
 private lemma aux₀
   (h : ∀ δ, 0 < δ → ∃ y, closed_ball y (δ/4) ⊆ closed_ball x δ ∧ closed_ball y (δ/4) ⊆ interior s) :
   ¬ tendsto (λ r, volume (closure s ∩ closed_ball x r) / volume (closed_ball x r)) (𝓝[>] 0)
@@ -57,6 +60,9 @@ begin
   all_goals { positivity },
 end
 
+/-- If we can fit a small ball inside a set `sᶜ` intersected with any neighborhood of `x`, then the
+density of `s` near `x` is not `1`. Along with `aux₀`, this proves that `x` is a Lebesgue point of
+`s`. This will be used to prove that the frontier of an order-connected set is null. -/
 private lemma aux₁
   (h : ∀ δ, 0 < δ →
     ∃ y, closed_ball y (δ/4) ⊆ closed_ball x δ ∧ closed_ball y (δ/4) ⊆ interior sᶜ) :

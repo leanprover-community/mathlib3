@@ -1,6 +1,15 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import analysis.calculus.taylor
 import analysis.calculus.cont_diff
 import data.set.intervals.unordered_interval
+
+/-!
+# Stuff for analysis.calculus.taylor
+-/
 
 open set
 

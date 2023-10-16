@@ -1,5 +1,14 @@
+/-
+Copyright (c) 2023 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
 import combinatorics.simple_graph.basic_mathlib
 import combinatorics.simple_graph.clique
+
+/-!
+# Stuff for combinatorics.simple_graph.clique
+-/
 
 namespace simple_graph
 

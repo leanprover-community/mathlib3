@@ -8,6 +8,9 @@ import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 A smooth monoid is a monoid that is also a smooth manifold, in which multiplication is a smooth map
 of the product manifold `G` × `G` into `G`.
 
@@ -91,7 +94,7 @@ end
 
 section
 
-variables {f g : M → G} {s : set M} {x : M} {n : with_top ℕ}
+variables {f g : M → G} {s : set M} {x : M} {n : ℕ∞}
 
 @[to_additive]
 lemma cont_mdiff_within_at.mul (hf : cont_mdiff_within_at I' I n f s x)
@@ -156,10 +159,10 @@ names. -/
 def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
 
 /- Left multiplication. The abbreviation is `MIL`. -/
-localized "notation `𝑳` := smooth_left_mul" in lie_group
+localized "notation (name := smooth_left_mul) `𝑳` := smooth_left_mul" in lie_group
 
 /- Right multiplication. The abbreviation is `MIR`. -/
-localized "notation `𝑹` := smooth_right_mul" in lie_group
+localized "notation (name := smooth_right_mul) `𝑹` := smooth_right_mul" in lie_group
 
 open_locale lie_group
 
@@ -255,7 +258,7 @@ variables {ι 𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] {s : set M} {x : M}
-{t : finset ι} {f : ι → M → G} {n : with_top ℕ} {p : ι → Prop}
+{t : finset ι} {f : ι → M → G} {n : ℕ∞} {p : ι → Prop}
 
 @[to_additive]
 lemma cont_mdiff_within_at_finset_prod' (h : ∀ i ∈ t, cont_mdiff_within_at I' I n (f i) s x) :
@@ -370,3 +373,14 @@ lemma smooth_finprod_cond (hc : ∀ i, p i → smooth I' I (f i))
 cont_mdiff_finprod_cond hc hf
 
 end comm_monoid
+
+section
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+
+instance has_smooth_add_self : has_smooth_add 𝓘(𝕜, E) E :=
+⟨by { convert cont_diff_add.cont_mdiff, exact model_with_corners_self_prod.symm,
+  exact charted_space_self_prod }⟩
+
+end

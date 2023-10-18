@@ -6,12 +6,15 @@ Authors: Antoine Labelle
 import algebra.module.basic
 import algebra.module.linear_map
 import algebra.monoid_algebra.basic
-import linear_algebra.trace
 import linear_algebra.dual
-import linear_algebra.free_module.basic
+import linear_algebra.contraction
+import ring_theory.tensor_product
 
 /-!
 # Monoid representations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces monoid representations and their characters and defines a few ways to construct
 representations.
@@ -47,15 +50,15 @@ namespace representation
 
 section trivial
 
-variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
+variables (k : Type*) {G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
 
 /--
-The trivial representation of `G` on the one-dimensional module `k`.
+The trivial representation of `G` on a `k`-module V.
 -/
-def trivial : representation k G k := 1
+def trivial : representation k G V := 1
 
 @[simp]
-lemma trivial_def (g : G) (v : k) : trivial g v = v := rfl
+lemma trivial_def (g : G) (v : V) : trivial k g v = v := rfl
 
 end trivial
 
@@ -93,7 +96,7 @@ which we equip with an instance `module (monoid_algebra k G) ρ.as_module`.
 
 You should use `as_module_equiv : ρ.as_module ≃+ V` to translate terms.
 -/
-@[nolint unused_arguments, derive add_comm_monoid]
+@[nolint unused_arguments, derive [add_comm_monoid, module (module.End k V)]]
 def as_module (ρ : representation k G V) := V
 
 instance : inhabited ρ.as_module := ⟨0⟩
@@ -103,10 +106,7 @@ A `k`-linear representation of `G` on `V` can be thought of as
 a module over `monoid_algebra k G`.
 -/
 noncomputable instance as_module_module : module (monoid_algebra k G) ρ.as_module :=
-begin
-  change module (monoid_algebra k G) V,
-  exact module.comp_hom V (as_algebra_hom ρ).to_ring_hom,
-end
+module.comp_hom V (as_algebra_hom ρ).to_ring_hom
 
 /--
 The additive equivalence from the `module (monoid_algebra k G)` to the original vector space
@@ -248,6 +248,10 @@ variables {k G H}
 
 lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
 
+lemma of_mul_action_single (g : G) (x : H) (r : k) :
+  of_mul_action k G H g (finsupp.single x r) = finsupp.single (g • x) r :=
+finsupp.map_domain_single
+
 end mul_action
 section group
 
@@ -263,6 +267,20 @@ begin
   have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
   simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
 end
+
+lemma of_mul_action_self_smul_eq_mul
+  (x : monoid_algebra k G) (y : (of_mul_action k G G).as_module) :
+  x • y = (x * y : monoid_algebra k G) :=
+x.induction_on (λ g, by show as_algebra_hom _ _ _ = _; ext; simp)
+  (λ x y hx hy, by simp only [hx, hy, add_mul, add_smul])
+  (λ r x hx, by show as_algebra_hom _ _ _ = _; simpa [←hx])
+
+/-- If we equip `k[G]` with the `k`-linear `G`-representation induced by the left regular action of
+`G` on itself, the resulting object is isomorphic as a `k[G]`-module to `k[G]` with its natural
+`k[G]`-module structure. -/
+@[simps] noncomputable def of_mul_action_self_as_module_equiv :
+  (of_mul_action k G G).as_module ≃ₗ[monoid_algebra k G] monoid_algebra k G :=
+{ map_smul' := of_mul_action_self_smul_eq_mul, ..as_module_equiv _ }
 
 /--
 When `G` is a group, a `k`-linear representation of `G` on `V` can be thought of as
@@ -297,6 +315,27 @@ local notation ρV ` ⊗ ` ρW := tprod ρV ρW
 
 @[simp]
 lemma tprod_apply (g : G) : (ρV ⊗ ρW) g = tensor_product.map (ρV g) (ρW g) := rfl
+
+lemma smul_tprod_one_as_module (r : monoid_algebra k G) (x : V) (y : W) :
+  (r • (x ⊗ₜ y) : (ρV.tprod 1).as_module) = (r • x : ρV.as_module) ⊗ₜ y :=
+begin
+  show as_algebra_hom _ _ _ = as_algebra_hom _ _ _ ⊗ₜ _,
+  simp only [as_algebra_hom_def, monoid_algebra.lift_apply,
+    tprod_apply, monoid_hom.one_apply, linear_map.finsupp_sum_apply,
+    linear_map.smul_apply, tensor_product.map_tmul, linear_map.one_apply],
+  simp only [finsupp.sum, tensor_product.sum_tmul],
+  refl,
+end
+
+lemma smul_one_tprod_as_module (r : monoid_algebra k G) (x : V) (y : W) :
+  (r • (x ⊗ₜ y) : ((1 : representation k G V).tprod ρW).as_module) = x ⊗ₜ (r • y : ρW.as_module) :=
+begin
+  show as_algebra_hom _ _ _ = _ ⊗ₜ as_algebra_hom _ _ _,
+  simp only [as_algebra_hom_def, monoid_algebra.lift_apply,
+    tprod_apply, monoid_hom.one_apply, linear_map.finsupp_sum_apply,
+    linear_map.smul_apply, tensor_product.map_tmul, linear_map.one_apply],
+  simp only [finsupp.sum, tensor_product.tmul_sum, tensor_product.tmul_smul],
+end
 
 end tensor_product
 
@@ -342,6 +381,13 @@ def dual : representation k G (module.dual k V) :=
 @[simp]
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
+/--
+Given $k$-modules $V, W$, there is a homomorphism $φ : V^* ⊗ W → Hom_k(V, W)$
+(implemented by `linear_algebra.contraction.dual_tensor_hom`).
+Given representations of $G$ on $V$ and $W$,there are representations of $G$ on  $V^* ⊗ W$ and on
+$Hom_k(V, W)$.
+This lemma says that $φ$ is $G$-linear.
+-/
 lemma dual_tensor_hom_comm (g : G) :
   (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
   (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=

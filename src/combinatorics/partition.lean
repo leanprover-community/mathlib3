@@ -11,6 +11,9 @@ import tactic.apply_fun
 /-!
 # Partitions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A partition of a natural number `n` is a way of writing `n` as a sum of positive integers, where the
 order does not matter: two sums that differ only in the order of their summands are considered the
 same partition. This notion is closely related to that of a composition of `n`, but in a composition

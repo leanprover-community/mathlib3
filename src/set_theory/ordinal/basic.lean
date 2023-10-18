@@ -10,6 +10,9 @@ import set_theory.cardinal.basic
 /-!
 # Ordinals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Ordinals are defined as equivalences of well-ordered sets under order isomorphism. They are endowed
 with a total order, where an ordinal is smaller than another one if it embeds into it as an
 initial segment (or, equivalently, in any way). This total order is well founded.
@@ -103,6 +106,8 @@ namespace Well_order
 
 instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
 
+@[simp] lemma eta (o : Well_order) : mk o.α o.r o.wo = o := by { cases o, refl }
+
 end Well_order
 
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
@@ -126,9 +131,15 @@ o.out.wo
 
 namespace ordinal
 
+/- ### Basic properties of the order type -/
+
 /-- The order type of a well order is an ordinal. -/
 def type (r : α → α → Prop) [wo : is_well_order α r] : ordinal :=
 ⟦⟨α, r, wo⟩⟧
+
+instance : has_zero ordinal := ⟨type $ @empty_relation pempty⟩
+instance : inhabited ordinal := ⟨0⟩
+instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
 
 /-- The order type of an element inside a well order. For the embedding as a principal segment, see
 `typein.principal_seg`. -/
@@ -141,6 +152,9 @@ by { cases w, refl }
 @[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
 rfl
 
+@[simp] lemma type_out (o : ordinal) : ordinal.type o.out.r = o :=
+by rw [ordinal.type, Well_order.eta, quotient.out_eq]
+
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
 quotient.eq
@@ -151,6 +165,47 @@ type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 (type_def' _).symm.trans $ quotient.out_eq o
+
+theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
+(rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α := by simp
+
+theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
+type_ne_zero_iff_nonempty.2 h
+
+theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
+theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
+
+theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
+(rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
+
+@[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in ⟨s.to_equiv.unique⟩, λ ⟨h⟩, @type_eq_one_of_unique α r _ h⟩
+
+theorem type_punit : type (@empty_relation punit) = 1 := rfl
+theorem type_unit : type (@empty_relation unit) = 1 := rfl
+
+@[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+by rw [←@type_eq_zero_iff_is_empty o.out.α (<), type_lt]
+
+lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
+out_empty_iff_eq_zero.1 h
+
+instance is_empty_out_zero : is_empty (0 : ordinal).out.α := out_empty_iff_eq_zero.2 rfl
+
+@[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
+by rw [←@type_ne_zero_iff_nonempty o.out.α (<), type_lt]
+
+lemma ne_zero_of_out_nonempty (o : ordinal) [h : nonempty o.out.α] : o ≠ 0 :=
+out_nonempty_iff_ne_zero.1 h
+
+protected lemma one_ne_zero : (1 : ordinal) ≠ 0 := type_ne_zero_of_nonempty _
+
+instance : nontrivial ordinal.{u} := ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 @[simp] theorem type_preimage {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
   type (f ⁻¹'o r) = type r :=
@@ -182,7 +237,7 @@ instance : partial_order ordinal :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
       λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
   le_antisymm := λ a b,
@@ -220,6 +275,22 @@ theorem _root_.rel_embedding.ordinal_type_le {α β} {r : α → α → Prop} {s
 theorem _root_.principal_seg.ordinal_type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (h : r ≺i s) : type r < type s := ⟨h⟩
 
+protected theorem zero_le (o : ordinal) : 0 ≤ o :=
+induction_on o $ λ α r _, by exactI (initial_seg.of_is_empty _ r).ordinal_type_le
+
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
+
+@[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 := le_bot_iff
+protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_iff_ne_bot
+protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 := not_lt_bot
+theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a := eq_bot_or_bot_lt
+
+instance : zero_le_one_class ordinal := ⟨ordinal.zero_le _⟩
+
+instance ne_zero.one : ne_zero (1 : ordinal) := ⟨ordinal.one_ne_zero⟩
+
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
 def initial_seg_out {α β : ordinal} (h : α ≤ β) :
@@ -251,7 +322,7 @@ by { simp_rw ←type_lt o, apply typein_lt_type }
   typein s f.top = type r :=
 eq.symm $ quot.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _ f f.lt_top)
-  (λ ⟨a, h⟩, by rcases f.down'.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
+  (λ ⟨a, h⟩, by rcases f.down.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
@@ -260,7 +331,7 @@ eq.symm $ quotient.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _
     ((subrel.rel_embedding _ _).trans f)
     (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.map_rel_iff.2 h))
-  (λ ⟨y, h⟩, by rcases f.init' h with ⟨a, rfl⟩;
+  (λ ⟨y, h⟩, by rcases f.init h with ⟨a, rfl⟩;
     exact ⟨⟨a, f.to_rel_embedding.map_rel_iff.1 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
 
 @[simp] theorem typein_lt_typein (r : α → α → Prop) [is_well_order α r]
@@ -287,28 +358,29 @@ injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
   {a b} : typein r a = typein r b ↔ a = b :=
 (typein_injective r).eq_iff
 
+/-- Principal segment version of the `typein` function, embedding a well order into
+  ordinals as a principal segment. -/
+def typein.principal_seg (r : α → α → Prop) [is_well_order α r] :
+  r ≺i ((<) : ordinal → ordinal → Prop) :=
+⟨⟨⟨typein r, typein_injective r⟩, λ a b, typein_lt_typein r⟩, type r,
+  λ o, ⟨typein_surj r, λ ⟨a, h⟩, h ▸ typein_lt_type r a⟩⟩
+
+@[simp] theorem typein.principal_seg_coe (r : α → α → Prop) [is_well_order α r] :
+  (typein.principal_seg r : α → ordinal) = typein r := rfl
+
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.
   That is, `enum` maps an initial segment of the ordinals, those
   less than the order type of `r`, to the elements of `α`. -/
-def enum (r : α → α → Prop) [is_well_order α r] (o) : o < type r → α :=
-quot.rec_on o (λ ⟨β, s, _⟩ h, (classical.choice h).top) $
-λ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨h⟩, begin
-  resetI, refine funext (λ (H₂ : type t < type r), _),
-  have H₁ : type s < type r, {rwa type_eq.2 ⟨h⟩},
-  have : ∀ {o e} (H : o < type r), @@eq.rec
-   (λ (o : ordinal), o < type r → α)
-   (λ (h : type s < type r), (classical.choice h).top)
-     e H = (classical.choice H₁).top, {intros, subst e},
-  exact (this H₂).trans (principal_seg.top_eq h
-    (classical.choice H₁) (classical.choice H₂))
-end
+def enum (r : α → α → Prop) [is_well_order α r] (o) (h : o < type r) : α :=
+(typein.principal_seg r).subrel_iso ⟨o, h⟩
 
 theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : s ≺i r)
   {h : type s < type r} : enum r (type s) h = f.top :=
-principal_seg.top_eq (rel_iso.refl _) _ _
+(typein.principal_seg r).injective $
+  ((typein.principal_seg r).apply_subrel_iso _).trans (typein_top _).symm
 
 @[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α) :
   enum r (typein r a) (typein_lt_type r a) = a :=
@@ -341,13 +413,8 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exactI
-suffices ∀ a, acc (<) (typein r a), from
-⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
-λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
-  rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
-  exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩
+well_founded_iff_well_founded_subrel.mpr $ λ a, induction_on a $ λ α r wo, by exactI
+  rel_hom_class.well_founded (typein.principal_seg r).subrel_iso wo.wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 
@@ -356,18 +423,6 @@ instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
 lt_wf.induction i h
-
-/-- Principal segment version of the `typein` function, embedding a well order into
-  ordinals as a principal segment. -/
-def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
-  @principal_seg α ordinal.{u} r (<) :=
-⟨rel_embedding.of_monotone (typein r)
-  (λ a b, (typein_lt_typein r).2), type r, λ b,
-    ⟨λ h, ⟨enum r _ h, typein_enum r h⟩,
-    λ ⟨a, e⟩, e ▸ typein_lt_type _ _⟩⟩
-
-@[simp] theorem typein.principal_seg_coe (r : α → α → Prop) [is_well_order α r] :
-  (typein.principal_seg r : α → ordinal) = typein r := rfl
 
 /-! ### Cardinality of ordinals -/
 
@@ -384,58 +439,13 @@ rfl
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
-instance : has_zero ordinal := ⟨type $ @empty_relation pempty⟩
-instance : inhabited ordinal := ⟨0⟩
-
-theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
-(rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
-
-@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
-⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
-
-theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α := by simp
-
-theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
-type_ne_zero_iff_nonempty.2 h
-
-theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
-theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
-
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
-protected theorem zero_le (o : ordinal) : 0 ≤ o :=
-induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
-
-instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
-
-@[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 := le_bot_iff
-
-protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 := bot_lt_iff_ne_bot
-
-@[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
-by rw [←@type_eq_zero_iff_is_empty o.out.α (<), type_lt]
-
-lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
-out_empty_iff_eq_zero.1 h
-
-instance is_empty_out_zero : is_empty (0 : ordinal).out.α := out_empty_iff_eq_zero.2 rfl
-
-@[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
-by rw [←@type_ne_zero_iff_nonempty o.out.α (<), type_lt]
-
-lemma ne_zero_of_out_nonempty (o : ordinal) [h : nonempty o.out.α] : o ≠ 0 :=
-out_nonempty_iff_ne_zero.1 h
-
-instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
-
-theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
-(rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
-
-@[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=
-⟨λ h, let ⟨s⟩ := type_eq.1 h in ⟨s.to_equiv.unique⟩, λ ⟨h⟩, @type_eq_one_of_unique α r _ h⟩
-
-theorem type_punit : type (@empty_relation punit) = 1 := rfl
-theorem type_unit : type (@empty_relation unit) = 1 := rfl
+@[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
+⟨induction_on o $ λ α r _ h, begin
+  haveI := cardinal.mk_eq_zero_iff.1 h,
+  apply type_eq_zero_of_empty
+end, λ e, by simp only [e, card_zero]⟩
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -572,7 +582,7 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega" in ordinal
+localized "notation (name := ordinal.omega) `ω` := ordinal.omega" in ordinal
 
 /-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
 @[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
@@ -678,25 +688,20 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨lt_wf⟩
+instance : well_founded_lt ordinal := ⟨lt_wf⟩
+instance : is_well_order ordinal (<) := { }
 
 instance : conditionally_complete_linear_order_bot ordinal :=
 is_well_order.conditionally_complete_linear_order_bot _
-
-@[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
 @[simp] lemma max_zero_left : ∀ a : ordinal, max 0 a = a := max_bot_left
 @[simp] lemma max_zero_right : ∀ a : ordinal, max a 0 = a := max_bot_right
 @[simp] lemma max_eq_zero {a b : ordinal} : max a b = 0 ↔ a = 0 ∧ b = 0 := max_eq_bot
 
-protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
-not_lt_bot
-
-theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a :=
-eq_bot_or_bot_lt
-
 @[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
 dif_neg not_nonempty_empty
+
+/- ### Successor order properties -/
 
 private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (induction_on a $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
@@ -705,10 +710,8 @@ private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
     (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
     (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  haveI := hs,
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _ _ _ (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
     { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
@@ -716,7 +719,7 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
   { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+    { intro h, have := @principal_seg.init _ _ _ _ _ ⟨f, t, hf⟩ _ _ h,
       cases this with w h, exact ⟨sum.inl w, h⟩ },
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
 end⟩
@@ -726,6 +729,50 @@ instance : no_max_order ordinal := ⟨λ a, ⟨_, succ_le_iff'.1 le_rfl⟩⟩
 instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff (λ o, o + 1) (λ a b, succ_le_iff')
 
 @[simp] theorem add_one_eq_succ (o : ordinal) : o + 1 = succ o := rfl
+
+@[simp] theorem succ_zero : succ (0 : ordinal) = 1 := zero_add 1
+@[simp] theorem succ_one : succ (1 : ordinal) = 2 := rfl
+
+theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
+(add_assoc _ _ _).symm
+
+theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
+by rw [← succ_zero, succ_le_iff]
+
+theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
+by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
+
+theorem succ_pos (o : ordinal) : 0 < succ o := bot_lt_succ o
+theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 := ne_of_gt $ succ_pos o
+theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 := by simpa using @lt_succ_bot_iff _ _ _ a _ _
+theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
+by simpa using @le_succ_bot_iff _ _ _ a _
+
+@[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
+by simp only [←add_one_eq_succ, card_add, card_one]
+
+theorem nat_cast_succ (n : ℕ) : ↑n.succ = succ (n : ordinal) := rfl
+
+instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
+{ default := ⟨0, zero_lt_one⟩,
+  uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
+
+instance unique_out_one : unique (1 : ordinal).out.α :=
+{ default := enum (<) 0 (by simp),
+  uniq := λ a, begin
+    rw ←enum_typein (<) a,
+    unfold default,
+    congr,
+    rw ←lt_one_iff_zero,
+    apply typein_lt_self
+  end }
+
+theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) 0 (by simp) := unique.eq_default x
+
+/-! ### Extra properties of typein and enum -/
+
+@[simp] theorem typein_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
+by rw [one_out_eq x, typein_enum]
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
@@ -757,21 +804,13 @@ by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_s
 
 @[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
-⟨λ h, begin
-  by_contra hne,
-  cases lt_or_gt_of_ne hne with hlt hlt;
-    apply (is_well_order.is_irrefl r).1,
-    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
-    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
-end, λ h, by simp_rw h⟩
+(typein.principal_seg r).subrel_iso.injective.eq_iff.trans subtype.mk_eq_mk
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
 { to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
-  left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
-  right_inv := λ h, enum_typein _ _,
-  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
+  ..(typein.principal_seg r).subrel_iso }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
@@ -788,6 +827,8 @@ def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
 theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
   enum (<) 0 (by rwa type_lt) = by { haveI H := out_order_bot_of_pos ho, exact ⊥ } :=
 rfl
+
+/-! ### Universal ordinal -/
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
@@ -965,7 +1006,7 @@ by simpa only [lift_lift, lift_univ, univ_umax] using
 @[simp] theorem ord_univ : ord univ.{u v} = ordinal.univ.{u v} :=
 le_antisymm (ord_card_le _) $ le_of_forall_lt $ λ o h,
 lt_ord.2 begin
-  rcases lift.principal_seg.{u v}.down'.1
+  rcases lift.principal_seg.{u v}.down.1
     (by simpa only [lift.principal_seg_coe] using h) with ⟨o', rfl⟩,
   simp only [lift.principal_seg_coe], rw [← lift_card],
   apply lift_lt_univ'
@@ -975,7 +1016,7 @@ theorem lt_univ {c} : c < univ.{u (u+1)} ↔ ∃ c', c = lift.{(u+1) u} c' :=
 ⟨λ h, begin
   have := ord_lt_ord.2 h,
   rw ord_univ at this,
-  cases lift.principal_seg.{u (u+1)}.down'.1
+  cases lift.principal_seg.{u (u+1)}.down.1
     (by simpa only [lift.principal_seg_top]) with o e,
   have := card_ord c,
   rw [← e, lift.principal_seg_coe, ← lift_card] at this,

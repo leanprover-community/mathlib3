@@ -5,11 +5,14 @@ Authors: Scott Morrison
 -/
 import algebra.group.pi
 import algebra.category.Group.preadditive
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import algebra.category.Group.limits
 
 /-!
 # The category of abelian groups has finite biproducts
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open category_theory

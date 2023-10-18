@@ -3,12 +3,15 @@ Copyright (c) 2022 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Heather Macbeth
 -/
-
+import data.nat.cast.with_top
 import field_theory.is_alg_closed.basic
 import ring_theory.witt_vector.discrete_valuation_ring
 
 /-!
 # Solving equations about the Frobenius map on the field of fractions of `𝕎 k`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The goal of this file is to prove `witt_vector.exists_frobenius_solution_fraction_ring`,
 which says that for an algebraically closed field `k` of characteristic `p` and `a, b` in the
@@ -96,7 +99,8 @@ lemma root_exists (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   ∃ b : k, (succ_nth_defining_poly p n a₁ a₂ bs).is_root b :=
 is_alg_closed.exists_root _ $
-  by simp [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero]
+  by simp only [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero,
+    with_top.coe_eq_zero, ne.def, not_false_iff]
 
 /-- This is the `n+1`st coefficient of our solution, projected from `root_exists`. -/
 def succ_nth_val (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)

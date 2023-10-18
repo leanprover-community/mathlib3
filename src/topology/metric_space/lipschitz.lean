@@ -5,11 +5,15 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
 import topology.bornology.hom
 
 /-!
 # Lipschitz continuous functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
@@ -39,7 +43,7 @@ argument, and return `lipschitz_with (real.to_nnreal K) f`.
 universes u v w x
 
 open filter function set
-open_locale topological_space nnreal ennreal
+open_locale topology nnreal ennreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
@@ -223,7 +227,7 @@ end
 protected lemma prod_mk_left (a : α) : lipschitz_with 1 (prod.mk a : β → α × β) :=
 by simpa only [max_eq_right zero_le_one] using (lipschitz_with.const a).prod lipschitz_with.id
 
-protected lemma prod_mk_right (b : α) : lipschitz_with 1 (λ a : α, (a, b)) :=
+protected lemma prod_mk_right (b : β) : lipschitz_with 1 (λ a : α, (a, b)) :=
 by simpa only [max_eq_left zero_le_one] using lipschitz_with.id.prod (lipschitz_with.const b)
 
 protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))
@@ -239,7 +243,7 @@ end
 
 protected lemma iterate {f : α → α} (hf : lipschitz_with K f) :
   ∀n, lipschitz_with (K ^ n) (f^[n])
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by rw [pow_succ']; exact (iterate n).comp hf
 
 lemma edist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (x n) :
@@ -264,7 +268,7 @@ protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
 
 protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
   ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
-| 0       := lipschitz_with.id
+| 0       := by simpa only [pow_zero] using lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
 end emetric
@@ -461,6 +465,20 @@ protected lemma comp {g : β → γ} {t : set β} {Kg : ℝ≥0} (hg : lipschitz
   lipschitz_on_with (Kg * K) (g ∘ f) s :=
 lipschitz_on_with_iff_restrict.mpr $ hg.to_restrict.comp (hf.to_restrict_maps_to hmaps)
 
+lemma ediam_image2_le (f : α → β → γ) {K₁ K₂ : ℝ≥0}
+  (s : set α) (t : set β)
+  (hf₁ : ∀ b ∈ t, lipschitz_on_with K₁ (λ a, f a b) s)
+  (hf₂ : ∀ a ∈ s, lipschitz_on_with K₂ (f a) t) :
+  emetric.diam (set.image2 f s t) ≤ ↑K₁ * emetric.diam s + ↑K₂ * emetric.diam t :=
+begin
+  apply emetric.diam_le,
+  rintros _ ⟨a₁, b₁, ha₁, hb₁, rfl⟩ _  ⟨a₂, b₂, ha₂, hb₂, rfl⟩,
+  refine (edist_triangle _ (f a₂ b₁) _).trans _,
+  exact add_le_add
+    ((hf₁ b₁ hb₁ ha₁ ha₂).trans $ ennreal.mul_left_mono $ emetric.edist_le_diam_of_mem ha₁ ha₂)
+    ((hf₂ a₂ ha₂ hb₁ hb₂).trans $ ennreal.mul_left_mono $ emetric.edist_le_diam_of_mem hb₁ hb₂),
+end
+
 end emetric
 
 section metric
@@ -507,6 +525,17 @@ sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le_mul x hx y hy
 protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
   lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), f x ≤ f y + K * dist x y :=
 ⟨lipschitz_on_with.le_add_mul, lipschitz_on_with.of_le_add_mul K⟩
+
+lemma bounded_image2 (f : α → β → γ) {K₁ K₂ : ℝ≥0}
+  {s : set α} {t : set β} (hs : metric.bounded s) (ht : metric.bounded t)
+  (hf₁ : ∀ b ∈ t, lipschitz_on_with K₁ (λ a, f a b) s)
+  (hf₂ : ∀ a ∈ s, lipschitz_on_with K₂ (f a) t) :
+  metric.bounded (set.image2 f s t) :=
+metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
+  (ennreal.add_ne_top.mpr ⟨
+    ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top,
+    ennreal.mul_ne_top ennreal.coe_ne_top ht.ediam_ne_top⟩)
+  (ediam_image2_le _ _ _ hf₁ hf₂)
 
 end metric
 

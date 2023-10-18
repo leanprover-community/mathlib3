@@ -9,6 +9,9 @@ import topology.separation
 /-!
 # The topological support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the topological support of a function `f`, `tsupport f`,
 as the closure of the support of `f`.
 
@@ -28,7 +31,7 @@ Furthermore, we say that `f` has compact support if the topological support of `
 -/
 
 open function set filter
-open_locale topological_space
+open_locale topology
 
 variables {X α α' β γ δ M E R : Type*}
 
@@ -56,7 +59,7 @@ lemma mul_tsupport_eq_empty_iff {f : X → α} : mul_tsupport f = ∅ ↔ f = 1 
 by rw [mul_tsupport, closure_empty_iff, mul_support_eq_empty_iff]
 
 @[to_additive]
-lemma image_eq_zero_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
+lemma image_eq_one_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
 mul_support_subset_iff'.mp (subset_mul_tsupport f) x hx
 
 @[to_additive]
@@ -138,7 +141,7 @@ lemma has_compact_mul_support_iff_eventually_eq :
 ⟨ λ h, mem_coclosed_compact.mpr ⟨mul_tsupport f, is_closed_mul_tsupport _, h,
     λ x, not_imp_comm.mpr $ λ hx, subset_mul_tsupport f hx⟩,
   λ h, let ⟨C, hC⟩ := mem_coclosed_compact'.mp h in
-    compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
+    is_compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
 
 @[to_additive]
 lemma has_compact_mul_support.is_compact_range [topological_space β]
@@ -151,7 +154,7 @@ end
 @[to_additive]
 lemma has_compact_mul_support.mono' {f' : α → γ} (hf : has_compact_mul_support f)
   (hff' : mul_support f' ⊆ mul_tsupport f) : has_compact_mul_support f' :=
-compact_of_is_closed_subset hf is_closed_closure $ closure_minimal hff' is_closed_closure
+is_compact_of_is_closed_subset hf is_closed_closure $ closure_minimal hff' is_closed_closure
 
 @[to_additive]
 lemma has_compact_mul_support.mono {f' : α → γ} (hf : has_compact_mul_support f)
@@ -173,7 +176,7 @@ lemma has_compact_mul_support.comp_closed_embedding (hf : has_compact_mul_suppor
   {g : α' → α} (hg : closed_embedding g) : has_compact_mul_support (f ∘ g) :=
 begin
   rw [has_compact_mul_support_def, function.mul_support_comp_eq_preimage],
-  refine compact_of_is_closed_subset (hg.is_compact_preimage hf) is_closed_closure _,
+  refine is_compact_of_is_closed_subset (hg.is_compact_preimage hf) is_closed_closure _,
   rw [hg.to_embedding.closure_eq_preimage_closure_image],
   exact preimage_mono (closure_mono $ image_preimage_subset _ _)
 end
@@ -228,7 +231,7 @@ end
 lemma has_compact_support.smul_left' (hf : has_compact_support f') : has_compact_support (f • f') :=
 begin
   rw [has_compact_support_iff_eventually_eq] at hf ⊢,
-  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero'])
+  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero])
 end
 
 end smul_with_zero

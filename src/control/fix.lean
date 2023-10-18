@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 
-import data.stream.init
 import data.part
 import data.nat.upto
+import data.stream.defs
 
 /-!
 # Fixed point
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module defines a generic `fix` operator for defining recursive
 computations that are not necessarily well-founded or productive.

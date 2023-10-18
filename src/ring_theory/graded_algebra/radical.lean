@@ -12,6 +12,9 @@ This file contains a proof that the radical of any homogeneous ideal is a homoge
 
 ## Main statements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `ideal.is_homogeneous.is_prime_iff`: for any `I : ideal A`, if `I` is homogeneous, then
   `I` is prime if and only if `I` is homogeneously prime, i.e. `I ≠ ⊤` and if `x, y` are
   homogeneous elements such that `x * y ∈ I`, then at least one of `x,y` is in `I`.
@@ -85,7 +88,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
 
   have mem_I : proj 𝒜 max₁ x * proj 𝒜 max₂ y ∈ I,
   { set antidiag :=
-      ((decompose 𝒜 x).support.product (decompose 𝒜 y).support)
+      ((decompose 𝒜 x).support ×ˢ (decompose 𝒜 y).support)
         .filter (λ z : ι × ι, z.1 + z.2 = max₁ + max₂) with ha,
     have mem_antidiag : (max₁, max₂) ∈ antidiag,
     { simp only [add_sum_erase, mem_filter, mem_product],

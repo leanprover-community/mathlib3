@@ -10,6 +10,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # Kernels and cokernels in SemiNormedGroup₁ and SemiNormedGroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that `SemiNormedGroup₁` has cokernels
 (for which of course the `cokernel.π f` maps are norm non-increasing),
 as well as the easier result that `SemiNormedGroup` has cokernels. We also show that
@@ -262,8 +265,8 @@ lemma norm_noninc_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y)
 open_locale nnreal
 
 lemma explicit_cokernel_desc_norm_le_of_norm_le {X Y Z : SemiNormedGroup.{u}}
-  {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) (c : ℝ≥0) (h : ∥ g ∥ ≤ c) :
-  ∥ explicit_cokernel_desc w ∥ ≤ c :=
+  {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) (c : ℝ≥0) (h : ‖ g ‖ ≤ c) :
+  ‖ explicit_cokernel_desc w ‖ ≤ c :=
 normed_add_group_hom.lift_norm_le _ _ _ h
 
 lemma explicit_cokernel_desc_norm_noninc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
@@ -285,8 +288,8 @@ begin
 end
 
 lemma explicit_cokernel_desc_norm_le {X Y Z : SemiNormedGroup.{u}}
-  {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) : ∥ explicit_cokernel_desc w ∥ ≤ ∥ g ∥ :=
-explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ le_rfl
+  {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) : ‖ explicit_cokernel_desc w ‖ ≤ ‖ g ‖ :=
+explicit_cokernel_desc_norm_le_of_norm_le w ‖ g ‖₊ le_rfl
 
 /-- The explicit cokernel is isomorphic to the usual cokernel. -/
 def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :

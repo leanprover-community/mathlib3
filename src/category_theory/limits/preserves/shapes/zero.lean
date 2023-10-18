@@ -9,6 +9,9 @@ import category_theory.limits.shapes.zero_morphisms
 /-!
 # Preservation of zero objects and zero morphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the class `preserves_zero_morphisms` and show basic properties.
 
 ## Main results

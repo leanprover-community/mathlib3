@@ -9,6 +9,9 @@ import algebra.module.submodule.basic
 /-!
 # Decompositions of additive monoids, groups, and modules into direct sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `direct_sum.decomposition ℳ`: A typeclass to provide a constructive decomposition from
@@ -109,7 +112,7 @@ by rw [decompose_of_mem _ hx, direct_sum.of_eq_same, subtype.coe_mk]
 lemma decompose_of_mem_ne {x : M} {i j : ι} (hx : x ∈ ℳ i) (hij : i ≠ j):
   (decompose ℳ x j : M) = 0 :=
 by rw [decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij,
-  add_submonoid_class.coe_zero]
+  zero_mem_class.coe_zero]
 
 /-- If `M` is graded by `ι` with degree `i` component `ℳ i`, then it is isomorphic as
 an additive monoid to a direct sum of components. -/

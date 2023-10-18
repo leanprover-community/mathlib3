@@ -9,6 +9,9 @@ import category_theory.essentially_small
 /-!
 # Limits over essentially small indexing categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `C` has limits of size `w` and `J` is `w`-essentially small, then `C` has limits of shape `J`.
 
 -/
@@ -30,11 +33,11 @@ lemma has_colimits_of_shape_of_essentially_small [essentially_small.{w₁} J]
   [has_colimits_of_size.{w₁ w₁} C] : has_colimits_of_shape J C :=
 has_colimits_of_shape_of_equivalence $ equivalence.symm $ equiv_small_model.{w₁} J
 
-lemma has_products_of_shape_of_small (β : Type w₁) [small.{w₂} β] [has_products.{w₂} C] :
+lemma has_products_of_shape_of_small (β : Type w₂) [small.{w₁} β] [has_products.{w₁} C] :
   has_products_of_shape β C :=
 has_limits_of_shape_of_equivalence $ discrete.equivalence $ equiv.symm $ equiv_shrink β
 
-lemma has_coproducts_of_shape_of_small (β : Type w₁) [small.{w₂} β] [has_coproducts.{w₂} C] :
+lemma has_coproducts_of_shape_of_small (β : Type w₂) [small.{w₁} β] [has_coproducts.{w₁} C] :
   has_coproducts_of_shape β C :=
 has_colimits_of_shape_of_equivalence $ discrete.equivalence $ equiv.symm $ equiv_shrink β
 

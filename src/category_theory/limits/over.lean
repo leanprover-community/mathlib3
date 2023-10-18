@@ -13,6 +13,9 @@ import category_theory.limits.comma
 /-!
 # Limits and colimits in the over and under categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Show that the forgetful functor `forget X : over X ⥤ C` creates colimits, and hence `over X` has
 any colimits that `C` has (as well as the dual that `forget X : under X ⟶ C` creates limits).
 
@@ -46,6 +49,12 @@ instance creates_colimits : creates_colimits (forget X) := costructured_arrow.cr
 -- We can automatically infer that the forgetful functor preserves and reflects colimits.
 example [has_colimits C] : preserves_colimits (forget X) := infer_instance
 example : reflects_colimits (forget X) := infer_instance
+
+lemma epi_left_of_epi [has_pushouts C] {f g : over X} (h : f ⟶ g) [epi h] : epi h.left :=
+costructured_arrow.epi_left_of_epi _
+
+lemma epi_iff_epi_left [has_pushouts C] {f g : over X} (h : f ⟶ g) : epi h ↔ epi h.left :=
+costructured_arrow.epi_iff_epi_left _
 
 section
 variables [has_pullbacks C]
@@ -114,6 +123,12 @@ instance has_limit_of_has_limit_comp_forget
 
 instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
 instance [has_limits C] : has_limits (under X) := ⟨infer_instance⟩
+
+lemma mono_right_of_mono [has_pullbacks C] {f g : under X} (h : f ⟶ g) [mono h] : mono h.right :=
+structured_arrow.mono_right_of_mono _
+
+lemma mono_iff_mono_right [has_pullbacks C] {f g : under X} (h : f ⟶ g) : mono h ↔ mono h.right :=
+structured_arrow.mono_iff_mono_right _
 
 instance creates_limits : creates_limits (forget X) := structured_arrow.creates_limits
 

@@ -8,6 +8,9 @@ import logic.equiv.list
 /-!
 # W types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
 inductively defined type of trees where the nodes are labeled by elements of `α` and the children of
 a node labeled `a` are indexed by elements of `β a`.
@@ -90,7 +93,7 @@ lemma infinite_of_nonempty_of_is_empty (a b : α) [ha : nonempty (β a)]
 ⟨begin
   introsI hf,
   have hba : b ≠ a, from λ h, ha.elim (is_empty.elim' (show is_empty (β a), from h ▸ he)),
-  refine not_injective_infinite_fintype
+  refine not_injective_infinite_finite
     (λ n : ℕ, show W_type β, from nat.rec_on n
       ⟨b, is_empty.elim' he⟩
       (λ n ih, ⟨a, λ _, ih⟩)) _,

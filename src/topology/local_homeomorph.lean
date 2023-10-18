@@ -9,6 +9,9 @@ import topology.sets.opens
 /-!
 # Local homeomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homeomorphisms between open subsets of topological spaces. An element `e` of
 `local_homeomorph α β` is an extension of `local_equiv α β`, i.e., it is a pair of functions
 `e.to_fun` and `e.inv_fun`, inverse of each other on the sets `e.source` and `e.target`.
@@ -43,7 +46,7 @@ then it should use `e.source ∩ s` or `e.target ∩ t`, not `s ∩ e.source` or
 -/
 
 open function set filter topological_space (second_countable_topology)
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -783,6 +786,19 @@ lemma eq_on_source.restr {e e' : local_homeomorph α β} (he : e ≈ e') (s : se
   e.restr s ≈ e'.restr s :=
 local_equiv.eq_on_source.restr he _
 
+lemma set.eq_on.restr_eq_on_source {e e' : local_homeomorph α β}
+  (h : eq_on e e' (e.source ∩ e'.source)) :
+  e.restr e'.source ≈ e'.restr e.source :=
+begin
+  split,
+  { rw e'.restr_source' _ e.open_source,
+    rw e.restr_source' _ e'.open_source,
+    exact set.inter_comm _ _ },
+  { rw e.restr_source' _ e'.open_source,
+    refine (eq_on.trans _ h).trans _;
+    simp only with mfld_simps },
+end
+
 /-- Composition of a local homeomorphism and its inverse is equivalent to the restriction of the
 identity to the source -/
 lemma trans_self_symm :
@@ -812,6 +828,11 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 @[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 rfl
+
+@[simp]
+lemma refl_prod_refl {α β : Type*} [topological_space α] [topological_space β] :
+  (local_homeomorph.refl α).prod (local_homeomorph.refl β) = local_homeomorph.refl (α × β) :=
+by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
 
 @[simp, mfld_simps] lemma prod_trans
   {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]
@@ -947,7 +968,7 @@ lemma continuous_within_at_iff_continuous_within_at_comp_left
   {f : γ → α} {s : set γ} {x : γ} (hx : f x ∈ e.source) (h : f ⁻¹' e.source ∈ 𝓝[s] x) :
   continuous_within_at f s x ↔ continuous_within_at (e ∘ f) s x :=
 begin
-  refine ⟨(e.continuous_at hx).tendsto.comp, λ fe_cont, _⟩,
+  refine ⟨(e.continuous_at hx).comp_continuous_within_at, λ fe_cont, _⟩,
   rw [← continuous_within_at_inter' h] at fe_cont ⊢,
   have : continuous_within_at (e.symm ∘ (e ∘ f)) (s ∩ f ⁻¹' e.source) x,
   { have : continuous_within_at e.symm univ (e (f x))
@@ -985,16 +1006,24 @@ end
 
 end continuity
 
+/-- The homeomorphism obtained by restricting a `local_homeomorph` to a subset of the source. -/
+@[simps] def homeomorph_of_image_subset_source
+  {s : set α} {t : set β} (hs : s ⊆ e.source) (ht : e '' s = t) : s ≃ₜ t :=
+{ to_fun := λ a, ⟨e a, (congr_arg ((∈) (e a)) ht).mp ⟨a, a.2, rfl⟩⟩,
+  inv_fun := λ b, ⟨e.symm b, let ⟨a, ha1, ha2⟩ := (congr_arg ((∈) ↑b) ht).mpr b.2 in
+    ha2 ▸ (e.left_inv (hs ha1)).symm ▸ ha1⟩,
+  left_inv := λ a, subtype.ext (e.left_inv (hs a.2)),
+  right_inv := λ b, let ⟨a, ha1, ha2⟩ := (congr_arg ((∈) ↑b) ht).mpr b.2 in
+    subtype.ext (e.right_inv (ha2 ▸ e.map_source (hs ha1))),
+  continuous_to_fun := (continuous_on_iff_continuous_restrict.mp
+    (e.continuous_on.mono hs)).subtype_mk _,
+  continuous_inv_fun := (continuous_on_iff_continuous_restrict.mp
+    (e.continuous_on_symm.mono (λ b hb, let ⟨a, ha1, ha2⟩ := show b ∈ e '' s, from ht.symm ▸ hb in
+      ha2 ▸ e.map_source (hs ha1)))).subtype_mk _ }
+
 /-- A local homeomrphism defines a homeomorphism between its source and target. -/
 def to_homeomorph_source_target : e.source ≃ₜ e.target :=
-{ to_fun := e.maps_to.restrict _ _ _,
-  inv_fun := e.symm_maps_to.restrict _ _ _,
-  left_inv := λ x, subtype.eq $ e.left_inv x.2,
-  right_inv := λ x, subtype.eq $ e.right_inv x.2,
-  continuous_to_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.continuous_on,
-  continuous_inv_fun := continuous_subtype_mk _ $
-    continuous_on_iff_continuous_restrict.1 e.symm.continuous_on }
+e.homeomorph_of_image_subset_source subset_rfl e.image_source_eq_target
 
 lemma second_countable_topology_source [second_countable_topology β]
   (e : local_homeomorph α β) :
@@ -1117,6 +1146,17 @@ lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.tra
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps
 
+variables {s}
+
+lemma map_subtype_source {x : s} (hxe : (x:α) ∈ e.source) : e x ∈ (e.subtype_restr s).target :=
+begin
+  refine ⟨e.map_source hxe, _⟩,
+  rw [s.local_homeomorph_subtype_coe_target, mem_preimage, e.left_inv_on hxe],
+  exact x.prop
+end
+
+variables (s)
+
 /- This lemma characterizes the transition functions of an open subset in terms of the transition
 functions of the original space. -/
 lemma subtype_restr_symm_trans_subtype_restr (f f' : local_homeomorph α β) :
@@ -1136,6 +1176,26 @@ begin
   -- f has been eliminated !!!
   refine setoid.trans (trans_symm_self s.local_homeomorph_subtype_coe) _,
   simp only with mfld_simps,
+end
+
+lemma subtype_restr_symm_eq_on_of_le {U V : opens α} [nonempty U] [nonempty V] (hUV : U ≤ V) :
+  eq_on (e.subtype_restr V).symm (set.inclusion hUV ∘ (e.subtype_restr U).symm)
+    (e.subtype_restr U).target :=
+begin
+  set i := set.inclusion hUV,
+  intros y hy,
+  dsimp [local_homeomorph.subtype_restr_def] at ⊢ hy,
+  have hyV : e.symm y ∈ V.local_homeomorph_subtype_coe.target,
+  { rw opens.local_homeomorph_subtype_coe_target at ⊢ hy,
+    exact hUV hy.2 },
+  refine V.local_homeomorph_subtype_coe.inj_on _ trivial _,
+  { rw ←local_homeomorph.symm_target,
+    apply local_homeomorph.map_source,
+    rw local_homeomorph.symm_source,
+    exact hyV },
+  { rw V.local_homeomorph_subtype_coe.right_inv hyV,
+    show _ = U.local_homeomorph_subtype_coe _,
+    rw U.local_homeomorph_subtype_coe.right_inv hy.2 }
 end
 
 end local_homeomorph

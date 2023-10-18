@@ -7,8 +7,12 @@ import measure_theory.measure.measure_space_def
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
+
 /-!
 # Tactics for measure theory
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Currently we have one domain-specific tactic for measure theory: `measurability`.
 
@@ -47,8 +51,6 @@ attribute [measurability]
   subsingleton.measurable_set
   measurable_set.Union
   measurable_set.Inter
-  measurable_set.Union_Prop
-  measurable_set.Inter_Prop
   measurable_set.union
   measurable_set.inter
   measurable_set.diff

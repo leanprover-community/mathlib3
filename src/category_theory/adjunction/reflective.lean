@@ -10,6 +10,9 @@ import category_theory.epi_mono
 /-!
 # Reflective functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Basic properties of reflective functors, especially those relating to their essential image.
 
 Note properties of reflective functors relating to limits and colimits are included in
@@ -89,8 +92,8 @@ lemma mem_ess_image_of_unit_is_iso [is_right_adjoint i] (A : C)
 ⟨(left_adjoint i).obj A, ⟨(as_iso ((of_right_adjoint i).unit.app A)).symm⟩⟩
 
 /-- If `η_A` is a split monomorphism, then `A` is in the reflective subcategory. -/
-lemma mem_ess_image_of_unit_split_mono [reflective i] {A : C}
-  [split_mono ((of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
+lemma mem_ess_image_of_unit_is_split_mono [reflective i] {A : C}
+  [is_split_mono ((of_right_adjoint i).unit.app A)] : A ∈ i.ess_image :=
 begin
   let η : 𝟭 C ⟶ left_adjoint i ⋙ i := (of_right_adjoint i).unit,
   haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (i.obj_mem_ess_image _).unit_is_iso,
@@ -99,7 +102,7 @@ begin
     rw (show retraction _ ≫ η.app A = _, from η.naturality (retraction (η.app A))),
     apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) },
   resetI,
-  haveI := is_iso_of_epi_of_split_mono (η.app A),
+  haveI := is_iso_of_epi_of_is_split_mono (η.app A),
   exact mem_ess_image_of_unit_is_iso A,
 end
 

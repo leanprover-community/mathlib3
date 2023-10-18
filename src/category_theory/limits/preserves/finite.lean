@@ -9,6 +9,9 @@ import category_theory.fin_category
 /-!
 # Preservation of finite (co)limits.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These functors are also known as left exact (flat) or right exact functors when the categories
 involved are abelian, or more generally, finitely (co)complete.
 
@@ -52,8 +55,9 @@ noncomputable instance preserves_limits_of_shape_of_preserves_finite_limits (F :
   preserves_limits_of_shape J F :=
 by apply preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J)
 
-@[priority 100]
-noncomputable instance preserves_limits.preserves_finite_limits_of_size (F : C ⥤ D)
+-- This is a dangerous instance as it has unbound universe variables.
+/-- If we preserve limits of some arbitrary size, then we preserve all finite limits. -/
+noncomputable def preserves_limits_of_size.preserves_finite_limits (F : C ⥤ D)
   [preserves_limits_of_size.{w w₂} F] : preserves_finite_limits F :=
 ⟨λ J sJ fJ,
   begin
@@ -61,10 +65,17 @@ noncomputable instance preserves_limits.preserves_finite_limits_of_size (F : C �
     exact preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J) F,
   end⟩
 
+-- Added as a specialization of the dangerous instance above, for limits indexed in Type 0.
+@[priority 120]
+noncomputable instance preserves_limits_of_size.zero.preserves_finite_limits (F : C ⥤ D)
+    [preserves_limits_of_size.{0 0} F] : preserves_finite_limits F :=
+  preserves_limits_of_size.preserves_finite_limits F
+
+-- An alternative specialization of the dangerous instance for small limits.
 @[priority 120]
 noncomputable instance preserves_limits.preserves_finite_limits (F : C ⥤ D)
   [preserves_limits F] : preserves_finite_limits F :=
-preserves_limits.preserves_finite_limits_of_size F
+preserves_limits_of_size.preserves_finite_limits F
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/
@@ -106,14 +117,27 @@ noncomputable instance preserves_colimits_of_shape_of_preserves_finite_colimits 
   preserves_colimits_of_shape J F :=
 by apply preserves_colimits_of_shape_of_equiv (fin_category.equiv_as_type J)
 
-@[priority 100]
-noncomputable instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D)
+/-- If we preserve colimits of some arbitrary size, then we preserve all finite colimits. -/
+-- This is a dangerous instance as it has unbound universe variables.
+noncomputable def preserves_colimits_of_size.preserves_finite_colimits (F : C ⥤ D)
   [preserves_colimits_of_size.{w w₂} F] : preserves_finite_colimits F :=
 ⟨λ J sJ fJ,
   begin
     haveI := preserves_smallest_colimits_of_preserves_colimits F,
     exact preserves_colimits_of_shape_of_equiv (fin_category.equiv_as_type J) F,
   end⟩
+
+-- Added as a specialization of the dangerous instance above, for colimits indexed in Type 0.
+@[priority 120]
+noncomputable instance preserves_colimits_of_size.zero.preserves_finite_colimits (F : C ⥤ D)
+    [preserves_colimits_of_size.{0 0} F] : preserves_finite_colimits F :=
+  preserves_colimits_of_size.preserves_finite_colimits F
+
+-- An alternative specialization of the dangerous instance for small colimits.
+@[priority 120]
+noncomputable instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D)
+  [preserves_colimits F] : preserves_finite_colimits F :=
+preserves_colimits_of_size.preserves_finite_colimits F
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/

@@ -5,10 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.basic
 import category_theory.limits.has_limits
-import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of monoids has all colimits.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We do this construction knowing nothing about monoids.
 In particular, I want to claim that this file could be produced by a python script

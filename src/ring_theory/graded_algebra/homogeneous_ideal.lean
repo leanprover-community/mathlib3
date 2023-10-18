@@ -10,6 +10,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Homogeneous ideals of a graded algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines homogeneous ideals of `graded_ring 𝒜` where `𝒜 : ι → submodule R A` and
 operations on them.
 
@@ -553,7 +556,7 @@ def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_ring.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
   change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
+  { rw [h, hr, decompose_zero, zero_apply, zero_mem_class.coe_zero] },
   { rw [decompose_of_mem_ne 𝒜 (set_like.coe_mem _) h] }
 end⟩
 

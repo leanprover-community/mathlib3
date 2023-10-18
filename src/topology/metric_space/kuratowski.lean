@@ -9,6 +9,9 @@ import topology.sets.compacts
 /-!
 # The Kuratowski embedding
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Any separable metric space can be embedded isometrically in `ℓ^∞(ℝ)`.
 -/
 
@@ -113,5 +116,5 @@ def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [comp
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 { carrier := range (Kuratowski_embedding α),
-  compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
+  is_compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
   nonempty' := range_nonempty _ }

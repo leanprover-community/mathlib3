@@ -7,10 +7,15 @@ Authors: Eric Wieser
 import analysis.normed_space.exponential
 import analysis.matrix
 import linear_algebra.matrix.zpow
+import linear_algebra.matrix.hermitian
+import linear_algebra.matrix.symmetric
 import topology.uniform_space.matrix
 
 /-!
 # Lemmas about the matrix exponential
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we provide results about `exp` on `matrix`s over a topological or normed algebra.
 Note that generic results over all topological spaces such as `exp_zero` can be used on matrices
@@ -118,6 +123,10 @@ lemma exp_conj_transpose [star_ring 𝔸] [has_continuous_star 𝔸] (A : matrix
   exp 𝕂 Aᴴ = (exp 𝕂 A)ᴴ :=
 (star_exp A).symm
 
+lemma is_hermitian.exp [star_ring 𝔸] [has_continuous_star 𝔸] {A : matrix m m 𝔸}
+  (h : A.is_hermitian) : (exp 𝕂 A).is_hermitian :=
+(exp_conj_transpose _ _).symm.trans $ congr_arg _ h
+
 end ring
 
 section comm_ring
@@ -126,6 +135,9 @@ variables [fintype m] [decidable_eq m] [field 𝕂]
 
 lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 Aᵀ = (exp 𝕂 A)ᵀ :=
 by simp_rw [exp_eq_tsum, transpose_tsum, transpose_smul, transpose_pow]
+
+lemma is_symm.exp {A : matrix m m 𝔸} (h : A.is_symm) : (exp 𝕂 A).is_symm :=
+(exp_transpose _ _).symm.trans $ congr_arg _ h
 
 end comm_ring
 
@@ -149,9 +161,9 @@ begin
 end
 
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → matrix m m 𝔸)
-  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  (h : (s : set ι).pairwise $ λ i j, commute (f i) (f j)) :
   exp 𝕂 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 (f i))
-    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+    (λ i hi j hj _, (h.of_refl hi hj).exp 𝕂) :=
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,

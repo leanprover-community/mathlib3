@@ -3,11 +3,16 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.types
+import category_theory.monoidal.types.symmetric
+import category_theory.monoidal.types.coyoneda
 import category_theory.monoidal.center
+import tactic.apply_fun
 
 /-!
 # Enriched categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We set up the basic theory of `V`-enriched categories,
 for `V` an arbitrary monoidal category.
@@ -55,7 +60,7 @@ class enriched_category (C : Type u₁) :=
   Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z
   . obviously)
 
-notation X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
+notation (name := enriched_category.hom) X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
 
 variables (V) {C : Type u₁} [enriched_category V C]
 
@@ -158,7 +163,7 @@ def enriched_category_Type_equiv_category (C : Type u₁) :
     { ext X ⟨⟩, refl, },
     { ext X Y Z ⟨f, g⟩, refl, }
   end,
-  right_inv := λ 𝒞, by { rcases 𝒞 with ⟨⟨⟨⟩⟩⟩, dsimp, congr, }, }.
+  right_inv := λ 𝒞, by { rcases 𝒞 with @⟨@⟨⟨⟩⟩⟩, dsimp, congr, }, }.
 
 section
 variables {W : Type (v+1)} [category.{v} W] [monoidal_category W] [enriched_category W C]
@@ -177,7 +182,7 @@ which always exists, does not necessarily coincide with
 "the forgetful functor" from `V` to `Type`, if such exists.
 When `V` is any of `Type`, `Top`, `AddCommGroup`, or `Module R`,
 `coyoneda_tensor_unit` is just the usual forgetful functor, however.
-For `V = Algebra R`, the usual forgetful functor is coyoneda of `polynomial R`, not of `R`.
+For `V = Algebra R`, the usual forgetful functor is coyoneda of `R[X]`, not of `R`.
 (Perhaps we should have a typeclass for this situation: `concrete_monoidal`?)
 -/
 @[nolint has_nonempty_instance unused_arguments]

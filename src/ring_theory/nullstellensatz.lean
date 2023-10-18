@@ -10,6 +10,9 @@ import algebraic_geometry.prime_spectrum.basic
 
 /-!
 # Nullstellensatz
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file establishes a version of Hilbert's classical Nullstellensatz for `mv_polynomial`s.
 The main statement of the theorem is `vanishing_ideal_zero_locus_eq_radical`.
 
@@ -128,11 +131,12 @@ lemma point_to_point_zero_locus_le (I : ideal (mv_polynomial σ k)) :
 λ J hJ, let ⟨x, hx⟩ := hJ in (le_trans (le_vanishing_ideal_zero_locus I)
   (hx.2 ▸ vanishing_ideal_anti_mono (set.singleton_subset_iff.2 hx.1)) : I ≤ J.as_ideal)
 
-variables [is_alg_closed k] [fintype σ]
+variables [is_alg_closed k] [finite σ]
 
 lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
   I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
+  casesI nonempty_fintype σ,
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in
     hx.symm ▸ (mv_polynomial.vanishing_ideal_singleton_is_maximal)⟩,
   letI : I.is_maximal := hI,

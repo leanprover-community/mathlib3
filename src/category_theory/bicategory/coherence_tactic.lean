@@ -8,6 +8,9 @@ import category_theory.bicategory.coherence
 /-!
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a `coherence` tactic,
 which proves that any two 2-morphisms (with the same source and target)
 in a bicategory which are built out of associators and unitors
@@ -161,8 +164,8 @@ def bicategorical_comp {f g h i : a ⟶ b} [lift_hom g] [lift_hom h]
   [bicategorical_coherence g h] (η : f ⟶ g) (θ : h ⟶ i) : f ⟶ i :=
 η ≫ bicategorical_coherence.hom g h ≫ θ
 
-localized "infixr ` ⊗≫ `:80 := category_theory.bicategory.bicategorical_comp"
-  in bicategory -- type as \ot \gg
+localized "infixr (name := bicategorical_comp) ` ⊗≫ `:80 :=
+  category_theory.bicategory.bicategorical_comp" in bicategory -- type as \ot \gg
 
 /-- Compose two isomorphisms in a bicategorical category,
 inserting unitors and associators between as necessary. -/
@@ -170,8 +173,8 @@ def bicategorical_iso_comp {f g h i : a ⟶ b} [lift_hom g] [lift_hom h]
   [bicategorical_coherence g h] (η : f ≅ g) (θ : h ≅ i) : f ≅ i :=
 η ≪≫ as_iso (bicategorical_coherence.hom g h) ≪≫ θ
 
-localized "infixr ` ≪⊗≫ `:80 := category_theory.bicategory.bicategorical_iso_comp"
-  in bicategory -- type as \ot \gg
+localized "infixr (name := bicategorical_iso_comp) ` ≪⊗≫ `:80 :=
+  category_theory.bicategory.bicategorical_iso_comp" in bicategory -- type as \ot \gg
 
 example {f' : a ⟶ d} {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} {h' : a ⟶ d}
   (η : f' ⟶ f ≫ (g ≫ h)) (θ : (f ≫ g) ≫ h ⟶ h') : f' ⟶ h' := η ⊗≫ θ

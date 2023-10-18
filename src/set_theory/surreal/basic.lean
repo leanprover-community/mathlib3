@@ -10,6 +10,9 @@ import set_theory.game.ordinal
 /-!
 # Surreal numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic theory of surreal numbers, built on top of the theory of combinatorial (pre-)games.
 
 A pregame is `numeric` if all the Left options are strictly smaller than all the Right options, and
@@ -54,8 +57,7 @@ The branch `surreal_mul` contains some progress on this proof.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ⧏ `:50 := pgame.lf
+open_locale pgame
 
 namespace pgame
 
@@ -95,6 +97,20 @@ theorem numeric_rec {C : pgame → Prop}
   ∀ x, numeric x → C x
 | ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
   H _ _ _ _ h hl hr (λ i, numeric_rec _ (hl i)) (λ i, numeric_rec _ (hr i))
+
+theorem relabelling.numeric_imp {x y : pgame} (r : x ≡r y) (ox : numeric x) : numeric y :=
+begin
+  induction x using pgame.move_rec_on with x IHl IHr generalizing y,
+  apply numeric.mk (λ i j, _) (λ i, _) (λ j, _),
+  { rw ←lt_congr (r.move_left_symm i).equiv (r.move_right_symm j).equiv,
+    apply ox.left_lt_right },
+  { exact IHl _ (ox.move_left _) (r.move_left_symm i) },
+  { exact IHr _ (ox.move_right _) (r.move_right_symm j) }
+end
+
+/-- Relabellings preserve being numeric. -/
+theorem relabelling.numeric_congr {x y : pgame} (r : x ≡r y) : numeric x ↔ numeric y :=
+⟨r.numeric_imp, r.symm.numeric_imp⟩
 
 theorem lf_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y → ¬ y ⧏ x :=
 begin
@@ -178,12 +194,12 @@ theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 namespace numeric
 
 theorem move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
-(pgame.move_left_lf i).lt (o.move_left i) o
+(move_left_lf i).lt (o.move_left i) o
 theorem move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
 (o.move_left_lt i).le
 
 theorem lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
-(pgame.lf_move_right j).lt o (o.move_right j)
+(lf_move_right j).lt o (o.move_right j)
 theorem le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 
@@ -192,9 +208,9 @@ theorem add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { exact add_lt_add_right (ox.1 ix jx) _ },
-   { exact (add_lf_add_of_lf_of_le (pgame.lf_mk _ _ ix) (oy.le_move_right jy)).lt
+   { exact (add_lf_add_of_lf_of_le (lf_mk _ _ ix) (oy.le_move_right jy)).lt
      ((ox.move_left ix).add oy) (ox.add (oy.move_right jy)) },
-   { exact (add_lf_add_of_lf_of_le (pgame.mk_lf _ _ jx) (oy.move_left_le iy)).lt
+   { exact (add_lf_add_of_lf_of_le (mk_lf _ _ jx) (oy.move_left_le iy)).lt
       (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy) },
    { exact add_lt_add_left (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
@@ -228,21 +244,12 @@ end
 
 end pgame
 
-/-- The equivalence on numeric pre-games. -/
-def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
-
 open pgame
-
-instance surreal.setoid : setoid {x // pgame.numeric x} :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_rfl,
- λ x y, pgame.equiv.symm,
- λ x y z, pgame.equiv.trans⟩
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient surreal.setoid
+def surreal := quotient (subtype.setoid numeric)
 
 namespace surreal
 
@@ -276,24 +283,24 @@ the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x +
 instance : has_add surreal  :=
 ⟨surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
-  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (add_congr hx hy))⟩
 
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
+  (λ _ _ _ _ a, quotient.sound (neg_equiv_neg_iff.2 a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
-  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (zero_add_equiv a) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (add_zero_equiv a) },
   neg               := has_neg.neg,
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
-  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (add_left_neg_equiv a) },
+  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound add_comm_equiv },
   le                := (≤),
   lt                := (<),
   le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
@@ -320,6 +327,34 @@ def to_game : surreal →+o game :=
 theorem zero_to_game : to_game 0 = 0 := rfl
 @[simp] theorem one_to_game : to_game 1 = 1 := rfl
 @[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
+
+theorem upper_bound_numeric {ι : Type u} {f : ι → pgame.{u}} (H : ∀ i, (f i).numeric) :
+  (upper_bound f).numeric :=
+numeric_of_is_empty_right_moves _ $ λ i, (H _).move_left _
+
+theorem lower_bound_numeric {ι : Type u} {f : ι → pgame.{u}} (H : ∀ i, (f i).numeric) :
+  (lower_bound f).numeric :=
+numeric_of_is_empty_left_moves _ $ λ i, (H _).move_right _
+
+/-- A small set `s` of surreals is bounded above. -/
+lemma bdd_above_of_small (s : set surreal.{u}) [small.{u} s] : bdd_above s :=
+begin
+  let g := subtype.val ∘ quotient.out ∘ subtype.val ∘ (equiv_shrink s).symm,
+  refine ⟨mk (upper_bound g) (upper_bound_numeric $ λ i, subtype.prop _), λ i hi, _⟩,
+  rw ←quotient.out_eq i,
+  show i.out.1 ≤ _,
+  simpa [g] using le_upper_bound g (equiv_shrink s ⟨i, hi⟩)
+end
+
+/-- A small set `s` of surreals is bounded below. -/
+lemma bdd_below_of_small (s : set surreal.{u}) [small.{u} s] : bdd_below s :=
+begin
+  let g := subtype.val ∘ quotient.out ∘ subtype.val ∘ (equiv_shrink s).symm,
+  refine ⟨mk (lower_bound g) (lower_bound_numeric $ λ i, subtype.prop _), λ i hi, _⟩,
+  rw ←quotient.out_eq i,
+  show _ ≤ i.out.1,
+  simpa [g] using lower_bound_le g (equiv_shrink s ⟨i, hi⟩)
+end
 
 end surreal
 

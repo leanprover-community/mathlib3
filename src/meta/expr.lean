@@ -3,6 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
+import data.option.defs
 import data.string.defs
 import tactic.derive_inhabited
 /-!
@@ -119,12 +120,6 @@ meta def head : name → string
 /-- Tests whether the first component of a name is `"_private"` -/
 meta def is_private (n : name) : bool :=
 n.head = "_private"
-
-/-- Get the last component of a name, and convert it to a string. -/
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
 
 /-- Returns the number of characters used to print all the string components of a name,
   including periods between name segments. Ignores numerical parts of a name. -/

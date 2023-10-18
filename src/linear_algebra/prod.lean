@@ -5,9 +5,12 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.span
 import order.partial_sups
-import algebra.algebra.basic
+import algebra.algebra.prod
 
 /-! ### Products of modules
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines constructors for linear maps whose domains or codomains are products.
 
@@ -222,6 +225,9 @@ prod_ext_iff.2 ⟨hl, hr⟩
 def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →ₗ[R] (M₃ × M₄) :=
 (f.comp (fst R M M₂)).prod (g.comp (snd R M M₂))
 
+lemma coe_prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
+  ⇑(f.prod_map g) = prod.map f g := rfl
+
 @[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
   f.prod_map g x = (f x.1, g x.2) := rfl
 
@@ -331,17 +337,19 @@ submodule.ext $ λ x, by simp [mem_sup]
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
-  { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
+  { rw disjoint_def,
+    rintros ⟨_, _⟩ ⟨x, hx⟩ ⟨y, hy⟩,
     simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
-  { rintros ⟨x, y⟩ -,
+  { rw codisjoint_iff_le_sup,
+    rintros ⟨x, y⟩ -,
     simp only [mem_sup, mem_range, exists_prop],
     refine ⟨(x, 0), ⟨x, rfl⟩, (0, y), ⟨y, rfl⟩, _⟩,
     simp }
 end
 
 lemma sup_range_inl_inr : (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
-is_compl_range_inl_inr.sup_eq_top
+is_compl.sup_eq_top is_compl_range_inl_inr
 
 lemma disjoint_inl_inr : disjoint (inl R M M₂).range (inr R M M₂).range :=
 by simp [disjoint_def, @eq_comm M 0, @eq_comm M₂ 0] {contextual := tt}; intros; refl
@@ -552,6 +560,28 @@ def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid 
   ..add_equiv.prod_comm }
 
 section
+variables (R M M₂ M₃ M₄)
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm : ((M × M₂) × (M₃ × M₄)) ≃ₗ[R] (M × M₃) × (M₂ × M₄) :=
+{ to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
+  inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),
+  map_smul' := λ c mnmn, rfl,
+  ..add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ }
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm R M M₂ M₃ M₄).symm = prod_prod_prod_comm R M M₃ M₂ M₄ := rfl
+
+@[simp] lemma prod_prod_prod_comm_to_add_equiv :
+  (prod_prod_prod_comm R M M₂ M₃ M₄).to_add_equiv = add_equiv.prod_prod_prod_comm M M₂ M₃ M₄ := rfl
+
+end
+
+section
 
 variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
@@ -622,9 +652,8 @@ begin
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
   rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
   refine ⟨x' + x, _, _⟩,
-  { rwa add_sub_cancel },
-  { rwa [← eq_sub_iff_add_eq.1 H, add_sub_add_right_eq_sub, ← neg_mem_iff, neg_sub,
-      add_sub_cancel'] }
+  { simp only [mem_ker.mp hx', map_add, zero_add]},
+  { simp [←eq_sub_iff_add_eq.1 H, map_add, add_left_inj, self_eq_add_right, mem_ker.mp hy'] }
 end
 
 end linear_map

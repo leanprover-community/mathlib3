@@ -9,6 +9,9 @@ import category_theory.isomorphism
 /-!
 # The category of functors and natural transformations between two fixed categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the category instance on `C ⥤ D`, with morphisms the natural transformations.
 
 ## Universes
@@ -57,6 +60,9 @@ lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X :=
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
+lemma comp_app_assoc {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) {X' : D}
+  (f : H.obj X ⟶ X') :
+  (α ≫ β).app X ≫ f = α.app X ≫ β.app X ≫ f := by rw [comp_app, assoc]
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=
@@ -67,11 +73,11 @@ lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (Z : D) {X Y : C} (f 
 congr_fun (congr_arg app (T.naturality f)) Z
 
 /-- A natural transformation is a monomorphism if each component is. -/
-lemma mono_app_of_mono (α : F ⟶ G) [∀ (X : C), mono (α.app X)] : mono α :=
+lemma mono_of_mono_app (α : F ⟶ G) [∀ (X : C), mono (α.app X)] : mono α :=
 ⟨λ H g h eq, by { ext X, rw [←cancel_mono (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- A natural transformation is an epimorphism if each component is. -/
-lemma epi_app_of_epi (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
+lemma epi_of_epi_app (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
 ⟨λ H g h eq, by { ext X, rw [←cancel_epi (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/

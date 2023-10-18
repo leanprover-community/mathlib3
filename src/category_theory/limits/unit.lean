@@ -10,17 +10,20 @@ import category_theory.limits.has_limits
 /-!
 # `discrete punit` has limits and colimits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mostly for the sake of constructing trivial examples, we show all (co)cones into `discrete punit`
 are (co)limit (co)cones. We also show that such (co)cones exist, and that `discrete punit` has all
 (co)limits.
 -/
 
-universe v
+universes v' v
 
 open category_theory
 namespace category_theory.limits
 
-variables {J : Type v} [small_category J] {F : J ⥤ discrete punit}
+variables {J : Type v} [category.{v'} J] {F : J ⥤ discrete punit}
 
 /-- A trivial cone for a functor into `punit`. `punit_cone_is_limit` shows it is a limit. -/
 def punit_cone : cone F :=
@@ -42,10 +45,10 @@ Any cocone over a functor into `punit` is a colimit cocone.
 def punit_cocone_is_colimit {c : cocone F} : is_colimit c :=
 by tidy
 
-instance : has_limits (discrete punit) :=
+instance : has_limits_of_size.{v' v} (discrete punit) :=
 by tidy
 
-instance : has_colimits (discrete punit) :=
+instance : has_colimits_of_size.{v' v} (discrete punit) :=
 by tidy
 
 end category_theory.limits

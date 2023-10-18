@@ -9,6 +9,9 @@ import ring_theory.graded_algebra.basic
 /-!
 # Results about the grading structure of the exterior algebra
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Many of these results are copied with minimal modification from the tensor algebra.
 
 The main result is `exterior_algebra.graded_algebra`, which says that the exterior algebra is a
@@ -47,7 +50,7 @@ lift R ⟨by apply graded_algebra.ι R M, graded_algebra.ι_sq_zero R M⟩
 variables (R M)
 
 lemma graded_algebra.lift_ι_eq (i : ℕ)
-  (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
+  (x : ((ι R : M →ₗ[R] exterior_algebra R M).range ^ i : submodule R (exterior_algebra R M))) :
   graded_algebra.lift_ι R M x =
     direct_sum.of (λ i, ↥((ι R).range ^ i : submodule R (exterior_algebra R M))) i x :=
 begin

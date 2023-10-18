@@ -9,6 +9,9 @@ import logic.function.conjugate
 /-!
 # Functions over sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 ### Predicate
@@ -34,7 +37,7 @@ universes u v w x y
 
 variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
-open function
+open equiv equiv.perm function
 
 namespace set
 
@@ -92,7 +95,7 @@ lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
 by convert restrict_dite _ _
 
 @[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  (range f)ᶜ.restrict (extend f g g')  = g' ∘ coe :=
+  (range f)ᶜ.restrict (extend f g g') = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
 lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
@@ -109,7 +112,7 @@ lemma range_extend {f : α → β} (hf : injective f) (g : α → γ) (g' : β �
 begin
   refine (range_extend_subset _ _ _).antisymm _,
   rintro z (⟨x, rfl⟩|⟨y, hy, rfl⟩),
-  exacts [⟨f x, extend_apply hf _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
+  exacts [⟨f x, hf.extend_apply _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
 end
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
@@ -131,7 +134,7 @@ by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
 alias injective_cod_restrict ↔ _ _root_.function.injective.cod_restrict
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g g₁ g₂ : β → γ}
-  {f' f₁' f₂' : β → α} {g' : γ → β}
+  {f' f₁' f₂' : β → α} {g' : γ → β} {a : α} {b : β}
 
 /-! ### Equality on a set -/
 
@@ -141,6 +144,7 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+@[simp] lemma eq_on_singleton : eq_on f₁ f₂ {a} ↔ f₁ a = f₂ a := by simp [set.eq_on]
 
 @[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
 restrict_eq_iff
@@ -166,11 +170,19 @@ ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, he
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
+@[simp] lemma eq_on_union : eq_on f₁ f₂ (s₁ ∪ s₂) ↔ eq_on f₁ f₂ s₁ ∧ eq_on f₁ f₂ s₂ :=
+ball_or_left_distrib
+
+lemma eq_on.union (h₁ : eq_on f₁ f₂ s₁) (h₂ : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ (s₁ ∪ s₂) :=
+eq_on_union.2 ⟨h₁, h₂⟩
+
 lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂) := λ a ha, congr_arg _ $ h ha
 
-lemma comp_eq_of_eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} (h : eq_on g₁ g₂ (range f)) :
-  g₁ ∘ f = g₂ ∘ f :=
-funext $ λ x, h $ mem_range_self _
+@[simp] lemma eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} :
+  eq_on g₁ g₂ (range f) ↔ g₁ ∘ f = g₂ ∘ f :=
+forall_range_iff.trans $ funext_iff.symm
+
+alias eq_on_range ↔ eq_on.comp_eq _
 
 /-! ### Congruence lemmas -/
 
@@ -261,6 +273,21 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
+/-- Restricting the domain and then the codomain is the same as `maps_to.restrict`. -/
+@[simp] lemma cod_restrict_restrict (h : ∀ x : s, f x ∈ t) :
+  cod_restrict (s.restrict f) t h = maps_to.restrict f s t (λ x hx, h ⟨x, hx⟩) := rfl
+
+/-- Reverse of `set.cod_restrict_restrict`. -/
+lemma maps_to.restrict_eq_cod_restrict (h : maps_to f s t) :
+  h.restrict f s t = cod_restrict (s.restrict f) t (λ x, h x.2) := rfl
+
+lemma maps_to.coe_restrict (h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
+lemma maps_to.range_restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
+  range (h.restrict f s t) = coe ⁻¹' (f '' s) :=
+set.range_subtype_map f h
+
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
   λ ⟨g, hg⟩ x hx, by { erw [hg ⟨x, hx⟩], apply subtype.coe_prop }⟩
@@ -268,9 +295,14 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
-@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
+theorem maps_to_prod_map_diagonal : maps_to (prod.map f f) (diagonal α) (diagonal β) :=
+diagonal_subset_iff.2 $ λ x, rfl
+
+lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
+  s ⊆ f ⁻¹' t := hf
 
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
+@[simp] lemma maps_to_singleton : maps_to f {a} t ↔ f a ∈ t := singleton_subset_iff
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=
 maps_to'.1 h
@@ -304,6 +336,13 @@ begin
   { refl },
   { simp [nat.iterate, ihn] }
 end
+
+lemma maps_to_of_subsingleton' [subsingleton β] (f : α → β) (h : s.nonempty → t.nonempty) :
+  maps_to f s t :=
+λ a ha, subsingleton.mem_iff_nonempty.2 $ h ⟨a, ha⟩
+
+lemma maps_to_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : maps_to f s s :=
+maps_to_of_subsingleton' _ id
 
 theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
   maps_to f s₂ t₂ :=
@@ -352,6 +391,12 @@ theorem maps_to_range (f : α → β) (s : set α) : maps_to f s (range f) :=
   maps_to f (g '' s) t ↔ maps_to (f ∘ g) s t :=
 ⟨λ h c hc, h ⟨c, hc, rfl⟩, λ h d ⟨c, hc⟩, hc.2 ▸ h hc.1⟩
 
+lemma maps_to.comp_left (g : β → γ) (hf : maps_to f s t) : maps_to (g ∘ f) s (g '' t) :=
+λ x hx, ⟨f x, hf hx, rfl⟩
+
+lemma maps_to.comp_right {s : set β} {t : set γ} (hg : maps_to g s t) (f : α → β) :
+  maps_to (g ∘ f) (f ⁻¹' s) t := λ x hx, hg hx
+
 @[simp] lemma maps_univ_to (f : α → β) (s : set β) :
   maps_to f univ s ↔ ∀ a, f a ∈ s :=
 ⟨λ h a, h (mem_univ _), λ h x _, h x⟩
@@ -366,6 +411,41 @@ theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
 
 theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x ∈ t ↔ x ∈ s :=
 ⟨λ ht, by_contra $ λ hs, hc hs ht, λ hx, h hx⟩
+
+/-! ### Restriction onto preimage -/
+
+section
+
+variables (t f)
+
+/-- The restriction of a function onto the preimage of a set. -/
+@[simps] def restrict_preimage : f ⁻¹' t → t :=
+(set.maps_to_preimage f t).restrict _ _ _
+
+lemma range_restrict_preimage :
+  range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
+begin
+  delta set.restrict_preimage,
+  rw [maps_to.range_restrict, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
+variables {f} {U : ι → set β}
+
+lemma restrict_preimage_injective (hf : injective f) : injective (t.restrict_preimage f) :=
+λ x y e, subtype.mk.inj_arrow e (λ e, subtype.coe_injective (hf e))
+
+lemma restrict_preimage_surjective (hf : surjective f) : surjective (t.restrict_preimage f) :=
+λ x, ⟨⟨_, (show f (hf x).some ∈ t, from (hf x).some_spec.symm ▸ x.2)⟩, subtype.ext (hf x).some_spec⟩
+
+lemma restrict_preimage_bijective (hf : bijective f) : bijective (t.restrict_preimage f) :=
+⟨t.restrict_preimage_injective hf.1, t.restrict_preimage_surjective hf.2⟩
+
+alias set.restrict_preimage_injective  ← _root_.function.injective.restrict_preimage
+alias set.restrict_preimage_surjective ← _root_.function.surjective.restrict_preimage
+alias set.restrict_preimage_bijective  ← _root_.function.bijective.restrict_preimage
+
+end
 
 /-! ### Injectivity on a set -/
 
@@ -386,6 +466,11 @@ theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
 
+lemma inj_on.ne_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) : f x ≠ f y ↔ x ≠ y :=
+(h.eq_iff hx hy).not
+
+alias inj_on.ne_iff ↔ _ inj_on.ne
+
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
@@ -402,7 +487,7 @@ begin
   refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
   { intros x hx y hy hxy,
     obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
-    exact h ⟨hx, hy⟩ },
+    exact h.le_bot ⟨hx, hy⟩ },
   { rintro ⟨h₁, h₂, h₁₂⟩,
     rintro x (hx|hx) y (hy|hy) hxy,
     exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
@@ -410,7 +495,7 @@ end
 
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+have disjoint s {a}, from disjoint_iff_inf_le.mpr $ λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
 by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
@@ -421,15 +506,31 @@ lemma inj_on_of_injective (h : injective f) (s : set α) : inj_on f s :=
 
 alias inj_on_of_injective ← _root_.function.injective.inj_on
 
+lemma inj_on_id (s : set α) : inj_on id s := injective_id.inj_on _
+
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
+
+lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to f s s) :
+  ∀ n, inj_on (f^[n]) s
+| 0 := inj_on_id _
+| (n + 1) := (inj_on.iterate n).comp h hf
+
+lemma inj_on_of_subsingleton [subsingleton α] (f : α → β) (s : set α) : inj_on f s :=
+(injective_of_subsingleton _).inj_on _
+
+lemma _root_.function.injective.inj_on_range (h : injective (g ∘ f)) : inj_on g (range f) :=
+by { rintros _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ H, exact congr_arg f (h H) }
 
 lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
 alias inj_on_iff_injective ↔ inj_on.injective _
+
+lemma maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
+by rw [h.restrict_eq_cod_restrict, injective_cod_restrict, inj_on_iff_injective]
 
 lemma exists_inj_on_iff_injective [nonempty β] :
   (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
@@ -461,6 +562,25 @@ lemma inj_on.cancel_left (hg : t.inj_on g) (hf₁ : s.maps_to f₁ t) (hf₂ : s
   s.eq_on (g ∘ f₁) (g ∘ f₂) ↔ s.eq_on f₁ f₂ :=
 ⟨λ h, h.cancel_left hg hf₁ hf₂, eq_on.comp_left⟩
 
+lemma inj_on.image_inter {s t u : set α} (hf : u.inj_on f) (hs : s ⊆ u) (ht : t ⊆ u) :
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
+begin
+  apply subset.antisymm (image_inter_subset _ _ _),
+  rintros x ⟨⟨y, ys, hy⟩, ⟨z, zt, hz⟩⟩,
+  have : y = z,
+  { apply hf (hs ys) (ht zt),
+    rwa ← hz at hy },
+  rw ← this at zt,
+  exact ⟨y, ⟨ys, zt⟩, hy⟩,
+end
+
+lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
+  (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=
+begin
+  rw disjoint_iff_inter_eq_empty at h ⊢,
+  rw [← hf.image_inter hs ht, h, image_empty],
+end
+
 /-! ### Surjectivity on a set -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
@@ -476,6 +596,8 @@ lemma surj_on_iff_exists_map_subtype :
     ⟨x, x.2, by rw [hfg, hx, subtype.coe_mk]⟩⟩
 
 theorem surj_on_empty (f : α → β) (s : set α) : surj_on f s ∅ := empty_subset _
+
+@[simp] lemma surj_on_singleton : surj_on f s {b} ↔ b ∈ f '' s := singleton_subset_iff
 
 theorem surj_on_image (f : α → β) (s : set α) : surj_on f s (f '' s) := subset.rfl
 
@@ -513,8 +635,28 @@ theorem surj_on.inter (h₁ : surj_on f s₁ t) (h₂ : surj_on f s₂ t) (h : i
   surj_on f (s₁ ∩ s₂) t :=
 inter_self t ▸ h₁.inter_inter h₂ h
 
+lemma surj_on_id (s : set α) : surj_on id s s := by simp [surj_on]
+
 theorem surj_on.comp (hg : surj_on g t p) (hf : surj_on f s t) : surj_on (g ∘ f) s p :=
 subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subset.refl _
+
+lemma surj_on.iterate {f : α → α} {s : set α} (h : surj_on f s s) : ∀ n, surj_on (f^[n]) s s
+| 0 := surj_on_id _
+| (n + 1) := (surj_on.iterate n).comp h
+
+lemma surj_on.comp_left (hf : surj_on f s t) (g : β → γ) : surj_on (g ∘ f) s (g '' t) :=
+by { rw [surj_on, image_comp g f], exact image_subset _ hf }
+
+lemma surj_on.comp_right {s : set β} {t : set γ} (hf : surjective f) (hg : surj_on g s t) :
+  surj_on (g ∘ f) (f ⁻¹' s) t :=
+by rwa [surj_on, image_comp g f, image_preimage_eq _ hf]
+
+lemma surj_on_of_subsingleton' [subsingleton β] (f : α → β) (h : t.nonempty → s.nonempty) :
+  surj_on f s t :=
+λ a ha, subsingleton.mem_iff_nonempty.2 $ (h ⟨a, ha⟩).image _
+
+lemma surj_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : surj_on f s s :=
+surj_on_of_subsingleton' _ id
 
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
@@ -570,8 +712,20 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
       bij_on f s t :=
 ⟨h₁, h₂, h₃⟩
 
-lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
+@[simp] lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
+
+@[simp] lemma bij_on_singleton : bij_on f {a} {b} ↔ f a = b := by simp [bij_on, eq_comm]
+
+lemma bij_on.inter_maps_to (h₁ : bij_on f s₁ t₁) (h₂ : maps_to f s₂ t₂) (h₃ : s₁ ∩ f ⁻¹' t₂ ⊆ s₂) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+⟨h₁.maps_to.inter_inter h₂, h₁.inj_on.mono $ inter_subset_left _ _,
+  λ y hy, let ⟨x, hx, hxy⟩ := h₁.surj_on hy.1 in ⟨x, ⟨hx, h₃ ⟨hx, hxy.symm.rec_on hy.2⟩⟩, hxy⟩⟩
+
+lemma maps_to.inter_bij_on (h₁ : maps_to f s₁ t₁) (h₂ : bij_on f s₂ t₂)
+  (h₃ : s₂ ∩ f ⁻¹' t₁ ⊆ s₁) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+inter_comm s₂ s₁ ▸ inter_comm t₂ t₁ ▸ h₂.inter_maps_to h₁ h₃
 
 lemma bij_on.inter (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
   bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
@@ -599,12 +753,24 @@ lemma bij_on.image_eq (h : bij_on f s t) :
   f '' s = t :=
 h.surj_on.image_eq_of_maps_to h.maps_to
 
+lemma bij_on_id (s : set α) : bij_on id s s := ⟨s.maps_to_id, s.inj_on_id, s.surj_on_id⟩
+
 theorem bij_on.comp (hg : bij_on g t p) (hf : bij_on f s t) : bij_on (g ∘ f) s p :=
 bij_on.mk (hg.maps_to.comp hf.maps_to) (hg.inj_on.comp hf.inj_on hf.maps_to)
   (hg.surj_on.comp hf.surj_on)
 
-theorem bij_on.bijective (h : bij_on f s t) :
-  bijective (t.cod_restrict (s.restrict f) $ λ x, h.maps_to x.val_prop) :=
+lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bij_on (f^[n]) s s
+| 0 := s.bij_on_id
+| (n + 1) := (bij_on.iterate n).comp h
+
+lemma bij_on_of_subsingleton' [subsingleton α] [subsingleton β] (f : α → β)
+  (h : s.nonempty ↔ t.nonempty) : bij_on f s t :=
+⟨maps_to_of_subsingleton' _ h.1, inj_on_of_subsingleton _ _, surj_on_of_subsingleton' _ h.2⟩
+
+lemma bij_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : bij_on f s s :=
+bij_on_of_subsingleton' _ iff.rfl
+
+theorem bij_on.bijective (h : bij_on f s t) : bijective (h.maps_to.restrict f s t) :=
 ⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',
   λ ⟨y, hy⟩, let ⟨x, hx, hxy⟩ := h.surj_on hy in ⟨⟨x, hx⟩, subtype.eq hxy⟩⟩
 
@@ -615,6 +781,8 @@ iff.intro
 (λ h, let ⟨map, inj, surj⟩ := h in
 ⟨iff.mpr injective_iff_inj_on_univ inj, iff.mpr surjective_iff_surj_on_univ surj⟩)
 
+alias bijective_iff_bij_on_univ ↔ _root_.function.bijective.bij_on_univ _
+
 lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ :=
 ⟨hst.surj_on.maps_to_compl hf.1, hf.1.inj_on _, hst.maps_to.surj_on_compl hf.2⟩
 
@@ -623,6 +791,9 @@ lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ 
 /-- `g` is a left inverse to `f` on `a` means that `g (f x) = x` for all `x ∈ a`. -/
 def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f' (f x) = x
+
+@[simp] lemma left_inv_on_empty (f' : β → α) (f : α → β) : left_inv_on f' f ∅ := empty_subset _
+@[simp] lemma left_inv_on_singleton : left_inv_on f' f {a} ↔ f' (f a) = a := singleton_subset_iff
 
 lemma left_inv_on.eq_on (h : left_inv_on f' f s) : eq_on (f' ∘ f) id s := h
 
@@ -648,6 +819,8 @@ theorem left_inv_on.surj_on (h : left_inv_on f' f s) (hf : maps_to f s t) : surj
 
 theorem left_inv_on.maps_to (h : left_inv_on f' f s) (hf : surj_on f s t) : maps_to f' t s :=
 λ y hy, let ⟨x, hs, hx⟩ := hf hy in by rwa [← hx, h hs]
+
+lemma left_inv_on_id (s : set α) : left_inv_on id id s := λ a _, rfl
 
 theorem left_inv_on.comp
   (hf' : left_inv_on f' f s) (hg' : left_inv_on g' g t) (hf : maps_to f s t) :
@@ -690,6 +863,9 @@ theorem left_inv_on.image_image' (hf : left_inv_on f' f s) (hs : s₁ ⊆ s) :
 @[reducible] def right_inv_on (f' : β → α) (f : α → β) (t : set β) : Prop :=
 left_inv_on f f' t
 
+@[simp] lemma right_inv_on_empty (f' : β → α) (f : α → β) : right_inv_on f' f ∅ := empty_subset _
+@[simp] lemma right_inv_on_singleton : right_inv_on f' f {b} ↔ f (f' b) = b := singleton_subset_iff
+
 lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
@@ -711,6 +887,8 @@ hf.surj_on hf'
 
 theorem right_inv_on.maps_to (h : right_inv_on f' f t) (hf : surj_on f' t s) : maps_to f s t :=
 h.maps_to hf
+
+lemma right_inv_on_id (s : set α) : right_inv_on id id s := λ a _, rfl
 
 theorem right_inv_on.comp (hf : right_inv_on f' f t) (hg : right_inv_on g' g p)
   (g'pt : maps_to g' p t) : right_inv_on (f' ∘ g') (g ∘ f) p :=
@@ -740,7 +918,18 @@ theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_in
 def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
 left_inv_on g f s ∧ right_inv_on g f t
 
+@[simp] lemma inv_on_empty (f' : β → α) (f : α → β) : inv_on f' f ∅ ∅ := by simp [inv_on]
+@[simp] lemma inv_on_singleton : inv_on f' f {a} {b} ↔ f' (f a) = a ∧ f (f' b) = b :=
+by simp [inv_on]
+
 lemma inv_on.symm (h : inv_on f' f s t) : inv_on f f' t s := ⟨h.right, h.left⟩
+
+lemma inv_on_id (s : set α) : inv_on id id s s := ⟨s.left_inv_on_id, s.right_inv_on_id⟩
+
+lemma inv_on.comp (hf : inv_on f' f s t) (hg : inv_on g' g t p) (fst : maps_to f s t)
+  (g'pt : maps_to g' p t) :
+  inv_on (f' ∘ g') (g ∘ f) s p :=
+⟨hf.1.comp hg.1 fst, hf.2.comp hg.2 g'pt⟩
 
 lemma inv_on.mono (h : inv_on f' f s t) (hs : s₁ ⊆ s) (ht : t₁ ⊆ t) : inv_on f' f s₁ t₁ :=
 ⟨h.1.mono hs, h.2.mono ht⟩
@@ -751,6 +940,12 @@ into `s`, then `f` is a bijection between `s` and `t`. The `maps_to` arguments c
 theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to f' t s) :
   bij_on f s t :=
 ⟨hf, h.left.inj_on, h.right.surj_on hf'⟩
+
+lemma bij_on.symm {g : β → α} (h : inv_on f g t s) (hf : bij_on f s t) : bij_on g t s :=
+⟨h.2.maps_to hf.surj_on, h.1.inj_on, h.2.surj_on hf.maps_to⟩
+
+lemma bij_on_comm {g : β → α} (h : inv_on f g t s) : bij_on f s t ↔ bij_on g t s :=
+⟨bij_on.symm h, bij_on.symm h.symm⟩
 
 end set
 
@@ -776,17 +971,21 @@ theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice ‹nonempty α› :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
-end function
+@[simp] theorem inv_fun_on_apply_mem (h : a ∈ s) : inv_fun_on f s (f a) ∈ s :=
+inv_fun_on_mem ⟨a, h, rfl⟩
 
-namespace set
+theorem inv_fun_on_apply_eq (h : a ∈ s) : f (inv_fun_on f s (f a)) = f a :=
+inv_fun_on_eq ⟨a, h, rfl⟩
+
+end function
 open function
 
+namespace set
 variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
-λ a ha, have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-  h (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+λ a ha, h (inv_fun_on_apply_mem ha) ha (inv_fun_on_apply_eq ha)
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
@@ -944,7 +1143,7 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
-comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
+eq_on.comp_eq $ piecewise_eq_on _ _ _
 
 theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
   [∀ i, decidable (i ∈ s)]
@@ -1009,7 +1208,7 @@ end
 lemma injective_piecewise_iff {f g : α → β} :
   injective (s.piecewise f g) ↔ inj_on f s ∧ inj_on g sᶜ ∧ (∀ (x ∈ s) (y ∉ s), f x ≠ g y) :=
 begin
-  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ s _),
+  rw [injective_iff_inj_on_univ, ← union_compl_self s, inj_on_union (@disjoint_compl_right _ _ s),
     (piecewise_eq_on s f g).inj_on_iff, (piecewise_eq_on_compl s f g).inj_on_iff],
   refine and_congr iff.rfl (and_congr iff.rfl $ forall₄_congr $ λ x hx y hy, _),
   rw [piecewise_eq_of_mem s f g hx, piecewise_eq_of_not_mem s f g hy]
@@ -1025,7 +1224,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end
@@ -1036,6 +1235,8 @@ lemma univ_pi_piecewise {ι : Type*} {α : ι → Type*} (s : set ι)
 by simp
 
 end set
+
+open set
 
 lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
   (H : strict_mono_on f s) :
@@ -1070,6 +1271,12 @@ lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder �
   (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
   strict_anti_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+
+@[simp] lemma strict_mono_restrict [preorder α] [preorder β] {f : α → β} {s : set α} :
+  strict_mono (s.restrict f) ↔ strict_mono_on f s :=
+by simp [set.restrict, strict_mono, strict_mono_on]
+
+alias strict_mono_restrict ↔ _root_.strict_mono.of_restrict _root_.strict_mono_on.restrict
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :
@@ -1176,4 +1383,85 @@ update_comp_eq_of_not_mem_range' g a h
 
 lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
+lemma monotone_on_of_right_inv_on_of_maps_to
+  [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β} {t : set β} {s : set α}
+  (hφ : monotone_on φ t) (φψs : set.right_inv_on ψ φ s) (ψts : set.maps_to ψ s t) :
+  monotone_on ψ s :=
+begin
+  rintro x xs y ys l,
+  rcases le_total (ψ x) (ψ y) with (ψxy|ψyx),
+  { exact ψxy, },
+  { cases le_antisymm l (φψs.eq ys ▸ φψs.eq xs ▸ hφ (ψts ys) (ψts xs) ψyx), refl, },
+end
+
+lemma antitone_on_of_right_inv_on_of_maps_to
+  [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β} {t : set β} {s : set α}
+  (hφ : antitone_on φ t) (φψs : set.right_inv_on ψ φ s) (ψts : set.maps_to ψ s t) :
+  antitone_on ψ s :=
+(monotone_on_of_right_inv_on_of_maps_to hφ.dual_left φψs ψts).dual_right
+
 end function
+
+/-! ### Equivalences, permutations -/
+
+namespace set
+variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g g₁ g₂ : perm α} {s t : set α}
+
+protected lemma maps_to.extend_domain (h : maps_to g s t) :
+  maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
+
+protected lemma surj_on.extend_domain (h : surj_on g s t) :
+  surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  obtain ⟨b, hb, rfl⟩ := h ha,
+  exact ⟨_, ⟨_, hb, rfl⟩, by rw extend_domain_apply_image⟩,
+end
+
+protected lemma bij_on.extend_domain (h : set.bij_on g s t) :
+  bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
+
+protected lemma left_inv_on.extend_domain (h : left_inv_on g₁ g₂ s) :
+  left_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma right_inv_on.extend_domain (h : right_inv_on g₁ g₂ t) :
+  right_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma inv_on.extend_domain (h : inv_on g₁ g₂ s t) :
+  inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.1.extend_domain, h.2.extend_domain⟩
+
+end set
+
+namespace equiv
+variables (e : α ≃ β) {s : set α} {t : set β}
+
+lemma bij_on' (h₁ : maps_to e s t) (h₂ : maps_to e.symm t s) : bij_on e s t :=
+⟨h₁, e.injective.inj_on _, λ b hb, ⟨e.symm b, h₂ hb, apply_symm_apply _ _⟩⟩
+
+protected lemma bij_on (h : ∀ a, e a ∈ t ↔ a ∈ s) : bij_on e s t :=
+e.bij_on' (λ a, (h _).2) $ λ b hb, (h _).1 $ by rwa apply_symm_apply
+
+lemma inv_on : inv_on e e.symm t s :=
+⟨e.right_inverse_symm.left_inv_on _, e.left_inverse_symm.left_inv_on _⟩
+
+lemma bij_on_image : bij_on e s (e '' s) := (e.injective.inj_on _).bij_on_image
+lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm e.inv_on
+
+variables {e}
+
+@[simp] lemma bij_on_symm : bij_on e.symm t s ↔ bij_on e s t := bij_on_comm e.symm.inv_on
+
+alias bij_on_symm ↔ _root_.set.bij_on.of_equiv_symm _root_.set.bij_on.equiv_symm
+
+variables [decidable_eq α] {a b : α}
+
+lemma bij_on_swap (ha : a ∈ s) (hb : b ∈ s) : bij_on (swap a b) s s :=
+(swap a b).bij_on $ λ x, by obtain rfl | hxa := eq_or_ne x a; obtain rfl | hxb := eq_or_ne x b;
+  simp [*, swap_apply_of_ne_of_ne]
+
+end equiv

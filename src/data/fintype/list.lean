@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.fintype.basic
-import data.list.perm
+import data.finset.powerset
 
 /-!
 
 # Fintype instance for nodup lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The subtype of `{l : list α // l.nodup}` over a `[fintype α]`
 admits a `fintype` instance.

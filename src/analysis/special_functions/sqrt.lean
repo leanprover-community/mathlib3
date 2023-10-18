@@ -8,6 +8,9 @@ import analysis.calculus.cont_diff
 /-!
 # Smoothness of `real.sqrt`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that `real.sqrt` is infinitely smooth at all points `x ≠ 0` and provide some
 dot-notation lemmas.
 
@@ -17,7 +20,7 @@ sqrt, differentiable
 -/
 
 open set
-open_locale topological_space
+open_locale topology
 
 namespace real
 
@@ -57,7 +60,7 @@ lemma has_strict_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) :
   has_strict_deriv_at sqrt (1 / (2 * sqrt x)) x :=
 (deriv_sqrt_aux hx).1
 
-lemma cont_diff_at_sqrt {x : ℝ} {n : with_top ℕ} (hx : x ≠ 0) :
+lemma cont_diff_at_sqrt {x : ℝ} {n : ℕ∞} (hx : x ≠ 0) :
   cont_diff_at ℝ n sqrt x :=
 (deriv_sqrt_aux hx).2 n
 
@@ -98,7 +101,7 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {n : with_top ℕ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {n : ℕ∞}
   {s : set E} {x : E} {f' : E →L[ℝ] ℝ}
 
 lemma has_fderiv_at.sqrt (hf : has_fderiv_at f f' x) (hx : f x ≠ 0) :

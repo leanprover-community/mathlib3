@@ -19,6 +19,7 @@ section
 
 variables {α : Type*} [lattice α]
 
+/-- The unordered open-open interval. -/
 def uIoo (x y : α) : set α := Ioo (x ⊓ y) (x ⊔ y)
 
 lemma uIoo_of_le {x y : α} (h : x ≤ y) : uIoo x y = Ioo x y :=

@@ -1313,7 +1313,7 @@ end
 end
 
 /--  The density of a label in the edge labelling. -/
-def top_edge_labelling.density [fintype V] {K : Type*} [decidable_eq K] (χ : top_edge_labelling V K)
+def top_edge_labelling.density [fintype V] {K : Type*} (χ : top_edge_labelling V K)
   (k : K) [fintype (χ.label_graph k).edge_set] :
   ℝ := density (χ.label_graph k)
 

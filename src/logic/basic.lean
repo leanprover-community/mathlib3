@@ -423,6 +423,15 @@ lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
 lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
 
+protected lemma iff.ne {α β : Sort*} {a b : α} {c d : β} : (a = b ↔ c = d) → (a ≠ b ↔ c ≠ d) :=
+iff.not
+
+lemma iff.ne_left {α β : Sort*} {a b : α} {c d : β} : (a = b ↔ c ≠ d) → (a ≠ b ↔ c = d) :=
+iff.not_left
+
+lemma iff.ne_right {α β : Sort*} {a b : α} {c d : β} : (a ≠ b ↔ c = d) → (a = b ↔ c ≠ d) :=
+iff.not_right
+
 /-! ### Declarations about `xor` -/
 
 @[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]

@@ -33,26 +33,6 @@ This module defines and proves properties about triangles in simple graphs.
 * Find a better name for `far_from_triangle_free`. Added 4/26/2022. Remove this TODO if it gets old.
 -/
 
-namespace finset
-variables {α : Type*} [decidable_eq α]
-
-lemma insert_comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
-coe_injective $ by { push_cast, exact set.insert_comm _ _ _ }
-
-end finset
-
-namespace simple_graph
-variables {V : Type*}
-
-@[simp] lemma edge_set_top : (⊤ : simple_graph V).edge_set = {e : sym2 V | ¬ e.is_diag} :=
-by ext x; induction x using sym2.ind; simp
-
-@[simp] lemma edge_finset_top [fintype V] [decidable_eq V] [fintype (⊤ : simple_graph V).edge_set] :
-  (⊤ : simple_graph V).edge_finset = finset.univ.filter (λ e, ¬ e.is_diag) :=
-by ext x; induction x using sym2.ind; simp
-
-end simple_graph
-
 open finset fintype (card) nat
 
 namespace simple_graph
@@ -85,7 +65,7 @@ by simp [edge_disjoint_triangles]
 lemma edge_disjoint_triangles.map (f : α ↪ β) (hG : G.edge_disjoint_triangles) :
   (G.map f).edge_disjoint_triangles :=
 begin
-  rw [edge_disjoint_triangles, clique_set_map (bit1_lt_bit1.2 zero_lt_one),
+  rw [edge_disjoint_triangles, clique_set_map (by norm_num : 3 ≠ 1),
     ((finset.map_injective f).inj_on _).pairwise_image],
   classical,
   rintro s hs t ht hst,
@@ -130,7 +110,7 @@ begin
       simp only [mem_insert, mem_singleton] at hab,
       obtain ⟨rfl | rfl | rfl, rfl | rfl | rfl⟩ := hab;
       simp only [*, adj_comm, true_and, ne.def, eq_self_iff_true, not_true] at *;
-      refine ⟨c, _⟩ <|> refine ⟨d, _⟩ <|> refine ⟨e, _⟩; simp [*, pair_comm, insert_comm] },
+      refine ⟨c, _⟩ <|> refine ⟨d, _⟩ <|> refine ⟨e, _⟩; simp [*, pair_comm, insert.comm] },
     { rintro ⟨hab, c, hac, hbc, rfl⟩,
       refine ⟨⟨a, b, c, _⟩, _⟩; simp [*] } },
   split,

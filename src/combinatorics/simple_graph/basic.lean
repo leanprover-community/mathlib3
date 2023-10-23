@@ -371,6 +371,9 @@ variables (G₁ G₂)
 
 @[simp] lemma edge_set_bot : (⊥ : simple_graph V).edge_set = ∅ := sym2.from_rel_bot
 
+@[simp] lemma edge_set_top : (⊤ : simple_graph V).edge_set = {e : sym2 V | ¬ e.is_diag} :=
+by ext x; induction x using sym2.ind; simp
+
 @[simp] lemma edge_set_sup : (G₁ ⊔ G₂).edge_set = G₁.edge_set ∪ G₂.edge_set :=
 by { ext ⟨x, y⟩, refl }
 
@@ -688,6 +691,10 @@ alias edge_finset_ssubset_edge_finset ↔ _ edge_finset_strict_mono
 attribute [mono] edge_finset_mono edge_finset_strict_mono
 
 @[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
+
+@[simp] lemma edge_finset_top [fintype V] [decidable_eq V] [fintype (⊤ : simple_graph V).edge_set] :
+  (⊤ : simple_graph V).edge_finset = finset.univ.filter (λ e, ¬ e.is_diag) :=
+by ext x; induction x using sym2.ind; simp
 
 @[simp] lemma edge_finset_sup [decidable_eq V] :
   (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=

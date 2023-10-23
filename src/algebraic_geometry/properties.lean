@@ -12,6 +12,9 @@ import ring_theory.local_properties
 /-!
 # Basic properties of schemes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide some basic properties of schemes
 
 ## Main definition

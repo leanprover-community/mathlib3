@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import tactic.doc_commands
+import tactic.mk_simp_attribute
 import tactic.reserved_notation
 
 /-!
@@ -63,7 +63,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-@[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
+@[simp, nontriviality] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
 
@@ -274,7 +274,7 @@ theorem imp_and_distrib {α} : (α → b ∧ c) ↔ (α → b) ∧ (α → c) :=
 ⟨λ h, ⟨λ ha, (h ha).left, λ ha, (h ha).right⟩,
  λ h ha, ⟨h.left ha, h.right ha⟩⟩
 
-@[simp] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
+@[simp, mfld_simps] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
 iff.intro (λ h ha hb, h ⟨ha, hb⟩) (λ h ⟨ha, hb⟩, h ha hb)
 
 theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) :=
@@ -422,6 +422,15 @@ imp.swap
 lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
 lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
+
+protected lemma iff.ne {α β : Sort*} {a b : α} {c d : β} : (a = b ↔ c = d) → (a ≠ b ↔ c ≠ d) :=
+iff.not
+
+lemma iff.ne_left {α β : Sort*} {a b : α} {c d : β} : (a = b ↔ c ≠ d) → (a ≠ b ↔ c = d) :=
+iff.not_left
+
+lemma iff.ne_right {α β : Sort*} {a b : α} {c d : β} : (a ≠ b ↔ c = d) → (a = b ↔ c ≠ d) :=
+iff.not_right
 
 /-! ### Declarations about `xor` -/
 
@@ -842,7 +851,7 @@ end mem
 section equality
 variables {α : Sort*} {a b : α}
 
-@[simp] theorem heq_iff_eq : a == b ↔ a = b :=
+@[simp, mfld_simps] theorem heq_iff_eq : a == b ↔ a = b :=
 ⟨eq_of_heq, heq_of_eq⟩
 
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : hp == hq :=
@@ -865,12 +874,12 @@ theorem eq_equivalence : equivalence (@eq α) :=
 ⟨eq.refl, @eq.symm _, @eq.trans _⟩
 
 /-- Transport through trivial families is the identity. -/
-@[simp]
+@[simp, transport_simps]
 lemma eq_rec_constant {α : Sort*} {a a' : α} {β : Sort*} (y : β) (h : a = a') :
   (@eq.rec α a (λ a, β) y a' h) = y :=
 by { cases h, refl, }
 
-@[simp]
+@[simp, transport_simps]
 lemma eq_mp_eq_cast {α β : Sort*} (h : α = β) : eq.mp h = cast h := rfl
 
 @[simp]
@@ -1096,6 +1105,7 @@ let ⟨a⟩ := ha in
   (λ hb, hb $ h $ λ x, (not_imp.1 (h' x)).1), λ ⟨x, hx⟩ h, hx (h x)⟩
 
 -- TODO: duplicate of a lemma in core
+@[mfld_simps]
 theorem forall_true_iff : (α → true) ↔ true :=
 implies_true_iff α
 
@@ -1118,7 +1128,7 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
   (∃! x, p x) ↔ ∃ x, p x :=
 ⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
 
-@[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
+@[simp, mfld_simps] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
 /-- For some reason simp doesn't use `forall_const` to simplify in this case. -/

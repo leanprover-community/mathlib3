@@ -10,6 +10,9 @@ import category_theory.limits.shapes.kernels
 /-!
 # Kernels and cokernels in SemiNormedGroup₁ and SemiNormedGroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We show that `SemiNormedGroup₁` has cokernels
 (for which of course the `cokernel.π f` maps are norm non-increasing),
 as well as the easier result that `SemiNormedGroup` has cokernels. We also show that

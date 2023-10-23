@@ -32,7 +32,7 @@ defined in `equivalence_pseudoabelian.lean`.
 When the category `C` is abelian, a relation between `N₁` and the
 normalized Moore complex functor shall be obtained in `normalized.lean`.
 
-(See `equivalence.lean` for the general strategy of proof.)
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

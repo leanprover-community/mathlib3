@@ -29,6 +29,8 @@ role in the proof that the functor
 `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ))`
 reflects isomorphisms.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 open category_theory category_theory.category category_theory.preadditive opposite

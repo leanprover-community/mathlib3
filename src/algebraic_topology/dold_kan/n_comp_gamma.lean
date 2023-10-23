@@ -21,6 +21,8 @@ that it becomes an isomorphism after the application of the functor
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
 which reflects isomorphisms.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 noncomputable theory

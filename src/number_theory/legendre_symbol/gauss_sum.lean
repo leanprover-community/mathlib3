@@ -10,6 +10,9 @@ import algebra.char_p.char_and_card
 /-!
 # Gauss sums
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the Gauss sum associated to a multiplicative and an additive
 character of a finite field and prove some results about them.
 

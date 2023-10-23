@@ -15,6 +15,9 @@ import geometry.manifold.cont_mdiff_mfderiv
 /-!
 # Manifold structure on the sphere
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines stereographic projection from the sphere in an inner product space `E`, and uses
 it to put a smooth manifold structure on the sphere.
 

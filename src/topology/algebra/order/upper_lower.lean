@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import algebra.order.upper_lower
 import topology.algebra.group.basic
+import topology.order.basic
 
 /-!
 # Topological facts about upper/lower/order-connected sets
@@ -46,7 +47,33 @@ instance ordered_comm_group.to_has_upper_lower_closure [ordered_comm_group α]
   is_open_upper_closure := λ s hs, by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right },
   is_open_lower_closure := λ s hs, by { rw [←mul_one s, ←mul_lower_closure], exact hs.mul_right } }
 
-variables [preorder α] [has_upper_lower_closure α] {s : set α}
+variables [preorder α]
+
+section order_closed_topology
+variables [order_closed_topology α] {s : set α}
+
+@[simp] lemma upper_bounds_closure (s : set α) :
+  upper_bounds (closure s : set α) = upper_bounds s :=
+ext $ λ a, by simp_rw [mem_upper_bounds_iff_subset_Iic, is_closed_Iic.closure_subset_iff]
+
+@[simp] lemma lower_bounds_closure (s : set α) :
+  lower_bounds (closure s : set α) = lower_bounds s :=
+ext $ λ a, by simp_rw [mem_lower_bounds_iff_subset_Ici, is_closed_Ici.closure_subset_iff]
+
+@[simp] lemma bdd_above_closure : bdd_above (closure s) ↔ bdd_above s :=
+by simp_rw [bdd_above, upper_bounds_closure]
+
+@[simp] lemma bdd_below_closure : bdd_below (closure s) ↔ bdd_below s :=
+by simp_rw [bdd_below, lower_bounds_closure]
+
+alias bdd_above_closure ↔ bdd_above.of_closure bdd_above.closure
+alias bdd_below_closure ↔ bdd_below.of_closure bdd_below.closure
+
+attribute [protected] bdd_above.closure bdd_below.closure
+
+end order_closed_topology
+
+variables [has_upper_lower_closure α] {s : set α}
 
 protected lemma is_upper_set.closure : is_upper_set s → is_upper_set (closure s) :=
 has_upper_lower_closure.is_upper_set_closure _
@@ -85,7 +112,7 @@ protected lemma is_upper_set.interior (h : is_upper_set s) : is_upper_set (inter
 by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure }
 
 protected lemma is_lower_set.interior (h : is_lower_set s) : is_lower_set (interior s) :=
-h.of_dual.interior
+h.to_dual.interior
 
 protected lemma set.ord_connected.interior (h : s.ord_connected) : (interior s).ord_connected :=
 begin

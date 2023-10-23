@@ -11,6 +11,9 @@ import topology.shrinking_lemma
 /-!
 # Smooth partition of unity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two structures, `smooth_bump_covering` and `smooth_partition_of_unity`. Both
 structures describe coverings of a set by a locally finite family of supports of smooth functions
 with some additional properties. The former structure is mostly useful as an intermediate step in

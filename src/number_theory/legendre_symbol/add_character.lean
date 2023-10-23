@@ -9,6 +9,9 @@ import field_theory.finite.trace
 /-!
 # Additive characters of finite rings and fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `R` be a finite commutative ring. An *additive character* of `R` with values
 in another commutative ring `R'` is simply a morphism from the additive group
 of `R` into the multiplicative monoid of `R'`.
@@ -355,6 +358,7 @@ begin
       exact λ hf, nat.prime.ne_zero hp.1 (zero_dvd_iff.mp hf), },
   end,
   let ψ := primitive_zmod_char pp F' (ne_zero_iff.mp (ne_zero.of_not_dvd F' hp₂)),
+  letI : algebra (zmod p) F := zmod.algebra _ _,
   let ψ' := ψ.char.comp (algebra.trace (zmod p) F).to_add_monoid_hom.to_multiplicative,
   have hψ' : is_nontrivial ψ' :=
   begin

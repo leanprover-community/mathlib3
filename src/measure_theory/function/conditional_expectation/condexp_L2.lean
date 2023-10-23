@@ -8,6 +8,9 @@ import measure_theory.function.conditional_expectation.unique
 
 /-! # Conditional expectation in L2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains one step of the construction of the conditional expectation, which is completed
 in `measure_theory.function.conditional_expectation.basic`. See that file for a description of the
 full process.

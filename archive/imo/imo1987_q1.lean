@@ -11,6 +11,9 @@ import dynamics.fixed_points.basic
 /-!
 # Formalization of IMO 1987, Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let $p_{n, k}$ be the number of permutations of a set of cardinality `n ≥ 1` that fix exactly `k`
 elements. Prove that $∑_{k=0}^n k p_{n,k}=n!$.
 

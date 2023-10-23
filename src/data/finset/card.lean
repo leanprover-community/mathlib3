@@ -434,6 +434,13 @@ begin
     exact card_le_of_subset hx }
 end
 
+lemma exists_mem_ne (hs : 1 < s.card) (a : α) : ∃ b ∈ s, b ≠ a :=
+begin
+  by_contra',
+  haveI : nonempty α := ⟨a⟩,
+  exact hs.not_le (card_le_one_iff_subset_singleton.2 ⟨a, subset_singleton_iff'.2 this⟩),
+end
+
 /-- A `finset` of a subsingleton type has cardinality at most one. -/
 lemma card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
 finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _

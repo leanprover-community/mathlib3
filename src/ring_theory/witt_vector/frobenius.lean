@@ -14,6 +14,9 @@ import field_theory.perfect_closure
 /-!
 ## The Frobenius operator
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If `R` has characteristic `p`, then there is a ring endomorphism `frobenius R p`
 that raises `r : R` to the power `p`.
 By applying `witt_vector.map` to `frobenius R p`, we obtain a ring endomorphism `𝕎 R →+* 𝕎 R`.
@@ -282,6 +285,7 @@ lemma coeff_frobenius_char_p (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius x) n = (x.coeff n) ^ p :=
 begin
   rw [coeff_frobenius],
+  letI : algebra (zmod p) R := zmod.algebra _ _,
   -- outline of the calculation, proofs follow below
   calc aeval (λ k, x.coeff k) (frobenius_poly p n)
       = aeval (λ k, x.coeff k)

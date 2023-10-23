@@ -10,6 +10,9 @@ import dynamics.periodic_pts
 /-!
 # IMO 2006 Q5
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let $P(x)$ be a polynomial of degree $n>1$ with integer coefficients, and let $k$ be a positive
 integer. Consider the polynomial $Q(x) = P(P(\ldots P(P(x))\ldots))$, where $P$ occurs $k$ times.
 Prove that there are at most $n$ integers $t$ such that $Q(t)=t$.

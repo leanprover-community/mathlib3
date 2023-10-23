@@ -10,6 +10,9 @@ import algebraic_topology.fundamental_groupoid.punit
 
 /-!
 # Simply connected spaces
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file defines simply connected spaces.
 A topological space is simply connected if its fundamental groupoid is equivalent to `unit`.
 

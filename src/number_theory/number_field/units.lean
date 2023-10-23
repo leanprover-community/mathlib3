@@ -7,6 +7,9 @@ import number_theory.number_field.norm
 
 /-!
 # Units of a number field
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 We prove results about the group `(𝓞 K)ˣ` of units of the ring of integers `𝓞 K` of a number
 field `K`.
 

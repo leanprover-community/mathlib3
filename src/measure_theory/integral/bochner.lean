@@ -638,24 +638,28 @@ end
 
 variables {α E}
 
+@[integral_simps]
 lemma integral_add (f g : α →₁[μ] E) : integral (f + g) = integral f + integral g :=
 begin
   simp only [integral],
   exact map_add integral_clm f g
 end
 
+@[integral_simps]
 lemma integral_neg (f : α →₁[μ] E) : integral (-f) = - integral f :=
 begin
   simp only [integral],
   exact map_neg integral_clm f
 end
 
+@[integral_simps]
 lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - integral g :=
 begin
   simp only [integral],
   exact map_sub integral_clm f g
 end
 
+@[integral_simps]
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 begin
   simp only [integral],
@@ -797,6 +801,7 @@ begin
   exact set_to_fun_finset_sum (dominated_fin_meas_additive_weighted_smul _) s hf
 end
 
+@[integral_simps]
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 begin
   simp only [integral, L1.integral],
@@ -817,6 +822,7 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
+@[integral_simps]
 lemma integral_smul (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 begin
@@ -1663,11 +1669,6 @@ begin
 end
 
 end properties
-
-mk_simp_attribute integral_simps "Simp set for integral rules."
-
-attribute [integral_simps] integral_neg integral_smul L1.integral_add L1.integral_sub
-  L1.integral_smul L1.integral_neg
 
 section integral_trim
 

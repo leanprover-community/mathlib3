@@ -8,6 +8,9 @@ import topology.vector_bundle.constructions
 
 /-! # Smooth vector bundles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines smooth vector bundles over a smooth manifold.
 
 Let `E` be a topological vector bundle, with model fiber `F` and base space `B`.  We consider `E` as
@@ -66,14 +69,14 @@ variables {𝕜 B B' F M : Type*} {E : B → Type*}
 /-! ### Charted space structure on a fiber bundle -/
 
 section
-variables [topological_space F] [topological_space (total_space E)] [∀ x, topological_space (E x)]
+variables [topological_space F] [topological_space (total_space F E)] [∀ x, topological_space (E x)]
   {HB : Type*} [topological_space HB]
   [topological_space B] [charted_space HB B] [fiber_bundle F E]
 
 /-- A fiber bundle `E` over a base `B` with model fiber `F` is naturally a charted space modelled on
 `B × F`. -/
-instance fiber_bundle.charted_space : charted_space (B × F) (total_space E) :=
-{ atlas := (λ e : trivialization F (π E), e.to_local_homeomorph) '' trivialization_atlas F E,
+instance fiber_bundle.charted_space : charted_space (B × F) (total_space F E) :=
+{ atlas := (λ e : trivialization F (π F E), e.to_local_homeomorph) '' trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
   mem_chart_source := λ x, (trivialization_at F E x.proj).mem_source.mpr
     (mem_base_set_trivialization_at F E x.proj),
@@ -84,11 +87,11 @@ local attribute [reducible] model_prod
 
 /-- Let `B` be a charted space modelled on `HB`.  Then a fiber bundle `E` over a base `B` with model
 fiber `F` is naturally a charted space modelled on `HB.prod F`. -/
-instance fiber_bundle.charted_space' : charted_space (model_prod HB F) (total_space E) :=
+instance fiber_bundle.charted_space' : charted_space (model_prod HB F) (total_space F E) :=
 charted_space.comp _ (model_prod B F) _
 end
 
-lemma fiber_bundle.charted_space_chart_at (x : total_space E) :
+lemma fiber_bundle.charted_space_chart_at (x : total_space F E) :
   chart_at (model_prod HB F) x =
   (trivialization_at F E x.proj).to_local_homeomorph ≫ₕ
   (chart_at HB x.proj).prod (local_homeomorph.refl F) :=
@@ -99,7 +102,7 @@ begin
     trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
 end
 
-lemma fiber_bundle.charted_space_chart_at_symm_fst (x : total_space E) (y : model_prod HB F)
+lemma fiber_bundle.charted_space_chart_at_symm_fst (x : total_space F E) (y : model_prod HB F)
   (hy : y ∈ (chart_at (model_prod HB F) x).target) :
   ((chart_at (model_prod HB F) x).symm y).proj = (chart_at HB x.proj).symm y.1 :=
 begin
@@ -112,7 +115,7 @@ end
 section
 variables [nontrivially_normed_field 𝕜]
   [normed_add_comm_group F] [normed_space 𝕜 F]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  [topological_space (total_space F E)] [∀ x, topological_space (E x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
@@ -124,7 +127,7 @@ variables [nontrivially_normed_field 𝕜]
 
 variables [topological_space B] [charted_space HB B] [fiber_bundle F E]
 
-protected lemma fiber_bundle.ext_chart_at (x : total_space E) :
+protected lemma fiber_bundle.ext_chart_at (x : total_space F E) :
   ext_chart_at (IB.prod 𝓘(𝕜, F)) x =
   (trivialization_at F E x.proj).to_local_equiv ≫
   (ext_chart_at IB x.proj).prod (local_equiv.refl F) :=
@@ -143,7 +146,7 @@ namespace bundle
 variables {F E IB}
 
 /-- Characterization of C^n functions into a smooth vector bundle. -/
-lemma cont_mdiff_within_at_total_space (f : M → total_space E) {s : set M} {x₀ : M} :
+lemma cont_mdiff_within_at_total_space (f : M → total_space F E) {s : set M} {x₀ : M} :
   cont_mdiff_within_at IM (IB.prod (𝓘(𝕜, F))) n f s x₀ ↔
   cont_mdiff_within_at IM IB n (λ x, (f x).proj) s x₀ ∧
   cont_mdiff_within_at IM 𝓘(𝕜, F) n (λ x, (trivialization_at F E (f x₀).proj (f x)).2) s x₀ :=
@@ -168,7 +171,7 @@ begin
 end
 
 /-- Characterization of C^n functions into a smooth vector bundle. -/
-lemma cont_mdiff_at_total_space (f : M → total_space E) (x₀ : M) :
+lemma cont_mdiff_at_total_space (f : M → total_space F E) (x₀ : M) :
   cont_mdiff_at IM (IB.prod (𝓘(𝕜, F))) n f x₀ ↔
   cont_mdiff_at IM IB n (λ x, (f x).proj) x₀ ∧
   cont_mdiff_at IM 𝓘(𝕜, F) n (λ x, (trivialization_at F E (f x₀).proj (f x)).2) x₀ :=
@@ -176,12 +179,12 @@ by { simp_rw [← cont_mdiff_within_at_univ], exact cont_mdiff_within_at_total_s
 
 /-- Characterization of C^n sections of a smooth vector bundle. -/
 lemma cont_mdiff_at_section (s : Π x, E x) (x₀ : B) :
-  cont_mdiff_at IB (IB.prod (𝓘(𝕜, F))) n (λ x, total_space_mk x (s x)) x₀ ↔
-  cont_mdiff_at IB 𝓘(𝕜, F) n (λ x, (trivialization_at F E x₀ (total_space_mk x (s x))).2) x₀ :=
+  cont_mdiff_at IB (IB.prod (𝓘(𝕜, F))) n (λ x, total_space.mk' F x (s x)) x₀ ↔
+  cont_mdiff_at IB 𝓘(𝕜, F) n (λ x, (trivialization_at F E x₀ (total_space.mk' F x (s x))).2) x₀ :=
 by { simp_rw [cont_mdiff_at_total_space, and_iff_right_iff_imp], intro x, exact cont_mdiff_at_id }
 
 variables (E)
-lemma cont_mdiff_proj : cont_mdiff (IB.prod 𝓘(𝕜, F)) IB n (π E) :=
+lemma cont_mdiff_proj : cont_mdiff (IB.prod 𝓘(𝕜, F)) IB n (π F E) :=
 begin
   intro x,
   rw [cont_mdiff_at, cont_mdiff_within_at_iff'],
@@ -190,47 +193,47 @@ begin
   apply cont_diff_within_at_fst.congr,
   { rintros ⟨a, b⟩ hab,
     simp only with mfld_simps at hab,
-    have : ((chart_at HB x.1).symm (IB.symm a), b) ∈ (trivialization_at F E x.fst).target,
+    have : ((chart_at HB x.1).symm (IB.symm a), b) ∈ (trivialization_at F E x.proj).target,
     { simp only [hab] with mfld_simps },
     simp only [trivialization.proj_symm_apply _ this, hab] with mfld_simps },
   { simp only with mfld_simps }
 end
 
-lemma smooth_proj : smooth (IB.prod 𝓘(𝕜, F)) IB (π E) :=
+lemma smooth_proj : smooth (IB.prod 𝓘(𝕜, F)) IB (π F E) :=
 cont_mdiff_proj E
 
-lemma cont_mdiff_on_proj {s : set (total_space E)} :
-  cont_mdiff_on (IB.prod 𝓘(𝕜, F)) IB n (π E) s :=
+lemma cont_mdiff_on_proj {s : set (total_space F E)} :
+  cont_mdiff_on (IB.prod 𝓘(𝕜, F)) IB n (π F E) s :=
 (bundle.cont_mdiff_proj E).cont_mdiff_on
 
-lemma smooth_on_proj {s : set (total_space E)} :
-  smooth_on (IB.prod 𝓘(𝕜, F)) IB (π E) s :=
+lemma smooth_on_proj {s : set (total_space F E)} :
+  smooth_on (IB.prod 𝓘(𝕜, F)) IB (π F E) s :=
 cont_mdiff_on_proj E
 
-lemma cont_mdiff_at_proj {p : total_space E} :
+lemma cont_mdiff_at_proj {p : total_space F E} :
   cont_mdiff_at (IB.prod 𝓘(𝕜, F)) IB n
-    (π E) p :=
+    (π F E) p :=
 (bundle.cont_mdiff_proj E).cont_mdiff_at
 
-lemma smooth_at_proj {p : total_space E} :
-  smooth_at (IB.prod 𝓘(𝕜, F)) IB (π E) p :=
+lemma smooth_at_proj {p : total_space F E} :
+  smooth_at (IB.prod 𝓘(𝕜, F)) IB (π F E) p :=
 bundle.cont_mdiff_at_proj E
 
 lemma cont_mdiff_within_at_proj
-  {s : set (total_space E)}
-  {p : total_space E} :
-  cont_mdiff_within_at (IB.prod 𝓘(𝕜, F)) IB n (π E) s p :=
+  {s : set (total_space F E)}
+  {p : total_space F E} :
+  cont_mdiff_within_at (IB.prod 𝓘(𝕜, F)) IB n (π F E) s p :=
 (bundle.cont_mdiff_at_proj E).cont_mdiff_within_at
 
 lemma smooth_within_at_proj
-  {s : set (total_space E)}
-  {p : total_space E} :
-  smooth_within_at (IB.prod 𝓘(𝕜, F)) IB (π E) s p :=
+  {s : set (total_space F E)}
+  {p : total_space F E} :
+  smooth_within_at (IB.prod 𝓘(𝕜, F)) IB (π F E) s p :=
 bundle.cont_mdiff_within_at_proj E
 
 variables (𝕜 E) [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)] [vector_bundle 𝕜 F E]
 
-lemma smooth_zero_section : smooth IB (IB.prod 𝓘(𝕜, F)) (zero_section E) :=
+lemma smooth_zero_section : smooth IB (IB.prod 𝓘(𝕜, F)) (zero_section F E) :=
 begin
   intro x,
   rw [bundle.cont_mdiff_at_total_space],
@@ -260,7 +263,7 @@ variables [nontrivially_normed_field 𝕜]
 
 section with_topology
 
-variables [topological_space (total_space E)] [∀ x, topological_space (E x)]
+variables [topological_space (total_space F E)] [∀ x, topological_space (E x)]
 
 variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
 
@@ -269,7 +272,7 @@ topological vector bundle over `B` with fibers isomorphic to `F`, then `smooth_v
 registers that the bundle is smooth, in the sense of having smooth transition functions.
 This is a mixin, not carrying any new data`. -/
 class smooth_vector_bundle : Prop :=
-(smooth_on_coord_change : ∀ (e e' : trivialization F (π E))
+(smooth_on_coord_change : ∀ (e e' : trivialization F (π F E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_changeL 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
@@ -281,7 +284,7 @@ variables [smooth_vector_bundle F E IB]
 /-- For a smooth vector bundle `E` over `B` with fiber modelled on `F`, the change-of-co-ordinates
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
 fiberwise linear. -/
-instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
+instance : has_groupoid (total_space F E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     haveI : mem_trivialization_atlas e := ⟨he⟩,
@@ -305,7 +308,7 @@ instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
   end }
 
 /-- A smooth vector bundle `E` is naturally a smooth manifold. -/
-instance : smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space E) :=
+instance : smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space F E) :=
 begin
   refine { .. structure_groupoid.has_groupoid.comp (smooth_fiberwise_linear B F IB) _ },
   intros e he,
@@ -363,11 +366,11 @@ instance bundle.trivial.smooth_vector_bundle : smooth_vector_bundle F (bundle.tr
 
 section prod
 variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
-  (E₁ : B → Type*) [topological_space (total_space E₁)]
+  (E₁ : B → Type*) [topological_space (total_space F₁ E₁)]
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
 
 variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
-  (E₂ : B → Type*) [topological_space (total_space E₂)]
+  (E₂ : B → Type*) [topological_space (total_space F₂ E₂)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
 
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
@@ -406,10 +409,9 @@ variables [∀ x, topological_space (E x)] {F E}
 class is_smooth (a : vector_prebundle 𝕜 F E) : Prop :=
 (exists_smooth_coord_change : ∀ (e e' ∈ a.pretrivialization_atlas), ∃ f : B → F →L[𝕜] F,
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) f (e.base_set ∩ e'.base_set) ∧
-  ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
-    f b v = (e' (total_space_mk b (e.symm b v))).2)
+  ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F), f b v = (e' ⟨b ,e.symm b v⟩).2)
 
-variables (a : vector_prebundle 𝕜 F E) [ha : a.is_smooth IB] {e e' : pretrivialization F (π E)}
+variables (a : vector_prebundle 𝕜 F E) [ha : a.is_smooth IB] {e e' : pretrivialization F (π F E)}
 include ha
 
 /-- A randomly chosen coordinate change on a `smooth_vector_prebundle`, given by
@@ -427,12 +429,12 @@ lemma smooth_on_smooth_coord_change (he : e ∈ a.pretrivialization_atlas)
 
 lemma smooth_coord_change_apply (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
-  a.smooth_coord_change IB he he' b v = (e' (total_space_mk b (e.symm b v))).2 :=
+  a.smooth_coord_change IB he he' b v = (e' ⟨b, e.symm b v⟩).2 :=
 (classical.some_spec (ha.exists_smooth_coord_change e he e' he')).2 b hb v
 
 lemma mk_smooth_coord_change (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
-  (b, (a.smooth_coord_change IB he he' b v)) = e' (total_space_mk b (e.symm b v)) :=
+  (b, (a.smooth_coord_change IB he he' b v)) = e' ⟨b, e.symm b v⟩ :=
 begin
   ext,
   { rw [e.mk_symm hb.1 v, e'.coe_fst', e.proj_symm_apply' hb.1],

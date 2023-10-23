@@ -9,6 +9,9 @@ import tactic.congrm
 
 # Inverse of analytic functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the left and right inverse of a formal multilinear series with invertible linear term,
 we prove that they coincide and study their properties (notably convergence).
 

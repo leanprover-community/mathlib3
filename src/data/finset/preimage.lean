@@ -61,6 +61,10 @@ finset.coe_injective (by simp)
   preimage sᶜ f (hf.inj_on _) = (preimage s f (hf.inj_on _))ᶜ :=
 finset.coe_injective (by simp)
 
+@[simp] lemma preimage_map (f : α ↪ β) (s : finset α) :
+  (s.map f).preimage f (f.injective.inj_on _) = s :=
+coe_injective $ by simp only [coe_preimage, coe_map, set.preimage_image_eq _ f.injective]
+
 lemma monotone_preimage {f : α → β} (h : injective f) :
   monotone (λ s, preimage s f (h.inj_on _)) :=
 λ s t hst x hx, mem_preimage.2 (hst $ mem_preimage.1 hx)

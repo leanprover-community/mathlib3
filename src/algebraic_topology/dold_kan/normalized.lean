@@ -27,6 +27,8 @@ the Dold-Kan equivalence
 `category_theory.abelian.dold_kan.equivalence : simplicial_object A ≌ chain_complex A ℕ`
 with a functor (definitionally) equal to `normalized_Moore_complex A`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 open category_theory category_theory.category category_theory.limits

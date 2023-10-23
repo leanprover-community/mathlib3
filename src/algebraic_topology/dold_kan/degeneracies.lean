@@ -25,6 +25,8 @@ if `X : simplicial_object C` with `C` a preadditive category,
 `X.map θ.op ≫ P_infty.f n = 0`. It follows from the more precise
 statement vanishing statement `σ_comp_P_eq_zero` for the `P q`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 open category_theory category_theory.category category_theory.limits

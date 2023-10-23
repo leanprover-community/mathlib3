@@ -8,6 +8,9 @@ import data.set.finite
 
 /-!
 # IMO 2008 Q2
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 (a) Prove that
           ```
           x^2 / (x-1)^2 + y^2 / (y-1)^2 + z^2 / (z-1)^2 ≥ 1

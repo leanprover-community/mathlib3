@@ -9,6 +9,9 @@ import category_theory.idempotents.karoubi
 /-!
 # Idempotent completeness and functor categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define an instance `functor_category_is_idempotent_complete` expressing
 that a functor category `J ⥤ C` is idempotent complete when the target category `C` is.
 

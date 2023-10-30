@@ -8,6 +8,9 @@ import category_theory.bicategory.coherence
 /-!
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide a `coherence` tactic,
 which proves that any two 2-morphisms (with the same source and target)
 in a bicategory which are built out of associators and unitors

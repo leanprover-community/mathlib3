@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Cardinality of a finite set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines the cardinality of a `finset` and provides induction principles for finsets.
 
 ## Main declarations
@@ -39,6 +42,7 @@ variables {s t : finset α} {a b : α}
 def card (s : finset α) : ℕ := s.1.card
 
 lemma card_def (s : finset α) : s.card = s.1.card := rfl
+@[simp] lemma card_val (s : finset α) : s.1.card = s.card := rfl
 
 @[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
 
@@ -429,6 +433,13 @@ begin
   { rintro ⟨x, hx⟩,
     rw ←card_singleton x,
     exact card_le_of_subset hx }
+end
+
+lemma exists_mem_ne (hs : 1 < s.card) (a : α) : ∃ b ∈ s, b ≠ a :=
+begin
+  by_contra',
+  haveI : nonempty α := ⟨a⟩,
+  exact hs.not_le (card_le_one_iff_subset_singleton.2 ⟨a, subset_singleton_iff'.2 this⟩),
 end
 
 /-- A `finset` of a subsingleton type has cardinality at most one. -/

@@ -82,6 +82,15 @@ Note: if `set_like.coe` is a projection, implementers should create a simp lemma
 @[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
 ```
 to normalize terms.
+
+If you declare an unbundled subclass of `set_like`, for example:
+```
+class mul_mem_class (S : Type*) (M : Type*) [has_mul M] [set_like S M] where
+  ...
+```
+Then you should *not* repeat the `out_param` declaration, `set_like` will supply the value instead.
+This ensures in Lean 4 your subclass will not have issues with synthesis of the `[has_mul M]`
+parameter starting before the value of `M` is known.
 -/
 @[protect_proj]
 class set_like (A : Type*) (B : out_param $ Type*) :=

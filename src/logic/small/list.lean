@@ -9,6 +9,9 @@ import data.vector.basic
 /-!
 # Instances for `small (list α)` and `small (vector α)`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These must not be in `logic.small.basic` as this is very low in the import hierarchy,
 and is used by category theory files which do not need everything imported by `data.vector.basic`.
 -/

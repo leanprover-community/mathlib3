@@ -9,6 +9,9 @@ import topology.continuous_function.cocompact_map
 /-!
 # Continuous functions vanishing at infinity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The type of continuous functions vanishing at infinity. When the domain is compact
 `C(α, β) ≃ C₀(α, β)` via the identity map. When the codomain is a metric space, every continuous
 map which vanishes at infinity is a bounded continuous function. When the domain is a locally
@@ -24,7 +27,7 @@ universes u v w
 
 variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w} [topological_space α]
 
-open_locale bounded_continuous_function topological_space
+open_locale bounded_continuous_function topology
 open filter metric
 
 /-- `C₀(α, β)` is the type of continuous functions `α → β` which vanish at infinity from a
@@ -291,7 +294,7 @@ variables [uniform_space β] [uniform_space γ] [has_zero γ]
   [zero_at_infty_continuous_map_class F β γ]
 
 lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
-(map_continuous f).uniform_continuous_of_zero_at_infty (zero_at_infty f)
+(map_continuous f).uniform_continuous_of_tendsto_cocompact (zero_at_infty f)
 
 end uniform
 
@@ -411,7 +414,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
 lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
-{ norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }
+{ norm_smul_le := λ k f, (norm_smul_le k f.to_bcf : _) }
 
 end normed_space
 

@@ -11,6 +11,9 @@ import tactic.derive_fintype
 /-!
 # Modelling partial recursive functions using Turing machines
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a simplified basis for partial recursive functions, and a `turing.TM2` model
 Turing machine for evaluating these functions. This amounts to a constructive proof that every
 `partrec` function can be evaluated by a Turing machine.

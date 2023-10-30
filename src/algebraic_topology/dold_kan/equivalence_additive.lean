@@ -6,10 +6,15 @@ Authors: Joël Riou
 
 import algebraic_topology.dold_kan.n_comp_gamma
 
-/-! The Dold-Kan equivalence for additive categories.
+/-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+ The Dold-Kan equivalence for additive categories.
 
 This file defines `preadditive.dold_kan.equivalence` which is the equivalence
 of categories `karoubi (simplicial_object C) ≌ karoubi (chain_complex C ℕ)`.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

@@ -9,6 +9,9 @@ import measure_theory.function.lp_space
 /-!
 # Order related properties of Lp spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ### Results
 
 - `Lp E p μ` is an `ordered_add_comm_group` when `E` is a `normed_lattice_add_comm_group`.
@@ -94,7 +97,7 @@ instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
     refine snorm_mono_ae _,
     filter_upwards [hfg, Lp.coe_fn_abs f, Lp.coe_fn_abs g] with x hx hxf hxg,
     rw [hxf, hxg] at hx,
-    exact solid hx,
+    exact has_solid_norm.solid hx,
   end,
   ..Lp.lattice, ..Lp.normed_add_comm_group, }
 

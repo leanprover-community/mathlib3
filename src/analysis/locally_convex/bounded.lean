@@ -13,6 +13,9 @@ import topology.uniform_space.cauchy
 /-!
 # Von Neumann Boundedness
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines natural or von Neumann bounded sets and proves elementary properties.
 
 ## Main declarations
@@ -41,7 +44,7 @@ von Neumann-bounded sets.
 variables {𝕜 𝕜' E E' F ι : Type*}
 
 open set filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 namespace bornology
 
@@ -280,7 +283,7 @@ begin
     rcases h (metric.ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
     rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
     specialize hρball a ha.le,
-    rw [← ball_norm_seminorm 𝕜 E, seminorm.smul_ball_zero (hρ.trans ha),
+    rw [← ball_norm_seminorm 𝕜 E, seminorm.smul_ball_zero (norm_pos_iff.1 $ hρ.trans ha),
         ball_norm_seminorm, mul_one] at hρball,
     exact ⟨‖a‖, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }

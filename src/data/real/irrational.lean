@@ -11,6 +11,9 @@ import ring_theory.int.basic
 /-!
 # Irrational real numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a predicate `irrational` on `ℝ`, prove that the `n`-th root of an integer
 number is irrational if it is not integer, and that `sqrt q` is irrational if and only if
 `rat.sqrt q * rat.sqrt q ≠ q ∧ 0 ≤ q`.
@@ -351,7 +354,7 @@ theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
 | (n+1) := λ h, by { rw pow_succ at h, exact h.mul_cases.elim id (of_pow n) }
 
 theorem of_zpow : ∀ m : ℤ, irrational (x^m) → irrational x
-| (n:ℕ) := of_pow n
+| (n:ℕ) := λ h, by { rw zpow_coe_nat at h, exact h.of_pow _ }
 | -[1+n] := λ h, by { rw zpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational

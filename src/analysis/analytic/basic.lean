@@ -6,9 +6,13 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.formal_multilinear_series
 import analysis.specific_limits.normed
 import logic.equiv.fin
+import topology.algebra.infinite_sum.module
 
 /-!
 # Analytic functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A function is analytic in one dimension around `0` if it can be written as a converging power series
 `Σ pₙ zⁿ`. This definition can be extended to any dimension (even in infinite dimension) by
@@ -71,7 +75,7 @@ noncomputable theory
 
 variables {𝕜 E F G : Type*}
 
-open_locale topological_space classical big_operators nnreal filter ennreal
+open_locale topology classical big_operators nnreal filter ennreal
 open set filter asymptotics
 
 namespace formal_multilinear_series

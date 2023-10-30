@@ -8,6 +8,9 @@ import data.set.mul_antidiagonal
 
 /-! # Multiplication antidiagonal as a `finset`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct the `finset` of all pairs
 of an element in `s` and an element in `t` that multiply to `a`,
 given that `s` and `t` are well-ordered.-/

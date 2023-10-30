@@ -12,6 +12,9 @@ import data.set_like.basic
 /-!
 # Star monoids, rings, and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the basic algebraic notions of star monoids, star rings, and star modules.
 A star algebra is simply a star ring that is also a star module.
 
@@ -19,23 +22,12 @@ These are implemented as "mixin" typeclasses, so to summon a star ring (for exam
 one needs to write `(R : Type) [ring R] [star_ring R]`.
 This avoids difficulties with diamond inheritance.
 
-We also define the class `star_ordered_ring R`, which says that the order on `R` respects the
-star operation, i.e. an element `r` is nonnegative iff there exists an `s` such that
-`r = star s * s`.
-
 For now we simply do not introduce notations,
 as different users are expected to feel strongly about the relative merits of
 `r^*`, `r†`, `rᘁ`, and so on.
 
 Our star rings are actually star semirings, but of course we can prove
 `star_neg : star (-r) = - star r` when the underlying semiring is a ring.
-
-## TODO
-
-* In a Banach star algebra without a well-defined square root, the natural ordering is given by the
-positive cone which is the closure of the sums of elements `star r * r`. A weaker version of
-`star_ordered_ring` could be defined for this case. Note that the current definition has the
-advantage of not requiring a topology.
 -/
 
 assert_not_exists finset
@@ -91,6 +83,9 @@ star_involutive _
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
 star_involutive.injective
 
+@[simp] lemma star_inj [has_involutive_star R] {x y : R} : star x = star y ↔ x = y :=
+star_injective.eq_iff
+
 /-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
 star_involutive.to_perm _
@@ -122,6 +117,29 @@ class star_semigroup (R : Type u) [semigroup R] extends has_involutive_star R :=
 
 export star_semigroup (star_mul)
 attribute [simp] star_mul
+
+section star_semigroup
+variables [semigroup R] [star_semigroup R]
+
+lemma star_star_mul (x y : R) : star (star x * y) = star y * x := by rw [star_mul, star_star]
+
+lemma star_mul_star (x y : R) : star (x * star y) = y * star x := by rw [star_mul, star_star]
+
+@[simp] lemma semiconj_by_star_star_star {x y z : R} :
+  semiconj_by (star x) (star z) (star y) ↔ semiconj_by x y z :=
+by simp_rw [semiconj_by, ←star_mul, star_inj, eq_comm]
+
+alias semiconj_by_star_star_star ↔ _ semiconj_by.star_star_star
+
+@[simp] lemma commute_star_star {x y : R} : commute (star x) (star y) ↔ commute x y :=
+semiconj_by_star_star_star
+
+alias commute_star_star ↔ _ commute.star_star
+
+lemma commute_star_comm {x y : R} : commute (star x) y ↔ commute x (star y) :=
+by rw [←commute_star_star, star_star]
+
+end star_semigroup
 
 /-- In a commutative ring, make `simp` prefer leaving the order unchanged. -/
 @[simp] lemma star_mul' [comm_semigroup R] [star_semigroup R] (x y : R) :
@@ -307,15 +325,15 @@ lemma ring_hom.star_apply {S : Type*} [non_assoc_semiring S] [comm_semiring R] [
 alias star_ring_end_self_apply ← complex.conj_conj
 alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
-@[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
+@[simp] lemma star_inv' [division_semiring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $ (map_inv₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x).trans (op_inv (star x)).symm
 
-@[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
+@[simp] lemma star_zpow₀ [division_semiring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $ (map_zpow₀ (star_ring_equiv : R ≃+* Rᵐᵒᵖ) x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
+@[simp] lemma star_div' [semifield R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
 map_div₀ (star_ring_end R) _ _
 
 @[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :
@@ -335,62 +353,6 @@ def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
   star_add := λ x y, rfl,
   ..star_semigroup_of_comm }
-
-/--
-An ordered `*`-ring is a ring which is both an `ordered_add_comm_group` and a `*`-ring,
-and `0 ≤ r ↔ ∃ s, r = star s * s`.
--/
-class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
-  extends star_ring R :=
-(add_le_add_left       : ∀ a b : R, a ≤ b → ∀ c : R, c + a ≤ c + b)
-(nonneg_iff            : ∀ r : R, 0 ≤ r ↔ ∃ s, r = star s * s)
-
-namespace star_ordered_ring
-
-@[priority 100] -- see note [lower instance priority]
-instance [non_unital_ring R] [partial_order R] [star_ordered_ring R] : ordered_add_comm_group R :=
-{ ..show non_unital_ring R, by apply_instance,
-  ..show partial_order R, by apply_instance,
-  ..show star_ordered_ring R, by apply_instance }
-
-end star_ordered_ring
-
-section non_unital_semiring
-
-variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
-
-lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
-(star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
-
-lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
-by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
-
-lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
-begin
-  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
-  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
-end
-
-lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
-by simpa only [star_star] using conjugate_nonneg ha (star c)
-
-end non_unital_semiring
-
-section non_unital_ring
-
-variables [non_unital_ring R] [partial_order R] [star_ordered_ring R]
-
-lemma conjugate_le_conjugate {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
-begin
-  rw ←sub_nonneg at hab ⊢,
-  convert conjugate_nonneg hab c,
-  simp only [mul_sub, sub_mul],
-end
-
-lemma conjugate_le_conjugate' {a b : R} (hab : a ≤ b) (c : R) : c * a * star c ≤ c * b * star c :=
-by simpa only [star_star] using conjugate_le_conjugate hab (star c)
-
-end non_unital_ring
 
 /--
 A star module `A` over a star ring `R` is a module which is a star add monoid,

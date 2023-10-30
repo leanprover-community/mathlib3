@@ -9,6 +9,9 @@ import topology.uniform_space.equicontinuity
 /-!
 # Equicontinuity in metric spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files contains various facts about (uniform) equicontinuity in metric spaces. Most
 importantly, we prove the usual characterization of equicontinuity of `F` at `x₀` in the case of
 (pseudo) metric spaces: `∀ ε > 0, ∃ δ > 0, ∀ x, dist x x₀ < δ → ∀ i, dist (F i x₀) (F i x) < ε`,
@@ -32,7 +35,7 @@ equicontinuity, continuity modulus
 -/
 
 open filter
-open_locale topological_space uniformity
+open_locale topology uniformity
 
 variables {α β ι : Type*} [pseudo_metric_space α]
 

@@ -11,6 +11,9 @@ import algebra.lie.basic
 /-!
 # Direct sums of Lie algebras and Lie modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Direct sums of Lie algebras and Lie modules carry natural algebra and module structures.
 
 ## Tags

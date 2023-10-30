@@ -9,6 +9,9 @@ import linear_algebra.prod
 /-!
 # Partially defined linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `linear_pmap R E F` or `E →ₗ.[R] F` is a linear map from a submodule of `E` to `F`.
 We define a `semilattice_inf` with `order_bot` instance on this this, and define three operations:
 
@@ -466,6 +469,8 @@ def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : E →ₗ.[R] F :=
 
 @[simp] lemma to_pmap_apply (f : E →ₗ[R] F) (p : submodule R E) (x : p) :
   f.to_pmap p x = f x := rfl
+
+@[simp] lemma to_pmap_domain (f : E →ₗ[R] F) (p : submodule R E) : (f.to_pmap p).domain = p := rfl
 
 /-- Compose a linear map with a `linear_pmap` -/
 def comp_pmap (g : F →ₗ[R] G) (f : E →ₗ.[R] F) : E →ₗ.[R] G :=

@@ -9,6 +9,9 @@ import algebra.lie.ideal_operations
 /-!
 # Trivial Lie modules and Abelian Lie algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The action of a Lie algebra `L` on a module `M` is trivial if `⁅x, m⁆ = 0` for all `x ∈ L` and
 `m ∈ M`. In the special case that `M = L` with the adjoint action, triviality corresponds to the
 concept of an Abelian Lie algebra.

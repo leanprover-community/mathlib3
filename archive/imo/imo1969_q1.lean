@@ -11,11 +11,16 @@ import data.set.finite
 /-!
 # IMO 1969 Q1
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Prove that there are infinitely many natural numbers $a$ with the following property:
 the number $z = n^4 + a$ is not prime for any natural number $n$.
 -/
 
 open int nat
+
+namespace imo1969_q1
 
 /-- `good_nats` is the set of natural numbers satisfying the condition in the problem
 statement, namely the `a : ℕ` such that `n^4 + a` is not prime for any `n : ℕ`. -/
@@ -66,6 +71,10 @@ polynomial_not_prime (show 1 < 2+b, by linarith)
 in the `strict_mono` namespace. -/
 lemma a_choice_strict_mono : strict_mono a_choice :=
 ((strict_mono_id.const_add 2).nat_pow (dec_trivial : 0 < 4)).const_mul (dec_trivial : 0 < 4)
+
+end imo1969_q1
+
+open imo1969_q1
 
 /-- We conclude by using the fact that `a_choice` is an injective function from the natural numbers
 to the set `good_nats`. -/

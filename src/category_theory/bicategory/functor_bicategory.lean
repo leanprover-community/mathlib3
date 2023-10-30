@@ -8,6 +8,9 @@ import category_theory.bicategory.natural_transformation
 /-!
 # The bicategory of oplax functors between two bicategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given bicategories `B` and `C`, we give a bicategory structure on `oplax_functor B C` whose
 * objects are oplax functors,
 * 1-morphisms are oplax natural transformations, and

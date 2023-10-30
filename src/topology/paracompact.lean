@@ -10,6 +10,9 @@ import data.option.basic
 /-!
 # Paracompact topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space `X` is said to be paracompact if every open covering of `X` admits a locally
 finite refinement.
 
@@ -46,7 +49,7 @@ compact space, paracompact space, locally finite covering
 -/
 
 open set filter function
-open_locale filter topological_space
+open_locale filter topology
 
 universes u v
 

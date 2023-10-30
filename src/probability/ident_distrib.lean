@@ -9,6 +9,9 @@ import measure_theory.function.uniform_integrable
 /-!
 # Identically distributed random variables
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Two random variables defined on two (possibly different) probability spaces but taking value in
 the same space are *identically distributed* if their distributions (i.e., the image probability
 measures on the target space) coincide. We define this concept and establish its basic properties
@@ -52,7 +55,7 @@ open measure_theory filter finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory ennreal nnreal
+open_locale topology big_operators measure_theory ennreal nnreal
 
 variables {α β γ δ : Type*} [measurable_space α] [measurable_space β]
   [measurable_space γ] [measurable_space δ]

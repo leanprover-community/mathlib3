@@ -83,7 +83,7 @@ equiv.plift.symm.pprod_prod equiv.plift.symm
 
 /-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. This is
 `prod.map` as an equivalence. -/
-@[congr, simps apply]
+@[congr, simps apply { fully_applied := ff }]
 def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨prod.map e₁ e₂, prod.map e₁.symm e₂.symm, λ ⟨a, b⟩, by simp, λ ⟨a, b⟩, by simp⟩
 
@@ -104,6 +104,17 @@ def prod_comm (α β : Type*) : α × β ≃ β × α :=
 /-- Type product is associative up to an equivalence. -/
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
 ⟨λ p, (p.1.1, p.1.2, p.2), λ p, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[simps apply]
+def prod_prod_prod_comm (α β γ δ : Type*) : (α × β) × (γ × δ) ≃ (α × γ) × (β × δ) :=
+{ to_fun := λ abcd, ((abcd.1.1, abcd.2.1), (abcd.1.2, abcd.2.2)),
+  inv_fun := λ acbd, ((acbd.1.1, acbd.2.1), (acbd.1.2, acbd.2.2)),
+  left_inv := λ ⟨⟨a, b⟩, ⟨c, d⟩⟩, rfl,
+  right_inv := λ ⟨⟨a, c⟩, ⟨b, d⟩⟩, rfl, }
+
+@[simp] lemma prod_prod_prod_comm_symm (α β γ δ : Type*) :
+  (prod_prod_prod_comm α β γ δ).symm = prod_prod_prod_comm α γ β δ := rfl
 
 /-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :
@@ -811,20 +822,20 @@ def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
 e.symm.subtype_equiv_of_subtype.symm
 
 /-- If two predicates are equal, then the corresponding subtypes are equivalent. -/
-def subtype_equiv_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
+def subtype_equiv_prop {α : Sort*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
 subtype_equiv (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
 version allows the “inner” predicate to depend on `h : p a`. -/
 @[simps]
-def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
+def subtype_subtype_equiv_subtype_exists {α : Sort u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
 ⟨λ a, ⟨a, a.1.2, by { rcases a with ⟨⟨a, hap⟩, haq⟩, exact haq }⟩,
   λ a, ⟨⟨a, a.2.fst⟩, a.2.snd⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
-@[simps] def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
+@[simps] def subtype_subtype_equiv_subtype_inter {α : Sort u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
@@ -1249,7 +1260,7 @@ end function.involutive
 lemma plift.eq_up_iff_down_eq {x : plift α} {y : α} : x = plift.up y ↔ x.down = y :=
 equiv.plift.eq_symm_apply
 
-lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+lemma function.injective.map_swap {α β : Sort*} [decidable_eq α] [decidable_eq β]
   {f : α → β} (hf : function.injective f) (x y z : α) :
   f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=
 begin

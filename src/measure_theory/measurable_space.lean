@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.prod.tprod
 import group_theory.coset
 import logic.equiv.fin
+import logic.lemmas
 import measure_theory.measurable_space_def
 import order.filter.small_sets
 import order.liminf_limsup
@@ -14,6 +15,9 @@ import measure_theory.tactic
 
 /-!
 # Measurable spaces and measurable functions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides properties of measurable spaces and the functions and isomorphisms
 between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
@@ -133,6 +137,12 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
+@[simp] lemma map_const {m} (b : β) : measurable_space.map (λ a : α, b) m = ⊤ :=
+eq_top_iff.2 $ by { rintro s hs, by_cases b ∈ s; change measurable_set (preimage _ _); simp [*] }
+
+@[simp] lemma comap_const {m} (b : β) : measurable_space.comap (λ a : α, b) m = ⊥ :=
+eq_bot_iff.2 $ by { rintro _ ⟨s, -, rfl⟩, by_cases b ∈ s; simp [*] }
+
 lemma comap_generate_from {f : α → β} {s : set (set β)} :
   (generate_from s).comap f = generate_from (preimage f '' s) :=
 le_antisymm
@@ -188,7 +198,7 @@ lemma measurable_of_subsingleton_codomain [subsingleton β] (f : α → β) :
   measurable f :=
 λ s hs, subsingleton.set_cases measurable_set.empty measurable_set.univ s
 
-@[to_additive]
+@[measurability, to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
 lemma measurable_of_empty [is_empty α] (f : α → β) : measurable f :=
@@ -205,6 +215,12 @@ begin
   { exact measurable_of_empty f },
   { convert measurable_const, exact funext (λ x, hf x h.some) }
 end
+
+@[measurability] lemma measurable_nat_cast [has_nat_cast α] (n : ℕ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
+
+@[measurability] lemma measurable_int_cast [has_int_cast α] (n : ℤ) : measurable (n : β → α) :=
+@measurable_const α _ _ _ n
 
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
@@ -282,6 +298,7 @@ section constructions
 instance : measurable_space empty := ⊤
 instance : measurable_space punit := ⊤ -- this also works for `unit`
 instance : measurable_space bool := ⊤
+instance Prop.measurable_space : measurable_space Prop := ⊤
 instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
@@ -289,6 +306,7 @@ instance : measurable_space ℚ := ⊤
 instance : measurable_singleton_class empty := ⟨λ _, trivial⟩
 instance : measurable_singleton_class punit := ⟨λ _, trivial⟩
 instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
+instance Prop.measurable_singleton_class : measurable_singleton_class Prop := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
 instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
@@ -306,6 +324,10 @@ begin
   { simp only [preimage_singleton_eq_empty.2 hyf, measurable_set.empty] }
 end
 
+lemma measurable_to_countable' [measurable_space α] [countable α] [measurable_space β] {f : β → α}
+  (h : ∀ x, measurable_set (f ⁻¹' {x})) : measurable f :=
+measurable_to_countable (λ y, h (f y))
+
 @[measurability] lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
 measurable_from_top
 
@@ -317,6 +339,24 @@ measurable_from_top
 
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
 measurable_to_countable
+
+lemma measurable_to_bool {f : α → bool} (h : measurable_set (f⁻¹' {tt})) : measurable f :=
+begin
+  apply measurable_to_countable',
+  rintros (-|-),
+  { convert h.compl,
+    rw [← preimage_compl, bool.compl_singleton, bool.bnot_tt] },
+  exact h,
+end
+
+lemma measurable_to_prop {f : α → Prop} (h : measurable_set (f⁻¹' {true})) : measurable f :=
+begin
+  refine measurable_to_countable' (λ x, _),
+  by_cases hx : x,
+  { simpa [hx] using h },
+  { simpa only [hx, ←preimage_compl, Prop.compl_singleton, not_true, preimage_singleton_false]
+      using h.compl }
+end
 
 lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
@@ -838,7 +878,37 @@ end sum
 instance {α} {β : α → Type*} [m : Πa, measurable_space (β a)] : measurable_space (sigma β) :=
 ⨅a, (m a).map (sigma.mk a)
 
+section prop
+variables {p : α → Prop}
+
+variables [measurable_space α]
+
+@[simp] lemma measurable_set_set_of : measurable_set {a | p a} ↔ measurable p :=
+⟨λ h, measurable_to_prop $ by simpa only [preimage_singleton_true], λ h,
+  by simpa using h (measurable_set_singleton true)⟩
+
+@[simp] lemma measurable_mem : measurable (∈ s) ↔ measurable_set s := measurable_set_set_of.symm
+
+alias measurable_set_set_of ↔ _ measurable.set_of
+alias measurable_mem ↔ _ measurable_set.mem
+
+end prop
 end constructions
+
+namespace measurable_space
+
+/-- The sigma-algebra generated by a single set `s` is `{∅, s, sᶜ, univ}`. -/
+@[simp] lemma generate_from_singleton (s : set α) :
+  generate_from {s} = measurable_space.comap (∈ s) ⊤ :=
+begin
+  classical,
+  letI : measurable_space α := generate_from {s},
+  refine le_antisymm (generate_from_le $ λ t ht, ⟨{true}, trivial, by simp [ht.symm]⟩) _,
+  rintro _ ⟨u, -, rfl⟩,
+  exact (show measurable_set s, from generate_measurable.basic _ $ mem_singleton s).mem trivial,
+end
+
+end measurable_space
 
 /-- A map `f : α → β` is called a *measurable embedding* if it is injective, measurable, and sends
 measurable sets to measurable sets. The latter assumption can be replaced with “`f` has measurable
@@ -1029,6 +1099,9 @@ e.to_equiv.image_eq_preimage s
 @[simp] theorem measurable_set_image (e : α ≃ᵐ β) {s : set α} :
   measurable_set (e '' s) ↔ measurable_set s :=
 by rw [image_eq_preimage, measurable_set_preimage]
+
+@[simp] lemma map_eq (e : α ≃ᵐ β) : measurable_space.map e ‹_› = ‹_› :=
+e.measurable.le_map.antisymm' $ λ s, e.measurable_set_preimage.1
 
 /-- A measurable equivalence is a measurable embedding. -/
 protected lemma measurable_embedding (e : α ≃ᵐ β) : measurable_embedding e :=
@@ -1255,11 +1328,40 @@ def sum_compl {s : set α} [decidable_pred s] (hs : measurable_set s) : s ⊕ (s
   measurable_to_fun := by {apply measurable.sum_elim; exact measurable_subtype_coe},
   measurable_inv_fun :=  measurable.dite measurable_inl measurable_inr hs }
 
+/-- Convert a measurable involutive function `f` to a measurable permutation with
+`to_fun = inv_fun = f`. See also `function.involutive.to_perm`. -/
+@[simps to_equiv] def of_involutive (f : α → α) (hf : involutive f) (hf' : measurable f) : α ≃ᵐ α :=
+{ measurable_to_fun := hf',
+  measurable_inv_fun := hf',
+  ..hf.to_perm _ }
+
+@[simp] lemma of_involutive_apply (f : α → α) (hf : involutive f) (hf' : measurable f) (a : α) :
+  of_involutive f hf hf' a = f a := rfl
+
+@[simp] lemma of_involutive_symm (f : α → α) (hf : involutive f) (hf' : measurable f) :
+  (of_involutive f hf hf').symm = of_involutive f hf hf' := rfl
+
 end measurable_equiv
 
 namespace measurable_embedding
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → α}
+
+@[simp] lemma comap_eq (hf : measurable_embedding f) : measurable_space.comap f ‹_› = ‹_› :=
+hf.measurable.comap_le.antisymm $ λ s h,
+  ⟨_, hf.measurable_set_image' h, hf.injective.preimage_image _⟩
+
+lemma iff_comap_eq :
+  measurable_embedding f ↔
+    injective f ∧ measurable_space.comap f ‹_› = ‹_› ∧ measurable_set (range f) :=
+⟨λ hf, ⟨hf.injective, hf.comap_eq, hf.measurable_set_range⟩, λ hf,
+  { injective := hf.1,
+    measurable := by { rw ←hf.2.1, exact comap_measurable f },
+    measurable_set_image' := begin
+      rw ←hf.2.1,
+      rintro _ ⟨s, hs, rfl⟩,
+      simpa only [image_preimage_eq_inter_range] using hs.inter hf.2.2,
+    end }⟩
 
 /-- A set is equivalent to its image under a function `f` as measurable spaces,
   if `f` is a measurable embedding -/
@@ -1354,6 +1456,70 @@ begin
 end
 
 end measurable_embedding
+
+lemma measurable_space.comap_compl {m' : measurable_space β} [boolean_algebra β]
+  (h : measurable (compl : β → β)) (f : α → β) :
+  measurable_space.comap (λ a, (f a)ᶜ) infer_instance = measurable_space.comap f infer_instance :=
+begin
+  rw ←measurable_space.comap_comp,
+  congr',
+  exact (measurable_equiv.of_involutive _ compl_involutive h).measurable_embedding.comap_eq,
+end
+
+@[simp] lemma measurable_space.comap_not (p : α → Prop) :
+  measurable_space.comap (λ a, ¬ p a) infer_instance = measurable_space.comap p infer_instance :=
+measurable_space.comap_compl (λ _ _, trivial) _
+
+section countably_generated
+
+namespace measurable_space
+
+variable (α)
+
+/-- We say a measurable space is countably generated
+if can be generated by a countable set of sets.-/
+class countably_generated [m : measurable_space α] : Prop :=
+  (is_countably_generated : ∃ b : set (set α), b.countable ∧ m = generate_from b)
+
+open_locale classical
+
+/-- If a measurable space is countably generated, it admits a measurable injection
+into the Cantor space `ℕ → bool` (equipped with the product sigma algebra). -/
+theorem measurable_injection_nat_bool_of_countably_generated
+[measurable_space α] [h : countably_generated α] [measurable_singleton_class α] :
+∃ f : α → (ℕ → bool), measurable f ∧ function.injective f :=
+begin
+  obtain ⟨b, bct, hb⟩ := h.is_countably_generated,
+  obtain ⟨e, he⟩ := set.countable.exists_eq_range (bct.insert ∅) (insert_nonempty _ _),
+  rw [← generate_from_insert_empty, he] at hb,
+  refine ⟨λ x n, to_bool (x ∈ e n), _, _⟩,
+  { rw measurable_pi_iff,
+    intro n,
+    apply measurable_to_bool,
+    simp only [preimage, mem_singleton_iff, to_bool_iff, set_of_mem_eq],
+    rw hb,
+    apply measurable_set_generate_from,
+    use n, },
+  intros x y hxy,
+  have : ∀ s : set α, measurable_set s → (x ∈ s ↔ y ∈ s) := λ s, by
+  { rw hb,
+    apply generate_from_induction,
+    { rintros - ⟨n, rfl⟩,
+      rw ← bool.to_bool_eq,
+      rw funext_iff at hxy,
+      exact hxy n },
+    { tauto },
+    { intro t,
+      tauto },
+    intros t ht,
+    simp_rw [mem_Union, ht], },
+  specialize this {y} measurable_set_eq,
+  simpa only [mem_singleton, iff_true],
+end
+
+end measurable_space
+
+end countably_generated
 
 namespace filter
 

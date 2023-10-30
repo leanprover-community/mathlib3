@@ -278,7 +278,9 @@ h.eq_div_iff.2
 @[to_additive] protected lemma div_eq_one_iff_eq (h : is_unit b) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ hab, hab.symm ▸ h.div_self⟩
 
-@[to_additive] protected lemma div_mul_left (h : is_unit b) : b / (a * b) = 1 / a :=
+/-- The `group` version of this lemma is `div_mul_cancel'''` -/ 
+@[to_additive "The `add_group` version of this lemma is `sub_add_cancel''`"]
+protected lemma div_mul_left (h : is_unit b) : b / (a * b) = 1 / a :=
 by rw [div_eq_mul_inv, mul_inv_rev, h.mul_inv_cancel_left, one_div]
 
 @[to_additive] protected lemma mul_div_mul_right (h : is_unit c) (a b : α) :
@@ -317,6 +319,10 @@ by rw [←(hb.mul hd).mul_left_inj, ←mul_assoc, hb.div_mul_cancel, ←mul_asso
 
 @[to_additive] protected lemma div_div_cancel (h : is_unit a) : a / (a / b) = b :=
 by rw [div_div_eq_mul_div, h.mul_div_cancel_left]
+
+@[to_additive] protected lemma div_div_cancel_left (h : is_unit a) :
+  a / b / a = b⁻¹ :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_right_comm, h.mul_inv_cancel, one_mul]
 
 end division_comm_monoid
 end is_unit

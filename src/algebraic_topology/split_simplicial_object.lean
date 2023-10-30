@@ -11,6 +11,9 @@ import category_theory.limits.shapes.finite_products
 
 # Split simplicial objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we introduce the notion of split simplicial object.
 If `C` is a category that has finite coproducts, a splitting
 `s : splitting X` of a simplical object `X` in `C` consists

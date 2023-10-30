@@ -13,6 +13,9 @@ import tactic.interval_cases
 /-!
 # Prime factorizations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
  `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`.  For example, since 2000 = 2^4 * 5^3,
   * `factorization 2000 2` is 4
@@ -307,7 +310,7 @@ begin
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
-  simp [list.eq_of_mem_repeat hq],
+  simp [list.eq_of_mem_replicate hq],
 end
 
 lemma ord_compl_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=

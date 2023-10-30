@@ -10,6 +10,9 @@ import category_theory.functor.const
 /-!
 # Monoidal structure on `C ⥤ D` when `D` is monoidal.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `C` is any category, and `D` is a monoidal category,
 there is a natural "pointwise" monoidal structure on `C ⥤ D`.
 

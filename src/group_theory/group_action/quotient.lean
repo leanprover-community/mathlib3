@@ -13,6 +13,9 @@ import group_theory.coset
 /-!
 # Properties of group actions involving quotient groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties of group actions which use the quotient group construction, notably
 * the orbit-stabilizer theorem `card_orbit_mul_card_stabilizer_eq_card_group`
 * the class formula `card_eq_sum_card_group_div_card_stabilizer'`
@@ -287,7 +290,7 @@ open quotient_group
 
 /-- Cosets of the centralizer of an element embed into the set of commutators. -/
 noncomputable def quotient_centralizer_embedding (g : G) :
-  G ⧸ centralizer (zpowers (g : G)) ↪ commutator_set G :=
+  G ⧸ centralizer (zpowers (g : G) : set G) ↪ commutator_set G :=
 ((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans (quotient_equiv_of_eq
   (conj_act.stabilizer_eq_centralizer g))).symm.to_embedding.trans ⟨λ x, ⟨x * g⁻¹,
   let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩, λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩

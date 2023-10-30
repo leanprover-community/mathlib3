@@ -10,6 +10,9 @@ import algebraic_topology.dold_kan.split_simplicial_object
 
 # Construction of the inverse functor of the Dold-Kan equivalence
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 In this file, we construct the functor `Γ₀ : chain_complex C ℕ ⥤ simplicial_object C`
 which shall be the inverse functor of the Dold-Kan equivalence in the case of abelian categories,
@@ -23,6 +26,8 @@ By construction, `Γ₀.obj K` is a split simplicial object whose splitting is `
 
 We also construct `Γ₂ : karoubi (chain_complex C ℕ) ⥤ karoubi (simplicial_object C)`
 which shall be an equivalence for any additive category `C`.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

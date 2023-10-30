@@ -3,12 +3,15 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.morphisms.ring_hom_properties
 import topology.local_at_target
+import algebraic_geometry.morphisms.basic
 
 /-!
 
 # Open immersions
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A morphism is an open immersions if the underlying map of spaces is an open embedding
 `f : X ⟶ U ⊆ Y`, and the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.

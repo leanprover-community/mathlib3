@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.roots
 import tactic.by_contra
 import topology.algebra.polynomial
 import number_theory.padics.padic_val
@@ -12,6 +12,9 @@ import analysis.complex.arg
 
 /-!
 # Evaluating cyclotomic polynomials
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 This file states some results about evaluating cyclotomic polynomials in various different ways.
 ## Main definitions
 * `polynomial.eval(₂)_one_cyclotomic_prime(_pow)`: `eval 1 (cyclotomic p^k R) = p`.
@@ -71,10 +74,8 @@ begin
   dsimp at ih,
   have := prod_cyclotomic_eq_geom_sum hn' R,
   apply_fun eval x at this,
-  rw [divisors_eq_proper_divisors_insert_self_of_pos hn', finset.erase_insert_of_ne hn''.ne',
-      finset.prod_insert, eval_mul, eval_geom_sum] at this,
-  swap,
-  { simp only [proper_divisors.not_self_mem, mem_erase, and_false, not_false_iff] },
+  rw [← cons_self_proper_divisors hn'.ne', finset.erase_cons_of_ne _ hn''.ne',
+      finset.prod_cons, eval_mul, eval_geom_sum] at this,
   rcases lt_trichotomy 0 (∑ i in finset.range n, x ^ i) with h | h | h,
   { apply pos_of_mul_pos_left,
     { rwa this },
@@ -255,7 +256,7 @@ begin
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
-      simp [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
+        simp [abs_of_pos hq, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', neg_ne_zero.mpr $ hζ.ne_zero hn.ne', _⟩,

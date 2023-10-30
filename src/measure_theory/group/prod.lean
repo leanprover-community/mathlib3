@@ -3,11 +3,14 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import measure_theory.constructions.prod
+import measure_theory.constructions.prod.basic
 import measure_theory.group.measure
 
 /-!
 # Measure theory in the product of groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 In this file we show properties about measure theory in products of measurable groups
 and properties of iterated integrals in measurable groups.
 

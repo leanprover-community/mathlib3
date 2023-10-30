@@ -10,6 +10,9 @@ import analysis.normed_space.completion
 /-!
 # Liouville's theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove Liouville's theorem: if `f : E → F` is complex differentiable on the whole
 space and its range is bounded, then the function is a constant. Various versions of this theorem
 are formalized in `differentiable.apply_eq_apply_of_bounded`,
@@ -21,7 +24,7 @@ The proof is based on the Cauchy integral formula for the derivative of an analy
 -/
 
 open topological_space metric set filter asymptotics function measure_theory
-open_locale topological_space filter nnreal real
+open_locale topology filter nnreal real
 
 universes u v
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E]

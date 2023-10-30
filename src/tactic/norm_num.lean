@@ -1078,12 +1078,17 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
-| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
+| `(@has_pow.pow %%α %%β %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← mk_instance_cache α,
-  match m with
-  | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
-  | `(@div_inv_monoid.has_pow %%_ %%_) := do
+  match β with
+  | `(ℕ) := do
+    (c, m') ← c.mk_app ``monoid.has_pow [],
+    is_def_eq m m',
+    prod.snd <$> prove_pow e₁ n₁ c e₂
+  | `(ℤ) := do
+    (c, m') ← c.mk_app ``div_inv_monoid.has_pow [],
+    is_def_eq m m',
     zc ← mk_instance_cache `(ℤ),
     nc ← mk_instance_cache `(ℕ),
     (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
@@ -1355,9 +1360,12 @@ use `get_step` to get the default `norm_num` set and `derive.step` for the basic
 simplifications. -/
 meta def tactic.norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
-repeat1 $ orelse' (tactic.norm_num1 step l) $
-interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
-  ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
+do
+  -- Build and discard the simp lemma set, to validate it.
+  mk_simp_set_core ff [] (simp_arg_type.except ``one_div :: hs) tt,
+  repeat1 $ orelse' (tactic.norm_num1 step l) $
+  interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+    ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
 /-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
 Given an expression `e`, returns `(e', ⊢ e = e')`.

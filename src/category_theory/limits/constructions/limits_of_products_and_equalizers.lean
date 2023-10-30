@@ -17,6 +17,9 @@ import category_theory.limits.constructions.binary_products
 /-!
 # Constructing limits from products and equalizers.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 If a category has all products, and all equalizers, then it has all limits.
 Similarly, if it has all finite products, and all equalizers, then it has all finite limits.
 

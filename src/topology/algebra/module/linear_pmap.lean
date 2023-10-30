@@ -10,6 +10,9 @@ import topology.algebra.module.basic
 /-!
 # Partially defined linear operators over topological vector spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define basic notions of partially defined linear operators, which we call unbounded operators
 for short.
 In this file we prove all elementary properties of unbounded operators that do not assume that the
@@ -42,7 +45,7 @@ Unbounded operators, closed operators
 -/
 
 
-open_locale topological_space
+open_locale topology
 
 variables {R E F : Type*}
 

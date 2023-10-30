@@ -3,10 +3,13 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.calculus.deriv
+import analysis.calculus.deriv.inv
 
 /-!
 # Functions differentiable on a domain and continuous on its closure
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Many theorems in complex analysis assume that a function is complex differentiable on a domain and
 is continuous on its closure. In this file we define a predicate `diff_cont_on_cl` that expresses
@@ -14,7 +17,7 @@ this property and prove basic facts about this predicate.
 -/
 
 open set filter metric
-open_locale topological_space
+open_locale topology
 
 variables (𝕜 : Type*) {E F G : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
   [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_add_comm_group G]

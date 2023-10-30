@@ -10,6 +10,9 @@ import measure_theory.function.conditional_expectation.basic
 
 # Conditional expectation of indicator functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves some results about the conditional expectation of an indicator function and
 as a corollary, also proves several results about the behaviour of the conditional expectation on
 a restricted measure.
@@ -24,7 +27,7 @@ a restricted measure.
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 

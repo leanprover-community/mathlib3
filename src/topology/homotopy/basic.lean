@@ -12,6 +12,9 @@ import topology.unit_interval
 /-!
 # Homotopy between functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define
 `continuous_map.homotopy` between the two functions, with no restrictions on the intermediate
 maps. Then, as in the formalisation in HOL-Analysis, we define

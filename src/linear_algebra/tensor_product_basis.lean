@@ -9,6 +9,9 @@ import linear_algebra.finsupp_vector_space
 /-!
 # Bases and dimensionality of tensor products of modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These can not go into `linear_algebra.tensor_product` since they depend on
 `linear_algebra.finsupp_vector_space` which in turn imports `linear_algebra.tensor_product`.
 
@@ -35,6 +38,12 @@ by simp [basis.tensor_product]
 
 lemma basis.tensor_product_apply' (b : basis ι R M) (c : basis κ R N) (i : ι × κ) :
   basis.tensor_product b c i = b i.1 ⊗ₜ c i.2 :=
+by simp [basis.tensor_product]
+
+@[simp]
+lemma basis.tensor_product_repr_tmul_apply (b : basis ι R M) (c : basis κ R N)
+  (m : M) (n : N) (i : ι) (j : κ) :
+  (basis.tensor_product b c).repr (m ⊗ₜ n) (i, j) = b.repr m i * c.repr n j :=
 by simp [basis.tensor_product]
 
 end comm_ring

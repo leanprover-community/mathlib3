@@ -9,6 +9,9 @@ import analysis.special_functions.trigonometric.complex_deriv
 /-!
 # Derivatives of the `tan` and `arctan` functions.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Continuity and derivatives of the tangent and arctangent functions.
 -/
 
@@ -17,7 +20,7 @@ noncomputable theory
 namespace real
 
 open set filter
-open_locale topological_space real
+open_locale topology real
 
 lemma has_strict_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
   has_strict_deriv_at tan (1 / (cos x)^2) x :=

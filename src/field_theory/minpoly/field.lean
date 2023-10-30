@@ -10,6 +10,9 @@ import ring_theory.algebraic
 /-!
 # Minimal polynomials on an algebra over a field
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file specializes the theory of minpoly to the setting of field extensions
 and derives some well-known properties, amongst which the fact that minimal polynomials
 are irreducible, and uniquely determined by their defining property.
@@ -83,6 +86,16 @@ lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field 
   [algebra A K] [algebra A R] [algebra K R] [is_scalar_tower A K R] (x : R) :
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
 by { refine minpoly.dvd K x _, rw [aeval_map_algebra_map, minpoly.aeval] }
+
+lemma dvd_map_of_is_scalar_tower' (R : Type*) {S : Type*} (K L : Type*) [comm_ring R]
+  [comm_ring S] [field K] [comm_ring L] [algebra R S] [algebra R K] [algebra S L] [algebra K L]
+  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L] (s : S):
+  minpoly K (algebra_map S L s) ∣ (map (algebra_map R K) (minpoly R s)) :=
+begin
+  apply minpoly.dvd K (algebra_map S L s),
+  rw [← map_aeval_eq_aeval_map, minpoly.aeval, map_zero],
+  rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq]
+end
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
 lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]

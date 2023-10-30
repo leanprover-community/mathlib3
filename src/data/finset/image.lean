@@ -10,6 +10,9 @@ import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Thie file provides the finite analog of `set.image`, along with some other similar functions.
 
 Note there are two ways to take the image over a finset; via `finset.image` which applies the
@@ -123,6 +126,22 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
+
+lemma map_filter' (p : α → Prop) [decidable_pred p] (f : α ↪ β) (s : finset α)
+  [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
+  (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
+by simp [(∘), filter_map, f.injective.eq_iff]
+
+lemma filter_attach' [decidable_eq α] (s : finset α) (p : s → Prop) [decidable_pred p] :
+  s.attach.filter p =
+    (s.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map ⟨subtype.map id $ filter_subset _ _,
+      subtype.map_injective _ injective_id⟩ :=
+eq_of_veq $ multiset.filter_attach' _ _
+
+@[simp] lemma filter_attach (p : α → Prop) [decidable_pred p]  (s : finset α) :
+  (s.attach.filter (λ x, p ↑x)) =
+    (s.filter p).attach.map ((embedding.refl _).subtype_map mem_of_mem_filter) :=
+eq_of_veq $ multiset.filter_attach _ _
 
 lemma map_filter {f : α ≃ β} {p : α → Prop} [decidable_pred p] :
   (s.filter p).map f.to_embedding = (s.map f.to_embedding).filter (p ∘ f.symm) :=
@@ -351,11 +370,7 @@ subset_inter (image_subset_image $ inter_subset_left _ _) $
 lemma image_inter_of_inj_on [decidable_eq α] {f : α → β} (s t : finset α)
   (hf : set.inj_on f (s ∪ t)) :
   (s ∩ t).image f = s.image f ∩ t.image f :=
-(image_inter_subset _ _ _).antisymm $ λ x, begin
-  simp only [mem_inter, mem_image],
-  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
-  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
-end
+coe_injective $ by { push_cast, exact set.image_inter_on (λ a ha b hb, hf (or.inr ha) $ or.inl hb) }
 
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : injective f) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
@@ -388,6 +403,14 @@ end
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_image_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
+
+lemma image_sdiff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s \ t).image f = s.image f \ t.image f :=
+coe_injective $ by { push_cast, exact set.image_diff hf _ _ }
+
+lemma image_symm_diff [decidable_eq α] {f : α → β} (s t : finset α) (hf : injective f) :
+  (s ∆ t).image f = s.image f ∆ t.image f :=
+coe_injective $ by { push_cast, exact set.image_symm_diff hf _ _ }
 
 @[simp] lemma _root_.disjoint.of_image_finset
   {s t : finset α} {f : α → β} (h : disjoint (s.image f) (t.image f)) :

@@ -11,6 +11,9 @@ import data.nat.totient
 /-!
 # The Lucas test for primes.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file implements the Lucas test for primes (not to be confused with the Lucas-Lehmer test for
 Mersenne primes). A number `a` witnesses that `n` is prime if `a` has order `n-1` in the
 multiplicative group of integers mod `n`. This is checked by verifying that `a^(n-1) = 1 (mod n)`

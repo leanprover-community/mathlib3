@@ -9,6 +9,9 @@ import category_theory.discrete_category
 /-!
 # Categorical (co)products
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (co)products as special cases of (co)limits.
 
 A product is the categorical generalization of the object `Π i, f i` where `f : ι → C`. It is a

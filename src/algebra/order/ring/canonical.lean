@@ -38,7 +38,7 @@ not the integers or other ordered groups. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid comm_semiring]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : α}, a * b = 0 → a = 0 ∨ b = 0)
 
 section strict_ordered_semiring
 variables [strict_ordered_semiring α] {a b c d : α}
@@ -81,7 +81,7 @@ variables [canonically_ordered_comm_semiring α] {a b : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_no_zero_divisors : no_zero_divisors α :=
-⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+⟨λ a b h, canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero h⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_covariant_mul_le : covariant_class α α (*) (≤) :=
@@ -91,6 +91,11 @@ begin
   rw mul_add,
   apply self_le_add_right
 end
+
+@[priority 100] -- see Note [lower instance priority]
+instance to_ordered_comm_monoid : ordered_comm_monoid α :=
+{ mul_le_mul_left := λ _ _, mul_le_mul_left',
+  .. ‹canonically_ordered_comm_semiring α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_ordered_comm_semiring : ordered_comm_semiring α :=

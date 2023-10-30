@@ -199,91 +199,23 @@ lemma coe_ne_coe : (a : α) ≠ b ↔ a ≠ b := coe_inj.not
 
 end subtype
 
-namespace list
-variables {α : Type*} {l : list α}
-
-lemma filter_comm (p : α → Prop) [decidable_pred p] (q : α → Prop) [decidable_pred q] (l : list α) :
-  filter p (filter q l) = filter q (filter p l) :=
-by simp [and_comm]
-
-@[simp] lemma countp_attach (p : α → Prop) [decidable_pred p] (l : list α) :
-  l.attach.countp (λ a, p ↑a) = l.countp p :=
-by rw [←countp_map, attach_map_coe]
-
-@[simp] lemma count_attach [decidable_eq α] (a : {x // x ∈ l}) : l.attach.count a = l.count a :=
-eq.trans (countp_congr $ λ _ _, subtype.ext_iff) $ countp_attach _ _
-
-@[simp] lemma length_filter_attach (p : α → Prop) [decidable_pred p] (s : list α) :
-   (filter (λ a, p ↑a) s.attach).length = (filter p s).length :=
-by simp_rw [←countp_eq_length_filter, countp_attach]
-
-end list
-
 namespace multiset
 variables {α : Type*} {s : multiset α}
-
-attribute [simp] multiset.sup_le
-
-lemma filter_comm (p : α → Prop) [decidable_pred p] (q : α → Prop) [decidable_pred q]
-  (s : multiset α) :
-  filter p (filter q s) = filter q (filter p s) :=
-by simp [and_comm]
 
 --TODO: Rename `multiset.coe_attach` to `multiset.attach_coe`
 --TODO: Rename `multiset.coe_countp` to `multiset.countp_coe`
 
 --TODO: Maybe change `multiset.attach` to make `multiset.coe_attach` refl?
 
--- TODO: Fix `multiset.countp_congr`
-lemma countp_congr' {s s' : multiset α} (hs : s = s') {p p' : α → Prop} [decidable_pred p]
-  [decidable_pred p'] (hp : ∀ x ∈ s, p x ↔ p' x) : s.countp p = s'.countp p' :=
-countp_congr hs $ λ x hx, propext $ hp x hx
-
-@[simp] lemma countp_attach (p : α → Prop) [decidable_pred p] (s : multiset α) :
-  s.attach.countp (λ a, p ↑a) = s.countp p :=
-quotient.induction_on s $ λ l, begin
-  simp only [quot_mk_to_coe, coe_countp],
-  rw [quot_mk_to_coe, coe_attach, coe_countp],
-  exact list.countp_attach _ _,
-end
-
---TODO: Fix name `multiset.attach_count_eq_count_coe `
-@[simp] lemma count_attach [decidable_eq α] (a : {x // x ∈ s}) : s.attach.count a = s.count a :=
-eq.trans (countp_congr' rfl $ λ _ _, subtype.ext_iff) $ countp_attach _ _
-
-@[simp] lemma card_filter_attach (p : α → Prop) [decidable_pred p] (s : multiset α) :
-   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
-by simp_rw [←countp_eq_card_filter, countp_attach]
-
 end multiset
-
-namespace finset
-variables {α β : Type*} [comm_monoid β] (s : finset α) (f : α → β)
-
-open_locale big_operators
-
-@[simp, to_additive] lemma prod_map_val : (s.1.map f).prod = ∏ a in s, f a := rfl
-
-end finset
 
 namespace finset
 variables {α β : Type*} [add_comm_monoid_with_one β]
 
 open_locale big_operators
 
-@[simp] lemma card_val (s : finset α) : s.1.card = s.card := rfl
-
-lemma card_filter (p : α → Prop) [decidable_pred p] (s : finset α) :
-  (filter p s).card = ∑ a in s, ite (p a) 1 0 :=
-sum_boole.symm
-
-lemma coe_card_filter (p : α → Prop) [decidable_pred p] (s : finset α) :
-  ((filter p s).card : β) = ∑ a in s, ite (p a) 1 0 :=
-by { rw card_filter, norm_cast }
-
 @[simp] lemma card_filter_attach (p : α → Prop) [decidable_pred p] (s : finset α) :
-   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
-multiset.card_filter_attach _ _
+   (filter (λ a, p ↑a) s.attach).card = (filter p s).card := by simp
 
 end finset
 
@@ -299,19 +231,6 @@ begin
 end
 
 end nat
-
-namespace mv_polynomial
-variables {R S₁ σ : Type*} [semiring R] [comm_semiring S₁] [module R S₁] {a : R}
-  {f : mv_polynomial σ S₁}
-
-lemma support_smul : (a • f).support ⊆ f.support := finsupp.support_smul
-
-lemma total_degree_smul_le : (a • f).total_degree ≤ f.total_degree := finset.sup_mono support_smul
-
-@[simp] lemma constant_coeff_smul (a : R) (f : mv_polynomial σ S₁) :
-  constant_coeff (a • f) = a • constant_coeff f := rfl
-
-end mv_polynomial
 
 namespace zmod
 variables {p : ℕ} [fact (nat.prime p)]
@@ -389,7 +308,7 @@ begin
     -- This number is nonzero because `x ≠ 0`.
     { rw [←subtype.coe_ne_coe, function.ne_iff] at hx,
       exact hx.imp (λ a ha, mem_filter.2 ⟨finset.mem_attach _ _, ha⟩) },
-    { rw [←char_p.cast_eq_zero_iff (zmod p), finset.coe_card_filter],
+    { rw [←char_p.cast_eq_zero_iff (zmod p), ←finset.sum_boole],
       simpa only [f₁, map_sum, zmod.pow_card_sub_one, map_pow, eval_X] using x.2.1 },
     -- And it is at most `2 * p - 1`, so it must be `p`.
     { rw [finset.card_attach, card_to_enum_finset, hs],

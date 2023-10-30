@@ -42,6 +42,7 @@ variables {s t : finset α} {a b : α}
 def card (s : finset α) : ℕ := s.1.card
 
 lemma card_def (s : finset α) : s.card = s.1.card := rfl
+@[simp] lemma card_val (s : finset α) : s.1.card = s.card := rfl
 
 @[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
 

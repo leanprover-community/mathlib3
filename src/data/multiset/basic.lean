@@ -16,7 +16,7 @@ These are implemented as the quotient of a list by permutations.
 We define the global infix notation `::ₘ` for `multiset.cons`.
 -/
 
-open list subtype nat
+open function list nat subtype
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -1543,6 +1543,10 @@ le_antisymm (le_inter
   filter p (filter q s) = filter (λ a, p a ∧ q a) s :=
 quot.induction_on s $ λ l, congr_arg coe $ filter_filter p q l
 
+lemma filter_comm (q) [decidable_pred q] (s : multiset α) :
+  filter p (filter q s) = filter q (filter p s) :=
+by simp [and_comm]
+
 theorem filter_add_filter (q) [decidable_pred q] (s : multiset α) :
   filter p s + filter q s = filter (λ a, p a ∨ q a) s + filter (λ a, p a ∧ q a) s :=
 multiset.induction_on s rfl $ λ a s IH,
@@ -1555,6 +1559,11 @@ by rw [filter_add_filter, filter_eq_self.2, filter_eq_nil.2]; simp [decidable.em
 theorem map_filter (f : β → α) (s : multiset β) :
   filter p (map f s) = map f (filter (p ∘ f) s) :=
 quot.induction_on s (λ l, by simp [map_filter])
+
+lemma map_filter' {f : α → β} (hf : injective f) (s : multiset α)
+  [decidable_pred (λ b, ∃ a, p a ∧ f a = b)] :
+  (s.filter p).map f = (s.map f).filter (λ b, ∃ a, p a ∧ f a = b) :=
+by simp [(∘), map_filter, hf.eq_iff]
 
 /-! ### Simultaneously filter and map elements of a multiset -/
 
@@ -1704,6 +1713,18 @@ begin
       card_singleton, add_comm] },
 end
 
+@[simp] lemma countp_attach (s : multiset α) : s.attach.countp (λ a, p ↑a) = s.countp p :=
+quotient.induction_on s $ λ l, begin
+  simp only [quot_mk_to_coe, coe_countp],
+  rw [quot_mk_to_coe, coe_attach, coe_countp],
+  exact list.countp_attach _ _,
+end
+
+@[simp] lemma filter_attach (m : multiset α) (p : α → Prop) [decidable_pred p] :
+  (m.attach.filter (λ x, p ↑x)) =
+    (m.filter p).attach.map (subtype.map id $ λ _, multiset.mem_of_mem_filter) :=
+quotient.induction_on m $ λ l, congr_arg coe (list.filter_attach l p)
+
 variable {p}
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
@@ -1720,7 +1741,7 @@ countp_pos.2 ⟨_, h, pa⟩
 
 theorem countp_congr {s s' : multiset α} (hs : s = s')
   {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
-  (hp : ∀ x ∈ s, p x = p' x) : s.countp p = s'.countp p' :=
+  (hp : ∀ x ∈ s, p x ↔ p' x) : s.countp p = s'.countp p' :=
 quot.induction_on₂ s s' (λ l l' hs hp, begin
   simp only [quot_mk_to_coe'', coe_eq_coe] at hs,
   exact hs.countp_congr hp,
@@ -1731,7 +1752,7 @@ end
 /-! ### Multiplicity of an element -/
 
 section
-variable [decidable_eq α]
+variables [decidable_eq α] {s : multiset α}
 
 /-- `count a s` is the multiplicity of `a` in `s`. -/
 def count (a : α) : multiset α → ℕ := countp (eq a)
@@ -1777,6 +1798,9 @@ def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_ho
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
+
+@[simp] lemma count_attach (a : {x // x ∈ s}) : s.attach.count a = s.count a :=
+eq.trans (countp_congr rfl $ λ _ _, subtype.ext_iff) $ countp_attach _ _
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
@@ -1900,13 +1924,6 @@ begin
     rw hf hkx at *,
     contradiction }
 end
-
-@[simp]
-lemma attach_count_eq_count_coe (m : multiset α) (a) : m.attach.count a = m.count (a : α) :=
-calc m.attach.count a
-    = (m.attach.map (coe : _ → α)).count (a : α) :
-  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
-... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = replicate (count b s) b :=
 quotient.induction_on s $ λ l, congr_arg coe $ filter_eq' l b
@@ -2173,6 +2190,19 @@ by { rw [← rel_eq, ← rel_eq, rel_map], simp only [hf.eq_iff] }
 theorem map_injective {f : α → β} (hf : function.injective f) :
   function.injective (multiset.map f) :=
 assume x y, (map_eq_map hf).1
+
+lemma filter_attach' (s : multiset α) (p : {a // a ∈ s} → Prop) [decidable_eq α]
+  [decidable_pred p] :
+  s.attach.filter p =
+    (s.filter $ λ x, ∃ h, p ⟨x, h⟩).attach.map (subtype.map id $ λ x hx,
+      let ⟨h, _⟩ := of_mem_filter hx in h) :=
+begin
+  classical,
+  refine multiset.map_injective subtype.coe_injective _,
+  simp only [function.comp, map_filter' _ subtype.coe_injective, subtype.exists, coe_mk,
+    exists_and_distrib_right, exists_eq_right, attach_map_coe, map_map, map_coe, id.def],
+  rw attach_map_coe,
+end
 
 end map
 

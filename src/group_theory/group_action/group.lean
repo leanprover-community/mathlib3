@@ -236,7 +236,7 @@ end gwz
 
 end distrib_mul_action
 
-section mul_distrib_mul_action
+namespace mul_distrib_mul_action
 variables [group α] [monoid β] [mul_distrib_mul_action α β]
 
 variables (β)
@@ -245,22 +245,30 @@ variables (β)
 
 This is a stronger version of `mul_action.to_perm`. -/
 @[simps {simp_rhs := tt}]
-def mul_distrib_mul_action.to_mul_equiv (x : α) : β ≃* β :=
+def to_mul_equiv (x : α) : β ≃* β :=
 { .. mul_distrib_mul_action.to_monoid_hom β x,
   .. mul_action.to_perm_hom α β x }
+
+variables {α β}
+
+@[simp] lemma to_mul_equiv_to_monoid_hom (a : α) :
+  (to_mul_equiv β a).to_monoid_hom = to_monoid_End α β a := rfl
 
 variables (α β)
 
 /-- Each element of the group defines an multiplicative monoid isomorphism.
 
 This is a stronger version of `mul_action.to_perm_hom`. -/
-@[simps]
-def mul_distrib_mul_action.to_mul_aut : α →* mul_aut β :=
-{ to_fun := mul_distrib_mul_action.to_mul_equiv β,
+def to_mul_aut : α →* mul_aut β :=
+{ to_fun := to_mul_equiv β,
   map_one' := mul_equiv.ext (one_smul _),
   map_mul' := λ a₁ a₂, mul_equiv.ext (mul_smul _ _) }
 
+@[simp, norm_cast] lemma coe_to_mul_aut : ⇑(to_mul_aut α β) = to_mul_equiv β := rfl
+
 variables {α β}
+
+lemma to_mul_aut_apply (a : α) : to_mul_aut α β a = to_mul_equiv β a := rfl
 
 end mul_distrib_mul_action
 

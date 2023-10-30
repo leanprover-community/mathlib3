@@ -172,6 +172,10 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
 
+@[to_additive] lemma mem_fixed_points_iff_stabilizer_eq_top {a : β} :
+  a ∈ fixed_points α β ↔ stabilizer α a = ⊤ :=
+by simp only [mem_fixed_points, subgroup.eq_top_iff', mem_stabilizer_iff]
+
 variables (α) {β}
 
 @[to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=

@@ -1097,6 +1097,17 @@ by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
+@[simp, to_additive] lemma comap_eq_top {f : N ≃* G} : H.comap f.to_monoid_hom = ⊤ ↔ H = ⊤ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [←comap_id H, ←comap_top f.symm.to_monoid_hom, ←h, comap_comap],
+    congr, -- TODO: This should be a lemma
+    ext,
+    simp },
+  { rintro rfl,
+    exact comap_top _ }
+end
+
 /-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
 @[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
 def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
@@ -1337,6 +1348,10 @@ variables {H K : subgroup G}
 instance normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
 ⟨by simp [mul_comm, mul_left_comm]⟩
 
+@[to_additive]
+lemma normal_def (H : subgroup G) : H.normal ↔ (∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H) :=
+⟨λ h, by cases h; assumption, normal.mk⟩
+
 namespace normal
 
 variable (nH : H.normal)
@@ -1523,6 +1538,16 @@ lemma le_normalizer_of_normal [hK : (H.subgroup_of K).normal] (HK : H ≤ K) : K
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
   λ yH, by simpa [mem_subgroup_of, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
+
+@[to_additive]
+lemma normal_iff_normalizer_eq_top : H.normal ↔ H.normalizer = ⊤ :=
+begin
+  simp only [normal_def, eq_top_iff', mem_normalizer_iff],
+  split,
+  { intros h x n,
+    exact ⟨λ hn, h _ hn _, λ hn, by simpa [mul_assoc] using h _ hn (x⁻¹)⟩ },
+  { exact λ h n hn g, (h g n).1 hn }
+end
 
 variables {N : Type*} [group N]
 

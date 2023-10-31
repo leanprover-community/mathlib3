@@ -192,7 +192,8 @@ namespace antilipschitz_with
 
 open metric
 
-variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : α → β}
+variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
+variables {K : ℝ≥0} {f : α → β}
 
 lemma bounded_preimage (hf : antilipschitz_with K f)
   {s : set β} (hs : bounded s) :
@@ -218,6 +219,28 @@ begin
   convert this.image f_cont,
   exact (hf.image_preimage _).symm
 end
+
+lemma bounded_of_image2_left (f : α → β → γ) {K₁ : ℝ≥0}
+  (hf : ∀ b, antilipschitz_with K₁ (λ a, f a b))
+  {s : set α} {t : set β} (hst : bounded (set.image2 f s t)) :
+  bounded s ∨ bounded t :=
+begin
+  contrapose! hst,
+  obtain ⟨b, hb⟩ : t.nonempty := nonempty_of_unbounded hst.2,
+  have : ¬bounded (set.image2 f s {b}),
+  { intro h,
+    apply hst.1,
+    rw set.image2_singleton_right at h,
+    replace h := (hf b).bounded_preimage h,
+    refine h.mono (subset_preimage_image _ _) },
+  exact mt (bounded.mono (image2_subset subset.rfl (singleton_subset_iff.mpr hb))) this,
+end
+
+lemma bounded_of_image2_right {f : α → β → γ} {K₂ : ℝ≥0}
+  (hf : ∀ a, antilipschitz_with K₂ (f a))
+  {s : set α} {t : set β} (hst : bounded (set.image2 f s t)) :
+  bounded s ∨ bounded t :=
+or.symm $ bounded_of_image2_left (flip f) hf $ image2_swap f s t ▸ hst
 
 end antilipschitz_with
 

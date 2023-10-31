@@ -1906,3 +1906,6 @@ lemma subset_right_of_subset_union (h : s ⊆ t ∪ u) (hab : disjoint s t) : s 
 hab.left_le_of_le_sup_left h
 
 end disjoint
+
+@[simp] lemma Prop.compl_singleton (p : Prop) : ({p}ᶜ : set Prop) = {¬ p} :=
+ext $ λ q, by simpa [@iff.comm q] using not_iff

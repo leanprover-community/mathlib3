@@ -106,6 +106,9 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 @[to_additive] lemma prod_eq_multiset_prod [comm_monoid β] (s : finset α) (f : α → β) :
   ∏ x in s, f x = (s.1.map f).prod := rfl
 
+@[simp, to_additive] lemma prod_map_val [comm_monoid β] (s : finset α) (f : α → β) :
+  (s.1.map f).prod = ∏ a in s, f a := rfl
+
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
   ∏ x in s, f x = s.fold (*) 1 f :=
@@ -1418,16 +1421,19 @@ begin
   apply sum_congr rfl h₁
 end
 
+lemma nat_cast_card_filter [add_comm_monoid_with_one β] (p) [decidable_pred p] (s : finset α) :
+  ((filter p s).card : β) = ∑ a in s, if p a then 1 else 0 :=
+by simp only [add_zero, sum_const, nsmul_eq_mul, eq_self_iff_true, sum_const_zero, sum_ite,
+  nsmul_one]
+
+lemma card_filter (p) [decidable_pred p] (s : finset α) :
+  (filter p s).card = ∑ a in s, ite (p a) 1 0 :=
+nat_cast_card_filter _ _
+
 @[simp]
-lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
-  (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
-by simp only [add_zero,
- mul_one,
- finset.sum_const,
- nsmul_eq_mul,
- eq_self_iff_true,
- finset.sum_const_zero,
- finset.sum_ite]
+lemma sum_boole {s : finset α} {p : α → Prop} [add_comm_monoid_with_one β] {hp : decidable_pred p} :
+  (∑ x in s, if p x then 1 else 0 : β) = (s.filter p).card :=
+(nat_cast_card_filter _ _).symm
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :

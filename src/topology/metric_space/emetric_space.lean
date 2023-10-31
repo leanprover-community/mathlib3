@@ -32,7 +32,7 @@ to `emetric_space` at the end.
 
 open set filter classical
 
-open_locale uniformity topology big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal pointwise
 
 universes u v w
 variables {α : Type u} {β : Type v} {X : Type*}
@@ -792,6 +792,8 @@ diam_subsingleton subsingleton_empty
 /-- The diameter of a singleton vanishes -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
+
+@[simp, to_additive] lemma diam_one [has_one α] : diam (1 : set α) = 0 := diam_singleton
 
 lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
   diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=

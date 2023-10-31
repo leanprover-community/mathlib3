@@ -927,8 +927,7 @@ eq.trans (by congr) empty_card
 
 theorem card_fintype_insert_of_not_mem {a : α} (s : set α) [fintype s] (h : a ∉ s) :
   @fintype.card _ (fintype_insert_of_not_mem s h) = fintype.card s + 1 :=
-by rw [fintype_insert_of_not_mem, fintype.card_of_finset];
-   simp [finset.card, to_finset]; refl
+by simp [fintype_insert_of_not_mem, fintype.card_of_finset]
 
 @[simp] theorem card_insert {a : α} (s : set α)
   [fintype s] (h : a ∉ s) {d : fintype.{u} (insert a s : set α)} :

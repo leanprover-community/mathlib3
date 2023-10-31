@@ -62,6 +62,8 @@ def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
+lemma mem_upper_bounds_iff_subset_Iic : a ∈ upper_bounds s ↔ s ⊆ Iic a := iff.rfl
+lemma mem_lower_bounds_iff_subset_Ici : a ∈ lower_bounds s ↔ s ⊆ Ici a := iff.rfl
 
 lemma bdd_above_def : bdd_above s ↔ ∃ x, ∀ y ∈ s, y ≤ x := iff.rfl
 lemma bdd_below_def : bdd_below s ↔ ∃ x, ∀ y ∈ s, x ≤ y := iff.rfl

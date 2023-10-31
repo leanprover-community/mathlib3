@@ -9,6 +9,9 @@ import linear_algebra.quadratic_form.prod
 /-!
 # Quadratic form structures related to `module.dual`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `bilin_form.dual_prod R M`, the bilinear form on `(f, x) : module.dual R M × M` defined as

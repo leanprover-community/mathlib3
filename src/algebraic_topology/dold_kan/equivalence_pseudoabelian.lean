@@ -12,6 +12,9 @@ import category_theory.idempotents.simplicial_object
 
 # The Dold-Kan correspondence for pseudoabelian categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, for any idempotent complete additive category `C`,
 the Dold-Kan equivalence
 `idempotents.dold_kan.equivalence C : simplicial_object C ≌ chain_complex C ℕ`

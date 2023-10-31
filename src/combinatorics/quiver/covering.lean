@@ -11,6 +11,9 @@ import logic.equiv.basic
 /-!
 # Covering
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines coverings of quivers as prefunctors that are bijective on the
 so-called stars and costars at each vertex of the domain.
 

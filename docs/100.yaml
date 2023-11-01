@@ -227,7 +227,9 @@
   decl   : nat.gcd_eq_gcd_ab
   author : mathlib
 61:
-  title  : Theorem of Ceva
+  title  : Ceva's Theorem
+  decl   : ceva_theorem
+  author : Mantas Bakšys
 62:
   title  : Fair Games Theorem
   decl   : measure_theory.submartingale_iff_expected_stopped_value_mono

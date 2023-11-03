@@ -160,8 +160,8 @@ variables [group β]
 @[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
   (h : ∀ u ∈ us, @uniform_group β u _) :
   @uniform_group β (Inf us) _ :=
-{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
-  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
+{ uniform_continuous_div := uniform_continuous_Inf_rng.mpr (λ u hu, uniform_continuous_Inf_dom₂ hu
+  hu (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
 
 @[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
   (h' : ∀ i, @uniform_group β (us' i) _) :

@@ -1249,8 +1249,8 @@ begin
   exact tendsto_infi' ⟨u, h₁⟩ hf
 end
 
-lemma uniform_continuous_Inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ : set (uniform_space β)}
-  (h : ∀u∈u₂, @@uniform_continuous u₁ u f) : @@uniform_continuous u₁ (Inf u₂) f :=
+lemma uniform_continuous_Inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ : set (uniform_space β)} :
+  @@uniform_continuous u₁ (Inf u₂) f ↔ ∀u∈u₂, @@uniform_continuous u₁ u f :=
 begin
   rw [uniform_continuous, Inf_eq_infi', infi_uniformity],
   exact tendsto_infi.mpr (λ ⟨u, hu⟩, h u hu)
@@ -1263,9 +1263,9 @@ begin
   exact tendsto_infi' i hf
 end
 
-lemma uniform_continuous_infi_rng {f : α → β} {u₁ : uniform_space α} {u₂ : ι → uniform_space β}
-  (h : ∀i, @@uniform_continuous u₁ (u₂ i) f) : @@uniform_continuous u₁ (infi u₂) f :=
-by rwa [uniform_continuous, infi_uniformity, tendsto_infi]
+lemma uniform_continuous_infi_rng {f : α → β} {u₁ : uniform_space α} {u₂ : ι → uniform_space β} :
+  @@uniform_continuous u₁ (infi u₂) f ↔ ∀i, @@uniform_continuous u₁ (u₂ i) f :=
+by simp_rw [uniform_continuous, infi_uniformity', tendsto_infi]
 
 end uniform_continuous_infi
 

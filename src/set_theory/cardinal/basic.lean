@@ -59,7 +59,9 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 
 * There is a type of cardinal numbers in every universe level:
   `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
-  The operation `cardinal.lift` lifts cardinal numbers to a higher level.
+  The operation `cardinal.lift` lifts cardinal numbers to a higher level. See library
+  note [cardinal comparison in different universes] for an important rule we enforce regarding usage
+  of this.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
   `set_theory/cardinal_ordinal.lean`.
 * There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
@@ -228,35 +230,38 @@ mk_subtype_le s
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-theorem lift_mk_le {α : Type u} {β : Type v} :
+/-- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal `b : cardinal.{v}` is
+to compare `cardinal.lift.{v} a` with `cardinal.lift.{u} b`.
+
+It might be tempting to be more general and compare `cardinal.lift.{max v w} a` with
+`cardinal.lift.{max u w} b`. However, given the lemmas `cardinal.lift_umax_le`,
+`cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this small generalization is not worth the
+elaboration problems it causes elsewhere. -/
+library_note "cardinal comparison in different universes"
+
+/- This is the sole exception to the rule established previously in
+note [cardinal comparison in different universes], as it's used to prove `cardinal.lift_le`. -/
+private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
-/-- A variant of `cardinal.lift_mk_le` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_le' {α : Type u} {β : Type v} :
+theorem lift_mk_le {α : Type u} {β : Type v} :
   lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
-lift_mk_le.{u v 0}
+lift_mk_le'.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
 
-/-- A variant of `cardinal.lift_mk_eq` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_eq' {α : Type u} {β : Type v} :
-  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
-lift_mk_eq.{u v 0}
-
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
-induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le }
+induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le' }
+
+@[simp] theorem lift_umax_le {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a ≤ lift.{max u w} b ↔ lift.{v} a ≤ lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_le]
 
 /-- `cardinal.lift` as an `order_embedding`. -/
 @[simps { fully_applied := ff }] def lift_order_embedding : cardinal.{v} ↪o cardinal.{max v u} :=
@@ -267,8 +272,16 @@ theorem lift_injective : injective lift.{u v} := lift_order_embedding.injective
 @[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
 lift_injective.eq_iff
 
+@[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_inj]
+
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
+
+@[simp] theorem lift_umax_lt {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a < lift.{max u w} b ↔ lift.{v} a < lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_lt]
 
 theorem lift_strict_mono : strict_mono lift :=
 λ a b, lift_lt.2
@@ -719,16 +732,12 @@ end
 csupr_of_empty f
 
 @[simp] lemma lift_mk_shrink (α : Type u) [small.{v} α] :
-  cardinal.lift.{max u w} (# (shrink.{v} α)) = cardinal.lift.{max v w} (# α) :=
+  cardinal.lift.{u} (# (shrink.{v} α)) = cardinal.lift.{v} (# α) :=
 lift_mk_eq.2 ⟨(equiv_shrink α).symm⟩
 
-@[simp] lemma lift_mk_shrink' (α : Type u) [small.{v} α] :
-  cardinal.lift.{u} (# (shrink.{v} α)) = cardinal.lift.{v} (# α) :=
-lift_mk_shrink.{u v 0} α
-
-@[simp] lemma lift_mk_shrink'' (α : Type (max u v)) [small.{v} α] :
+@[simp] lemma lift_mk_shrink' (α : Type (max u v)) [small.{v} α] :
   cardinal.lift.{u} (# (shrink.{v} α)) = # α :=
-by rw [← lift_umax', lift_mk_shrink.{(max u v) v 0} α, ← lift_umax, lift_id]
+by rw [←lift_id (# α), ←lift_umax, lift_mk_shrink, ←lift_umax]
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -792,12 +801,13 @@ by { unfold infi, convert lift_Inf (range f), rw range_comp }
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
   b ≤ lift a → ∃ a', lift a' = b :=
-induction_on₂ a b $ λ α β,
-by rw [← lift_id (#β), ← lift_umax, ← lift_umax.{u v}, lift_mk_le]; exact
-λ ⟨f⟩, ⟨#(set.range f), eq.symm $ lift_mk_eq.2
-  ⟨embedding.equiv_of_surjective
-    (embedding.cod_restrict _ f set.mem_range_self)
-    $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+induction_on₂ a b $ λ α β, begin
+  rw [← lift_id (#β), lift_umax.{(max u v) u}, ← lift_umax.{u v}, lift_mk_le],
+  exact λ ⟨f⟩, ⟨#(set.range f), eq.symm $ lift_mk_eq.2
+    ⟨embedding.equiv_of_surjective
+      (embedding.cod_restrict _ f set.mem_range_self)
+      $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+end
 
 theorem le_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
   b ≤ lift a ↔ ∃ a', lift a' = b ∧ a' ≤ a :=
@@ -817,10 +827,6 @@ le_antisymm
     exact h.not_lt (lt_succ _)
   end)
   (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
-
-@[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
-  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
-by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
 lift_monotone.map_min
@@ -999,7 +1005,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_aleph_0 (n : ℕ) : (n : cardinal.{u}) < ℵ₀ :=
 succ_le_iff.1 begin
-  rw [←nat_succ, ←lift_mk_fin, aleph_0, lift_mk_le.{0 0 u}],
+  rw [←nat_succ, ←lift_mk_fin, aleph_0, lift_le],
   exact ⟨⟨coe, λ a b, fin.ext⟩⟩
 end
 
@@ -1048,7 +1054,7 @@ end
 ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
-by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
+by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq]
 
 theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
 by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
@@ -1069,7 +1075,7 @@ alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 lt_aleph_0_iff_set_finite
 
 lemma mk_le_aleph_0_iff : #α ≤ ℵ₀ ↔ countable α :=
-by rw [countable_iff_nonempty_embedding, aleph_0, ← lift_uzero (#α), lift_mk_le']
+by rw [countable_iff_nonempty_embedding, aleph_0, ← lift_uzero (#α), lift_mk_le]
 
 @[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ := mk_le_aleph_0_iff.mpr ‹_›
 
@@ -1515,24 +1521,24 @@ mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{u} (#(f '' s)) ≤ lift.{v} (#s) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
+lift_mk_le.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : #(range f) ≤ #α :=
 mk_le_of_surjective surjective_onto_range
 
 theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
   lift.{u} (#(range f)) ≤ lift.{v} (#α) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
+lift_mk_le.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
 
 lemma mk_range_eq (f : α → β) (h : injective f) : #(range f) = #α :=
 mk_congr ((equiv.of_injective f h).symm)
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{u} (#(range f)) = lift.{v} (#α) :=
-lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
+lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{max u w} (# (range f)) = lift.{max v w} (# α) :=
+  lift.{u} (# (range f)) = lift.{v} (# α) :=
 lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
@@ -1622,11 +1628,11 @@ by simp
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{u} (#(f '' s)) = lift.{v} (#s) :=
-lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image f s h).symm⟩
+lift_mk_eq.mpr ⟨(equiv.set.image f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on_lift {α : Type u} {β : Type v} (f : α → β) (s : set α)
   (h : inj_on f s) : lift.{u} (#(f '' s)) = lift.{v} (#s) :=
-lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image_of_inj_on f s h).symm⟩
+lift_mk_eq.mpr ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : inj_on f s) :
   #(f '' s) = #s :=
@@ -1642,14 +1648,14 @@ mk_congr (equiv.set.sep s t)
 lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
   (h : injective f) : lift.{v} (#(f ⁻¹' s)) ≤ lift.{u} (#s) :=
 begin
-  rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
+  rw lift_mk_le, use subtype.coind (λ x, f x.1) (λ x, x.2),
   apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
   (h : s ⊆ range f) : lift.{u} (#s) ≤ lift.{v} (#(f ⁻¹' s)) :=
 begin
-  rw lift_mk_le.{v u 0},
+  rw lift_mk_le,
   refine ⟨⟨_, _⟩⟩,
   { rintro ⟨y, hy⟩, rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩, exact ⟨x, hy⟩ },
   rintro ⟨y, hy⟩ ⟨y', hy'⟩, dsimp,

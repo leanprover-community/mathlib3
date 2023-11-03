@@ -136,7 +136,7 @@ theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory)
   ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
 begin
   haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
-  rw [cardinal.lift_mk_le'] at h,
+  rw [cardinal.lift_mk_le] at h,
   letI : (constants_on α).Structure M :=
     constants_on.Structure (function.extend coe h.some default),
   haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
@@ -215,7 +215,7 @@ begin
   refine ⟨(equiv_shrink S).bundled_induced L,
     ⟨S.subtype.comp (equiv.bundled_induced_equiv L _).symm.to_elementary_embedding⟩,
     lift_inj.1 (trans _ hS)⟩,
-  simp only [equiv.bundled_induced_α, lift_mk_shrink'],
+  simp only [equiv.bundled_induced_α, lift_mk_shrink],
 end
 
 /-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`

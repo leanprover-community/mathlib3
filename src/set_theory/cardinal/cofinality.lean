@@ -84,14 +84,13 @@ end order
 
 theorem rel_iso.cof_le_lift {α : Type u} {β : Type v} {r : α → α → Prop} {s}
   [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{max u v} (order.cof r) ≤ cardinal.lift.{max u v} (order.cof s) :=
+  cardinal.lift.{v} (order.cof r) ≤ cardinal.lift.{u} (order.cof s) :=
 begin
   rw [order.cof, order.cof, lift_Inf, lift_Inf,
     le_cInf_iff'' (nonempty_image_iff.2 (order.cof_nonempty s))],
   rintros - ⟨-, ⟨u, H, rfl⟩, rfl⟩,
   apply cInf_le',
-  refine ⟨_, ⟨f.symm '' u, λ a, _, rfl⟩,
-    lift_mk_eq.{u v (max u v)}.2 ⟨((f.symm).to_equiv.image u).symm⟩⟩,
+  refine ⟨_, ⟨f.symm '' u, λ a, _, rfl⟩, lift_mk_eq.2 ⟨((f.symm).to_equiv.image u).symm⟩⟩,
   rcases H (f a) with ⟨b, hb, hb'⟩,
   refine ⟨f.symm b, mem_image_of_mem _ hb, f.map_rel_iff.1 _⟩,
   rwa rel_iso.apply_symm_apply
@@ -99,7 +98,7 @@ end
 
 theorem rel_iso.cof_eq_lift {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{max u v} (order.cof r) = cardinal.lift.{max u v} (order.cof s) :=
+  cardinal.lift.{v} (order.cof r) = cardinal.lift.{u} (order.cof s) :=
 (rel_iso.cof_le_lift f).antisymm (rel_iso.cof_le_lift f.symm)
 
 theorem rel_iso.cof_le {α β : Type u} {r : α → α → Prop} {s} [is_refl β s] (f : r ≃r s) :

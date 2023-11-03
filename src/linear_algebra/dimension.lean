@@ -69,8 +69,11 @@ For vector spaces (i.e. modules over a field), we have
 
 Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
-inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
+inserting `cardinal.lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.
+
+For those lemmas that do employ `cardinal.lift`, keep library
+note [cardinal comparison in different universes] in mind.
 -/
 
 noncomputable theory
@@ -124,7 +127,7 @@ begin
     cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
   apply csupr_mono' (cardinal.bdd_above_range.{v' v} _),
   rintro ⟨s, li⟩,
-  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
+  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
   exact (li.map' _ $ linear_map.ker_eq_bot.mpr i).image,
 end
 
@@ -155,7 +158,7 @@ begin
   refine (le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
+  { exact (cardinal.lift_mk_eq.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
 end
 
 lemma rank_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.rank R M :=
@@ -234,9 +237,9 @@ theorem rank_quotient_le (p : submodule R M) :
 
 variables [nontrivial R]
 
-lemma {m} cardinal_lift_le_rank_of_linear_independent
+lemma cardinal_lift_le_rank_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{max v m} (#ι) ≤ cardinal.lift.{max w m} (module.rank R M) :=
+  cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -251,7 +254,7 @@ end
 lemma cardinal_lift_le_rank_of_linear_independent'
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
   cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
-cardinal_lift_le_rank_of_linear_independent.{u v w 0} hv
+cardinal_lift_le_rank_of_linear_independent hv
 
 lemma cardinal_le_rank_of_linear_independent
   {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
@@ -557,7 +560,7 @@ begin
     -- we see they have the same cardinality.
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    rcases cardinal.lift_mk_le.mp w₁ with ⟨f⟩,
     haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,
@@ -567,7 +570,7 @@ end
 /-- Given two bases indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
 basis number property, an equiv `ι ≃ ι' `. -/
 def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_umax_eq.2 (mk_eq_mk_of_basis v v')))
+(cardinal.lift_mk_eq.1 $ mk_eq_mk_of_basis v v').some
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=
@@ -811,8 +814,8 @@ begin
     exact infinite_basis_le_maximal_linear_independent b v i m, }
 end
 
-theorem basis.mk_eq_rank'' {ι : Type v} (v : basis ι R M) :
-  #ι = module.rank R M :=
+-- TODO: rename this to mk_eq_rank'
+theorem basis.mk_eq_rank'' {ι : Type v} (v : basis ι R M) : #ι = module.rank R M :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   rw module.rank,
@@ -863,10 +866,6 @@ begin
   haveI := nontrivial_of_invariant_basis_number R,
   rw [←v.mk_range_eq_rank, cardinal.mk_range_eq_of_injective v.injective]
 end
-
-theorem {m} basis.mk_eq_rank' (v : basis ι R M) :
-  cardinal.lift.{max v m} (#ι) = cardinal.lift.{max w m} (module.rank R M) :=
-by simpa using v.mk_eq_rank
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 lemma basis.nonempty_fintype_index_of_rank_lt_aleph_0 {ι : Type*}
@@ -967,7 +966,7 @@ begin
   obtain ⟨⟨_, B'⟩⟩ := module.free.exists_basis K V',
   have : cardinal.lift.{v' v} (#_) = cardinal.lift.{v v'} (#_),
     by rw [B.mk_eq_rank'', cond, B'.mk_eq_rank''],
-  exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (B.equiv B')
+  exact (cardinal.lift_mk_eq.1 this).map (B.equiv B')
 end
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/

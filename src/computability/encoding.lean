@@ -195,7 +195,7 @@ instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_
 
 lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
   cardinal.lift.{v} (# α) ≤ cardinal.lift.{u} (# (list e.Γ)) :=
-(cardinal.lift_mk_le').2 ⟨⟨e.encode, e.encode_injective⟩⟩
+cardinal.lift_mk_le.2 ⟨⟨e.encode, e.encode_injective⟩⟩
 
 lemma encoding.card_le_aleph_0 {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] : #α ≤ ℵ₀ :=
 begin

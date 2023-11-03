@@ -214,7 +214,7 @@ begin
   introI h,
   have key : nonempty (fin 5 ↪ X),
   { rwa [←cardinal.lift_mk_le, cardinal.mk_fin, cardinal.lift_nat_cast,
-    nat.cast_bit1, nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
+      nat.cast_bit1, nat.cast_bit0, nat.cast_one, cardinal.lift_uzero] },
   exact equiv.perm.fin_5_not_solvable (solvable_of_solvable_injective
     (equiv.perm.via_embedding_hom_injective (nonempty.some key))),
 end

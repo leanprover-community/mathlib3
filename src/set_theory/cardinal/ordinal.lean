@@ -836,12 +836,13 @@ begin
     ... = #(α × β) : mk_finset_of_infinite _
     ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
       by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
-  { apply max_le;
-    rw [←lift_id (# (α →₀ β)), ←lift_umax],
-    { cases exists_ne (0 : β) with b hb,
-      exact lift_mk_le.{u (max u v) v}.2 ⟨⟨_, finsupp.single_left_injective hb⟩⟩ },
-    { inhabit α,
-      exact lift_mk_le.{v (max u v) u}.2 ⟨⟨_, finsupp.single_injective default⟩⟩ } }
+  { apply max_le,
+    { rw [←lift_id' (# (α →₀ β)), ←lift_umax],
+      cases exists_ne (0 : β) with b hb,
+      exact lift_mk_le.2 ⟨⟨_, finsupp.single_left_injective hb⟩⟩ },
+    { rw [←lift_id'.{v u} (# (α →₀ β)), ←lift_umax],
+      inhabit α,
+      exact lift_mk_le.2 ⟨⟨_, finsupp.single_injective default⟩⟩ } }
 end
 
 lemma mk_finsupp_of_infinite (α β : Type u) [infinite α] [has_zero β]
@@ -933,9 +934,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [finite α]
-  {s : set α} {t : set β} (h1 : lift.{max v w} (#α) = lift.{max u w} (#β))
-  (h2 : lift.{max v w} (#s) = lift.{max u w} (#t)) :
-  lift.{max v w} (#(sᶜ : set α)) = lift.{max u w} (#(tᶜ : set β)) :=
+  {s : set α} {t : set β} (h1 : lift.{v} (#α) = lift.{u} (#β))
+  (h2 : lift.{v} (#s) = lift.{u} (#t)) :
+  lift.{v} (#(sᶜ : set α)) = lift.{u} (#(tᶜ : set β)) :=
 begin
   casesI nonempty_fintype α,
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
@@ -950,7 +951,7 @@ end
 
 lemma mk_compl_eq_mk_compl_finite {α β : Type u} [finite α] {s : set α} {t : set β}
   (h1 : #α = #β) (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set β) :=
-by { rw ← lift_inj, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
+by { rw ←lift_inj.{u}, apply mk_compl_eq_mk_compl_finite_lift; rwa [lift_inj] }
 
 lemma mk_compl_eq_mk_compl_finite_same {α : Type*} [finite α] {s t : set α}
   (h : #s = #t) : #(sᶜ : set α) = #(tᶜ : set α) :=
@@ -985,7 +986,7 @@ begin
   casesI fintype_or_infinite α,
   { exact extend_function_finite f h },
   { apply extend_function f, cases id h with g, haveI := infinite.of_injective _ g.injective,
-    rw [← lift_mk_eq'] at h ⊢,
+    rw [← lift_mk_eq] at h ⊢,
     rwa [mk_compl_of_infinite s hs, mk_compl_of_infinite],
     rwa [← lift_lt, mk_range_eq_of_injective f.injective, ← h, lift_lt] },
 end

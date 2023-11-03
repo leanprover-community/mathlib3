@@ -517,6 +517,13 @@ theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x := fun_like.ext_if
 @[symm] protected def symm (f : r ≃r s) : s ≃r r :=
 ⟨f.to_equiv.symm, λ a b, by erw [← f.map_rel_iff, f.1.apply_symm_apply, f.1.apply_symm_apply]⟩
 
+@[simp] lemma inv_fun_eq_symm (f : r ≃r s) : f.inv_fun = f.symm := rfl
+
+@[simp] lemma symm_symm (e : r ≃r s) : e.symm.symm = e := ext $ λ x, rfl
+
+@[simp] lemma to_equiv_symm (f : r ≃r s) : f.symm.to_equiv = f.to_equiv.symm := rfl
+@[simp] lemma to_equiv_symm_apply (f : r ≃r s) (x : β) : f.to_equiv.symm x = f.symm x := rfl
+
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (h : r ≃r s) : α → β := h

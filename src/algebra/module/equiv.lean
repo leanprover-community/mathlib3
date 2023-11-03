@@ -169,15 +169,12 @@ variables {module_M : module R M} {module_S_M₂ : module S M₂} {σ : R →+* 
 variables {re₁ : ring_hom_inv_pair σ σ'} {re₂ : ring_hom_inv_pair σ' σ}
 variables (e e' : M ≃ₛₗ[σ] M₂)
 
-lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
-
-@[simp, norm_cast] theorem coe_coe : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
-
-@[simp] lemma coe_to_equiv : ⇑e.to_equiv = e := rfl
-
-@[simp] lemma coe_to_linear_map : ⇑e.to_linear_map = e := rfl
+@[simp] lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
+@[simp] lemma to_equiv_eq_coe : e.to_equiv = (e : M ≃ M₂) := rfl
 
 @[simp] lemma to_fun_eq_coe : e.to_fun = e := rfl
+@[simp, norm_cast] lemma coe_to_equiv : ⇑(e : M ≃ M₂) = e := rfl
+@[simp, norm_cast] lemma coe_to_linear_map : ⇑(e : M →ₛₗ[σ] M₂) = e := rfl
 
 section
 variables {e e'}
@@ -225,7 +222,13 @@ include σ'
 @[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 omit σ'
 
-@[simp] lemma coe_to_equiv_symm : ⇑e.to_equiv.symm = e.symm := rfl
+@[simp, norm_cast] lemma coe_to_equiv_symm : (e.symm : M₂ ≃ M) = (e : M ≃ M₂).symm := rfl
+
+@[simp, norm_cast]
+lemma coe_to_add_equiv_symm : (e.symm : M₂ ≃+ M) = (e : M ≃+ M₂).symm := rfl
+
+@[simp] lemma coe_to_equiv_symm_apply (x : M₂) : (e : M ≃ M₂).symm x = e.symm x := rfl
+@[simp] lemma coe_to_add_equiv_symm_apply (x : M₂) : (e : M ≃+ M₂).symm x = e.symm x := rfl
 
 variables {module_M₁ : module R₁ M₁} {module_M₂ : module R₂ M₂} {module_M₃ : module R₃ M₃}
 variables {module_N₁ : module R₁ N₁} {module_N₂ : module R₁ N₂}

@@ -44,6 +44,15 @@ instance topological_space_unbundled (x : Top) : topological_space x := x.str
 @[simp] lemma comp_app {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g : X → Z) x = g (f x) := rfl
 
+/-- Composing arrows in the category Top is the same as the continuous map consisting of the
+composition of the two continuous maps. -/
+lemma top_comp {X Y Z : Top.{u}} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : C(X, Z)) = ⟨g ∘ f⟩ := rfl
+
+/-- The identity arrow in Top is the same as the (continuous) identity map. -/
+lemma top_id (X : Top.{u}) :
+  (𝟙 X : C(X, X)) = ⟨id⟩ := rfl
+
 /-- Construct a bundled `Top` from the underlying type and the typeclass. -/
 def of (X : Type u) [topological_space X] : Top := ⟨X⟩
 

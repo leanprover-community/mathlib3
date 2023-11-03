@@ -23,6 +23,7 @@ if it is real differentiable at that point and its differential `is_conformal_li
 * `conformal_at`: the main definition of conformal maps
 * `conformal`: maps that are conformal at every point
 * `conformal_factor_at`: the conformal factor of a conformal map at some point
+* `inversion`: the inversion map
 
 ## Main results
 * The conformality of the composition of two conformal maps, the identity map
@@ -140,3 +141,12 @@ lemma const_smul {f : X → Y} (hf : conformal f) {c : ℝ} (hc : c ≠ 0) : con
 end conformal
 
 end global_conformality
+
+section conformal_inversion
+
+/-- The inversion map in a sphere at `x₀` of radius `r ^ 1/2`. -/
+def inversion {X : Type*} [normed_group X] [normed_space ℝ X]
+  {r : ℝ} (hr : 0 < r) (x₀ : X) : X → X :=
+λ x, x₀ + (r * (∥x - x₀∥ ^ 2)⁻¹) • (x - x₀)
+
+end conformal_inversion

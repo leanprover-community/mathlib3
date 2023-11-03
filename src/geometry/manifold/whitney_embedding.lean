@@ -120,8 +120,8 @@ begin
   set F := euclidean_space ℝ (fin $ finrank ℝ (ι → (E × ℝ))),
   letI : is_noetherian ℝ (E × ℝ) := is_noetherian.iff_fg.2 infer_instance,
   letI : finite_dimensional ℝ (ι → E × ℝ) := is_noetherian.iff_fg.1 infer_instance,
-  set eEF : (ι → (E × ℝ)) ≃L[ℝ] F :=
-    continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm,
+  have hf : finrank ℝ F = finrank ℝ (ι → (E × ℝ)) := finrank_euclidean_space_fin,
+  set eEF : _ ≃L[ℝ] F := continuous_linear_equiv.of_finrank_eq hf.symm,
   refine ⟨_, eEF ∘ f.embedding_pi_tangent,
     eEF.to_diffeomorph.smooth.comp f.embedding_pi_tangent.smooth,
     eEF.injective.comp f.embedding_pi_tangent_injective, λ x, _⟩,

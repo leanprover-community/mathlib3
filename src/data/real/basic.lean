@@ -106,26 +106,29 @@ lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
 lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
 lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
+instance has_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] : has_smul α ℝ :=
+{ smul := λ a r, ⟨a • r.cauchy⟩ }
+lemma of_cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (q) :
+  (⟨a • q⟩ : ℝ) = a • ⟨q⟩ := rfl
+lemma cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (r : ℝ) :
+  (a • r).cauchy = a • r.cauchy := rfl
+
+instance has_nat_pow : has_pow ℝ ℕ := { pow := λ r n, ⟨r.cauchy ^ n⟩ }
+lemma of_cauchy_pow (q) (n : ℕ) : (⟨q ^ n⟩ : ℝ) = ⟨q⟩ ^ n := rfl
+lemma cauchy_pow (r : ℝ) (n : ℕ) : (r ^ n).cauchy = r.cauchy ^ n := rfl
+
 instance : comm_ring ℝ :=
-begin
-  refine_struct { zero  := (0 : ℝ),
-                  one   := (1 : ℝ),
-                  mul   := (*),
-                  add   := (+),
-                  neg   := @has_neg.neg ℝ _,
-                  sub   := @has_sub.sub ℝ _,
-                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
-                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩,
-                  ..real.has_nat_cast,
-                  ..real.has_int_cast, };
-  repeat { rintro ⟨_⟩, };
-  try { refl };
-  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
-    λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl, has_nat_cast.nat_cast, has_int_cast.int_cast];
-  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
-end
+{ -- copying these explicitly helps with elaboration
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  sub := has_sub.sub,
+  neg := has_neg.neg,
+  ..function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
+      of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
+      (λ _ _, of_cauchy_smul _ _) (λ _ _, of_cauchy_smul _ _)
+      of_cauchy_pow of_cauchy_nat_cast of_cauchy_int_cast }
 
 /-- `real.equiv_Cauchy` as a ring equivalence. -/
 @[simps]
@@ -184,8 +187,8 @@ lemma lt_cauchy {f g} : (⟨⟦f⟧⟩ : ℝ) < ⟨⟦g⟧⟩ ↔ f < g := show 
 @[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g :=
 lt_cauchy
 
-lemma mk_zero : mk 0 = 0 := by rw ← of_cauchy_zero; refl
-lemma mk_one : mk 1 = 1 := by rw ← of_cauchy_one; refl
+lemma mk_zero : mk 0 = 0 := of_cauchy_zero
+lemma mk_one : mk 1 = 1 := of_cauchy_one
 lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, ←of_cauchy_add]
 lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, ←of_cauchy_mul]
 lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, ←of_cauchy_neg]
@@ -359,6 +362,11 @@ noncomputable instance : linear_ordered_field ℝ :=
   rat_cast_mk  := λ n d hd h2,
     by rw [←of_cauchy_rat_cast, rat.cast_mk', of_cauchy_mul, of_cauchy_inv, of_cauchy_nat_cast,
            of_cauchy_int_cast],
+  qsmul := (•),
+  qsmul_eq_mul' := begin
+    rintros q ⟨x⟩,
+    rw [←of_cauchy_rat_cast, ←of_cauchy_mul, ←rat.smul_def, of_cauchy_smul],
+  end,
   ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/

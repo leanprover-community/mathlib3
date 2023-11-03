@@ -126,7 +126,7 @@ protected def to_nnreal : ℝ≥0∞ → ℝ≥0 := with_top.untop' 0
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
 
 /-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
-protected noncomputable def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
+protected def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
 
 @[simp, norm_cast] lemma to_nnreal_coe : (r : ℝ≥0∞).to_nnreal = r := rfl
 
@@ -147,7 +147,13 @@ lemma coe_to_nnreal_le_self : ∀{a:ℝ≥0∞}, ↑(a.to_nnreal) ≤ a
 | none     := le_top
 
 lemma coe_nnreal_eq (r : ℝ≥0) : (r : ℝ≥0∞) = ennreal.of_real r :=
-by { rw [ennreal.of_real, real.to_nnreal], cases r with r h, congr, dsimp, rw max_eq_left h }
+begin
+  rw [ennreal.of_real, real.to_nnreal],
+  cases r with r h,
+  congr,
+  dsimp,
+  exact (max_eq_left h).symm
+end
 
 lemma of_real_eq_coe_nnreal {x : ℝ} (h : 0 ≤ x) :
   ennreal.of_real x = @coe ℝ≥0 ℝ≥0∞ _ (⟨x, h⟩ : ℝ≥0) :=

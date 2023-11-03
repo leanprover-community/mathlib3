@@ -302,7 +302,7 @@ instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
-by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of_real]
+by simp [nndist, edist_dist, real.to_nnreal, dist_nonneg, ennreal.of_real]
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=

@@ -188,6 +188,160 @@ lemma span_eq_span_iff {S T : set (ℙ K V)} : span S = span T ↔ S ⊆ span T 
 ⟨λ h, ⟨h ▸ subset_span S, h.symm ▸ subset_span T⟩,
   λ h, le_antisymm (span_le_subspace_iff.2 h.1) (span_le_subspace_iff.2 h.2)⟩
 
+open_locale big_operators
+
+/-- If a family of vectors is such that every nonzero vector in the family determines a point in the
+corresponding projective space which is contained in a subspace, then every nonzero finite sum of
+vectors from the family also determines a point contained in that subspace. -/
+lemma mk_sum_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V)
+  (hf : ∀ i, i ∈ s → f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
+  (hs : ∑ i in s, f i ≠ 0) : projectivization.mk K (∑ i in s, f i) hs ∈ W :=
+begin
+  suffices : (∑ (i : ι) in s, f i = 0) ∨
+    (∃ (h : (∑ (i : ι) in s, f i ≠ 0)), (projectivization.mk K (∑ (i : ι) in s, f i) h ∈ W)), by
+    { rcases this, contradiction, cases this, assumption },
+  apply finset.sum_induction f (λ x, x = 0 ∨ (∃ hx : x ≠ 0, projectivization.mk K x hx ∈ W)),
+  { intros a b ha hb, by_cases hab : a + b = 0,
+    { left, exact hab },
+    { cases ha; cases hb,
+      { rw [ha, hb, zero_add], simp },
+      { simp_rw [ha, zero_add], right, exact hb },
+      { simp_rw [hb, add_zero], right, exact ha },
+      { right, cases ha, cases hb, exact ⟨hab, mem_add W a b ha_w hb_w hab ha_h hb_h⟩ } } },
+  { simp },
+  { intros i hi, exact hf i hi }
+end
+
+/-- If a family of vectors is such that every nonzero vector in the family determines a point in the
+corresponding projective space which is contained in a subspace, then every nonzero linear
+combination of vectors from the family also determines a point contained in that subspace. -/
+lemma mk_sum_smul_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V) (g : ι → K)
+  (hf : ∀ i, i ∈ s → f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
+  (hs : ∑ i in s, (g i) • f i ≠ 0) : projectivization.mk K (∑ i in s, (g i) • f i) hs ∈ W :=
+begin
+  refine mk_sum_mem s W (g • f) _ hs,
+  intro i,
+  by_cases hgz : g i = 0,
+  { rw [hgz, zero_smul], simp },
+  { by_cases hfz : f i = 0,
+    { rw [hfz, smul_zero], simp },
+    { intro hi, right,
+      refine ⟨by { rw [ne.def, smul_eq_zero, not_or_distrib], exact ⟨hgz, hfz⟩ }, _⟩,
+      cases (or.resolve_left (hf i hi) hfz), convert h using 1, rw mk_eq_mk_iff', use g i } }
+end
+
+/-- If a set of points in a projective space has the property that for any two unique points
+contained in the set, these points being dependent with a third point in the projective space
+implies that this third point is contained in the set, then the set is a subspace. -/
+def mk_of_dependent (S : set (ℙ K V))
+  (h : ∀ u v w, u ≠ v → u ∈ S → v ∈ S → dependent ![u, v, w] → w ∈ S) : subspace K V :=
+{ carrier := S,
+  mem_add' := λ u v hu hv huv huS hvS,
+  begin
+    by_cases heq : projectivization.mk K u hu = projectivization.mk K v hv,
+    { convert hvS using 1,
+      rw mk_eq_mk_iff' at heq ⊢,
+      cases heq with a ha,
+      exact ⟨a + 1, by { rw [add_smul, ha, one_smul] }⟩ },
+    { refine h _ _ (projectivization.mk K (u + v) huv) heq huS hvS _,
+      convert dependent.mk ![u, v, u + v] _ _,
+      { ext i, fin_cases i; simp },
+      { intro i, fin_cases i; assumption },
+      { rw fintype.not_linear_independent_iff,
+        refine ⟨![-1, -1, 1], _, ⟨2, by { simp }⟩⟩,
+        simp only [fin.sum_univ_three, matrix.cons_val_zero, neg_smul, one_smul,
+          matrix.cons_val_one, matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.cons_append,
+          matrix.empty_append, matrix.cons_vec_alt0],
+        abel } },
+  end }
+
+/-- If a set of points in a projective space has the property that for any independent family of
+points contained in the set, this family being dependent with another point in the projective space
+implies that this point is contained in the set, then the set is a subspace. -/
+def mk_of_dependent' (S : set (ℙ K V)) (h : ∀ (ι : Type*) (f : ι → ℙ K V) (hf: independent f)
+  (u : ℙ K V) (hf' : dependent (λ t, sum.rec_on t f (λ _, u) : ι ⊕ punit → ℙ K V))
+  (h : ∀ i, f i ∈ S), u ∈ S) : subspace K V :=
+mk_of_dependent S
+begin
+  intros u v w huv huS hvS hdep,
+  refine h (ulift $ fin 2) (![u, v] ∘ ulift.down) _ _ _ _,
+  { rw [independent_iff],
+    rw [← independent_pair_iff_neq, independent_iff] at huv,
+    apply linear_independent.comp huv ulift.down (ulift.down_injective) },
+  { rw [dependent_iff] at hdep ⊢, by_contra, apply hdep,
+    convert linear_independent.comp h (![sum.inl 0, sum.inl 1, sum.inr punit.star]) _,
+    { ext i, fin_cases i; refl },
+    { intros m n _, fin_cases m; fin_cases n; tidy } },
+  { simp_rw [ulift.forall, function.comp_app], intro x, fin_cases x; assumption },
+end
+
+/-- If a family of points in a projective space is independent, and adding a point to the family
+results in it becoming dependent, then the added point's representative is in the span
+of the representatives of the original family. -/
+lemma independent_sum_punit_dependent {ι : Type*} (f : ι → ℙ K V) (hf: independent f) (u : ℙ K V)
+  (hf' : dependent (λ t, sum.rec_on t f (λ _, u) : ι ⊕ punit → ℙ K V)) :
+  u.rep ∈ submodule.span K (set.range (projectivization.rep ∘ f)) :=
+begin
+  simp_rw [dependent_iff, independent_iff] at hf' hf,
+  have : ¬ linear_independent K (sum.elim (projectivization.rep ∘ f)
+    (projectivization.rep ∘ (λ t, u) : punit → V)), by { convert hf', ext, cases x; simp },
+  have hu : linear_independent K (λ (x : punit), u.rep) :=
+    linear_independent_unique (λ (x : punit), u.rep) (rep_nonzero u),
+  have hd : ¬ disjoint (submodule.span K (set.range (projectivization.rep ∘ f)))
+    (submodule.span K (set.range (projectivization.rep ∘ (λ t, u) : punit → V))), by
+    { by_contra, exact this (linear_independent.sum_type hf hu h) },
+  rw [disjoint_iff, ← ne.def, submodule.ne_bot_iff] at hd,
+  rcases hd with ⟨v, hv1, hv3⟩,
+  cases submodule.mem_inf.1 hv1 with hv1 hv2,
+  have hv : v ∈ submodule.span K {u.rep}, by { convert hv2, simp },
+  cases submodule.mem_span_singleton.1 hv with a ha,
+  rw [← ha] at hv1,
+  convert submodule.smul_mem _ a⁻¹ hv1,
+  have haz : a ≠ 0, by { by_contra haz, rw [haz, zero_smul] at ha, exact hv3 ha.symm },
+  rw [← smul_assoc, smul_eq_mul, inv_mul_cancel haz, one_smul],
+end
+
+/-- If a subspace of a projective space contains a family of independent points, and this family is
+dependent with another point in the projective space, then the point is contained in the
+subspace. -/
+lemma mem_of_dependent' {ι : Type*} (W : subspace K V) (f : ι → ℙ K V) (hf: independent f)
+  (u : ℙ K V) (hf' : dependent (λ t, sum.rec_on t f (λ _, u) : ι ⊕ punit → ℙ K V))
+  (h : ∀ i, f i ∈ W) : u ∈ W :=
+begin
+  let hu := independent_sum_punit_dependent f hf u hf',
+  rcases (submodule.mem_span_finite_of_mem_span hu) with ⟨s, ⟨h2, h3⟩⟩,
+  rcases mem_span_finset.1 h3 with ⟨g, hg⟩,
+  convert mk_sum_smul_mem s W (λ x, x : V → V) (g) _ _,
+  { rw [← mk_rep u, mk_eq_mk_iff'], use 1, rw one_smul, exact hg },
+  { intros i his, by_cases hi : i = 0,
+    { left, exact hi },
+    { right,
+      refine ⟨hi, _⟩,
+      cases h2 his with y hy,
+      rw function.comp_app at hy,
+      convert h y,
+      rw [← mk_rep (f y), mk_eq_mk_iff'],
+      exact ⟨1, by { rwa one_smul }⟩ } },
+  { rw hg, exact rep_nonzero u },
+end
+
+/-- If a subspace of a projective space contains two unique points, and a third point from the
+projective space is dependent with the two unique points, then the third point is contained in the
+subspace. -/
+lemma mem_of_dependent (W : subspace K V) (u v w : ℙ K V) (h: u ≠ v) (hu : u ∈ W) (hv : v ∈ W)
+  (hdep: dependent ![u, v, w]) : w ∈ W :=
+begin
+  refine mem_of_dependent' W ![u, v] _ w _ _,
+  { rwa independent_pair_iff_neq },
+  { rw [dependent_iff] at hdep ⊢,
+    by_contra,
+    apply hdep,
+    convert linear_independent.comp h (![sum.inl 0, sum.inl 1, sum.inr punit.star]) _,
+    { ext, fin_cases x; refl },
+    { intros m n; fin_cases m; fin_cases n; tidy } },
+  { intro i, fin_cases i; assumption },
+end
+
 end subspace
 
 end projectivization

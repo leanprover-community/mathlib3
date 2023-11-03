@@ -42,23 +42,26 @@ intermediate field, field extension
 open finite_dimensional polynomial
 open_locale big_operators polynomial
 
-variables (K L L' : Type*) [field K] [field L] [field L'] [algebra K L] [algebra K L']
+set_option old_structure_cmd true
 
 /-- `S : intermediate_field K L` is a subset of `L` such that there is a field
 tower `L / S / K`. -/
-structure intermediate_field extends subalgebra K L :=
-(neg_mem' : ∀ x ∈ carrier, -x ∈ carrier)
-(inv_mem' : ∀ x ∈ carrier, x⁻¹ ∈ carrier)
+structure intermediate_field (K L : Type*) [field K] [division_ring L] [algebra K L]
+  extends subalgebra K L, subfield L
 
 /-- Reinterpret an `intermediate_field` as a `subalgebra`. -/
 add_decl_doc intermediate_field.to_subalgebra
 
-variables {K L L'} (S : intermediate_field K L)
+/-- Reinterpret an `intermediate_field` as a `subfield`. -/
+add_decl_doc intermediate_field.to_subfield
+
+variables {K L L' : Type*} (S : intermediate_field K L)
 
 namespace intermediate_field
 
-/-- Reinterpret an `intermediate_field` as a `subfield`. -/
-def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
+section division_ring
+
+variables [field K] [division_ring L] [algebra K L] (S : intermediate_field K L)
 
 instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
@@ -83,8 +86,8 @@ set_like.ext h
 @[simp] lemma coe_to_subfield : (S.to_subfield : set L) = S := rfl
 
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
-  (ho hm hz ha hn hi) (x : L) :
-  x ∈ intermediate_field.mk (subalgebra.mk s ho hm hz ha hK) hn hi ↔ x ∈ s := iff.rfl
+  (ho hm hz ha hn hi hc) (x : L) :
+  x ∈ intermediate_field.mk s ho hm hz ha hK hn hi hc ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
@@ -148,8 +151,6 @@ protected lemma list_prod_mem {l : list L} : (∀ x ∈ l, x ∈ S) → l.prod �
 /-- Sum of a list of elements in an intermediate field is in the intermediate_field. -/
 protected lemma list_sum_mem {l : list L} : (∀ x ∈ l, x ∈ S) → l.sum ∈ S := list_sum_mem
 /-- Product of a multiset of elements in an intermediate field is in the intermediate_field. -/
-protected lemma multiset_prod_mem (m : multiset L) : (∀ a ∈ m, a ∈ S) → m.prod ∈ S :=
-multiset_prod_mem m
 /-- Sum of a multiset of elements in a `intermediate_field` is in the `intermediate_field`. -/
 protected lemma multiset_sum_mem (m : multiset L) : (∀ a ∈ m, a ∈ S) → m.sum ∈ S :=
 multiset_sum_mem m
@@ -179,13 +180,35 @@ end inherited_lemmas
 lemma coe_nat_mem (n : ℕ) : (n : L) ∈ S :=
 by simpa using coe_int_mem S n
 
+end division_ring
+
+section field
+
+variables [field K] [field L] [algebra K L] (S : intermediate_field K L)
+
+/-- Product of a multiset of elements in an intermediate field is in the intermediate_field. -/
+protected lemma multiset_prod_mem (m : multiset L) : (∀ a ∈ m, a ∈ S) → m.prod ∈ S :=
+multiset_prod_mem m
+
+/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field.
+-/
+protected lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
+  ∏ i in t, f i ∈ S := prod_mem h
+
+end field
+
 end intermediate_field
+
+section field
+
+variables [field K] [field L] [algebra K L] (S : intermediate_field K L)
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/
 def subalgebra.to_intermediate_field (S : subalgebra K L) (inv_mem : ∀ x ∈ S, x⁻¹ ∈ S) :
   intermediate_field K L :=
 { neg_mem' := λ x, S.neg_mem,
   inv_mem' := inv_mem,
+  mul_comm' := λ x y hx hy, mul_comm _ _,
   .. S }
 
 @[simp] lemma to_subalgebra_to_intermediate_field
@@ -225,7 +248,13 @@ def subfield.to_intermediate_field (S : subfield L)
 { algebra_map_mem' := algebra_map_mem,
   .. S }
 
+end field
+
 namespace intermediate_field
+
+section division_ring
+
+variables [field K] [division_ring L] [algebra K L] (S : intermediate_field K L)
 
 /-- An intermediate field inherits a field structure -/
 instance to_field : field S :=
@@ -271,27 +300,37 @@ instance algebra' {K'} [comm_semiring K'] [has_smul K' K] [algebra K' L]
 S.to_subalgebra.algebra'
 instance algebra : algebra K S := S.to_subalgebra.algebra
 
-instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
+end division_ring
+
+section field
+
+variables {R : Type*} [field K] [field L] [semiring R] [algebra K L] [algebra L R]
+variables (S : intermediate_field K L)
+
+instance to_algebra : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance is_scalar_tower_bot {R : Type*} [semiring R] [algebra L R] :
-  is_scalar_tower S L R :=
+instance is_scalar_tower_bot : is_scalar_tower S L R :=
 is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
 
-instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
-  [is_scalar_tower K L R] : is_scalar_tower K S R :=
+instance is_scalar_tower_mid [algebra K R] [is_scalar_tower K L R] : is_scalar_tower K S R :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 
 /-- Specialize `is_scalar_tower_mid` to the common case where the top field is `L` -/
 instance is_scalar_tower_mid' : is_scalar_tower K S L :=
 S.is_scalar_tower_mid
 
+end field
+
+section division_ring
+
+variables [field K] [division_ring L] [division_ring L'] [algebra K L] [algebra K L']
+variables (S : intermediate_field K L)
+
 /-- If `f : L →+* L'` fixes `K`, `S.map f` is the intermediate field between `L'` and `K`
 such that `x ∈ S ↔ f x ∈ S.map f`. -/
-def map (f : L →ₐ[K] L') (S : intermediate_field K L) : intermediate_field K L' :=
-{ inv_mem' := by { rintros _ ⟨x, hx, rfl⟩, exact ⟨x⁻¹, S.inv_mem hx, map_inv₀ f x⟩ },
-  neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
-  .. S.to_subalgebra.map f}
+def map (f : L →ₐ[K] L') : intermediate_field K L' :=
+{ .. S.to_subfield.map f.to_ring_hom, .. S.to_subalgebra.map f}
 
 @[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
 
@@ -422,9 +461,11 @@ lemma field_range_le : (algebra_map K L).field_range ≤ S.to_subfield :=
 @[simp] lemma to_subalgebra_lt_to_subalgebra {S S' : intermediate_field K L} :
   S.to_subalgebra < S'.to_subalgebra ↔ S < S' := iff.rfl
 
-variables {S}
+end division_ring
 
 section tower
+
+variables [field K] [field L] [algebra K L] {S : intermediate_field K L}
 
 /-- Lift an intermediate_field of an intermediate_field -/
 def lift {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
@@ -472,7 +513,7 @@ end tower
 
 section finite_dimensional
 
-variables (F E : intermediate_field K L)
+variables [field K] [field L] [algebra K L] (F E : intermediate_field K L)
 
 instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
 left K F L
@@ -530,6 +571,10 @@ end
 
 end intermediate_field
 
+section
+
+variables [field K] [field L] [algebra K L]
+
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/
 def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
   subalgebra K L ≃o intermediate_field K L :=
@@ -548,3 +593,5 @@ iff.rfl
   {S : intermediate_field K L} {x : L} :
   x ∈ (subalgebra_equiv_intermediate_field alg).symm S ↔ x ∈ S :=
 iff.rfl
+
+end

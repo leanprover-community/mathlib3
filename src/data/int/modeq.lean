@@ -31,6 +31,11 @@ def modeq (n a b : ℤ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [ZMOD `:50 n `]`:0 := modeq n a b
 
+notation a ` ≢ `:50 b ` [ZMOD `:50 n `]`:0 := ¬ (a ≡ b [ZMOD n])
+
+/-- `a ≢ b [ZMOD n]` when `a % n ≠ b % n`. -/
+lemma modneq_iff (n a b : ℤ) : a ≢ b [ZMOD n] ↔ a % n ≠ b % n := by refl
+
 variables {m n a b c d : ℤ}
 
 namespace modeq

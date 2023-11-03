@@ -33,6 +33,11 @@ def modeq (n a b : ℕ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
 
+notation a ` ≢ `:50 b ` [MOD `:50 n `]`:0 := ¬ (a ≡ b [MOD n])
+
+/-- Invalid modular congruence. `a ≢ b [MOD n]`, means that `a - b` is NOT a multiple of `n`. -/
+lemma modneq_iff (n a b : ℕ) : a ≢ b [MOD n] ↔ a % n ≠ b % n := by refl
+
 variables {m n a b c d : ℕ}
 
 namespace modeq

@@ -1727,7 +1727,7 @@ include σ₂₁ re₁₂ re₂₁
 rfl
 omit σ₂₁ re₁₂ re₂₁
 
-@[simp] protected theorem range : (e : M →ₛₗ[σ₁₂] M₂).range = ⊤ :=
+@[simp] protected theorem range_eq_top : (e : M →ₛₗ[σ₁₂] M₂).range = ⊤ :=
 linear_map.range_eq_top.2 e.to_equiv.surjective
 
 include σ₂₁ re₁₂ re₂₁
@@ -1749,7 +1749,7 @@ linear_map.ker_eq_bot_of_injective e.to_equiv.injective
 @[simp] theorem range_comp [ring_hom_surjective σ₁₂] [ring_hom_surjective σ₂₃]
   [ring_hom_surjective σ₁₃] :
   (h.comp (e : M →ₛₗ[σ₁₂] M₂) : M →ₛₗ[σ₁₃] M₃).range = h.range :=
-linear_map.range_comp_of_range_eq_top _ e.range
+linear_map.range_comp_of_range_eq_top _ e.range_eq_top
 
 include module_M
 @[simp] theorem ker_comp (l : M →ₛₗ[σ₁₂] M₂) :

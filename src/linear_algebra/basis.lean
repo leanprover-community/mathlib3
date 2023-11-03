@@ -157,7 +157,7 @@ by { rw ← b.coe_repr_symm, exact b.repr.apply_symm_apply v }
 by { rw ← b.coe_repr_symm, exact b.repr.symm_apply_apply x }
 
 lemma repr_range : (b.repr : M →ₗ[R] (ι →₀ R)).range = finsupp.supported R R univ :=
-by rw [linear_equiv.range, finsupp.supported_univ]
+by rw [linear_equiv.range_eq_top, finsupp.supported_univ]
 
 lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
   m ∈ span R (b '' (b.repr m).support) :=
@@ -541,7 +541,7 @@ b.constr_eq S $ λ x, rfl
 
 lemma constr_range [nonempty ι] {f : ι  → M'} :
   (b.constr S f).range = span R (range f) :=
-by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range,
+by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range_eq_top,
        ← finsupp.supported_univ, finsupp.lmap_domain_supported, ←set.image_univ,
        ← finsupp.span_image_eq_map_total, set.image_id]
 

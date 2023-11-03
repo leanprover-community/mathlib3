@@ -933,8 +933,8 @@ variables {S}
 
 @[simp]
 lemma fintype.range_total : (fintype.total R S v).range = submodule.span R (set.range v) :=
-by rw [← finsupp.total_eq_fintype_total, linear_map.range_comp,
-  linear_equiv.to_linear_map_eq_coe, linear_equiv.range, submodule.map_top, finsupp.range_total]
+by rw [← finsupp.total_eq_fintype_total, linear_map.range_comp, linear_equiv.to_linear_map_eq_coe,
+  linear_equiv.range_eq_top, submodule.map_top, finsupp.range_total]
 
 section span_range
 

@@ -31,7 +31,7 @@ Moreover, we prove some lemmas about the fixed points of specific normal functio
 
 noncomputable theory
 
-universes u v
+universes u v w
 
 open function order
 
@@ -40,7 +40,7 @@ namespace ordinal
 /-! ### Fixed points of type-indexed families of ordinals -/
 
 section
-variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
+variables {ι : Type u} {ι' : Type w} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
 /-- The next common fixed point, at least `a`, for a family of normal functions.
 
@@ -72,6 +72,13 @@ sup_le_iff
 theorem nfp_family_le {a b} : (∀ l, list.foldr f a l ≤ b) → nfp_family f a ≤ b :=
 sup_le
 
+@[simp] theorem nfp_family_empty [is_empty ι] (f : ι → ordinal → ordinal) : nfp_family f = id :=
+funext $ λ a, le_antisymm (nfp_family_le begin
+  rintro (_ | i),
+  { refl },
+  { exact is_empty_elim i }
+end) (le_nfp_family f a)
+
 theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
 λ a b h, sup_le $ λ l, (list.foldr_monotone hf l h).trans (le_sup _ l)
 
@@ -87,6 +94,16 @@ theorem apply_lt_nfp_family_iff [nonempty ι] (H : ∀ i, is_normal (f i)) {a b}
 theorem nfp_family_le_apply [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
 by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family_iff H }
+
+theorem nfp_family_le_of_range_subset {ι : Type u} {ι' : Type v} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f ⊆ set.range g) (a) :
+  nfp_family.{u (max v w)} f a ≤ nfp_family.{v (max u w)} g a :=
+sup_le_of_range_subset (list.foldr_range_subset_of_range_subset hfg a)
+
+theorem nfp_family_eq_of_range_eq {ι : Type u} {ι' : Type v} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f = set.range g) :
+  nfp_family.{u (max v w)} f = nfp_family.{v (max u w)} g :=
+funext (λ a, sup_eq_of_range_eq (list.foldr_range_eq_of_range_eq hfg a))
 
 theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
   nfp_family f a ≤ b :=
@@ -206,12 +223,47 @@ begin
   rwa ←fp_iff_deriv_family H
 end
 
+theorem deriv_family_le_of_range_subset {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal.{max u v w}} (hf : ∀ i, monotone (f i))
+  (hfg : set.range f ⊆ set.range g) (a) : deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
+begin
+  apply limit_rec_on a,
+  { simp only [deriv_family_zero],
+    exact nfp_family_le_of_range_subset.{u w v} hfg 0 },
+  { simp only [deriv_family_succ],
+    exact λ b H, (nfp_family_monotone hf $ succ_le_succ H).trans
+      (nfp_family_le_of_range_subset.{u w v} hfg _) },
+  { intros b hb H,
+    rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb, bsup_le_iff],
+    exact λ c hc, (H c hc).trans (le_bsup _ c hc) }
+end
+
+theorem deriv_family_eq_of_range_eq {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f = set.range g) :
+  deriv_family f = deriv_family.{w (max u v w)} g :=
+funext (λ a, begin
+  apply limit_rec_on a,
+  { simp only [deriv_family_zero],
+    rw nfp_family_eq_of_range_eq.{u w v} hfg,
+    refl },
+  { simp only [deriv_family_succ],
+    intros b H,
+    rw [H, nfp_family_eq_of_range_eq.{u w v} hfg],
+    refl },
+  { intros b hb H,
+    rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb],
+    apply bsup_eq_of_brange_eq.{(max u v w) (max u v w) (max u v w)},
+    congr,
+    ext c hc,
+    exact H c hc }
+end)
+
 end
 
 /-! ### Fixed points of ordinal-indexed families of ordinals -/
 
 section
-variables {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
+variables {o : ordinal.{u}} {o' : ordinal.{w}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
 
 /-- The next common fixed point, at least `a`, for a family of normal functions indexed by ordinals.
 
@@ -345,6 +397,24 @@ begin
   rwa ←fp_iff_deriv_bfamily H
 end
 
+theorem deriv_bfamily_le_of_range_subset {f : Π b < o, ordinal → ordinal}
+  {g : Π b < o', ordinal → ordinal.{max u v w}} (hf : ∀ i hi, monotone (f i hi))
+  (hfg : brange o f ⊆ brange o' g) (a) :
+  deriv_bfamily o f a ≤ deriv_bfamily.{w (max u v w)} o' g a :=
+begin
+  apply deriv_family_le_of_range_subset (λ i, hf _ _),
+  { simpa [range_family_of_bfamily] using hfg }
+end
+
+theorem deriv_bfamily_eq_of_range_eq {f : Π b < o, ordinal → ordinal}
+  {g : Π b < o', ordinal → ordinal.{max u v w}} (hfg : brange o f = brange o' g) :
+  deriv_bfamily o f = deriv_bfamily.{w (max u v w)} o' g :=
+funext (λ a, begin
+  unfold deriv_bfamily,
+  rw deriv_family_eq_of_range_eq,
+  simpa [range_family_of_bfamily] using hfg
+end)
+
 end
 
 /-! ### Fixed points of a single function -/
@@ -358,8 +428,9 @@ This is defined as `ordinal.nfp_family` applied to a family consisting only of `
 def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
-theorem nfp_eq_nfp_family (f : ordinal → ordinal) : nfp f = nfp_family (λ _ : unit, f) :=
-rfl
+@[simp] theorem nfp_family_eq_nfp (ι : Type u) [nonempty ι]
+  (f : ordinal.{max u v} → ordinal.{max u v}) : nfp_family.{u v} (λ _ : ι, f) = nfp f :=
+nfp_family_eq_of_range_eq.{u 0} (by simp)
 
 @[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :
   (λ a, sup (λ n : ℕ, f^[n] a)) = nfp f :=
@@ -431,8 +502,9 @@ This is defined as `ordinal.deriv_family` applied to a trivial family consisting
 def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
 
-theorem deriv_eq_deriv_family (f : ordinal → ordinal) : deriv f = deriv_family (λ _ : unit, f) :=
-rfl
+@[simp] theorem deriv_family_eq_deriv (ι : Type u) [nonempty ι]
+  (f : ordinal.{max u v} → ordinal.{max u v}) : deriv_family (λ _ : ι, f) = deriv f :=
+deriv_family_eq_of_range_eq.{u v 0} (by simp)
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _

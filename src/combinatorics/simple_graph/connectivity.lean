@@ -325,6 +325,9 @@ by simp [reverse]
 lemma eq_of_length_eq_zero : Π {u v : V} {p : G.walk u v}, p.length = 0 → u = v
 | _ _ nil _ := rfl
 
+lemma adj_of_length_eq_one : Π {u v : V} {p : G.walk u v}, p.length = 1 → G.adj u v
+| _ _ (walk.cons a nil) _ := a
+
 @[simp] lemma exists_length_eq_zero_iff {u v : V} : (∃ (p : G.walk u v), p.length = 0) ↔ u = v :=
 begin
   split,

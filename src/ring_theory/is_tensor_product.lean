@@ -43,10 +43,10 @@ section is_tensor_product
 
 variables {R : Type*} [comm_ring R]
 variables {M₁ M₂ M M' : Type*}
-variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M] [add_comm_monoid M']
+variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M] [add_comm_group M']
 variables [module R M₁] [module R M₂] [module R M] [module R M']
 variable (f : M₁ →ₗ[R] M₂ →ₗ[R] M)
-variables {N₁ N₂ N : Type*} [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N]
+variables {N₁ N₂ N : Type*} [add_comm_group N₁] [add_comm_group N₂] [add_comm_group N]
 variables [module R N₁] [module R N₂] [module R N]
 variable {g : N₁ →ₗ[R] N₂ →ₗ[R] N}
 
@@ -129,7 +129,7 @@ end is_tensor_product
 section is_base_change
 
 variables {R : Type*} {M : Type v₁} {N : Type v₂} (S : Type v₃)
-variables [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
+variables [add_comm_group M] [add_comm_group N] [comm_ring R]
 variables [comm_ring S] [algebra R S] [module R M] [module R N] [module S N] [is_scalar_tower R S N]
 variables (f : M →ₗ[R] N)
 
@@ -142,8 +142,16 @@ def is_base_change : Prop := is_tensor_product
 (((algebra.of_id S $ module.End S (M →ₗ[R] N)).to_linear_map.flip f).restrict_scalars R)
 
 variables {S f} (h : is_base_change S f)
-variables {P Q : Type*} [add_comm_monoid P] [module R P]
-variables [add_comm_monoid Q] [module S Q]
+variables {P Q : Type*} [add_comm_group P] [module R P]
+variables [add_comm_group Q] [module S Q]
+
+@[elab_as_eliminator]
+lemma is_base_change.induction_on (x : N) (P : N → Prop)
+  (h₁ : P 0)
+  (h₂ : ∀ m : M, P (f m))
+  (h₃ : ∀ (s : S) n, P n → P (s • n))
+  (h₄ : ∀ n₁ n₂, P n₁ → P n₂ → P (n₁ + n₂)) : P x :=
+h.induction_on x h₁ (λ s y, h₃ _ _ (h₂ _)) h₄
 
 section
 
@@ -158,7 +166,7 @@ def is_base_change.lift (g : M →ₗ[R] Q) : N →ₗ[S] Q :=
       .to_linear_map.flip g).restrict_scalars R,
     have hF : ∀ (s : S) (m : M), h.lift F (s • f m) = s • g m := h.lift_eq F,
     change h.lift F (r • x) = r • h.lift F x,
-    apply h.induction_on x,
+    apply is_tensor_product.induction_on h x,
     { rw [smul_zero, map_zero, smul_zero] },
     { intros s m,
       change h.lift F (r • s • f m) = r • h.lift F (s • f m),
@@ -177,16 +185,28 @@ end
 lemma is_base_change.lift_comp (g : M →ₗ[R] Q) : ((h.lift g).restrict_scalars R).comp f = g :=
 linear_map.ext (h.lift_eq g)
 
+lemma is_base_change.span_range (h : is_base_change S f) : submodule.span S (f.range : set N) = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintro x -,
+  apply h.induction_on x _,
+  { exact zero_mem _ },
+  { exact λ x, submodule.subset_span (linear_map.mem_range_self f x) },
+  { exact λ s x, submodule.smul_mem _ s },
+  { exact λ _ _ , add_mem },
 end
-include h
 
-@[elab_as_eliminator]
-lemma is_base_change.induction_on (x : N) (P : N → Prop)
-  (h₁ : P 0)
-  (h₂ : ∀ m : M, P (f m))
-  (h₃ : ∀ (s : S) n, P n → P (s • n))
-  (h₄ : ∀ n₁ n₂, P n₁ → P n₂ → P (n₁ + n₂)) : P x :=
-h.induction_on x h₁ (λ s y, h₃ _ _ (h₂ _)) h₄
+lemma is_base_change.range_lift (g : M →ₗ[R] Q) : (h.lift g).range = submodule.span S g.range :=
+begin
+  rw [linear_map.range_eq_map, ← h.span_range, submodule.map_span, linear_map.range_coe,
+    ← set.image_univ, set.image_image],
+  simp_rw [h.lift_eq, set.image_univ],
+  refl,
+end
+
+end
+
+include h
 
 lemma is_base_change.alg_hom_ext (g₁ g₂ : N →ₗ[S] Q) (e : ∀ x, g₁ (f x) = g₂ (f x)) :
   g₁ = g₂ :=
@@ -243,7 +263,7 @@ by rw [h.equiv.symm_apply_eq, h.equiv_tmul, one_smul]
 variable (f)
 
 lemma is_base_change.of_lift_unique
-  (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
+  (h : ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_group Q], by exactI ∀ [module R Q] [module S Q],
     by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
 begin
@@ -272,7 +292,7 @@ variable {f}
 
 lemma is_base_change.iff_lift_unique :
   is_base_change S f ↔
-    ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_monoid Q], by exactI ∀ [module R Q] [module S Q],
+    ∀ (Q : Type (max v₁ v₂ v₃)) [add_comm_group Q], by exactI ∀ [module R Q] [module S Q],
     by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g :=
 ⟨λ h, by { introsI,
@@ -294,7 +314,7 @@ begin
 end
 
 variables {T O : Type*} [comm_ring T] [algebra R T] [algebra S T] [is_scalar_tower R S T]
-variables [add_comm_monoid O] [module R O] [module S O] [module T O] [is_scalar_tower S T O]
+variables [add_comm_group O] [module R O] [module S O] [module T O] [is_scalar_tower S T O]
 variables [is_scalar_tower R S O] [is_scalar_tower R T O]
 
 lemma is_base_change.comp {f : M →ₗ[R] N} (hf : is_base_change S f) {g : N →ₗ[S] O}
@@ -462,3 +482,104 @@ begin
 end
 
 end is_base_change
+
+section surjective
+
+variables {R : Type v₁} {S : Type v₂} {M : Type v₃} {N : Type v₄} [comm_ring R] [comm_ring S]
+variables [add_comm_group M] [module R M] [add_comm_group N] [module R N] [module S N]
+
+noncomputable
+instance module.quotient_of_ring_hom_surjective {f : R →+* S} [h : ring_hom_surjective f] :
+  module S (M ⧸ (f.ker • ⊤ : submodule R M)) :=
+module.comp_hom _ $ ring_hom.lift_of_surjective _ h.1
+  ⟨module.to_module_End R (M ⧸ (f.ker • ⊤ : submodule R M)),
+  by { intros x hx, ext m, dsimp,
+    rw [← submodule.quotient.mk_smul, submodule.quotient.mk_eq_zero],
+    exact submodule.smul_mem_smul hx trivial }⟩
+
+lemma module.quotient_of_ring_hom_surjective_smul {f : R →+* S} [h : ring_hom_surjective f]
+  (r : R) (x : M ⧸ (f.ker • ⊤ : submodule R M)) : f r • x = r • x :=
+begin
+  change (ring_hom.lift_of_surjective _ h.1 ⟨_, _⟩ $ f r) • x = _,
+  rw ring_hom.lift_of_right_inverse_comp_apply,
+  refl,
+end
+
+variables [algebra R S] [is_scalar_tower R S N]
+
+instance [h : ring_hom_surjective (algebra_map R S)] :
+  is_scalar_tower R S (M ⧸ ((algebra_map R S).ker • ⊤ : submodule R M)) :=
+begin
+  constructor,
+  intros x y z,
+  obtain ⟨y, rfl⟩ := h.1 y,
+  rw [module.quotient_of_ring_hom_surjective_smul, smul_smul,
+    ← module.quotient_of_ring_hom_surjective_smul (x * y) z, _root_.map_mul, ← algebra.smul_def],
+end
+
+variables (R S M)
+
+lemma is_base_change_of_ring_hom_surjective [h : ring_hom_surjective (algebra_map R S)] :
+  is_base_change S ((algebra_map R S).ker • ⊤ : submodule R M).mkq :=
+begin
+  apply is_base_change.of_lift_unique,
+  introsI Q h₁ h₂ h₃ h₄ f',
+  let f'' := (ring_hom.ker (algebra_map R S) • ⊤ : submodule R M).liftq f' _,
+  swap,
+  { intros x hx,
+    apply submodule.smul_induction_on hx,
+    { rintros r (hr : algebra_map R S r = 0) n -,
+      rw [linear_map.mem_ker, f'.map_smul, ← algebra_map_smul S r (f' n), hr, zero_smul] },
+    { intros x y hx hy, exact add_mem hx hy } },
+  { refine ⟨{ map_smul' := _, ..f'' }, _, _⟩,
+    { intros r x, obtain ⟨r, rfl⟩ := h.1 r, simp },
+    { ext x, simp },
+    { rintros f''' rfl, apply linear_map.ext (λ x, _),
+      obtain ⟨x, rfl⟩ := submodule.mkq_surjective _ x, simp } },
+end
+
+variables {R S M}
+
+/-- If `f : M →ₗ[R] N` is the base change along a surjection `R → S` with kernel `I`,
+then `N` is linearly equivalent to `M / IM`. -/
+noncomputable
+def is_base_change.equiv_of_surjective {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) :
+    (M ⧸ ((algebra_map R S).ker • ⊤ : submodule R M)) ≃ₗ[R] N :=
+begin
+  haveI : ring_hom_surjective (algebra_map R S) := ⟨h⟩,
+  exact ((is_base_change_of_ring_hom_surjective R S M)
+    .equiv.symm.trans hf.equiv).restrict_scalars R,
+end
+
+@[simp]
+lemma is_base_change.equiv_of_surjective_mk {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) (x : M) :
+    hf.equiv_of_surjective h (submodule.quotient.mk x) = f x :=
+begin
+  rw [is_base_change.equiv_of_surjective, linear_equiv.restrict_scalars_apply,
+    linear_equiv.trans_apply, ← submodule.mkq_apply, is_base_change.equiv_symm_apply,
+    is_base_change.equiv_tmul, one_smul],
+end
+
+lemma is_base_change.equiv_of_surjective_comp_mkq {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) :
+    (hf.equiv_of_surjective h).to_linear_map.comp (submodule.mkq _) = f :=
+linear_map.ext (hf.equiv_of_surjective_mk h)
+
+lemma is_base_change.surjective_of_surjective {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) : function.surjective f :=
+begin
+  rw ← hf.equiv_of_surjective_comp_mkq h,
+  exact (hf.equiv_of_surjective h).surjective.comp (submodule.quotient.mk_surjective _)
+end
+
+lemma is_base_change.ker_of_surjective {f : M →ₗ[R] N} (hf : is_base_change S f)
+  (h : function.surjective (algebra_map R S)) : f.ker = (algebra_map R S).ker • ⊤ :=
+begin
+  rw [← hf.equiv_of_surjective_comp_mkq h, linear_map.ker_comp, linear_map.ker_eq_bot.mpr,
+    submodule.comap_bot, submodule.ker_mkq],
+  exact (hf.equiv_of_surjective h).injective
+end
+
+end surjective

@@ -28,7 +28,7 @@ in this file.
 universes u v w u₁
 
 namespace direct_sum
-open_locale direct_sum
+open_locale direct_sum big_operators
 
 section general
 variables {R : Type u} [semiring R]
@@ -274,6 +274,51 @@ def coe_linear_map : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).s
 to_add_monoid_of _ _ _
 
 variables {A}
+
+lemma submodule_is_internal.apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)] (x : ⨁ i, A i) :
+  direct_sum.to_module R ι M (λ i, (A i).subtype) x = ∑ i in x.support, x i :=
+begin
+  simp only [to_module, dfinsupp.sum_add_hom_apply, linear_map.to_add_monoid_hom_coe,
+    linear_map.coe_mk, submodule.subtype, dfinsupp.lsum_apply_apply],
+  refine finset.sum_congr rfl (λ x hx, rfl),
+end
+
+/--
+Given an indexed collection of submodules of `M` and a proof that they form an internal
+direct sum, build an linear equivlance `(⨁ i, A i) ≃ₗ[R] M`.
+-/
+noncomputable def submodule_is_internal.to_equiv
+  {R : Type u} {M : Type w} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) (hA : submodule_is_internal A) :
+  (⨁ i, A i) ≃ₗ[R] M :=
+linear_equiv.of_bijective (direct_sum.to_module R ι M (λ i, (A i).subtype))
+  hA.injective hA.surjective
+
+@[simp] lemma submodule_is_internal.to_equiv_apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) (hA : submodule_is_internal A) (x : ⨁ i, A i) :
+  submodule_is_internal.to_equiv A hA x = to_module R ι M (λ i, (A i).subtype) x :=
+rfl
+
+lemma submodule_is_internal.to_equiv_symm_single_apply_coe
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  {A : ι → submodule R M} [Π i (x : A i), decidable (x ≠ 0)]
+  (hA : submodule_is_internal A) (i : ι) (x : A i) :
+  (submodule_is_internal.to_equiv A hA).symm x = direct_sum.of _ i x :=
+begin
+  rw linear_equiv.symm_apply_eq,
+  convert (to_module_lof R i x).symm,
+  refl,
+end
+
+lemma submodule_is_internal.to_equiv_symm_single_apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  {A : ι → submodule R M} [Π i (x : A i), decidable (x ≠ 0)]
+  (hA : submodule_is_internal A) (i : ι) (x : M) (hx : x ∈ A i) :
+  (submodule_is_internal.to_equiv A hA).symm x = direct_sum.of (λ i, A i) i ⟨x, hx⟩ :=
+hA.to_equiv_symm_single_apply_coe i ⟨x, hx⟩
 
 /-- If a direct sum of submodules is internal then the submodules span the module. -/
 lemma is_internal.submodule_supr_eq_top (h : is_internal A) : supr A = ⊤ :=

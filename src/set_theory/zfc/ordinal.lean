@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
+import order.rel_iso.set
 import set_theory.zfc.basic
 
 /-!
@@ -31,9 +32,13 @@ Further development can be found on the branch `von_neumann_v2`.
 
 universe u
 
-variables {x y z : Set.{u}}
+variables {x y z w : Set.{u}}
+
+local attribute [simp] subtype.coe_inj
 
 namespace Set
+
+/-! ### Transitive sets -/
 
 /-- A transitive set is one where every element is a subset. -/
 def is_transitive (x : Set) : Prop := ∀ y ∈ x, y ⊆ x
@@ -87,4 +92,65 @@ theorem is_transitive_iff_subset_powerset : x.is_transitive ↔ x ⊆ powerset x
 
 alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
+/-! ### Ordinals as sets -/
+
+/-- A set `x` is a von Neumann ordinal when it's a transitive set `x`, such that `y ∈ z ∈ w ∈ x`
+implies `y ∈ w`.
+
+There are many equivalences to this definition, which we aim to state and prove. These include:
+
+- A transitive set of transitive sets.
+- A hereditarily transitive set.
+- A transitive set that's transitive under `∈` (`is_ordinal_iff_is_trans`).
+- A transitive set that's trichotomous under `∈`.
+- A transitive set that's (strictly) totally ordered under `∈`.
+- A transitive set that's well-ordered under `∈`.
+-/
+def is_ordinal (x : Set) : Prop := x.is_transitive ∧ ∀ y z w : Set, y ∈ z → z ∈ w → w ∈ x → y ∈ w
+
+namespace is_ordinal
+
+protected theorem is_transitive (h : x.is_ordinal) : x.is_transitive := h.1
+
+theorem subset_of_mem (h : x.is_ordinal) : y ∈ x → y ⊆ x := h.is_transitive.subset_of_mem
+
+theorem mem_trans (h : z.is_ordinal) : x ∈ y → y ∈ z → x ∈ z := h.is_transitive.mem_trans
+
+theorem mem_trans' (hx : x.is_ordinal) : y ∈ z → z ∈ w → w ∈ x → y ∈ w := hx.2 y z w
+
+protected theorem sUnion (H : ∀ y ∈ x, is_ordinal y) : (⋃₀ x).is_ordinal :=
+begin
+  refine ⟨is_transitive.sUnion' $ λ y hy, (H y hy).is_transitive, λ y z w hyz hzw hwx, _⟩,
+  { rcases mem_sUnion.1 hwx with ⟨v, hvx, hwv⟩,
+    exact (H v hvx).mem_trans' hyz hzw hwv }
+end
+
+protected theorem union (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∪ y).is_ordinal :=
+is_ordinal.sUnion $ λ z hz, by { rcases mem_pair.1 hz with rfl | rfl, assumption' }
+
+protected theorem inter (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∩ y).is_ordinal :=
+⟨hx.is_transitive.inter hy.is_transitive, λ z w v hzw hwv hv,
+  hx.mem_trans' hzw hwv (mem_inter.1 hv).1⟩
+
+protected theorem is_trans (h : x.is_ordinal) : is_trans x.to_set (subrel (∈) _) :=
+⟨λ a b c hab hbc, h.mem_trans' hab hbc c.2⟩
+
+theorem _root_.Set.is_ordinal_iff_is_trans : x.is_ordinal ↔
+  x.is_transitive ∧ is_trans x.to_set (subrel (∈) _) :=
+⟨λ h, ⟨h.is_transitive, h.is_trans⟩, λ ⟨h₁, ⟨h₂⟩⟩, ⟨h₁, λ y z w hyz hzw hwx,
+  let hzx := h₁.mem_trans hzw hwx in h₂ ⟨y, h₁.mem_trans hyz hzx⟩ ⟨z, hzx⟩ ⟨w, hwx⟩ hyz hzw⟩⟩
+
+/-- A relation embedding between a smaller and a larger ordinal. -/
+protected def rel_embedding (hx : x.is_ordinal) (hy : y ∈ x) :
+  subrel (∈) y.to_set ↪r subrel (∈) x.to_set :=
+⟨⟨λ b, ⟨b.1, hx.subset_of_mem hy b.2⟩, λ a b, by simp⟩, λ a b, by simp⟩
+
+protected theorem mem (hx : x.is_ordinal) (hy : y ∈ x) : y.is_ordinal :=
+begin
+  haveI := hx.is_trans,
+  exact is_ordinal_iff_is_trans.2 ⟨λ z hz a ha, hx.mem_trans' ha hz hy,
+    (hx.rel_embedding hy).is_trans⟩
+end
+
+end is_ordinal
 end Set

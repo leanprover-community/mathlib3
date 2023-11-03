@@ -351,6 +351,9 @@ strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
 lemma pow_lt_pow (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 pow_strict_mono_right h h2
 
+lemma lt_self_pow (h1 : 1 < a) (h2 : 1 < n) : a < a^n :=
+by { conv { congr, rw ←pow_one a, }, apply pow_lt_pow h1 h2, }
+
 lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
 (pow_strict_mono_right h).lt_iff_lt
 

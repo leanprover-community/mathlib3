@@ -59,4 +59,6 @@ begin
   apply nat.dvd_antisymm
 end
 
+lemma dvd_sub_comm (a b n : ℤ) : n ∣ b - a ↔ n ∣ a - b :=
+by { rw [←neg_sub b a, dvd_neg _ _], }
 end int

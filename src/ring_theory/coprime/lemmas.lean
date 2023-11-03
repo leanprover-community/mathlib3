@@ -38,6 +38,17 @@ theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.
 
 alias nat.is_coprime_iff_coprime ↔ is_coprime.nat_coprime nat.coprime.is_coprime
 
+lemma is_coprime.of_dvd_of_coprime {m n x y : R} (h : is_coprime m n) (hx : x ∣ m) (hy : y ∣ n) :
+  is_coprime x y := is_coprime.of_coprime_of_dvd_right (is_coprime.of_coprime_of_dvd_left h hx) hy
+
+lemma nat.coprime_of_dvd_of_coprime {m n x y : ℕ} (h : m.coprime n) (hx : x ∣ m) (hy : y ∣ n) :
+  x.coprime y :=
+begin
+  apply nat.is_coprime_iff_coprime.1 (is_coprime.of_dvd_of_coprime
+    (nat.is_coprime_iff_coprime.2 h) _ _),
+  any_goals { norm_cast, assumption, },
+end
+
 theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
 finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
 by { rw finset.prod_insert hbt, rw finset.forall_mem_insert at H, exact H.1.mul_left (ih H.2) }

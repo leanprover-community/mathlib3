@@ -21,9 +21,9 @@ See also `matrix.general_linear_group`
 
 -/
 
-variables (R M : Type*)
-
 namespace linear_map
+
+variables (R M : Type*)
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
@@ -74,3 +74,29 @@ rfl
 end general_linear_group
 
 end linear_map
+
+section
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
+
+namespace linear_equiv
+
+/-- any invertible linear map can be written as a linear equivalence -/
+def of_invertible [invertible T] : M ≃ₗ[R] M :=
+linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
+
+@[simp] lemma coe_linear_map_of_invertible [invertible T] :
+  ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
+
+@[simp] lemma coe_linear_map_of_invertible_symm [invertible T] :
+  ↑((linear_equiv.of_invertible T).symm) = (⅟ T) := by { ext, refl }
+
+lemma coe_of_invertible_symm [invertible T] :
+  ⇑(linear_equiv.of_invertible T).symm = (⅟ T : _) := rfl
+
+lemma coe_of_invertible [invertible T] :
+  ⇑(linear_equiv.of_invertible T) = T := rfl
+
+end linear_equiv
+
+end

@@ -172,6 +172,30 @@ u.left_of_mul b a (hc.eq ▸ hu) hc.symm
   is_unit (a * a) ↔ is_unit a :=
 (commute.refl a).is_unit_mul_iff.trans (and_self _)
 
+-- named to match `commute.inv_mul_cancel`
+@[to_additive]
+lemma _root_.units.commute_iff_inv_mul_cancel (u : Mˣ) (a : M):
+  commute ↑u a ↔ ↑u⁻¹ * a * u = a :=
+by rw [mul_assoc, units.inv_mul_eq_iff_eq_mul, eq_comm, commute, semiconj_by]
+
+-- named to match `commute.inv_mul_cancel_assoc`
+@[to_additive]
+lemma _root_.units.commute_iff_inv_mul_cancel_assoc (u : Mˣ) (a : M):
+  commute ↑u a ↔ ↑u⁻¹ * (a * u) = a :=
+by rw [u.commute_iff_inv_mul_cancel, mul_assoc]
+
+-- named to match `commute.mul_inv_cancel`
+@[to_additive]
+lemma _root_.units.commute_iff_mul_inv_cancel (u : Mˣ) (a : M):
+  commute ↑u a ↔ ↑u * a * ↑u⁻¹ = a :=
+by rw [units.mul_inv_eq_iff_eq_mul, commute, semiconj_by]
+
+-- named to match `commute.mul_inv_cancel_assoc`
+@[to_additive]
+lemma _root_.units.commute_iff_mul_inv_cancel_assoc (u : Mˣ) (a : M):
+  commute ↑u a ↔ ↑u * (a * ↑u⁻¹) = a :=
+by rw [u.commute_iff_mul_inv_cancel, mul_assoc]
+
 end monoid
 
 section division_monoid
@@ -232,6 +256,7 @@ theorem mul_inv_cancel_assoc (h : commute a b) : a * (b * a⁻¹) = b :=
 by rw [← mul_assoc, h.mul_inv_cancel]
 
 end group
+
 
 end commute
 

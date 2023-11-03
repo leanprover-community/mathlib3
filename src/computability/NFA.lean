@@ -72,7 +72,7 @@ eval_from_append_singleton _ _ _ _
 
 /-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=
-λ x, ∃ S ∈ M.accept, S ∈ M.eval x
+set.up {x : free_monoid α | ∃ S ∈ M.accept, S ∈ M.eval x.to_list }
 
 /-- `M.to_DFA` is an `DFA` constructed from a `NFA` `M` using the subset construction. The
   states is the type of `set`s of `M.state` and the step function is `M.step_set`. -/
@@ -90,9 +90,9 @@ begin
   split; { exact λ ⟨w, h2, h3⟩, ⟨w, h3, h2⟩ },
 end
 
-lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
-  (hlen : fintype.card (set σ) ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
+lemma pumping_lemma [fintype σ] {x : free_monoid α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card (set σ) ≤ x.to_list.length) :
+  ∃ a b c, x = a * b * c ∧ a.to_list.length + b.to_list.length ≤ fintype.card (set σ) ∧ b ≠ 1 ∧
     {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   rw ←to_DFA_correct at hx ⊢,
@@ -125,7 +125,7 @@ end
   M.to_NFA.accepts = M.accepts :=
 begin
   ext x,
-  change (∃ S H, S ∈ M.to_NFA.eval_from {M.start} x) ↔ _,
+  change (∃ S H, S ∈ M.to_NFA.eval_from {M.start} x.to_list) ↔ _,
   rw to_NFA_eval_from_match,
   split,
   { rintro ⟨ S, hS₁, hS₂ ⟩,

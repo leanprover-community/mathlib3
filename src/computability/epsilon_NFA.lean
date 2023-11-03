@@ -97,7 +97,8 @@ def eval := M.eval_from M.start
 eval_from_append_singleton _ _ _ _
 
 /-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
-def accepts : language α := {x | ∃ S ∈ M.accept, S ∈ M.eval x}
+def accepts : language α :=
+set.up {x : free_monoid α | ∃ S ∈ M.accept, S ∈ M.eval x.to_list}
 
 /-! ### Conversions between `ε_NFA` and `NFA` -/
 
@@ -118,9 +119,9 @@ begin
   refl
 end
 
-lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+lemma pumping_lemma [fintype σ] {x : free_monoid α} (hx : x ∈ M.accepts)
   (hlen : fintype.card (set σ) ≤ list.length x) :
-  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
+  ∃ a b c, x = a * b * c ∧ a.to_list.length + b.to_list.length ≤ fintype.card (set σ) ∧ b ≠ 1 ∧
     {a} * {b}∗ * {c} ≤ M.accepts :=
 begin
   rw ←to_NFA_correct at hx ⊢,

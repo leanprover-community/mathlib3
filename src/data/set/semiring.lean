@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import algebra.order.kleene
 import data.set.pointwise.smul
+import algebra.order.kleene
 
 /-!
 # Sets as a semiring under union
@@ -24,15 +25,24 @@ variables {α β : Type*}
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
-@[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
+@[derive [inhabited, complete_boolean_algebra, order_bot, has_mem α, has_singleton α, has_insert α]]
+def set_semiring (α : Type*) : Type* := set α
 
 /-- The identity function `set α → set_semiring α`. -/
 protected def set.up : set α ≃ set_semiring α := equiv.refl _
+
+@[simp] lemma set.mem_up {a : α} {s : set α} : a ∈ set.up s ↔ a ∈ s := iff.rfl
+@[simp] lemma set.up_singleton (a : α) : ({a} : set α).up = {a} := rfl
+@[simp] lemma set.up_insert (a : α) (s : set α) : (insert a s).up = insert a s.up := rfl
 
 namespace set_semiring
 
 /-- The identity function `set_semiring α → set α`. -/
 protected def down : set_semiring α ≃ set α := equiv.refl _
+
+@[simp] lemma mem_down {a : α} {s : set_semiring α} : a ∈ s.down ↔ a ∈ s := iff.rfl
+@[simp] lemma down_singleton (a : α) : ({a} : set_semiring α).up = {a} := rfl
+@[simp] lemma down_insert (a : α) (s : set_semiring α) : (insert a s).down = insert a s.down := rfl
 
 @[simp] protected lemma down_up (s : set α) : s.up.down = s := rfl
 @[simp] protected lemma up_down (s : set_semiring α) : s.down.up = s := rfl
@@ -116,6 +126,9 @@ end has_one
 instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
 { one := 1,
   mul := (*),
+  nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def],
   ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
 instance [semigroup α] : non_unital_semiring (set_semiring α) :=

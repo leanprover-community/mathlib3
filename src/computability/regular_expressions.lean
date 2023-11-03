@@ -70,14 +70,14 @@ attribute [pattern] has_mul.mul
 @[simp] def matches : regular_expression α → language α
 | 0 := 0
 | 1 := 1
-| (char a) := {[a]}
+| (char a) := {free_monoid.of a}
 | (P + Q) := P.matches + Q.matches
 | (P * Q) := P.matches * Q.matches
 | (star P) := P.matches∗
 
 @[simp] lemma matches_zero : (0 : regular_expression α).matches = 0 := rfl
 @[simp] lemma matches_epsilon : (1 : regular_expression α).matches = 1 := rfl
-@[simp] lemma matches_char (a : α) : (char a).matches = {[a]} := rfl
+@[simp] lemma matches_char (a : α) : (char a).matches = {free_monoid.of a} := rfl
 @[simp] lemma matches_add (P Q : regular_expression α) :
   (P + Q).matches = P.matches + Q.matches := rfl
 @[simp] lemma matches_mul (P Q : regular_expression α) :
@@ -268,7 +268,7 @@ using_well_founded
 { rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩] }
 
 @[simp] lemma rmatch_iff_matches (P : regular_expression α) :
-  ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
+  ∀ x : list α, P.rmatch x ↔ free_monoid.of_list x ∈ P.matches :=
 begin
   intro x,
   induction P generalizing x,
@@ -292,15 +292,15 @@ begin
     refl },
   case comp : P Q ih₁ ih₂
   { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
-      set.image_prod],
+      set.image_prod, set.mem_up],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
       rw ih₁ at hmatch₁,
       rw ih₂ at hmatch₂,
       exact ⟨ x, hmatch₁, y, hmatch₂, hsum.symm ⟩ },
     { rintro ⟨ x, hmatch₁, y, hmatch₂, hsum ⟩,
-      rw ←ih₁ at hmatch₁,
-      rw ←ih₂ at hmatch₂,
+      replace hmatch₁ := (ih₁ x.to_list).mpr hmatch₁,
+      replace hmatch₂ := (ih₂ y.to_list).mpr hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
   case star : _ ih
   { rw [star_rmatch_iff, language.kstar_def_nonempty],

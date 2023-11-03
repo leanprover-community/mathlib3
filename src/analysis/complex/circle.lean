@@ -32,6 +32,10 @@ for example, the circle is not defeq to `{z : ℂ | abs z = 1}`, which is the ke
 considered as a homomorphism from `ℂ` to `ℝ`, nor is it defeq to `{z : ℂ | norm_sq z = 1}`, which
 is the kernel of the homomorphism `complex.norm_sq` from `ℂ` to `ℝ`.
 
+Due to import hierarchy reasons, lemmas about the surjectivity and the kernel of
+`exp_map_circle_hom` are in `analysis.special_functions.trigonometric`.
+Moreover, material about the equivalence `angle_to_circle` between `real.angle` and `circle` is in
+`analysis.special_functions.trigonometric`.
 -/
 
 noncomputable theory

@@ -237,6 +237,9 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 @[simp] lemma conj_lie_apply (z : ℂ) : conj_lie z = conj z := rfl
 
+@[simp] lemma conj_lie_mul_conj_lie : conj_lie * conj_lie = 1 :=
+linear_isometry_equiv.ext conj_conj
+
 @[simp] lemma conj_lie_symm : conj_lie.symm = conj_lie := rfl
 
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry

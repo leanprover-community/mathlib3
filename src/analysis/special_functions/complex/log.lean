@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 -/
 import analysis.special_functions.complex.arg
 import analysis.special_functions.log.basic
+import analysis.complex.circle
 
 /-!
 # The complex `log` function
@@ -39,6 +40,15 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   ← of_real_exp, real.exp_log (abs.pos hx), mul_add, of_real_div, of_real_div,
   mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 $ abs.ne_zero hx), re_add_im]
+
+lemma exp_map_circle_arg (c : circle) : exp_map_circle (arg c) = c :=
+begin
+  ext1,
+  rw [←log_im, exp_map_circle_apply],
+  have := exp_log (ne_zero_of_mem_circle c),
+  rwa [← (complex.log c).re_add_im, log_re, abs_coe_circle, real.log_one, of_real_zero,
+    zero_add] at this,
+end
 
 @[simp] lemma range_exp : range exp = {0}ᶜ :=
 set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
@@ -124,11 +134,80 @@ begin
   { rintro ⟨n, rfl⟩, exact (exp_periodic.int_mul n).eq.trans exp_zero }
 end
 
+lemma exp_map_circle_hom_ker : exp_map_circle_hom.ker = add_subgroup.zmultiples (2 * π) :=
+begin
+  ext k,
+  have a0 : (0 : additive circle) = (1 : circle) := rfl,
+  have iI : ∀ (x y : ℂ), x * I = y * I ↔ x = y :=
+    λ _ _, ⟨mul_right_cancel₀ I_ne_zero, λ h, congr_arg _ h⟩,
+  suffices : (∃ (n : ℤ), (k : ℂ) = n * 2 * π) ↔ ∃ (n : ℤ), (n : ℝ) * 2 * π = k,
+  { simpa [add_subgroup.mem_zmultiples_iff, add_monoid_hom.mem_ker, subtype.ext_iff,
+           a0, exp_eq_one_iff, ←mul_assoc, iI] },
+  simp_rw @eq_comm _ _ k,
+  norm_cast,
+end
+
+lemma exp_map_circle_eq_one_iff {x : ℝ} :
+  exp_map_circle x = 1 ↔ x ∈ exp_map_circle_hom.ker :=
+begin
+  simp only [exp_map_circle_hom_ker, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
+  split,
+  { simp[exp_map_circle],
+    intro h,
+    apply_fun (coe: circle → ℂ) at h,
+    simp at h,
+    rw exp_eq_one_iff at h,
+    cases h with n hn,
+    use n,
+    rw [←of_real_inj, ←mul_left_inj' I_ne_zero, hn],
+    push_cast,
+    ring },
+  { rintro ⟨k, rfl⟩,
+    ext1,
+    simp[exp_map_circle],
+    rw exp_eq_one_iff,
+    use k,
+    simp[mul_assoc], },
+end
+
 lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) = 1 :=
 by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
+
+/-- The additive-group isomorphism identifying `real.angle` with the additive version of the
+`circle` group. -/
+def angle_to_circle_hom : real.angle ≃+ additive circle :=
+(quotient_add_group.quotient_add_equiv_of_eq (by { ext x, rw exp_map_circle_hom_ker})).trans
+  (quotient_add_group.quotient_ker_equiv_of_right_inverse exp_map_circle_hom _ exp_map_circle_arg)
+
+/-- The equivalence identifying `real.angle` with the circle group. -/
+def angle_to_circle : real.angle ≃ circle := angle_to_circle_hom.to_equiv.trans additive.to_mul
+
+@[simp] lemma angle_to_circle_add (a b : real.angle) :
+  angle_to_circle (a + b) = angle_to_circle a * angle_to_circle b :=
+angle_to_circle_hom.map_add a b
+
+@[simp] lemma angle_to_circle_sub (a b : real.angle) :
+  angle_to_circle (a - b) = angle_to_circle a / angle_to_circle b :=
+angle_to_circle_hom.map_sub a b
+
+@[simp] lemma angle_to_circle_zero :
+  angle_to_circle 0 = 1 :=
+angle_to_circle_hom.map_zero
+
+@[simp] lemma angle_to_circle_symm_mul (x y : circle) :
+  angle_to_circle.symm (x * y) = angle_to_circle.symm( x ) + angle_to_circle.symm( y ) :=
+angle_to_circle_hom.symm.map_add x y
+
+@[simp] lemma angle_to_circle_symm_div (x y : circle) :
+  angle_to_circle.symm(x / y) = angle_to_circle.symm( x ) - angle_to_circle.symm( y ) :=
+angle_to_circle_hom.symm.map_sub x y
+
+@[simp] lemma angle_to_circle_symm_zero :
+  angle_to_circle.symm 1 = 0 :=
+angle_to_circle_hom.symm.map_zero
 
 @[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin

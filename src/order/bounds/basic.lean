@@ -1176,6 +1176,23 @@ lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a
   is_glb s f ↔ ∀ a, is_glb (function.eval a '' s) (f a) :=
 @is_lub_pi α (λ a, (π a)ᵒᵈ) _ s f
 
+lemma bdd_above_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a)} :
+  bdd_above s ↔ ∀ a, bdd_above (function.eval a '' s) :=
+⟨λ ⟨f, hf⟩ a, ⟨f a, ball_image_of_ball $ λ g hg, hf hg a⟩,
+  λ h, ⟨λ a, (h a).some, λ g hg a, (h a).some_spec $ mem_image_of_mem _ hg⟩⟩
+
+lemma bdd_below_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a)} :
+  bdd_below s ↔ ∀ a, bdd_below (function.eval a '' s) :=
+@bdd_above_pi _ (λ a, (π a)ᵒᵈ) _ s
+
+lemma bdd_above_range_pi {π : α → Type*} [Π a, preorder (π a)] {F : ι → Π a, π a} :
+  bdd_above (range F) ↔ ∀ a, bdd_above (range $ λ i, F i a) :=
+by simp only [bdd_above_pi, ←range_comp]
+
+lemma bdd_below_range_pi {π : α → Type*} [Π a, preorder (π a)] {F : ι → Π a, π a} :
+  bdd_below (range F) ↔ ∀ a, bdd_below (range $ λ i, F i a) :=
+@bdd_above_range_pi _ _ (λ a, (π a)ᵒᵈ) _ F
+
 lemma is_lub_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
   is_lub s p ↔ is_lub (prod.fst '' s) p.1 ∧ is_lub (prod.snd '' s) p.2 :=
 begin

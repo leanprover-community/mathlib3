@@ -918,7 +918,6 @@ lemma upper_semicontinuous_within_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
 @lower_semicontinuous_within_at_supr α _ x s ι δᵒᵈ _ f h
-
 lemma upper_semicontinuous_within_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_within_at (f i hi) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i hi, f i hi x') s x :=

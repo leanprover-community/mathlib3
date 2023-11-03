@@ -311,7 +311,7 @@ lemma sup_eq_top (h : is_compl x y) : x ⊔ y = ⊤ := h.codisjoint.eq_top
 
 end bounded_lattice
 
-variables [distrib_lattice α] [bounded_order α] {a b x y z : α}
+variables [distrib_lattice α] [bounded_order α] {a b c x y z : α}
 
 lemma inf_left_le_of_le_sup_right (h : is_compl x y) (hle : a ≤ b ⊔ y) : a ⊓ x ≤ b :=
 calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
@@ -321,6 +321,18 @@ calc a ⊓ x ≤ (b ⊔ y) ⊓ x : inf_le_inf hle le_rfl
 
 lemma le_sup_right_iff_inf_left_le {a b} (h : is_compl x y) : a ≤ b ⊔ y ↔ a ⊓ x ≤ b :=
 ⟨h.inf_left_le_of_le_sup_right, h.symm.dual.inf_left_le_of_le_sup_right⟩
+
+lemma sup_inf_sup_eq (h : is_compl x y) : (a ⊔ x) ⊓ (b ⊔ y) = (b ⊓ x) ⊔ (a ⊓ y) :=
+calc (a ⊔ x) ⊓ (b ⊔ y) = ((a ⊓ y) ⊔ x) ⊓ ((b ⊓ x) ⊔ y) :
+  by rw [sup_inf_right, h.symm.sup_eq_top, inf_top_eq, sup_inf_right, h.sup_eq_top, inf_top_eq]
+... = (b ⊓ x) ⊔ (a ⊓ y) :
+  by rw [inf_sup_left, inf_sup_right, inf_sup_right, h.inf_eq_bot, sup_bot_eq, inf_assoc,
+    inf_left_comm y, h.symm.inf_eq_bot, inf_bot_eq, inf_bot_eq, bot_sup_eq, inf_right_idem,
+    inf_left_comm, inf_idem]
+
+lemma le_inf_sup_inf (h : is_compl x y) : a ≤ b ⊓ x ⊔ c ⊓ y ↔ a ⊓ x ≤ b ∧ a ⊓ y ≤ c :=
+by rw [← h.le_sup_right_iff_inf_left_le, ← h.symm.le_sup_right_iff_inf_left_le, ← le_inf_iff,
+  ← h.sup_inf_sup_eq, inf_comm]
 
 lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
 by rw [← le_bot_iff, ← h.le_sup_right_iff_inf_left_le, bot_sup_eq]

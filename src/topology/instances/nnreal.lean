@@ -99,21 +99,32 @@ map_coe_Ici_at_top 0
 lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
 (at_top_Ici_eq 0).symm
 
+@[simp] lemma _root_.real.map_to_nnreal_at_top : map real.to_nnreal at_top = at_top :=
+by simp only [← map_coe_at_top, filter.map_map, (∘), real.to_nnreal_coe, map_id']
+
+@[simp] lemma _root_.real.comap_to_nnreal_at_top : comap real.to_nnreal at_top = at_top :=
+begin
+  have := Ioi_mem_at_top (0 : ℝ),
+  simp only [← comap_coe_at_top, comap_comap, real.coe_to_nnreal', (∘), comap_max, comap_id'],
+  rw [inf_of_le_left, comap_const_of_not_mem this (lt_irrefl _)],
+  { simp },
+  { rwa le_principal_iff }
+end
+
 @[simp, norm_cast] lemma tendsto_coe_at_top {f : filter α} {m : α → ℝ≥0} :
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
-lemma _root_.tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
-  tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
+lemma _root_.filter.tendsto.real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ}
+  (h : tendsto m f (𝓝 x)) : tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_real_to_nnreal.tendsto _).comp h
 
-lemma _root_.tendsto_real_to_nnreal_at_top : tendsto real.to_nnreal at_top at_top :=
-begin
-  rw ← tendsto_coe_at_top,
-  apply tendsto_id.congr' _,
-  filter_upwards [Ici_mem_at_top (0 : ℝ)] with x hx,
-  simp only [max_eq_left (set.mem_Ici.1 hx), id.def, real.coe_to_nnreal'],
-end
+@[simp] lemma _root_.real.tendsto_to_nnreal_at_top_iff {l : filter α} {f : α → ℝ} :
+  tendsto (λ x, real.to_nnreal (f x)) l at_top ↔ tendsto f l at_top :=
+by rw [← real.comap_to_nnreal_at_top, tendsto_comap_iff]
+
+lemma _root_.real.tendsto_to_nnreal_at_top : tendsto real.to_nnreal at_top at_top :=
+real.tendsto_to_nnreal_at_top_iff.2 tendsto_id
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
@@ -142,7 +153,7 @@ begin
   have h_sum : (λ s, ∑ b in s, real.to_nnreal (f b)) = λ s, real.to_nnreal (∑ b in s, f b),
     from funext (λ _, (real.to_nnreal_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
   simp_rw [has_sum, h_sum],
-  exact tendsto_real_to_nnreal hf.has_sum,
+  exact hf.has_sum.real_to_nnreal,
 end
 
 @[norm_cast] lemma summable_coe {f : α → ℝ≥0} : summable (λa, (f a : ℝ)) ↔ summable f :=
@@ -214,7 +225,7 @@ lemma tendsto_cofinite_zero_of_summable {α} {f : α → ℝ≥0} (hf : summable
 begin
   have h_f_coe : f = λ n, real.to_nnreal (f n : ℝ), from funext (λ n, real.to_nnreal_coe.symm),
   rw [h_f_coe, ← @real.to_nnreal_coe 0],
-  exact tendsto_real_to_nnreal ((summable_coe.mpr hf).tendsto_cofinite_zero),
+  exact (summable_coe.mpr hf).tendsto_cofinite_zero.real_to_nnreal,
 end
 
 lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :

@@ -991,6 +991,41 @@ def pullback_is_pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_pullback f
 pullback_cone.is_limit.mk _ (λ s, pullback.lift s.fst s.snd s.condition)
   (by simp) (by simp) (by tidy)
 
+/-- A helper function for the uniqueness of the arrow given by the universal property. -/
+def pullback.lift_unique {C : Type u} [category.{v} C] {W X Y Z : C}
+      {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
+      (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) :
+      Π (r : W ⟶ pullback f g), h = r ≫ pullback.fst → k = r ≫ pullback.snd →
+      r = pullback.lift h k w :=
+begin
+intros r hyp₁ hyp₂,
+exact is_limit.uniq (limit.is_limit (cospan f g)) (pullback_cone.mk h k w) r
+(by {
+      intro j,
+      cases j,
+
+      simp,
+      rw [← category.assoc, ← hyp₁],
+
+      cases j,
+      simp,
+      rw ← hyp₁,
+      simp,
+      rw ← hyp₂,
+})
+end
+
+lemma pullback.lift_comp {C : Type u} [category.{v} C] {X Y Z W U : C}
+  {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
+  (h : W ⟶ X) (k : W ⟶ Y) (t : U ⟶ W) (h₁ : h ≫ f = k ≫ g) :
+  pullback.lift (t ≫ h) (t ≫ k) (by simp *) = t ≫ pullback.lift h k h₁ :=
+begin
+symmetry,
+apply pullback.lift_unique,
+repeat {simp},
+end
+
+
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   [mono g] : mono (pullback.fst : pullback f g ⟶ X) :=

@@ -330,6 +330,16 @@ hu.continuous_on.interval_integrable
 
 end
 
+namespace interval_integrable
+
+@[simp]
+lemma comp [borel_space E] {μ : measure ℝ} [locally_finite_measure μ] {a b : ℝ}
+  {f : ℝ → E} {g : ℝ → ℝ} (hf : continuous f) (hg : continuous g) :
+  interval_integrable (λ x, (f ∘ g) x) μ a b :=
+(hf.comp hg).interval_integrable a b
+
+end interval_integrable
+
 section
 
 variables {μ : measure ℝ} [is_locally_finite_measure μ] [conditionally_complete_linear_order E]

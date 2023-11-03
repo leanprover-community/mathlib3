@@ -72,7 +72,7 @@ begin
     { exact hi.trans_lt (birthday_move_right_lt i) } }
 end
 
-theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthday x = birthday y
+theorem identical.birthday_congr : ∀ {x y : pgame.{u}}, x ≡ y → birthday x = birthday y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ r := begin
   unfold birthday,
   congr' 1,
@@ -80,10 +80,10 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthda
   { apply lsub_eq_of_range_eq.{u u u},
     ext i, split },
   all_goals { rintro ⟨j, rfl⟩ },
-  { exact ⟨_, (r.move_left j).birthday_congr.symm⟩ },
-  { exact ⟨_, (r.move_left_symm j).birthday_congr⟩ },
-  { exact ⟨_, (r.move_right j).birthday_congr.symm⟩ },
-  { exact ⟨_, (r.move_right_symm j).birthday_congr⟩ }
+  { exact (r.move_left j).imp (λ i hi, hi.birthday_congr.symm) },
+  { exact (r.move_left_symm j).imp (λ i hi, hi.birthday_congr) },
+  { exact (r.move_right j).imp (λ i hi, hi.birthday_congr.symm) },
+  { exact (r.move_right_symm j).imp (λ i hi, hi.birthday_congr) },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

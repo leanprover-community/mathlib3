@@ -76,8 +76,8 @@ theorem to_pgame_move_left {o : ordinal} (i) :
 by simp
 
 /-- `0.to_pgame` has the same moves as `0`. -/
-noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
-relabelling.is_empty _
+lemma zero_to_pgame : to_pgame 0 ≡ 0 :=
+identical_zero _
 
 noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
 (equiv.cast $ to_pgame_left_moves 1).unique
@@ -94,9 +94,14 @@ theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
 by simp
 
 /-- `1.to_pgame` has the same moves as `1`. -/
-noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=
-⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
-  λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
+lemma one_to_pgame : to_pgame.{u} 1 ≡ (1 : pgame.{u}) :=
+begin
+  refine identical.ext (λ z, _) (λ z, _),
+  { unfold memₗ,
+    simp_rw [one_to_pgame_move_left, unique.exists_iff],
+    exact identical.congr_right zero_to_pgame, },
+  { unfold memᵣ, simp, },
+end
 
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
 by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
@@ -112,7 +117,7 @@ theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 ⟨to_pgame_le h.le, to_pgame_lf h⟩
 
 theorem to_pgame_nonneg (a : ordinal) : 0 ≤ a.to_pgame :=
-zero_to_pgame_relabelling.ge.trans $ to_pgame_le $ ordinal.zero_le a
+zero_to_pgame.symm.le.trans $ to_pgame_le $ ordinal.zero_le a
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩

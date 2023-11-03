@@ -98,18 +98,17 @@ theorem numeric_rec {C : pgame → Prop}
 | ⟨l, r, L, R⟩ ⟨h, hl, hr⟩ :=
   H _ _ _ _ h hl hr (λ i, numeric_rec _ (hl i)) (λ i, numeric_rec _ (hr i))
 
-theorem relabelling.numeric_imp {x y : pgame} (r : x ≡r y) (ox : numeric x) : numeric y :=
+theorem identical.numeric_imp {x y : pgame.{u}} (r : x ≡ y) (ox : numeric x) : numeric y :=
 begin
   induction x using pgame.move_rec_on with x IHl IHr generalizing y,
   apply numeric.mk (λ i j, _) (λ i, _) (λ j, _),
-  { rw ←lt_congr (r.move_left_symm i).equiv (r.move_right_symm j).equiv,
+  { rw ←lt_congr (r.move_left_symm i).some_spec.equiv (r.move_right_symm j).some_spec.equiv,
     apply ox.left_lt_right },
-  { exact IHl _ (ox.move_left _) (r.move_left_symm i) },
-  { exact IHr _ (ox.move_right _) (r.move_right_symm j) }
+  { exact IHl _ (ox.move_left _) (r.move_left_symm i).some_spec },
+  { exact IHr _ (ox.move_right _) (r.move_right_symm j).some_spec }
 end
 
-/-- Relabellings preserve being numeric. -/
-theorem relabelling.numeric_congr {x y : pgame} (r : x ≡r y) : numeric x ↔ numeric y :=
+theorem identical.numeric_congr {x y : pgame.{u}} (r : x ≡ y) : numeric x ↔ numeric y :=
 ⟨r.numeric_imp, r.symm.numeric_imp⟩
 
 theorem lf_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y → ¬ y ⧏ x :=

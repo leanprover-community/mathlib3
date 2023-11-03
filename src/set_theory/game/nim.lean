@@ -116,7 +116,7 @@ instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
-def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
+lemma nim_zero_identical : nim 0 ≡ 0 := identical_zero _
 
 theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
@@ -149,15 +149,18 @@ theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
 by simp
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-def nim_one_relabelling : nim 1 ≡r star :=
+lemma nim_one_identical : nim.{u} 1 ≡ star.{u} :=
 begin
-  rw nim_def,
-  refine ⟨_, _, λ i, _, λ j, _⟩,
-  any_goals { dsimp, apply equiv.equiv_of_unique },
-  all_goals { simp, exact nim_zero_relabelling }
+  refine identical.ext (λ z, _) (λ z, _),
+  { unfold memₗ,
+    simp_rw [nim_one_move_left, unique.exists_iff, star_move_left],
+    exact identical.congr_right nim_zero_identical, },
+  { unfold memᵣ,
+    simp_rw [nim_one_move_right, unique.exists_iff, star_move_right],
+    exact identical.congr_right nim_zero_identical, },
 end
 
-theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
+theorem nim_one_equiv : nim 1 ≈ star := nim_one_identical.equiv
 
 @[simp] lemma nim_birthday (o : ordinal) : (nim o).birthday = o :=
 begin

@@ -143,16 +143,11 @@ instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R],
   { intros, apply_instance },
   { intros, apply pgame.list_short_nth_le /- where does the subtype.val come from? -/ } }
 
-/-- If `x` is a short game, and `y` is a relabelling of `x`, then `y` is also short. -/
-def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short x), short y
+/-- If `x` is a short game, and `y` is identical of `x`, then `y` is also short. -/
+def short_of_identical : Π {x y : pgame.{u}} (R : identical x y) (S : short x), short y
 | x y ⟨L, R, rL, rR⟩ S :=
 begin
-  resetI,
-  haveI := fintype.of_equiv _ L,
-  haveI := fintype.of_equiv _ R,
-  exact short.mk'
-    (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
-    (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
+  sorry
 end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)

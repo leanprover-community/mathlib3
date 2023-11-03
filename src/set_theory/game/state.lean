@@ -27,6 +27,7 @@ See `set_theory/game/domineering` for an example using this construction.
 universe u
 
 namespace pgame
+open_locale pgame
 
 /--
 `pgame_state S` describes how to interpret `s : S` as a state of a combinatorial game.
@@ -83,43 +84,29 @@ def of_state_aux : Π (n : ℕ) (s : S) (h : turn_bound s ≤ n), pgame
     (λ t, of_state_aux n t (turn_bound_of_right t.2 n h))
 
 /-- Two different (valid) turn bounds give equivalent games. -/
-def of_state_aux_relabelling : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) (hm : turn_bound s ≤ m),
-  relabelling (of_state_aux n s hn) (of_state_aux m s hm)
-| s 0 0 hn hm :=
-  begin
-    dsimp [pgame.of_state_aux],
-    fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hn) },
-    { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hm) }
-  end
+def of_state_aux_identical : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) (hm : turn_bound s ≤ m),
+  identical (of_state_aux n s hn) (of_state_aux m s hm)
+| s 0 0 hn hm := by apply identical.ext; simp
 | s 0 (m+1) hn hm :=
   begin
-    dsimp [pgame.of_state_aux],
-    fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hn) },
-    { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hn) }
+    refine identical.ext (λ z, ⟨λ h, _, λ h, _⟩) (λ z, ⟨λ h, _, λ h, _⟩);
+    obtain ⟨⟨i, hi⟩, h⟩ := h; exfalso;
+    exact turn_bound_ne_zero_of_left_move hi (nonpos_iff_eq_zero.mp hn) <|>
+    exact turn_bound_ne_zero_of_right_move hi (nonpos_iff_eq_zero.mp hn),
   end
 | s (n+1) 0 hn hm :=
   begin
-    dsimp [pgame.of_state_aux],
-    fsplit, refl, refl,
-    { intro i, dsimp at i, exfalso,
-      exact turn_bound_ne_zero_of_left_move i.2 (nonpos_iff_eq_zero.mp hm) },
-    { intro j, dsimp at j, exfalso,
-      exact turn_bound_ne_zero_of_right_move j.2 (nonpos_iff_eq_zero.mp hm) }
+    refine identical.ext (λ z, ⟨λ h, _, λ h, _⟩) (λ z, ⟨λ h, _, λ h, _⟩);
+    obtain ⟨⟨i, hi⟩, h⟩ := h; exfalso;
+    exact turn_bound_ne_zero_of_left_move hi (nonpos_iff_eq_zero.mp hm) <|>
+    exact turn_bound_ne_zero_of_right_move hi (nonpos_iff_eq_zero.mp hm),
   end
 | s (n+1) (m+1) hn hm :=
   begin
-    dsimp [pgame.of_state_aux],
-    fsplit, refl, refl,
-    { intro i,
-      apply of_state_aux_relabelling, },
-    { intro j,
-      apply of_state_aux_relabelling, }
+    refine identical.ext (λ z, ⟨λ h, _, λ h, _⟩) (λ z, ⟨λ h, _, λ h, _⟩);
+    obtain ⟨i, h⟩ := h;
+    exact ⟨i, h.trans (of_state_aux_identical _ n m _ _).symm⟩ <|>
+    exact ⟨i, h.trans (of_state_aux_identical _ n m _ _)⟩,
   end
 
 /-- Construct a combinatorial `pgame` from a state. -/
@@ -147,12 +134,12 @@ def right_moves_of_state (s : S) : right_moves (of_state s) ≃ {t // t ∈ R s}
 right_moves_of_state_aux _ _
 
 /--
-The relabelling showing `move_left` applied to a game constructed using `of_state_aux`
+The identity showing `move_left` applied to a game constructed using `of_state_aux`
 has itself been constructed using `of_state_aux`.
 -/
-def relabelling_move_left_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
+def identical_move_left_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
   (t : left_moves (of_state_aux n s h)) :
-  relabelling
+  identical
     (move_left (of_state_aux n s h) t)
     (of_state_aux (n-1) (((left_moves_of_state_aux n h) t) : S)
       ((turn_bound_of_left ((left_moves_of_state_aux n h) t).2 (n-1)
@@ -164,25 +151,25 @@ begin
   { refl },
 end
 /--
-The relabelling showing `move_left` applied to a game constructed using `of`
+The identity showing `move_left` applied to a game constructed using `of`
 has itself been constructed using `of`.
 -/
-def relabelling_move_left (s : S) (t : left_moves (of_state s)) :
-  relabelling
+def identical_move_left (s : S) (t : left_moves (of_state s)) :
+  identical
     (move_left (of_state s) t)
     (of_state (((left_moves_of_state s).to_fun t) : S)) :=
 begin
   transitivity,
-  apply relabelling_move_left_aux,
-  apply of_state_aux_relabelling,
+  apply identical_move_left_aux,
+  apply of_state_aux_identical,
 end
 /--
-The relabelling showing `move_right` applied to a game constructed using `of_state_aux`
+The identity showing `move_right` applied to a game constructed using `of_state_aux`
 has itself been constructed using `of_state_aux`.
 -/
-def relabelling_move_right_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
+def identical_move_right_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
   (t : right_moves (of_state_aux n s h)) :
-  relabelling
+  identical
     (move_right (of_state_aux n s h) t)
     (of_state_aux (n-1) (((right_moves_of_state_aux n h) t) : S)
       ((turn_bound_of_right ((right_moves_of_state_aux n h) t).2 (n-1)
@@ -194,17 +181,17 @@ begin
   { refl },
 end
 /--
-The relabelling showing `move_right` applied to a game constructed using `of`
+The identity showing `move_right` applied to a game constructed using `of`
 has itself been constructed using `of`.
 -/
-def relabelling_move_right (s : S) (t : right_moves (of_state s)) :
-  relabelling
+def identical_move_right (s : S) (t : right_moves (of_state s)) :
+  identical
     (move_right (of_state s) t)
     (of_state (((right_moves_of_state s).to_fun t) : S)) :=
 begin
   transitivity,
-  apply relabelling_move_right_aux,
-  apply of_state_aux_relabelling,
+  apply identical_move_right_aux,
+  apply of_state_aux_identical,
 end
 
 instance fintype_left_moves_of_state_aux (n : ℕ) (s : S) (h : turn_bound s ≤ n) :
@@ -235,8 +222,8 @@ instance short_of_state_aux : Π (n : ℕ) {s : S} (h : turn_bound s ≤ n), sho
   end)
 | (n+1) s h :=
   short.mk'
-  (λ i, short_of_relabelling (relabelling_move_left_aux (n+1) h i).symm (short_of_state_aux n _))
-  (λ j, short_of_relabelling (relabelling_move_right_aux (n+1) h j).symm (short_of_state_aux n _))
+  (λ i, short_of_identical (identical_move_left_aux (n+1) h i).symm (short_of_state_aux n _))
+  (λ j, short_of_identical (identical_move_right_aux (n+1) h j).symm (short_of_state_aux n _))
 
 instance short_of_state (s : S) : short (of_state s) :=
 begin

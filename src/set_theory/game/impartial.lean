@@ -65,7 +65,7 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
 
-theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
+theorem identical_congr : ∀ {G H : pgame} (e : G ≡ H) [G.impartial], H.impartial
 | G H := λ e, begin
   introI h,
   exact impartial_def.2
@@ -80,7 +80,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   refine ⟨(add_congr (neg_equiv_self _) (neg_equiv_self _)).trans
-    (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
+    (equiv_of_eq (pgame.neg_add _ _)).symm, λ k, _, λ k, _⟩,
   { apply left_moves_add_cases k,
     all_goals
     { intro i, simp only [add_move_left_inl, add_move_left_inr],

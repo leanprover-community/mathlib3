@@ -1288,8 +1288,12 @@ remember the value of the major premise.
 meta def eliminate_expr (generate_induction_hyps : bool) (major_premise : expr)
   (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
   (with_patterns : list with_pattern := []) : tactic unit := do
-  major_premise_revdeps ← reverse_dependencies_of_hyps [major_premise],
-  num_reverted ← unfreezing (revert_lst major_premise_revdeps),
+  ctx ← local_context,
+  revdeps ← ctx.mfilter $ λ h, do {
+    H ← infer_type h,
+    kdepends_on H major_premise
+  },
+  num_reverted ← revert_lst revdeps,
   hyp ← match eq_name with
       | some h := do
           x ← get_unused_name `x,

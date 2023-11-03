@@ -6,6 +6,7 @@ Authors: Kalle Kytölä
 import data.real.ennreal
 import topology.continuous_function.bounded
 import topology.metric_space.hausdorff_distance
+import order.filter.indicator_function
 
 /-!
 # Thickened indicators
@@ -248,3 +249,62 @@ begin
 end
 
 end thickened_indicator -- section
+
+section indicator
+
+variables {α : Type*} [pseudo_emetric_space α] {β : Type*} [has_one β]
+
+@[to_additive]
+lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure (f : α → β) (E : set α) (x : α) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ),
+    (metric.thickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
+begin
+  by_cases x_mem_closure : x ∈ closure E,
+  { filter_upwards [self_mem_nhds_within] with δ δ_pos,
+    simp only [x_mem_closure, closure_subset_thickening δ_pos E x_mem_closure,
+               mul_indicator_of_mem], },
+  { have obs := eventually_not_mem_thickening_of_inf_edist_pos x_mem_closure,
+    filter_upwards [obs] with δ hδ,
+    simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
+end
+
+@[to_additive]
+lemma mul_indicator_cthickening_eventually_eq_mul_indicator_closure
+  (f : α → β) (E : set α) (x : α) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ),
+    (metric.cthickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
+begin
+  by_cases x_mem_closure : x ∈ closure E,
+  { filter_upwards [univ_mem] with δ rubbish,
+    simp only [x_mem_closure, closure_subset_cthickening δ E x_mem_closure,
+               mul_indicator_of_mem], },
+  { have obs := eventually_not_mem_cthickening_of_inf_edist_pos x_mem_closure,
+    filter_upwards [obs] with δ hδ,
+    simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
+end
+
+variables [topological_space β]
+
+@[to_additive]
+lemma tendsto_mul_indicator_thickening_mul_indicator_closure (f : α → β) (E : set α) :
+  tendsto (λ δ, (metric.thickening δ E).mul_indicator f) (𝓝[>] 0)
+    (𝓝 (mul_indicator (closure E) f)) :=
+begin
+  rw tendsto_pi_nhds,
+  intro x,
+  rw tendsto_congr' (mul_indicator_thickening_eventually_eq_mul_indicator_closure f E x),
+  apply tendsto_const_nhds,
+end
+
+@[to_additive]
+lemma tendsto_mul_indicator_cthickening_mul_indicator_closure (f : α → β) (E : set α) :
+  tendsto (λ δ, (metric.cthickening δ E).mul_indicator f) (𝓝[>] 0)
+    (𝓝 (mul_indicator (closure E) f)) :=
+begin
+  rw tendsto_pi_nhds,
+  intro x,
+  rw tendsto_congr' (mul_indicator_cthickening_eventually_eq_mul_indicator_closure f E x),
+  apply tendsto_const_nhds,
+end
+
+end indicator

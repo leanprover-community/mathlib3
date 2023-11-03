@@ -869,6 +869,17 @@ def thickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E < enn
 lemma mem_thickening_iff_inf_edist_lt : x ∈ thickening δ s ↔ inf_edist x s < ennreal.of_real δ :=
 iff.rfl
 
+/-- An exterior point of a subset `E` (i.e., a point outside the closure of `E`) is not in the
+(open) thickening `δ`-thickening of `E` for small enough positive `δ`. -/
+lemma eventually_not_mem_thickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.thickening δ E :=
+begin
+  rcases exists_real_pos_lt_inf_edist_of_not_mem_closure h with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+  have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
+  filter_upwards [obs] with δ hδ,
+  simp [thickening, (((ennreal.of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt).le],
+end
+
 /-- The (open) thickening equals the preimage of an open interval under `inf_edist`. -/
 lemma thickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
   thickening δ E = (λ x, inf_edist x E) ⁻¹' (Iio (ennreal.of_real δ)) := rfl
@@ -973,6 +984,17 @@ def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ 
 
 @[simp] lemma mem_cthickening_iff : x ∈ cthickening δ s ↔ inf_edist x s ≤ ennreal.of_real δ :=
 iff.rfl
+
+/-- An exterior point of a subset `E` (i.e., a point outside the closure of `E`) is not in the
+closed thickening `δ`-thickening of `E` for small enough positive `δ`. -/
+lemma eventually_not_mem_cthickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.cthickening δ E :=
+begin
+  rcases exists_real_pos_lt_inf_edist_of_not_mem_closure h with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+  have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
+  filter_upwards [obs] with δ hδ,
+  simp [cthickening, ((ennreal.of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt],
+end
 
 lemma mem_cthickening_of_edist_le (x y : α) (δ : ℝ) (E : set α) (h : y ∈ E)
   (h' : edist x y ≤ ennreal.of_real δ) :

@@ -331,7 +331,7 @@ open stalk_skyscraper_presheaf_adjunction_auxs
 /--
 `skyscraper_presheaf_functor` is the right adjoint of `presheaf.stalk_functor`
 -/
-def skyscraper_presheaf_stalk_adjunction [has_colimits C] :
+@[simps] def skyscraper_presheaf_stalk_adjunction [has_colimits C] :
   (presheaf.stalk_functor C p₀ : presheaf C X ⥤ C) ⊣ skyscraper_presheaf_functor p₀ :=
 { hom_equiv := λ c 𝓕,
   { to_fun := to_skyscraper_presheaf _,

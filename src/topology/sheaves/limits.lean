@@ -25,6 +25,9 @@ variables {C : Type u} [category.{v} C] {J : Type v} [small_category J]
 
 namespace Top
 
+instance [has_limits_of_shape J C] (X : Top) : has_limits_of_shape J (presheaf C X) :=
+category_theory.limits.functor_category_has_limits_of_shape
+
 instance [has_limits C] (X : Top) : has_limits (presheaf C X) :=
 limits.functor_category_has_limits_of_size.{v v}
 

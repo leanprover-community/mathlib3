@@ -22,8 +22,7 @@ variables {α β : Type*}
 
 /-! ### sort -/
 section sort
-variables (r : α → α → Prop) [decidable_rel r]
-  [is_trans α r] [is_antisymm α r] [is_total α r]
+variables (r : α → α → Prop) [decidable_rel r] [is_linear_order α r]
 
 /-- `sort s` constructs a sorted list from the unordered set `s`.
   (Uses merge sort algorithm.) -/

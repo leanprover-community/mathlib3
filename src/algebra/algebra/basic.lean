@@ -115,6 +115,36 @@ class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_smul R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
+
+/--
+A (non-unital, non-associative) `R`-algebra is a non-unital, non-associative, semiring `A` equipped
+with a map into its centroid `R → Z(A)`.
+-/
+class non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R]
+  [non_unital_non_assoc_semiring A] extends has_scalar R A, R →+* (add_monoid.End A) :=
+(commutes' : ∀ r a b, (to_ring_hom r a) * b = a * (to_ring_hom r b))
+(smul_def' : ∀ r a, r • a = to_ring_hom r  a)
+
+/-- If R is a commutative semiring, A is a semiring and R →+* (add_monoid.End A) is a
+(non-unital, non-associative) algebra then  r → r•1 is a (unital, associative) algebra -/
+def to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [non_unital_non_assoc_algebra R A] : algebra R A:=
+  { to_fun := λ r, _inst_3.to_fun r 1,
+    map_one' := by rw [ring_hom.to_fun_eq_coe, map_one, add_monoid.coe_one, id.def],
+    map_mul' := λ r₁ r₂, by rw [ring_hom.to_fun_eq_coe, map_mul, add_monoid.coe_mul,
+      function.comp_app, non_unital_non_assoc_algebra.commutes', one_mul],
+    map_zero' := by rw [ring_hom.to_fun_eq_coe, map_zero, add_monoid_hom.zero_apply],
+    map_add' := λ r₁ r₂, by rw [ring_hom.to_fun_eq_coe, map_add, add_monoid_hom.add_apply],
+    commutes' := λ r a, begin
+      simp only [ring_hom.to_fun_eq_coe],
+      rw [non_unital_non_assoc_algebra.commutes', one_mul, ← non_unital_non_assoc_algebra.commutes',
+        mul_one],
+    end,
+    smul_def' := λ r a, begin
+      simp only [ring_hom.to_fun_eq_coe],
+      rw [non_unital_non_assoc_algebra.smul_def', non_unital_non_assoc_algebra.commutes', one_mul],
+    end, }
+
 end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
@@ -299,6 +329,17 @@ instance to_module : module R A :=
   smul_zero := by simp [smul_def''],
   add_smul := by simp [smul_def'', add_mul],
   zero_smul := by simp [smul_def''] }
+
+/-- A (unital associative) algebra is also a non-unital non-associative algebra -/
+def to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A]  : non_unital_non_assoc_algebra R A :=
+{ commutes' := λ r a b, begin
+    simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe, module.to_add_monoid_End_apply_apply],
+    rw [algebra.smul_def', algebra.smul_def', algebra.commutes', mul_assoc],
+  end,
+  smul_def' := λ r a, by simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe,
+    module.to_add_monoid_End_apply_apply],
+  ..module.to_add_monoid_End R A }
 
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.

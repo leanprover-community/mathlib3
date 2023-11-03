@@ -2814,6 +2814,12 @@ lemma prob_add_prob_compl [is_probability_measure μ]
 lemma prob_le_one [is_probability_measure μ] : μ s ≤ 1 :=
 (measure_mono $ set.subset_univ _).trans_eq measure_univ
 
+lemma to_real_prob_le_one [is_probability_measure μ] : (μ s).to_real ≤ 1 :=
+begin
+  rw [← ennreal.one_to_real, ennreal.to_real_le_to_real (measure_ne_top μ _) ennreal.one_ne_top],
+  exact prob_le_one,
+end
+
 lemma is_probability_measure_smul [is_finite_measure μ] (h : μ ≠ 0) :
   is_probability_measure ((μ univ)⁻¹ • μ) :=
 begin

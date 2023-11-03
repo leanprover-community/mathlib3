@@ -164,6 +164,10 @@ iff.intro (begin
   iterate 2 { apply classical.some_spec hf.has_right_inverse },
 end) (rel_hom_class.well_founded (⟨f, λ _ _, o.1⟩ : r →r s))
 
+theorem surjective.is_well_founded_iff {f : α → β} (hf : surjective f)
+  (o : ∀ {a b}, r a b ↔ s (f a) (f b)) : is_well_founded α r ↔ is_well_founded β s :=
+by rw [is_well_founded_iff, is_well_founded_iff, surjective.well_founded_iff hf @o]
+
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
 structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=

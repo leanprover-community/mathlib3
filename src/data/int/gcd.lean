@@ -38,7 +38,10 @@ def xgcd_aux : ℕ → ℤ → ℤ → ℕ → ℤ → ℤ → ℕ × ℤ × ℤ
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 
 @[simp] theorem xgcd_zero_left {s t r' s' t'} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
-by simp [xgcd_aux]
+by simp only [xgcd_aux]
+
+@[simp] theorem xgcd_one_left {s t r' s' t'} : xgcd_aux 1 s t r' s' t' = (1, s, t) :=
+by simp only [xgcd_aux, mod_one]
 
 theorem xgcd_aux_rec {r s t r' s' t'} (h : 0 < r) :
   xgcd_aux r s t r' s' t' = xgcd_aux (r' % r) (s' - (r' / r) * s) (t' - (r' / r) * t) r s t :=
@@ -54,27 +57,35 @@ def gcd_a (x y : ℕ) : ℤ := (xgcd x y).1
 /-- The extended GCD `b` value in the equation `gcd x y = x * a + y * b`. -/
 def gcd_b (x y : ℕ) : ℤ := (xgcd x y).2
 
-@[simp] theorem gcd_a_zero_left {s : ℕ} : gcd_a 0 s = 0 :=
-by { unfold gcd_a, rw [xgcd, xgcd_zero_left] }
+@[simp] theorem gcd_a_zero_left {s} : gcd_a 0 s = 0 :=
+by rw [gcd_a, xgcd, xgcd_zero_left]
 
-@[simp] theorem gcd_b_zero_left {s : ℕ} : gcd_b 0 s = 1 :=
-by { unfold gcd_b, rw [xgcd, xgcd_zero_left] }
+@[simp] theorem gcd_b_zero_left {s} : gcd_b 0 s = 1 :=
+by rw [gcd_b, xgcd, xgcd_zero_left]
 
-@[simp] theorem gcd_a_zero_right {s : ℕ} (h : s ≠ 0) : gcd_a s 0 = 1 :=
-begin
-  unfold gcd_a xgcd,
-  induction s,
-  { exact absurd rfl h, },
-  { simp [xgcd_aux], }
-end
+@[simp] theorem gcd_a_one_left {s} : gcd_a 1 s = 1 :=
+by rw [gcd_a, xgcd, xgcd_one_left]
 
-@[simp] theorem gcd_b_zero_right {s : ℕ} (h : s ≠ 0) : gcd_b s 0 = 0 :=
-begin
-  unfold gcd_b xgcd,
-  induction s,
-  { exact absurd rfl h, },
-  { simp [xgcd_aux], }
-end
+@[simp] theorem gcd_b_one_left {s} : gcd_b 1 s = 0 :=
+by rw [gcd_b, xgcd, xgcd_one_left]
+
+@[simp] theorem gcd_a_zero_right : ∀ {s}, s ≠ 0 → gcd_a s 0 = 1
+| 0       := λ h, (h rfl).elim
+| (s + 1) := λ h, by simp only [gcd_a, xgcd, xgcd_aux, zero_mod]
+
+@[simp] theorem gcd_b_zero_right : ∀ {s}, s ≠ 0 → gcd_b s 0 = 0
+| 0       := λ h, (h rfl).elim
+| (s + 1) := λ h, by simp only [gcd_b, xgcd, xgcd_aux, zero_mod]
+
+theorem gcd_a_one_right : ∀ {s}, s ≠ 1 → gcd_a s 1 = 0
+| 0       := λ h, gcd_a_zero_left
+| 1       := λ h, (h rfl).elim
+| (s + 2) := λ h, by simp only [gcd_a, xgcd, xgcd_aux, one_mod, mod_one]; refl
+
+theorem gcd_b_one_right : ∀ {s}, s ≠ 1 → gcd_b s 1 = 1
+| 0       := λ h, gcd_b_zero_left
+| 1       := λ h, (h rfl).elim
+| (s + 2) := λ h, by simp only [gcd_b, xgcd, xgcd_aux, one_mod, mod_one]; refl
 
 @[simp] theorem xgcd_aux_fst (x y) : ∀ s t s' t',
   (xgcd_aux x s t y s' t').1 = gcd x y :=

@@ -7,6 +7,7 @@ Authors: Eric Wieser, Utensil Song
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
 import linear_algebra.quadratic_form.isometry
+import tactic.equiv_rw
 
 /-!
 # Clifford Algebras
@@ -315,6 +316,9 @@ def invertible_ι_of_invertible (m : M) [invertible (Q m)] : invertible (ι Q m)
     inv_of_mul_self, map_one],
   mul_inv_of_self := by rw [map_smul, mul_smul_comm, ι_sq_scalar, algebra.smul_def, ←map_mul,
     inv_of_mul_self, map_one] }
+
+def invertible_of_invertible_ι (m : M) [invertible (ι Q m)] [invertible (2 : R)] :
+  invertible (Q m) := sorry
 
 /-- For a vector with invertible quadratic form, $v^{-1} = \frac{v}{Q(v)}$ -/
 lemma inv_of_ι (m : M) [invertible (Q m)] [invertible (ι Q m)] : ⅟(ι Q m) = ι Q (⅟(Q m) • m) :=

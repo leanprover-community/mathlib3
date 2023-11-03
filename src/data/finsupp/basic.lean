@@ -382,7 +382,7 @@ variables [add_comm_monoid M] {v v₁ v₂ : α →₀ M}
 def map_domain (f : α → β) (v : α →₀ M) : β →₀ M :=
 v.sum $ λa, single (f a)
 
-lemma map_domain_apply {f : α → β} (hf : function.injective f) (x : α →₀ M) (a : α) :
+lemma map_domain_apply_of_injective {f : α → β} (hf : function.injective f) (x : α →₀ M) (a : α) :
   map_domain f x (f a) = x a :=
 begin
   rw [map_domain, sum_apply, sum, finset.sum_eq_single a, single_eq_same],
@@ -430,7 +430,7 @@ sum_add_index' (λ _, single_zero _) (λ _, single_add _)
   map_domain f x a = x (f.symm a) :=
 begin
   conv_lhs { rw ←f.apply_symm_apply a },
-  exact map_domain_apply f.injective _ _,
+  exact map_domain_apply_of_injective f.injective _ _,
 end
 
 /-- `finsupp.map_domain` is an `add_monoid_hom`. -/
@@ -463,7 +463,7 @@ finset.subset.trans support_sum $
   finset.subset.trans (finset.bUnion_mono $ assume a ha, support_single_subset) $
   by rw [finset.bUnion_singleton]; exact subset.refl _
 
-lemma map_domain_apply' (S : set α) {f : α → β} (x : α →₀ M)
+lemma map_domain_apply_of_inj_on (S : set α) {f : α → β} (x : α →₀ M)
   (hS : (x.support : set α) ⊆ S) (hf : set.inj_on f S) {a : α} (ha : a ∈ S) :
   map_domain f x (f a) = x a :=
 begin
@@ -487,7 +487,7 @@ finset.subset.antisymm map_domain_support $ begin
   simp only [mem_image, exists_prop, mem_support_iff, ne.def] at hx,
   rcases hx with ⟨hx_w, hx_h_left, rfl⟩,
   simp only [mem_support_iff, ne.def],
-  rw map_domain_apply' (↑s.support : set _) _ _ hf,
+  rw map_domain_apply_of_inj_on (↑s.support : set _) _ _ hf,
   { exact hx_h_left, },
   { simp only [mem_coe, mem_support_iff, ne.def],
     exact hx_h_left, },
@@ -525,7 +525,7 @@ begin
   ext a,
   by_cases a ∈ set.range f,
   { rcases h with ⟨a, rfl⟩,
-    rw [map_domain_apply f.injective, emb_domain_apply] },
+    rw [map_domain_apply_of_injective f.injective, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
 
@@ -540,7 +540,7 @@ lemma map_domain_injective {f : α → β} (hf : function.injective f) :
 begin
   assume v₁ v₂ eq, ext a,
   have : map_domain f v₁ (f a) = map_domain f v₂ (f a), { rw eq },
-  rwa [map_domain_apply hf, map_domain_apply hf] at this,
+  rwa [map_domain_apply_of_injective hf, map_domain_apply_of_injective hf] at this,
 end
 
 /-- When `f` is an embedding we have an embedding `(α →₀ ℕ)  ↪ (β →₀ ℕ)` given by `map_domain`. -/
@@ -579,7 +579,7 @@ begin
   ext a,
   classical,
   by_cases h : a ∈ v₁.support ∪ v₂.support,
-  { rw [← map_domain_apply' S _ hv₁ hf _, ← map_domain_apply' S _ hv₂ hf _, eq];
+  { rw [← map_domain_apply_of_inj_on S _ hv₁ hf _, ← map_domain_apply_of_inj_on S _ hv₂ hf _, eq];
     { apply set.union_subset hv₁ hv₂,
       exact_mod_cast h, }, },
   { simp only [decidable.not_or_iff_and_not, mem_union, not_not, mem_support_iff] at h,
@@ -695,7 +695,7 @@ begin
   ext a,
   by_cases h_cases: a ∈ set.range f,
   { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
-    rw [hb.symm, map_domain_apply hf, comap_domain_apply] },
+    rw [hb.symm, map_domain_apply_of_injective hf, comap_domain_apply] },
   { rw map_domain_notin_range _ _ h_cases,
     by_contra h_contr,
     apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
@@ -819,6 +819,37 @@ end
 @[simp, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
   f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
 div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
+
+lemma sum_image_support_filter [add_comm_monoid β] [decidable_eq γ]
+  (x : α →₀ β) (f : α → γ) :
+  ∑ b in x.support.image f, x.filter (λ a, f a = b) = x :=
+begin
+  ext i,
+  simp_rw [finset_sum_apply, filter_apply, sum_ite, sum_const_zero, add_zero, finset.filter_eq],
+  split_ifs,
+  { simp },
+  { rw [finset.sum_empty, eq_comm, ← finsupp.not_mem_support_iff],
+    exact λ h', h (finset.mem_image_of_mem f h') }
+end
+
+lemma sum_filter_support_single [add_comm_monoid β] (x : α →₀ β)
+  (P : α → Prop) [decidable_pred P] :
+  ∑ i in x.support.filter P, single i (x i) = x.filter P :=
+begin
+  rw [← (x.filter P).sum_single, finsupp.sum, finsupp.support_filter],
+  apply finset.sum_congr rfl,
+  intros i hi,
+  rw finset.mem_filter at hi,
+  rw finsupp.filter_apply_pos P x hi.2
+end
+
+lemma map_domain_apply [add_comm_monoid β] [decidable_eq γ] (x : α →₀ β) (f : α → γ) (i : γ) :
+  x.map_domain f i = ∑ i in x.support.filter (λ j, f j = i), x i :=
+begin
+  rw [finsupp.map_domain, finsupp.sum_apply],
+  simp_rw finsupp.single_apply,
+  rw [finsupp.sum, finset.sum_ite, finset.sum_const_zero, add_zero],
+end
 
 end has_zero
 
@@ -1243,7 +1274,7 @@ local attribute [instance] comap_has_smul comap_mul_action comap_distrib_mul_act
   (g • f) a = f (g⁻¹ • a) :=
 begin
   conv_lhs { rw ←smul_inv_smul g a },
-  exact map_domain_apply (mul_action.injective g) _ (g⁻¹ • a),
+  exact map_domain_apply_of_injective (mul_action.injective g) _ (g⁻¹ • a),
 end
 
 end
@@ -1447,7 +1478,7 @@ def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
     dsimp only,
     refine classical.by_cases (assume h : a ∈ set.range (subtype.val : s → α), _) (assume h, _),
     { rcases h with ⟨x, rfl⟩,
-      rw [map_domain_apply subtype.val_injective, subtype_domain_apply] },
+      rw [map_domain_apply_of_injective subtype.val_injective, subtype_domain_apply] },
     { convert map_domain_notin_range _ _ h,
       rw [← not_mem_support_iff],
       refine mt _ h,
@@ -1456,7 +1487,7 @@ def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
   right_inv := λ f, begin
     ext ⟨a, ha⟩,
     dsimp only,
-    rw [subtype_domain_apply, map_domain_apply subtype.val_injective]
+    rw [subtype_domain_apply, map_domain_apply_of_injective subtype.val_injective]
   end }
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between

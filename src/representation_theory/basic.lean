@@ -265,7 +265,7 @@ begin
   let h' := g⁻¹ • h,
   change of_mul_action k G H g f (g • h') = f h',
   have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
-  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
+  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply_of_injective hg]
 end
 
 lemma of_mul_action_self_smul_eq_mul

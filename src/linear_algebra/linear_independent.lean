@@ -176,7 +176,7 @@ begin
     by rw linear_independent_iff.1 h (finsupp.map_domain f l) hl; simp,
   ext x,
   convert h_map_domain x,
-  rw [finsupp.map_domain_apply hf]
+  rw [finsupp.map_domain_apply_of_injective hf]
 end
 
 lemma linear_independent.coe_range (i : linear_independent R v) :

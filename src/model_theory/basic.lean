@@ -61,7 +61,7 @@ namespace first_order
 structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
-/-- Used to define `first_order.language₂`. -/
+/-- Used to define `first_order.language.mk₂`. -/
 @[simp] def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
 | 0 := a₀
 | 1 := a₁
@@ -301,7 +301,7 @@ def rel_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
 | 2 r x := r₂' r (x 0) (x 1)
 | (n + 3) r _ := pempty.elim r
 
-/-- A structure constructor to match `first_order.language₂`. -/
+/-- A structure constructor to match `first_order.language.mk₂`. -/
 protected def Structure.mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
   (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M)
   (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :

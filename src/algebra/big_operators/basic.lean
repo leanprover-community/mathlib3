@@ -63,7 +63,7 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
-@[simp, to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
+@[to_additive] lemma prod_val [comm_monoid α] (s : finset α) : s.1.prod = s.prod id :=
 by rw [finset.prod, multiset.map_id]
 
 end finset

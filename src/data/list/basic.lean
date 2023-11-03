@@ -3690,8 +3690,8 @@ begin
     { simp [hmem] } }
 end
 
-@[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
 @[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
+@[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
 
 @[simp] lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
   enum_from n (x :: xs) = (n, x) :: enum_from (n + 1) xs := rfl
@@ -3702,8 +3702,9 @@ end
 @[simp] lemma enum_singleton (x : α) :
   enum [x] = [(0, x)] := rfl
 
+-- Addition on the right to make `enum_append` be definitionally true to this lemma
 lemma enum_from_append (xs ys : list α) (n : ℕ) :
-  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (n + xs.length) ys :=
+  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (xs.length + n) ys :=
 begin
   induction xs with x xs IH generalizing ys n,
   { simp },
@@ -3713,7 +3714,7 @@ end
 
 lemma enum_append (xs ys : list α) :
   enum (xs ++ ys) = enum xs ++ enum_from xs.length ys :=
-by simp [enum, enum_from_append]
+enum_from_append _ _ _
 
 lemma map_fst_add_enum_from_eq_enum_from (l : list α) (n k : ℕ) :
   map (prod.map (+ n) id) (enum_from k l) = enum_from (n + k) l :=

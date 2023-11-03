@@ -10,9 +10,6 @@ import data.finset.pairwise
 /-!
 
 # Sums of collections of finsupp, and their support
-
-> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.
 This file provides results about the `finsupp.support` of sums of collections of `finsupp`,
 including sums of `list`, `multiset`, and `finset`.
 
@@ -55,7 +52,7 @@ end
 
 lemma finset.support_sum_subset [add_comm_monoid M] (s : finset (ι →₀ M)) :
   (s.sum id).support ⊆ finset.sup s finsupp.support :=
-by { classical, convert multiset.support_sum_subset s.1; simp }
+by { classical, convert multiset.support_sum_subset s.1; simp [finset.sum_val] }
 
 lemma list.mem_foldr_sup_support_iff [has_zero M] {l : list (ι →₀ M)} {x : ι} :
   x ∈ l.foldr ((⊔) ∘ finsupp.support) ∅ ↔ ∃ (f : ι →₀ M) (hf : f ∈ l), x ∈ f.support :=

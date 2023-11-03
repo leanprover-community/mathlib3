@@ -34,6 +34,13 @@ The locale `matrix` gives the following notation:
 
 * `×₃` for the cross product
 
+## TODO
+
+`orientation.cross_product` is a basis-free construction of the cross-product on an oriented real
+inner product space of dimension three.  Either this construction should be superseded by that one
+(which still involves a loss of generality, in moving from a general commutative ring to just `ℝ`)
+or, if the two constructions will co-exist, there should be lemmas relating the two constructions.
+
 ## Tags
 
 crossproduct
@@ -44,7 +51,10 @@ open_locale matrix
 
 variables {R : Type*} [comm_ring R]
 
-/-- The cross product of two vectors in $R^3$ for $R$ a commutative ring. -/
+/-- The cross product of two vectors in $R^3$ for $R$ a commutative ring.
+
+See `orientation.cross_product` for a construction of the cross-product on a general inner product
+space. -/
 def cross_product : (fin 3 → R) →ₗ[R] (fin 3 → R) →ₗ[R] (fin 3 → R) :=
 begin
   apply linear_map.mk₂ R (λ (a b : fin 3 → R),

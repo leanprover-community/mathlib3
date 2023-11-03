@@ -495,6 +495,16 @@ begin
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end
 
+theorem exists_is_glb {S : set ℝ} (hne : S.nonempty) (hbdd : bdd_below S) :
+  ∃ x, is_glb S x :=
+begin
+  set T := - S with hT,
+  have hT_ne : T.nonempty := set.nonempty_neg.mpr hne,
+  have hT_bdd : bdd_above T := bdd_above_neg.mpr hbdd,
+  use -classical.some (real.exists_is_lub T hT_ne hT_bdd),
+  simpa [← is_lub_neg] using (classical.some_spec (real.exists_is_lub T hT_ne hT_bdd)),
+end
+
 noncomputable instance : has_Sup ℝ :=
 ⟨λ S, if h : S.nonempty ∧ bdd_above S then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 

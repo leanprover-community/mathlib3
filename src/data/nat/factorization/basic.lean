@@ -857,4 +857,173 @@ begin
     card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
+/-! ### Lemmas about factorizations of sums -/
+
+/-- The multiplicity of `p` in `a + b` is no less than in `a` and `b`. -/
+lemma factorization_add {p a b : ℕ} :
+  min (a.factorization p) (b.factorization p) ≤ (a + b).factorization p :=
+begin
+  rcases a.eq_zero_or_pos with rfl | ha0, { simp },
+  rcases b.eq_zero_or_pos with rfl | hb0, { simp },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rw ←pp.pow_dvd_iff_le_factorization (add_pos ha0 hb0).ne',
+  rcases le_or_lt (a.factorization p) (b.factorization p) with h1 | h2,
+  { rw [min_eq_left h1, nat.dvd_add_right (ord_proj_dvd a p)],
+    exact pow_dvd_of_le_of_pow_dvd h1 (ord_proj_dvd b p) },
+  { rw [min_eq_right_of_lt h2, nat.dvd_add_left (ord_proj_dvd b p)],
+    exact pow_dvd_of_le_of_pow_dvd h2.le (ord_proj_dvd a p) },
+end
+
+/-- The multiplicity of `p` in `a + b` is greater than in `a` and `b` exactly when
+`a + b = p^k * (a' + b')` for `a'` and `b'` not divisible by `p`, and `p` divides the latter sum. -/
+lemma factorization_add_iff {p b a : ℕ} (pp : p.prime) (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  min (a.factorization p) (b.factorization p) < (a + b).factorization p ↔
+  (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a + ord_compl[p] b) :=
+begin
+  set a' := ord_compl[p] a,
+  set b' := ord_compl[p] b,
+  set α := a.factorization p,
+  set β := b.factorization p,
+  have H1 : p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ≠ 0,
+    { rw ←pos_iff_ne_zero,
+      apply add_pos; { refine mul_pos (pow_pos pp.pos _) (ord_compl_pos p _), assumption } },
+  have H2 : a + b = p ^ min α β * (p ^ (α - min α β) * a' + p ^ (β - min α β) * b'),
+  { simp [mul_add, ←mul_assoc, ←pow_add, ord_proj_mul_ord_compl_eq_self] },
+  suffices : ¬p ∣ p ^ (α - min α β) * a' + p ^ (β - min α β) * b' ↔ ¬α = β ∨ ¬p ∣ a' + b',
+  { rw [H2, factorization_mul (pow_pos pp.pos _).ne' H1, finsupp.add_apply,
+        pp.factorization_pow, single_eq_same, lt_add_iff_pos_right, ←not_iff_not,
+        not_lt, le_zero_iff, not_and_distrib,
+        factorization_eq_zero_iff],
+    simpa [pp, H1] },
+  have : α < β ∨ α = β ∨ β < α, by apply trichotomous,
+  rcases this with hαβ | hαβ | hαβ,
+  { rw min_eq_left_of_lt hαβ,
+    simp only [hαβ.ne, tsub_self, pow_zero, one_mul, not_false_iff, true_or, iff_true],
+    rw nat.dvd_add_left (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt hαβ).ne') _),
+    exact not_dvd_ord_compl pp ha0 },
+  { simp [hαβ] },
+  { rw min_eq_right_of_lt hαβ,
+    simp only [hαβ.ne.symm, tsub_self, pow_zero, one_mul, not_false_iff, true_or, iff_true],
+    rw nat.dvd_add_right (dvd_mul_of_dvd_left (dvd_pow_self p (tsub_pos_of_lt hαβ).ne') _),
+    exact not_dvd_ord_compl pp hb0 },
+end
+
+lemma factorization_add_of_lt {p a b : ℕ} (h : a.factorization p < b.factorization p)
+  (ha0 : a ≠ 0) :
+  (a + b).factorization p = a.factorization p :=
+begin
+  rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rw ←min_eq_left_of_lt h,
+  refine le_antisymm _ factorization_add,
+  contrapose! h,
+  rw factorization_add_iff pp ha0 hb0 at h,
+  exact h.1.symm.le,
+end
+
+lemma factorization_add_min {p a b : ℕ} (h : a.factorization p ≠ b.factorization p)
+  (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+  (a + b).factorization p = min (a.factorization p) (b.factorization p) :=
+begin
+  rcases lt_or_lt_iff_ne.2 h with h | h,
+  { rw [factorization_add_of_lt h ha0, min_eq_left_of_lt h] },
+  { rw [add_comm, factorization_add_of_lt h hb0, min_eq_right_of_lt h] },
+end
+
+lemma factorization_eq_of_lt_factorization_add {p a b : ℕ} (ha0 : a ≠ 0)
+  (h : a.factorization p < (a + b).factorization p) :
+  a.factorization p = b.factorization p :=
+begin
+  rcases eq_or_ne b 0 with rfl | hb0, { simpa using h },
+  contrapose! h,
+  rw [factorization_add_min h ha0 hb0, min_le_iff],
+  exact or.inl (le_refl _),
+end
+
+lemma factorization_add_le_of_factorization_add_eq {p b a : ℕ} (ha0 : a ≠ 0)
+  (h : (a + b).factorization p = b.factorization p) :
+  (a + b).factorization p ≤ a.factorization p :=
+begin
+  rcases eq_or_ne b 0 with rfl | hb0, { simp },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  rcases eq_or_ne (a.factorization p) (b.factorization p) with h1 | h2,
+  { rw [h, h1] },
+  simp [factorization_add_min h2 ha0 hb0],
+end
+
+/-! ### Lemmas about factorizations of subtractions -/
+
+lemma factorization_sub_of_lt {p a b : ℕ} (h : b.factorization p < a.factorization p)
+  (hab : b ≤ a) (hb0 : b ≠ 0) :
+  (a - b).factorization p = b.factorization p :=
+begin
+  rcases (exists_eq_add_of_le hab) with ⟨k, rfl⟩,
+  simp only [add_tsub_cancel_left],
+  exact (factorization_eq_of_lt_factorization_add hb0 h).symm,
+end
+
+lemma factorization_sub_of_lt' {p a b : ℕ} (h : a.factorization p < b.factorization p)
+  (hab : b ≤ a) :
+  (a - b).factorization p = a.factorization p :=
+begin
+  rcases (exists_eq_add_of_le hab) with ⟨k, rfl⟩,
+  rcases eq_or_ne k 0 with rfl | hk0, { simpa using h },
+  simp only [add_tsub_cancel_left],
+  rw add_comm,
+  refine (factorization_add_of_lt _ hk0).symm,
+  simpa using lt_of_le_of_lt factorization_add h,
+end
+
+lemma factorization_sub_min {p a b : ℕ} (h : a.factorization p ≠ b.factorization p)
+  (hab : b ≤ a) (hb0 : b ≠ 0) :
+  (a - b).factorization p = min (a.factorization p) (b.factorization p) :=
+begin
+  rcases lt_or_lt_iff_ne.2 h with h | h,
+  { rw [factorization_sub_of_lt' h hab, min_eq_left_of_lt h] },
+  { rw [factorization_sub_of_lt h hab hb0, min_eq_right_of_lt h] },
+end
+
+lemma factorization_sub {p a b : ℕ} (hab : b < a) :
+  min (a.factorization p) (b.factorization p) ≤ (a - b).factorization p :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { simp at * },
+  rcases eq_or_ne b 0 with rfl | hb0, { simp at * },
+  rcases em' p.prime with pp | pp, { simp [pp] },
+  have : a - b ≠ 0, { simp [hab] },
+  rw ←pp.pow_dvd_iff_le_factorization this,
+  rcases eq_or_ne (a.factorization p) (b.factorization p) with h7 | h8, swap,
+  { rw ←factorization_sub_min h8 hab.le hb0, apply ord_proj_dvd },
+  refine pow_dvd_of_le_of_pow_dvd _ (ord_proj_dvd (a-b) p),
+  rw [min_le_iff, ←h7, or_self],
+  rcases exists_eq_add_of_lt hab with ⟨k, hk⟩,
+  rw add_assoc at hk,
+  subst hk,
+  rw [add_tsub_cancel_left],
+  rw add_comm at h7 ⊢,
+  exact factorization_add_le_of_factorization_add_eq (succ_ne_zero k) h7,
+end
+
+lemma factorization_sub_iff {p a b : ℕ} (pp : p.prime) (hb0 : b ≠ 0) (hab : b < a) :
+  min (a.factorization p) (b.factorization p) < (a - b).factorization p ↔
+  (a.factorization p) = (b.factorization p) ∧ p ∣ (ord_compl[p] a - ord_compl[p] b) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha0, { cases hab },
+  set a' := ord_compl[p] a with ha',
+  set b' := ord_compl[p] b with hb',
+  set α := a.factorization p,
+  set β := b.factorization p,
+  rcases ne_or_eq α β with hαβ | hαβ, { simp [factorization_sub_min hαβ hab.le hb0, hαβ] },
+  simp only [hαβ, min_eq_right, eq_self_iff_true, true_and],
+  have H1 : a - b = p ^ β * (a' - b'),
+  { rw nat.mul_sub_left_distrib,
+    nth_rewrite 0 ←hαβ,
+    simp_rw [ord_proj_mul_ord_compl_eq_self] },
+  have H2 : a' - b' ≠ 0,
+  { rw [ha', hb', ne.def, tsub_eq_zero_iff_le, not_le, ←hαβ],
+    exact div_lt_div_of_lt_of_dvd (ord_proj_dvd a p) hab },
+  rw [H1, factorization_mul (pow_pos pp.pos β).ne' H2, finsupp.add_apply, pp.factorization_pow,
+      single_eq_same, lt_add_iff_pos_right],
+  exact ⟨λ h, dvd_of_factorization_pos h.ne', pp.factorization_pos_of_dvd H2⟩,
+end
+
 end nat

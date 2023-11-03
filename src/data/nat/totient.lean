@@ -68,35 +68,28 @@ begin
   exact periodic_coprime a,
 end
 
-lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (a_pos : 0 < a) :
-  ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
+lemma Ico_add_mul_filter_coprime_le {a : ℕ} (k m : ℕ) (a_pos : 0 < a) :
+  ((Ico k (k + (m * a))).filter (coprime a)).card ≤ totient a * m :=
 begin
-  conv_lhs { rw ←nat.mod_add_div n a },
-  induction n / a with i ih,
-  { rw ←filter_coprime_Ico_eq_totient a k,
-    simp only [add_zero, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
-    mono,
-    refine monotone_filter_left a.coprime _,
-    simp only [finset.le_eq_subset],
-    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
-  simp only [mul_succ],
+  induction m with i ih,
+  { simp, },
+  simp only [mul_succ, succ_mul],
   simp_rw ←add_assoc at ih ⊢,
-  calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
-      = (filter a.coprime (Ico k (k + n % a + a * i)
-                            ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
+  calc (filter a.coprime (Ico k (k + i * a + a))).card
+      = (filter a.coprime (Ico k (k + i * a)
+                            ∪ Ico (k + i * a) (k + i * a + a))).card :
         begin
           congr,
           rw Ico_union_Ico_eq_Ico,
-          rw add_assoc,
           exact le_self_add,
           exact le_self_add,
         end
-  ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
+  ... ≤ (filter a.coprime (Ico k (k + i * a))).card + a.totient :
         begin
-          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * i)],
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + i * a)],
           apply card_union_le,
         end
-  ... ≤ a.totient * i + a.totient + a.totient : add_le_add_right ih (totient a),
+  ... ≤ a.totient * i + a.totient : add_le_add_right ih (φ a),
 end
 
 open zmod

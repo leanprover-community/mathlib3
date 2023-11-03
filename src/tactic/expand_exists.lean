@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ian Wood
 -/
 import meta.expr
+import tactic.core
 
 /-!
 # `expand_exists`
@@ -27,20 +28,54 @@ lemma it_spec (n : ℕ) : n < it n := classical.some_spec (it_exists n)
 -/
 
 namespace tactic
+setup_tactic_parser
 
 open expr
 
 namespace expand_exists
 
 /--
+Argument for `expand_exists`, containing a `name` and may contain a docstring.
+-/
+@[derive has_reflect]
+meta structure arg :=
+(name : name)
+(docstring : option string)
+
+/--
+Maybe parse a string.
+-/
+meta def parse_docstring : parser $ option string :=
+parser.pexpr?
+>>= option.mmap (λ pe, do
+  e <- to_expr pe,
+  eval_expr string e)
+
+/--
+Parse an argument in list form.
+-/
+meta def parse_arg : parser arg :=
+do
+  name <- ident,
+  doc <- parse_docstring,
+  return ⟨name, doc⟩
+
+/--
+Parse arguments, either a space-separated list of lemma names, or a comma-separated list of lemma
+names, potentially with docstrings.
+-/
+meta def parse_args : parser $ list arg :=
+(list_of parse_arg) <|> list.map (λ x, ⟨x, none⟩) <$> ident*
+
+/--
 Data known when parsing pi expressions.
 
-`decl`'s arguments are: is_theorem, name, type, value.
+`decl`'s arguments are: is_theorem, arg, type, value.
 -/
 meta structure parse_ctx :=
 (original_decl : declaration)
-(decl : bool → name → expr → pexpr → tactic unit)
-(names : list name)
+(decl : bool → arg → expr → pexpr → tactic name)
+(args : list arg)
 (pis_depth : ℕ := 0)
 
 /--
@@ -86,26 +121,27 @@ meta def parse_one_prop (ctx : parse_ctx_props) (p : expr) : tactic unit :=
 do
   let p : expr := instantiate_exists_decls { ..ctx } p,
   let val : pexpr := ctx.project_proof ctx.spec_chain,
-  n <- match ctx.names with
-  | [n] := return n
+  a <- match ctx.args with
+  | [a] := return a
   | [] := fail "missing name for proposition"
   | _ := fail "too many names for propositions (are you missing an and?)"
   end,
-  ctx.decl true n p val
+  ctx.decl true a p val,
+  skip
 
 /--
 Parses a proposition and decides if it should be broken down (eg `P ∧ Q` -> `P` and `Q`) depending
-on how many `names` are left. Then creates the associated specification proof(s).
+on how many `args` are left. Then creates the associated specification proof(s).
 -/
 meta def parse_props : parse_ctx_props → expr → tactic unit
 | ctx (app (app (const "and" []) p) q) := do
-  match ctx.names with
-  | [n] := parse_one_prop ctx (app (app (const `and []) p) q)
-  | (n :: tail) :=
-    parse_one_prop { names := [n],
+  match ctx.args with
+  | [a] := parse_one_prop ctx (app (app (const `and []) p) q)
+  | (a :: tail) :=
+    parse_one_prop { args := [a],
       project_proof := (λ p, (const `and.left []) p) ∘ ctx.project_proof,
       ..ctx } p
-    >> parse_props { names := tail,
+    >> parse_props { args := tail,
       project_proof := (λ p, (const `and.right []) p) ∘ ctx.project_proof,
       ..ctx } q
   | [] := fail "missing name for proposition"
@@ -120,18 +156,18 @@ meta def parse_exists : parse_ctx_exists → expr → tactic unit
 | ctx (app (app (const "Exists" [lvl]) type) (lam var_name bi var_type body)) := do
   /- TODO: Is this needed, and/or does this create issues? -/
   (if type = var_type then tactic.skip else tactic.fail "exists types should be equal"),
-  ⟨n, names⟩ <- match ctx.names with
-  | (n :: tail) := return (n, tail)
+  ⟨a, args⟩ <- match ctx.args with
+  | (a :: tail) := return (a, tail)
   | [] := fail "missing name for exists"
   end,
   -- Type may be dependant on earlier arguments.
   let type := instantiate_exists_decls ctx type,
   let value : pexpr := (const `classical.some [lvl]) ctx.spec_chain,
-  ctx.decl false n type value,
+  decl_name <- ctx.decl false a type value,
 
-  let exists_decls := ctx.exists_decls.concat n,
+  let exists_decls := ctx.exists_decls.concat decl_name,
   let some_spec : pexpr := (const `classical.some_spec [lvl]) ctx.spec_chain,
-  let ctx : parse_ctx_exists := { names := names,
+  let ctx : parse_ctx_exists := { args := args,
     spec_chain := some_spec,
     exists_decls := exists_decls,
     ..ctx },
@@ -144,8 +180,8 @@ Parses a `∀ (a : α), p a`. If `p` is not a pi expression, it will call `parse
 meta def parse_pis : parse_ctx → expr → tactic unit
 | ctx (pi n bi ty body) :=
   -- When making a declaration, wrap in an equivalent pi expression.
-  let decl := (λ is_theorem name type val,
-    ctx.decl is_theorem name (pi n bi ty type) (lam n bi (to_pexpr ty) val)) in
+  let decl := (λ is_theorem arg type val,
+    ctx.decl is_theorem arg (pi n bi ty type) (lam n bi (to_pexpr ty) val)) in
   parse_pis { decl := decl, pis_depth := ctx.pis_depth + 1, ..ctx } body
 | ctx (app (app (const "Exists" [lvl]) type) p) :=
   let with_args := (λ (e : expr),
@@ -195,22 +231,53 @@ Note that without the last argument `nat_greater_nonzero`, `nat_greater_lt` woul
 ```lean
 #check nat_greater_lt -- nat_greater_lt : ∀ (n : ℕ), n < nat_greater n ∧ nat_greater n ≠ 0
 ```
+
+All definitions will be created in the same namespace as the `exists` lemma. You can prepend the
+name with `_root_` to create it in the root namespace:
+
+```lean
+namespace foo
+@[expand_exists _root_.a b]
+lemma a_exists : ∃ (a : α), a = a := ...
+end foo
+
+#check a     -- α
+#check foo.b -- a = a
+```
+
+You can also write the definition names in list form. This also allows you to specify docstrings in
+the attribute. Alternantively, you can use `add_decl_doc` to do this.
+the name:
+
+```lean
+@[expand_exists [foo "a foo with property bar", bar]]
+lemma foo_exists : ∃ (f : foo), bar f := ...
+
+/--
+the property satisfied by foo
+-/
+add_decl_doc bar
+```
 -/
 @[user_attribute]
-meta def expand_exists_attr : user_attribute unit (list name) :=
+meta def expand_exists_attr : user_attribute unit (list expand_exists.arg) :=
 { name := "expand_exists",
   descr := "From a proof that (a) value(s) exist(s) with certain properties, "
   ++ "constructs (an) instance(s) satisfying those properties.",
-  parser := lean.parser.many lean.parser.ident,
+  parser := expand_exists.parse_args,
   after_set := some $ λ decl prio persistent, do
     d <- get_decl decl,
-    names <- expand_exists_attr.get_param decl,
+    args <- expand_exists_attr.get_param decl,
     expand_exists.parse_pis
     { original_decl := d,
-      decl := λ is_t n ty val, (tactic.to_expr val >>= λ val,
-        tactic.add_decl (if is_t then declaration.thm n d.univ_params ty (pure val)
-          else declaration.defn n d.univ_params ty val default tt)),
-      names := names } d.type }
+      decl := (λ is_t a ty val, do
+        let name := d.to_name.get_prefix.append_namespace a.name,
+        val <- tactic.to_expr val,
+        decl <- tactic.add_decl $ if is_t then declaration.thm name d.univ_params ty (pure val)
+          else declaration.defn name d.univ_params ty val default tt,
+        a.docstring.mmap $ tactic.add_doc_string name,
+        return name),
+      args := args } d.type }
 
 add_tactic_doc
 { name := "expand_exists",

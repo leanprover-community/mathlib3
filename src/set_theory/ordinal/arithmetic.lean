@@ -76,9 +76,9 @@ by { rw [←add_one_eq_succ, lift_add, lift_one], refl }
 instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ a b c, induction_on a $ λ α r hr, induction_on b $ λ β₁ s₁ hs₁, induction_on c $ λ β₂ s₂ hs₂ ⟨f⟩,
   ⟨have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
-    by simpa only [initial_seg.trans_apply, initial_seg.le_add_apply]
+    by simpa only [initial_seg.trans_apply, initial_seg.sum_lex_inl_apply]
       using @initial_seg.eq _ _ _ _ (@sum.lex.is_well_order _ _ _ _ hr hs₂)
-        ((initial_seg.le_add r s₁).trans f) (initial_seg.le_add r s₂) a,
+        ((initial_seg.sum_lex_inl r s₁).trans f) (initial_seg.sum_lex_inl r s₂) a,
   have ∀ b, {b' // f (sum.inr b) = sum.inr b'}, begin
     intro b, cases e : f (sum.inr b),
     { rw ← fl at e, have := f.inj' e, contradiction },

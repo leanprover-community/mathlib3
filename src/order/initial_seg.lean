@@ -31,6 +31,10 @@ These notations belong to the `initial_seg` locale.
 
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
 * `r ≺i s`: the type of principal segment embeddings of `r` into `s`.
+
+## Todo
+
+Train `simps` so that it can automatically generate simp lemmas for initial and principal segments.
 -/
 
 /-!
@@ -41,8 +45,8 @@ any `b' < b` also belongs to the range). The type of these embeddings from `r` t
 `initial_seg r s`, and denoted by `r ≼i s`.
 -/
 
-variables {α : Type*} {β : Type*} {γ : Type*}
-  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
+variables {α β γ δ : Type*}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} {u : δ → δ → Prop}
 
 open function
 
@@ -106,7 +110,7 @@ end⟩
 
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
-@[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
+@[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : f.trans g a = g (f a) := rfl
 
 instance subsingleton_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s]
   [is_well_founded α r] : subsingleton (r ≼i s) :=
@@ -160,13 +164,60 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ≼i s :=
 ⟨rel_embedding.of_is_empty r s, is_empty_elim⟩
 
-/-- Initial segment embedding of an order `r` into the disjoint union of `r` and `s`. -/
-def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
-⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl⟩,
-  λ a b, by cases b; [exact λ _, ⟨_, rfl⟩, exact false.elim ∘ sum.lex_inr_inl]⟩
+/-- `sum.inl` as an initial segment between `sum.lift_rel` relations. -/
+def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lift_rel r s :=
+⟨rel_embedding.sum_lift_rel_inl r s,
+  by { rintros a (a' | b), exacts [λ _, ⟨_, rfl⟩, false.elim ∘ sum.not_lift_rel_inr_inl] }⟩
 
-@[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
-  (a) : le_add r s a = sum.inl a := rfl
+@[simp] theorem sum_lift_rel_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
+  sum_lift_rel_inl r s a = sum.inl a := rfl
+
+/-- `sum.map` as an initial segment into `sum.lift_rel r s`. -/
+def sum_lift_rel_map (f : r ≃r s) (g : t ≼i u) : sum.lift_rel r t ≼i sum.lift_rel s u :=
+⟨rel_embedding.sum_lift_rel_map f g, begin
+  rintros (a | c) (b | d),
+  { refine λ h, ⟨sum.inl (f.symm b), _⟩,
+    simp },
+  { simp },
+  { simp },
+  { simpa using g.init }
+end⟩
+
+@[simp] theorem sum_lift_rel_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
+  sum_lift_rel_map f g a = sum.map f g a := rfl
+
+/-- `sum.inl` as an initial segment into `sum.lex r s`. -/
+def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
+⟨rel_embedding.sum_lex_inl r s,
+  by { rintros a (a' | b), exacts [λ _, ⟨_, rfl⟩, false.elim ∘ sum.lex_inr_inl] }⟩
+
+@[simp] theorem sum_lex_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
+  sum_lex_inl r s a = sum.inl a := rfl
+
+/-- `sum.map` as an initial segment between `sum.lex` relations. -/
+def sum_lex_map (f : r ≃r s) (g : t ≼i u) : sum.lex r t ≼i sum.lex s u :=
+⟨rel_embedding.sum_lex_map f g, begin
+  have H : ∀ b, ∃ a, f a = b := λ b, ⟨f.symm b, by simp⟩,
+  rintros (a | c) (b | d),
+  { simp [H] },
+  { simp },
+  { simp [H] },
+  { simpa using g.init }
+end⟩
+
+@[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
+  sum_lex_map f g a = sum.map f g a := rfl
+
+/-- `λ b, prod.mk a b` as an initial segment. You must provide a minimal element `a` under `r`. -/
+@[simps] def prod_lex_mk (s : β → β → Prop) {a : α} (H : ∀ a', ¬ r a' a) : s ≼i prod.lex r s :=
+⟨rel_embedding.prod_lex_mk_left s (H a), begin
+  rintros b ⟨a', b'⟩,
+  simp only [prod.lex_def, rel_embedding.prod_lex_mk_left_apply, prod.mk.inj_iff,
+    exists_eq_right],
+  rintro (h | ⟨rfl, -⟩),
+  { exact (H a' h).elim },
+  { exact rfl }
+end⟩
 
 protected theorem acc (f : r ≼i s) (a : α) : acc r a ↔ acc s (f a) :=
 ⟨begin
@@ -251,7 +302,7 @@ rel_embedding.trans_apply _ _ _
 lt_le f g
 
 @[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) :
-  (f.trans g) a = g (f a) :=
+  f.trans g a = g (f a) :=
 lt_le_apply _ _ _
 
 @[simp] theorem trans_top [is_trans γ t] (f : r ≺i s) (g : s ≺i t) :
@@ -353,6 +404,50 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 /-- Principal segment from the empty relation on `pempty` to the empty relation on `punit`. -/
 @[reducible] def pempty_to_punit : @empty_relation pempty ≺i @empty_relation punit :=
 @of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
+
+/-- `sum.inl` as a principal segment. You must provide a minimal element `b` under `s`. -/
+def sum_lex_inl (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) : r ≺i sum.lex r s :=
+{ top := sum.inr b,
+  down' := by rintro (a | b'); simp [H],
+  ..rel_embedding.sum_lex_inl r s }
+
+@[simp] theorem sum_lex_inl_apply (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) (a) :
+  sum_lex_inl r H a = sum.inl a := rfl
+
+@[simp] theorem sum_lex_top (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) :
+  (sum_lex_inl r H).top = sum.inr b := rfl
+
+/-- `sum.map` as a principal segment. -/
+def sum_lex_map (f : r ≃r s) (g : t ≺i u) : sum.lex r t ≺i sum.lex s u :=
+{ top := sum.inr g.top,
+  down' := begin
+    rintro (b | d),
+    { simp [(⟨f.symm b, by simp⟩ : ∃ a, f a = b)] },
+    { simp [g.down] }
+  end,
+  ..rel_embedding.sum_lex_map ↑f ↑g }
+
+@[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≺i u) (a) :
+  sum_lex_map f g a = sum.map f g a := rfl
+
+@[simp] theorem sum_lex_map_top (f : r ≃r s) (g : t ≺i u) :
+  (sum_lex_map f g).top = sum.inr g.top := rfl
+
+/-- `λ b, prod.mk a b` as an initial segment. You must provide the least and next least elements
+`a₀` and `a₁` under `r`, as well as a minimal element `b` under `s`. -/
+def prod_lex_mk {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) : s ≺i prod.lex r s :=
+{ top := (a₁, b),
+  down' := λ ⟨a', b'⟩, by simp [prod.lex_def, Hb, Ha₁],
+  ..rel_embedding.prod_lex_mk_left s Ha₀ }
+
+@[simp] theorem prod_lex_mk_apply {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) (b') :
+  prod_lex_mk Ha₀ Ha₁ Hb b' = (a₀, b') := rfl
+
+@[simp] theorem prod_lex_mk_top {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) :
+  (prod_lex_mk Ha₀ Ha₁ Hb).top = (a₁, b) := rfl
 
 protected theorem acc [is_trans β s] (f : r ≺i s) (a : α) : acc r a ↔ acc s (f a) :=
 (f : r ≼i s).acc a

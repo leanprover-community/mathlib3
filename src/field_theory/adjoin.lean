@@ -762,6 +762,22 @@ begin
     exact ih (adjoin F s) a h1 h4 }
 end
 
+lemma adjoin.finite_dimensional_of_finite_set {K L : Type*} [field K] [field L] [algebra K L]
+  {S : set L} (hS : S.finite) (h_int : ∀ x ∈ S, is_integral K x) :
+  finite_dimensional K (intermediate_field.adjoin K S) :=
+begin
+  rw ←hS.coe_to_finset,
+  refine intermediate_field.induction_on_adjoin_finset hS.to_finset
+    (λ E : intermediate_field K L, finite_dimensional K E) _ (λ E x hx, _),
+  { refine finite_dimensional.finite_dimensional_of_finrank _,
+    rw intermediate_field.finrank_bot,
+    exact zero_lt_one },
+  { introI h,
+    haveI h2 : finite_dimensional ↥E (↥E)⟮x⟯ := intermediate_field.adjoin.finite_dimensional
+      (is_integral_of_is_scalar_tower _ $ h_int _ $ hS.mem_to_finset.1 hx),
+    simpa using finite_dimensional.trans K ↥E ↥(↥E)⟮x⟯ }
+end
+
 lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F))
   (K : intermediate_field F E) (hK : K.fg) : P K :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
+import data.finset.pointwise
 import data.nat.interval
 import data.nat.factors
 
@@ -33,6 +34,8 @@ divisors, perfect numbers
 
 open_locale classical
 open_locale big_operators
+open_locale pointwise
+
 open finset
 
 namespace nat
@@ -165,6 +168,17 @@ lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 @[simp]
 lemma proper_divisors_one : proper_divisors 1 = ∅ :=
 by rw [proper_divisors, Ico_self, filter_empty]
+
+lemma divisors_mul (m n : ℕ) : (m * n).divisors = m.divisors * n.divisors :=
+begin
+  rcases m.eq_zero_or_pos with rfl | hm,
+  { simp },
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  ext i,
+  simp only [hm.ne', hn.ne', finset.mem_mul, mem_divisors, ne.def, nat.mul_eq_zero, or_self,
+    not_false_iff, and_true, dvd_mul],
+end
 
 lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
 begin

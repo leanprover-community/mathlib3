@@ -172,4 +172,13 @@ lemma exists_of_lt : p < q → ∃ x ∈ q, x ∉ p := set.exists_of_ssubset
 lemma lt_iff_le_and_exists : p < q ↔ p ≤ q ∧ ∃ x ∈ q, x ∉ p :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
 
+/-- If a dependent function acts on a indexed collection of subtypes, then when the indices
+are the same the subtype argument can be rewritten.
+
+See [this Zulip thred](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/simp.20simp/near/263872040)
+for dome discussion about this lemma. It can occasionally result in `simp, simp` being needed. -/
+@[congr] lemma dep_congr {ι α} {p : ι → A} (f : Π i, p i → α) :
+  ∀ {i j} (x : p i) (h : i = j), f i x = f j ⟨(x : B), h ▸ x.prop⟩
+| i _ ⟨x, px⟩ rfl := rfl
+
 end set_like

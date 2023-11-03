@@ -46,6 +46,12 @@ do hs ← local_context,
     - there is a edge between two nodes only if they are provably equivalent
     - every edge is labelled with a proof of equivalence for its vertices
     - edges are added when normalizing propositions.
+
+  A map entry `e ↦ some (e', p)` represents a directed edge from `e` to `e'`, with
+  `p` a proof of `e = e'`.
+
+  An map entry `e ↦ none` represents a root in the tree, i.e. a canonical representative
+  of an equivalence class.
 -/
 
 meta def tauto_state := ref $ expr_map (option (expr × expr))
@@ -112,10 +118,12 @@ do m ← read_ref r,
   are applications of function symbols.
 -/
 meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
-do m ← read_ref r,
-   (a',pa) ← root r a,
-   (b',pb) ← root r b,
-   (unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]) <|>
+do (a',pa) ← root r a,       --  pa : a = a'
+   (b',pb) ← root r b,       --  pb : b = b'
+   ((do unify a' b',         -- rfl : a' = b'
+        pbs ← mk_eq_symm pb, -- pbs : b' = b
+        mk_eq_trans pa pbs   --     : a = b
+   )) <|>
     do p ← match (a', b') with
            | (`(¬ %%a₀), `(¬ %%b₀)) :=
              do p  ← symm_eq a₀ b₀,
@@ -148,9 +156,10 @@ do m ← read_ref r,
                 return p'
            | (`(%%a₀ → %%a₁), `(%%b₀ → %%b₁)) :=
              if ¬ a₁.has_var ∧ ¬ b₁.has_var then
-             do p₀ ← symm_eq a₀ b₀,
-                p₁ ← symm_eq a₁ b₁,
-                p' ← mk_app `congr_arg [`(implies),p₀,p₁],
+             do p₀ ← symm_eq a₀ b₀, -- p₀ : a₀ = b₀
+                p₁ ← symm_eq a₁ b₁, -- p₁ : a₁ = b₁
+                p₂ ← (mk_app `congr_arg [`(implies),p₀]), -- p₂ : (implies a₀) = (implies b₀)
+                p' ← (mk_app `congr [p₂, p₁]), -- p' : (a₀ → a₁) = (b₀ → b₁)
                 add_edge r a' b' p',
                 return p'
              else unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]
@@ -161,9 +170,10 @@ do m ← read_ref r,
                  guard $ a'' =ₐ b',
                  pure pa' )
            end,
-    p' ← mk_eq_trans pa p,
-    add_edge r a' b' p',
-    mk_eq_symm pb >>= mk_eq_trans p'
+    -- p : a' = b'
+    p' ← mk_eq_trans pa p, -- p' : a = b'
+    add_edge r a' b' p,
+    mk_eq_symm pb >>= mk_eq_trans p' -- : a = b
 
 meta def find_eq_type (r : tauto_state) : expr → list expr → tactic (expr × expr)
 | e []         := failed

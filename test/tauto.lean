@@ -40,7 +40,6 @@ end tauto₂
 
 section tauto₃
 
-
 example (p : Prop) : p ∧ true ↔ p := by tauto
 example (p : Prop) : p ∨ false ↔ p := by tauto
 example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
@@ -108,3 +107,23 @@ example {x y : ℕ} (h : ¬x ≠ y) : x = y :=
 begin
   tauto!,
 end
+
+section module_symmetry₂
+
+variables (α : Type)
+variables (x y z w : α)
+
+-- This example is taken from pair_eq_pair_iff in data.set.basic.
+example : ((x = z ∨ x = w) ∧ (y = z ∨ y = w)) ∧
+           (z = x ∨ z = y) ∧ (w = x ∨ w = y) → x = z ∧ y = w ∨ x = w ∧ y = z :=
+begin
+  tauto!,
+end
+
+-- This example exercises symm_eq on `implies`.
+example (h₁ : ¬((x = y) → (z = w))) (h₂ : ((x = y) → (w = z))) : false :=
+begin
+  tauto,
+end
+
+end module_symmetry₂

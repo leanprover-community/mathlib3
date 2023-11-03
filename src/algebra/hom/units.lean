@@ -86,10 +86,6 @@ variable {M}
 
 @[simp, to_additive] lemma coe_hom_apply (x : Mˣ) : coe_hom M x = ↑x := rfl
 
-@[simp, norm_cast, to_additive]
-lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
-(units.coe_hom M).map_pow u n
-
 section division_monoid
 variables [division_monoid α]
 

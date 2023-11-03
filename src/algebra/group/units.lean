@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker, Jon Eugster
 -/
 import algebra.group.basic
+import algebra.group.inj_surj
 import logic.unique
 import tactic.nontriviality
 
@@ -75,7 +76,19 @@ variables [monoid α]
 
 @[to_additive] instance : has_coe αˣ α := ⟨val⟩
 
+@[to_additive] instance : has_one αˣ := ⟨⟨1, 1, one_mul 1, one_mul 1⟩⟩
+
+@[to_additive] instance : has_mul αˣ := ⟨λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
+    by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
+    by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩⟩
+
 @[to_additive] instance : has_inv αˣ := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
+
+-- TODO: we don't have the imports available to prove these sorrys yet
+instance _root_.add_units.has_nsmul {α} [add_monoid α] : has_smul ℕ (add_units α) :=
+⟨λ n u, ⟨n • u.val, n • u.neg, sorry, sorry⟩⟩
+@[to_additive add_units.has_nsmul]
+instance : has_pow αˣ ℕ := ⟨λ u n, ⟨u.val ^ n, u.inv ^ n, sorry, sorry⟩⟩
 
 /-- See Note [custom simps projection] -/
 @[to_additive /-" See Note [custom simps projection] "-/]
@@ -120,29 +133,6 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
   u.copy val hv inv hi = u :=
 ext hv
 
-@[to_additive] instance : mul_one_class αˣ :=
-{ mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-    by rw [mul_assoc, ←mul_assoc u₂.val, val_inv, one_mul, val_inv],
-    by rw [mul_assoc, ←mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
-  one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  one_mul := λ u, ext $ one_mul u,
-  mul_one := λ u, ext $ mul_one u }
-
-/-- Units of a monoid form a group. -/
-@[to_additive "Additive units of an additive monoid form an additive group."]
-instance : group αˣ :=
-{ mul := (*),
-  one := 1,
-  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val,
-  ..units.mul_one_class }
-
-@[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
-{ mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
-
-@[to_additive] instance : inhabited αˣ := ⟨1⟩
-
 @[to_additive] instance [has_repr α] : has_repr αˣ := ⟨repr ∘ val⟩
 
 variables (a b c : αˣ) {u : αˣ}
@@ -151,8 +141,21 @@ variables (a b c : αˣ) {u : αˣ}
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
 
+@[simp, norm_cast, to_additive] lemma coe_pow (u : αˣ) (n : ℕ) : ((u ^ n : αˣ) : α) = u ^ n := rfl
+
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : αˣ} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
+
+
+/-- Units of a monoid form a group. -/
+@[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
+{ inv := has_inv.inv,
+  mul_left_inv := λ u, ext u.inv_val,
+  ..function.injective.monoid coe ext coe_one coe_mul sorry }
+
+@[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
+{ mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
+
 
 @[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 

@@ -134,7 +134,7 @@ open submodule.is_principal ideal
 -- The below result follows from this, but we could also use the below result to
 -- prove this (quotient out by p).
 lemma to_maximal_ideal [comm_ring R] [is_domain R] [is_principal_ideal_ring R] {S : ideal R}
-  [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
+  [hpi : is_prime S] (hS : S ≠ ⊥) : S.is_maximal :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin
   assume T x hST hxS hxT,
   cases (mem_iff_generator_dvd _).1 (hST $ generator_mem S) with z hz,
@@ -202,7 +202,7 @@ end⟩
 
 lemma is_maximal_of_irreducible [comm_ring R] [is_principal_ideal_ring R]
   {p : R} (hp : irreducible p) :
-  ideal.is_maximal (span R ({p} : set R)) :=
+  (span R ({p} : set R)).is_maximal :=
 ⟨⟨mt ideal.span_singleton_eq_top.1 hp.1, λ I hI, begin
   rcases principal I with ⟨a, rfl⟩,
   erw ideal.span_singleton_eq_top,

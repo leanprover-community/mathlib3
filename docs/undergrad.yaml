@@ -132,7 +132,7 @@ Ring Theory:
     ideal of a commutative ring: 'ideal'
     quotient rings: 'ideal.has_quotient'
     prime ideals: 'ideal.is_prime'
-    maximal ideals: 'ideal.is_maximal'
+    maximal ideals: 'submodule.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
   Algebra:
     algebra over a commutative ring: 'https://en.wikipedia.org/wiki/Algebra_over_a_field#Generalization:_algebra_over_a_ring'

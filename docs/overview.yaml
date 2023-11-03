@@ -62,7 +62,7 @@ General algebra:
     ideal of a commutative ring: 'ideal'
     quotient ring: 'ideal.has_quotient'
     prime ideal: 'ideal.is_prime'
-    maximal ideal: 'ideal.is_maximal'
+    maximal ideal: 'submodule.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
     fractional ideal: 'fractional_ideal'
     first isomorphism theorem for commutative rings: 'ring_hom.quotient_ker_equiv_of_surjective'

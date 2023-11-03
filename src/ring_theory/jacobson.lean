@@ -75,7 +75,8 @@ end
  `I` can be written as the infimum of some collection of maximal ideals.
  Allowing ⊤ in the set `M` of maximal ideals is equivalent, but makes some proofs cleaner. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
-  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
+  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R),
+  (∀ J ∈ M, submodule.is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
 ⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H.out h.is_radical),
   λ H, is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
 
@@ -168,7 +169,7 @@ begin
   split,
   { refine λ h, ⟨_, λ hy, h.ne_top (ideal.eq_top_of_is_unit_mem _ hy
       (map_units _ ⟨y, submonoid.mem_powers _⟩))⟩,
-    have hJ : J.is_prime := is_maximal.is_prime h,
+    have hJ : J.is_prime := h.is_prime,
     rw is_prime_iff_is_prime_disjoint (submonoid.powers y) at hJ,
     have : y ∉ (comap (algebra_map R S) J).1 :=
       set.disjoint_left.1 hJ.right (submonoid.mem_powers _),
@@ -177,11 +178,12 @@ begin
     rcases this with ⟨I, hI, hI'⟩,
     convert hI.right,
     by_cases hJ : J = map (algebra_map R S) I,
-    { rw [hJ, comap_map_of_is_prime_disjoint (powers y) S I (is_maximal.is_prime hI.right)],
+    { rw [hJ, comap_map_of_is_prime_disjoint (powers y) S I hI.right.is_prime],
       rwa disjoint_powers_iff_not_mem y hI.right.is_prime.is_radical },
     { have hI_p : (map (algebra_map R S) I).is_prime,
       { refine is_prime_of_is_prime_disjoint (powers y) _ I hI.right.is_prime _,
         rwa disjoint_powers_iff_not_mem y hI.right.is_prime.is_radical },
+
       have : J ≤ map (algebra_map R S) I :=
         (map_comap (submonoid.powers y) S J) ▸ (map_mono hI.left),
       exact absurd (h.1.2 _ (lt_of_le_of_ne this hJ)) hI_p.1 } },
@@ -204,7 +206,7 @@ lemma is_maximal_of_is_maximal_disjoint [is_jacobson R] (I : ideal R) (hI : I.is
   (hy : y ∉ I) : (map (algebra_map R S) I).is_maximal :=
 begin
   rw [is_maximal_iff_is_maximal_disjoint S y,
-    comap_map_of_is_prime_disjoint (powers y) S I (is_maximal.is_prime hI)
+    comap_map_of_is_prime_disjoint (powers y) S I hI.is_prime
     ((disjoint_powers_iff_not_mem y hI.is_prime.is_radical).2 hy)],
   exact ⟨hI, hy⟩
 end
@@ -218,7 +220,7 @@ def order_iso_of_maximal [is_jacobson R] :
   inv_fun := λ p,
     ⟨ideal.map (algebra_map R S) p.1, is_maximal_of_is_maximal_disjoint y p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap (powers y) S J),
-  right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint _ _ I.1 (is_maximal.is_prime I.2.1)
+  right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint _ _ I.1 I.2.1.is_prime
     ((disjoint_powers_iff_not_mem y I.2.1.is_prime.is_radical).2 I.2.2)),
   map_rel_iff' := λ I I', ⟨λ h, (show I.val ≤ I'.val,
     from (map_comap (powers y) S I.val) ▸ (map_comap (powers y) S I'.val) ▸ (ideal.map_mono h)),
@@ -254,7 +256,7 @@ begin
   refine infi_le_infi_of_subset (λ I hI, ⟨map (algebra_map R S) I, ⟨_, _⟩⟩),
   { exact ⟨le_trans (le_of_eq ((is_localization.map_comap (powers y) S P').symm)) (map_mono hI.1),
     is_maximal_of_is_maximal_disjoint y _ hI.2.1 hI.2.2⟩ },
-  { exact is_localization.comap_map_of_is_prime_disjoint _ S I (is_maximal.is_prime hI.2.1)
+  { exact is_localization.comap_map_of_is_prime_disjoint _ S I hI.2.1.is_prime
     ((disjoint_powers_iff_not_mem y hI.2.1.is_prime.is_radical).2 hI.2.2) }
 end
 
@@ -444,7 +446,7 @@ variables (P : ideal R[X]) [hP : P.is_maximal]
 include P hP
 
 lemma is_maximal_comap_C_of_is_maximal [nontrivial R] (hP' : ∀ (x : R), C x ∈ P → x = 0) :
-  is_maximal (comap (C : R →+* R[X]) P : ideal R) :=
+  (comap (C : R →+* R[X]) P : ideal R).is_maximal :=
 begin
   haveI hp'_prime : (P.comap (C : R →+* R[X]) : ideal R).is_prime := comap_is_prime C P,
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_of_maximal P polynomial_not_is_field),

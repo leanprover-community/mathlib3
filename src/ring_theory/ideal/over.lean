@@ -245,14 +245,14 @@ absurd (mem_bot.mp (eq_bot_iff.mp h mem)) hi
 
 lemma is_maximal_of_is_integral_of_is_maximal_comap
   [algebra R S] (hRS : algebra.is_integral R S) (I : ideal S) [I.is_prime]
-  (hI : is_maximal (I.comap (algebra_map R S))) : is_maximal I :=
+  (hI : (I.comap (algebra_map R S)).is_maximal) : I.is_maximal :=
 ⟨⟨mt comap_eq_top_iff.mpr hI.1.1,
   λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
   comap_eq_top_iff.1 $ hI.1.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))⟩⟩
 
 lemma is_maximal_of_is_integral_of_is_maximal_comap'
   (f : R →+* S) (hf : f.is_integral) (I : ideal S) [hI' : I.is_prime]
-  (hI : is_maximal (I.comap f)) : is_maximal I :=
+  (hI : (I.comap f).is_maximal) : I.is_maximal :=
 @is_maximal_of_is_integral_of_is_maximal_comap R _ S _ f.to_algebra hf I hI' hI
 
 variables [algebra R S]
@@ -276,7 +276,7 @@ begin
 end
 
 lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS : algebra.is_integral R S)
-  (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
+  (I : ideal S) [hI : I.is_maximal] : (I.comap (algebra_map R S)).is_maximal :=
 begin
   refine quotient.maximal_of_is_field _ _,
   haveI : is_prime (I.comap (algebra_map R S)) := comap_is_prime _ _,
@@ -286,7 +286,7 @@ end
 
 lemma is_maximal_comap_of_is_integral_of_is_maximal'
   {R S : Type*} [comm_ring R] [comm_ring S]
-  (f : R →+* S) (hf : f.is_integral) (I : ideal S) (hI : I.is_maximal) : is_maximal (I.comap f) :=
+  (f : R →+* S) (hf : f.is_integral) (I : ideal S) (hI : I.is_maximal) : (I.comap f).is_maximal :=
 @is_maximal_comap_of_is_integral_of_is_maximal R _ S _ f.to_algebra hf I hI
 
 section is_integral_closure
@@ -302,7 +302,7 @@ comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (is_integral_closure.
 
 lemma is_integral_closure.is_maximal_of_is_maximal_comap
   (I : ideal A) [I.is_prime]
-  (hI : is_maximal (I.comap (algebra_map R A))) : is_maximal I :=
+  (hI : (I.comap (algebra_map R A)).is_maximal) : I.is_maximal :=
 is_maximal_of_is_integral_of_is_maximal_comap (λ x, is_integral_closure.is_integral R S x) I hI
 
 variables [is_domain A]
@@ -325,7 +325,7 @@ is_integral_closure.comap_lt_comap S I_lt_J
 
 lemma integral_closure.is_maximal_of_is_maximal_comap
   (I : ideal (integral_closure R S)) [I.is_prime]
-  (hI : is_maximal (I.comap (algebra_map R (integral_closure R S)))) : is_maximal I :=
+  (hI : (I.comap (algebra_map R (integral_closure R S))).is_maximal) : I.is_maximal :=
 is_integral_closure.is_maximal_of_is_maximal_comap S I hI
 
 section
@@ -353,7 +353,7 @@ begin
   letI : is_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
     is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
-  haveI Qₚ_max : is_maximal (comap _ Qₚ) :=
+  haveI Qₚ_max : (comap _ Qₚ).is_maximal :=
     @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
       (localization_algebra P.prime_compl S)
       (is_integral_localization H) _ Qₚ_maximal,
@@ -396,8 +396,8 @@ end
 /-- `comap (algebra_map R S)` is a surjection from the max spec of `S` to max spec of `R`.
 `hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
 lemma exists_ideal_over_maximal_of_is_integral [is_domain S] (H : algebra.is_integral R S)
-  (P : ideal R) [P_max : is_maximal P] (hP : (algebra_map R S).ker ≤ P) :
-  ∃ (Q : ideal S), is_maximal Q ∧ Q.comap (algebra_map R S) = P :=
+  (P : ideal R) [P_max : P.is_maximal] (hP : (algebra_map R S).ker ≤ P) :
+  ∃ (Q : ideal S), Q.is_maximal ∧ Q.comap (algebra_map R S) = P :=
 begin
   obtain ⟨Q, ⟨Q_prime, hQ⟩⟩ := exists_ideal_over_prime_of_is_integral' H P hP,
   haveI : Q.is_prime := Q_prime,

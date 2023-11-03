@@ -1357,8 +1357,8 @@ def rel_iso_of_surjective : ideal S ≃o { p : ideal R // comap f ⊥ ≤ p } :=
 def order_embedding_of_surjective : ideal S ↪o ideal R :=
 (rel_iso_of_surjective f hf).to_rel_embedding.trans (subtype.rel_embedding _ _)
 
-theorem map_eq_top_or_is_maximal_of_surjective {I : ideal R} (H : is_maximal I) :
-  (map f I) = ⊤ ∨ is_maximal (map f I) :=
+theorem map_eq_top_or_is_maximal_of_surjective {I : ideal R} (H : I.is_maximal) :
+  (map f I) = ⊤ ∨ (map f I).is_maximal :=
 begin
   refine or_iff_not_imp_left.2 (λ ne_top, ⟨⟨λ h, ne_top h, λ J hJ, _⟩⟩),
   { refine (rel_iso_of_surjective f hf).injective
@@ -1367,7 +1367,7 @@ begin
     { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
 end
 
-theorem comap_is_maximal_of_surjective {K : ideal S} [H : is_maximal K] : is_maximal (comap f K) :=
+theorem comap_is_maximal_of_surjective {K : ideal S} [H : K.is_maximal] : (comap f K).is_maximal :=
 begin
   refine ⟨⟨comap_ne_top _ H.1.1, λ J hJ, _⟩⟩,
   suffices : map f J = ⊤,
@@ -1420,7 +1420,7 @@ lemma comap_le_iff_le_map {I : ideal R} {K : ideal S} : comap f K ≤ I ↔ K �
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,
  λ h, ((rel_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
 
-theorem map.is_maximal {I : ideal R} (H : is_maximal I) : is_maximal (map f I) :=
+theorem map.is_maximal {I : ideal R} (H : I.is_maximal) : (map f I).is_maximal :=
 by refine or_iff_not_imp_left.1
   (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.1.1 _);
 calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm

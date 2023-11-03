@@ -75,9 +75,9 @@ lemma of_unique_nonzero_prime (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prim
   local_ring R :=
 of_unique_max_ideal begin
   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
-  refine ⟨P, ⟨⟨hPnot_top, _⟩⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
+  refine ⟨P, ⟨⟨hPnot_top, _⟩⟩, λ M hM, hPunique _ ⟨_, hM.is_prime⟩⟩,
   { refine ideal.maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
-    exact (hPunique _ ⟨ne_bot_of_gt hPM, ideal.is_maximal.is_prime hM⟩).symm },
+    exact (hPunique _ ⟨ne_bot_of_gt hPM, hM.is_prime⟩).symm },
   { rintro rfl,
     exact hPnot_top (hM.1.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
 end

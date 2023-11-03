@@ -134,7 +134,7 @@ begin
       exact char_p.char_ne_one (R ⧸ M) r }},
   { rintro ⟨I, hI_max, hI⟩,
     use I,
-    exact ⟨ideal.is_maximal.ne_top hI_max, hI⟩ }
+    exact ⟨hI_max.ne_top, hI⟩ }
 end
 
 end mixed_char_zero

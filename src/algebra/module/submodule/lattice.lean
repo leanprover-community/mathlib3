@@ -260,6 +260,22 @@ lemma eq_zero_of_coe_mem_of_disjoint (hpq : disjoint p q) {a : p} (ha : (a : M) 
   a = 0 :=
 by exact_mod_cast disjoint_def.mp hpq a (coe_mem a) ha
 
+/-- A submodule is maximal if it is maximal in the collection of proper submodules.
+
+Note that when `M = R`, this is the definition of a maximal ideal.
+While many lemmas will only apply in this case, we still put them within the `submodule.is_maximal`
+namespace to enable dot notation.
+-/
+class is_maximal (N : submodule R M) : Prop := (out : is_coatom N)
+
+theorem is_maximal_def {N : submodule R M} : N.is_maximal ↔ is_coatom N := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem is_maximal.ne_top {N : submodule R M} (h : N.is_maximal) : N ≠ ⊤ := (is_maximal_def.1 h).1
+
+theorem is_maximal.eq_of_le {L N : submodule R M}
+  (hN : N.is_maximal) (hL : L ≠ ⊤) (NL : N ≤ L) : N = L :=
+eq_iff_le_not_lt.2 ⟨NL, λ h, hL (hN.1.2 _ h)⟩
+
 end submodule
 
 section nat_submodule

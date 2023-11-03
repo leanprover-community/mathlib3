@@ -148,7 +148,7 @@ begin
   obtain ⟨φ, hφ⟩ := function.surjective.has_right_inverse hϕ.2,
   let x : σ → k := λ s, φ ((ideal.quotient.mk I) (X s)),
   have hx : ∀ s : σ, ϕ (x s) = (ideal.quotient.mk I) (X s) := λ s, hφ ((ideal.quotient.mk I) (X s)),
-  refine ⟨x, (is_maximal.eq_of_le (by apply_instance) hI.ne_top _).symm⟩,
+  refine ⟨x, (submodule.is_maximal.eq_of_le (by apply_instance) hI.ne_top _).symm⟩,
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,

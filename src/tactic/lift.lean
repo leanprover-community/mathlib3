@@ -132,8 +132,8 @@ do
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
   /- If the proof `prf_cond` is a local constant, remove it from the context,
     unless `n` specifies to keep it. -/
-  if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
-    get_local (option.get h_prf_nm.1) >>= clear else skip,
+  new ← get_unused_name,
+  if n.nth 2 ≠ prf_nm then get_local (option.get_or_else prf_nm new) >>= clear <|> skip else skip,
   if b then skip else swap
 
 setup_tactic_parser

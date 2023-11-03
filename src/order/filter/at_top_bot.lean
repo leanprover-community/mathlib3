@@ -1576,6 +1576,33 @@ lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
 
+lemma tendsto_inf_principal_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (s : set α) [(k ⊓ 𝓟 s).is_countably_generated] :
+  tendsto f (k ⊓ 𝓟 s) l
+    ↔ (∀ x : ℕ → α, (∀ n, x n ∈ s) → tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
+begin
+  have hs := eq_empty_or_nonempty s,
+  cases hs with hs hs,
+  { simp only [hs, principal_empty, inf_bot_eq, tendsto_bot, mem_empty_iff_false,
+      is_empty.forall_iff, implies_true_iff], },
+  rw tendsto_iff_seq_tendsto,
+  simp_rw [tendsto_inf, tendsto_principal],
+  refine ⟨λ h x hx_mem hx_tendsto, h x ⟨hx_tendsto, eventually_of_forall hx_mem⟩,
+    λ h x hx, _⟩,
+  obtain ⟨x0, hx0s⟩ := hs,
+  let y : ℕ → α := λ n, if x n ∈ s then x n else x0,
+  have hy_eq_x : y =ᶠ[at_top] x,
+  { filter_upwards [hx.2] with n hxsn_mem,
+    simp_rw [y, if_pos hxsn_mem], },
+  refine (tendsto_congr' _).mp (h y _ ((tendsto_congr' hy_eq_x).mpr hx.1)),
+  { filter_upwards [hy_eq_x] with n hn,
+    rw [function.comp_apply, hn], },
+  { intros n,
+    simp_rw y,
+    split_ifs with h' h',
+    exacts [h', hx0s], },
+end
+
 lemma tendsto_iff_forall_eventually_mem {α ι : Type*} {x : ι → α} {f : filter α} {l : filter ι} :
   tendsto x l f ↔ ∀ s ∈ f, ∀ᶠ n in l, x n ∈ s :=
 by { rw tendsto_def, refine forall_congr (λ s, imp_congr_right (λ hsf, _)), refl, }

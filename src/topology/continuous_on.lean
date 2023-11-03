@@ -432,6 +432,15 @@ lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space 
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_nhds_within_of_mem_nhds h
 
+lemma tendsto_nhds_within_iff_seq_tendsto (f : α → β) (x : α) {l : filter β} (s : set α)
+  [h : (𝓝[s] x).is_countably_generated] :
+  tendsto f (𝓝[s] x) l
+    ↔ (∀ xs : ℕ → α, (∀ n, xs n ∈ s) → tendsto xs at_top (𝓝 x) → tendsto (f ∘ xs) at_top l) :=
+begin
+  haveI : (𝓝 x ⊓ 𝓟 s).is_countably_generated := h,
+  exact tendsto_inf_principal_iff_seq_tendsto s,
+end
+
 /-!
 ### `nhds_within` and subtypes
 -/

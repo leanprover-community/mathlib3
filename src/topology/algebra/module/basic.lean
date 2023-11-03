@@ -654,15 +654,7 @@ instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 @[norm_cast] lemma coe_add' (f g : M₁ →SL[σ₁₂] M₂) : ⇑(f + g) = f + g := rfl
 
 instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
-{ zero := (0 : M₁ →SL[σ₁₂] M₂),
-  add := (+),
-  zero_add := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_zero := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_comm := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_assoc := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  nsmul := (•),
-  nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
+fun_like.coe_injective.add_comm_monoid _ coe_zero' coe_add' (λ _ _, coe_smul' _ _)
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →ₛₗ[σ₁₂] M₂) :=
@@ -1147,24 +1139,13 @@ instance : has_neg (M →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-instance : add_comm_group (M →SL[σ₁₂] M₂) :=
-by refine
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := _,
-  nsmul := (•),
-  zsmul := (•),
-  zsmul_zero' := λ f, by { ext, simp },
-  zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
-  zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
-  .. continuous_linear_map.add_comm_monoid, .. };
-intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
-
 lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub (f g : M →SL[σ₁₂] M₂) : (↑(f - g) : M →ₛₗ[σ₁₂] M₂) = f - g := rfl
 @[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
+
+instance : add_comm_group (M →SL[σ₁₂] M₂) :=
+fun_like.coe_injective.add_comm_group _
+  coe_zero' coe_add' coe_neg' coe_sub' (λ _ _, coe_smul' _ _) (λ _ _, coe_smul' _ _)
 
 end
 

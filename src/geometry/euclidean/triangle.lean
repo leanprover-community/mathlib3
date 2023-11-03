@@ -5,7 +5,9 @@ Authors: Joseph Myers, Manuel Candales
 -/
 import geometry.euclidean.angle.oriented.affine
 import geometry.euclidean.angle.unoriented.affine
+import topology.metric_space.congruence
 import tactic.interval_cases
+import tactic.swap_var
 
 /-!
 # Triangles
@@ -69,42 +71,14 @@ by rw [(show 2 * ‖x‖ * ‖y‖ * real.cos (angle x y) =
 lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) :
   angle x (x - y) = angle y (y - x) :=
 begin
-  refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
-  rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_mul_norm,
-    real_inner_self_eq_norm_mul_norm, h, real_inner_comm x y]
+  sorry
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
 lemma norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi {x y : V}
     (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ‖x‖ = ‖y‖ :=
 begin
-  replace h := real.arccos_inj_on
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y)))
-    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))) h,
-  by_cases hxy : x = y,
-  { rw hxy },
-  { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ‖y‖, div_eq_mul_inv, div_eq_mul_inv,
-        mul_inv_rev, mul_inv_rev, ←mul_assoc, ←mul_assoc] at h,
-    replace h :=
-      mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
-    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_mul_norm,
-        real_inner_self_eq_norm_mul_norm, mul_sub_right_distrib, mul_sub_right_distrib,
-        mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
-        ←mul_sub_left_distrib] at h,
-    by_cases hx0 : x = 0,
-    { rw [hx0, norm_zero, inner_zero_left, zero_mul, zero_sub, neg_eq_zero] at h,
-      rw [hx0, norm_zero, h] },
-    { by_cases hy0 : y = 0,
-      { rw [hy0, norm_zero, inner_zero_right, zero_mul, sub_zero] at h,
-        rw [hy0, norm_zero, h] },
-      { rw [inv_sub_inv (λ hz, hx0 (norm_eq_zero.1 hz)) (λ hz, hy0 (norm_eq_zero.1 hz)),
-            ←neg_sub, ←mul_div_assoc, mul_comm, mul_div_assoc, ←mul_neg_one] at h,
-        symmetry,
-        by_contradiction hyx,
-        replace h := (mul_left_cancel₀ (sub_ne_zero_of_ne hyx) h).symm,
-        rw [real_inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
-        exact hpi h } } }
+  sorry
 end
 
 /-- The cosine of the sum of two angles in a possibly degenerate
@@ -286,26 +260,15 @@ end
 
 alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
-/-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
-lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
-  ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
+/-- **cosine elimination**, using the cosine rule. -/
+lemma cos_angle_elim (p1 p2 p3 : P) : real.cos (∠ p1 p2 p3) =
+  (dist p1 p2 * dist p1 p2 + dist p2 p3 * dist p2 p3 - dist p1 p3 * dist p1 p3) /
+    (2 * dist p1 p2 * dist p2 p3) :=
 begin
-  rw [dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p1 p3] at h,
-  unfold angle,
-  convert angle_sub_eq_angle_sub_rev_of_norm_eq h,
-  { exact (vsub_sub_vsub_cancel_left p3 p2 p1).symm },
-  { exact (vsub_sub_vsub_cancel_left p2 p3 p1).symm }
-end
-
-/-- Converse of pons asinorum, angle-at-point form. -/
-lemma dist_eq_of_angle_eq_angle_of_angle_ne_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = ∠ p1 p3 p2)
-    (hpi : ∠ p2 p1 p3 ≠ π) : dist p1 p2 = dist p1 p3 :=
-begin
-  unfold angle at h hpi,
-  rw [dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p1 p3],
-  rw [←angle_neg_neg, neg_vsub_eq_vsub_rev, neg_vsub_eq_vsub_rev] at hpi,
-  rw [←vsub_sub_vsub_cancel_left p3 p2 p1, ←vsub_sub_vsub_cancel_left p2 p3 p1] at h,
-  exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
+  unfold angle, rw cos_angle,
+  rw real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two,
+  simp [ ← normed_add_torsor.dist_eq_norm'],
+  rw [div_div, mul_assoc, dist_comm p2 p3],
 end
 
 /-- The **sum of the angles of a triangle** (possibly degenerate, where the
@@ -330,6 +293,206 @@ lemma oangle_add_oangle_add_oangle_eq_pi
 by simpa only [neg_vsub_eq_vsub_rev] using
     positive_orientation.oangle_add_cyc3_neg_left
       (vsub_ne_zero.mpr h21) (vsub_ne_zero.mpr h32) (vsub_ne_zero.mpr h13)
+
+/-- **sine elimination**, using the cosine rule -/
+lemma sin_angle_elim (a b c : P) : real.sin (∠ a b c) =
+  real.sqrt (1 - ((dist a b ^ 2 + dist b c ^ 2 - dist a c ^ 2) ^ 2) /
+    (2 * dist a b * dist b c) ^ 2) :=
+begin
+  rw real.sin_eq_sqrt_one_sub_cos_sq
+    (euclidean_geometry.angle_nonneg a b c)
+    (euclidean_geometry.angle_le_pi a b c),
+  rw [cos_angle_elim, ← pow_two, ← pow_two, ← pow_two, div_pow],
+end
+
+/-- **Law of sines** -/
+lemma sine_rule {a b c : P} (hac : a ≠ c) (hbc : b ≠ c) :
+  real.sin (∠ a b c) / dist a c = real.sin (∠ b a c) / dist b c :=
+begin
+  by_cases hab : a = b, rw hab, change a ≠ b at hab,
+  rw ← dist_pos at hab hbc hac,
+
+  have h₁ : 0 < 2 * dist a b * dist a c, simp [hab, hac],
+  have h₂ : 0 < 2 * dist a b * dist b c, simp [hab, hbc],
+  simp [sin_angle_elim, dist_comm],
+  rw [sub_div', real.sqrt_div', real.sqrt_sq, div_div],
+  rw [sub_div', real.sqrt_div', real.sqrt_sq, div_div],
+  ring_nf,
+  exact le_of_lt h₁, exact sq_nonneg _, exact pow_ne_zero 2 (ne_of_gt h₁),
+  exact le_of_lt h₂, exact sq_nonneg _, exact pow_ne_zero 2 (ne_of_gt h₂),
+end
+
+section congruence
+
+omit V
+
+set_option class.instance_max_depth 38
+private lemma fin_three {i₁ i₂ i₃ j₁ j₂ : fin 3} (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃)
+  (h : j₁ ≠ j₂) :
+    (j₁ = i₁ ∧ j₂ = i₂) ∨ (j₁ = i₂ ∧ j₂ = i₁) ∨ (j₁ = i₁ ∧ j₂ = i₃) ∨
+    (j₁ = i₃ ∧ j₂ = i₁) ∨ (j₁ = i₂ ∧ j₂ = i₃) ∨ (j₁ = i₃ ∧ j₂ = i₂) :=
+by dec_trivial!
+
+
+
+
+private lemma dist_eq_comm {P P₂ : Type*} {a b : P} {c d : P₂} [pseudo_metric_space P]
+  [pseudo_metric_space P₂] :
+  dist a b = dist c d ↔ dist b a = dist d c :=
+by rw [dist_comm b a, dist_comm d c]
+
+open_locale congruence
+
+section SSS
+
+variables {P₁ P₂ : Type*}
+  [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  {a b c : P} {d e f : P₂}
+  {t1 : fin 3 → P₁} {t2 : fin 3 → P₂} {i₁ i₂ i₃ : fin 3}
+
+/-- SSS congruence -/
+lemma side_side_side'' (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃)
+  (hs₁ : dist (t1 i₁) (t1 i₂) = dist (t2 i₁) (t2 i₂))
+  (hs₂ : dist (t1 i₁) (t1 i₃) = dist (t2 i₁) (t2 i₃))
+  (hs₃ : dist (t1 i₂) (t1 i₃) = dist (t2 i₂) (t2 i₃)) :
+    t1 ≅ t2 :=
+begin
+  apply congruence.of_pairwise_dist_eq,
+  intros j₁ j₂ h,
+  { rcases fin_three h₁₂ h₁₃ h₂₃ h with
+      (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩);
+      try {assumption}; rwa dist_eq_comm },
+end
+
+/-- SSS congruence -/
+lemma side_side_side' (hs₁ : dist (t1 0) (t1 1) = dist (t2 0) (t2 1))
+  (hs₂ : dist (t1 0) (t1 2) = dist (t2 0) (t2 2))
+  (hs₃ : dist (t1 1) (t1 2) = dist (t2 1) (t2 2)) :
+    t1 ≅ t2 :=
+by refine side_side_side'' _ _ _ hs₁ hs₂ hs₃; dec_trivial
+
+/-- SSS congruence -/
+lemma side_side_side (hs₁ : dist a b = dist d e)
+  (hs₂ : dist a c = dist d f) (hs₃ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
+side_side_side' hs₁ hs₂ hs₃
+
+end SSS -- section
+
+variables {V₂ : Type*} {P₂ : Type*} [inner_product_space ℝ V₂] [metric_space P₂]
+    [normed_add_torsor V₂ P₂]
+    {a b c : P} {d e f : P₂}
+    {t1 : fin 3 → P} {t2 : fin 3 → P₂} {i₁ i₂ i₃ : fin 3}
+include V V₂
+
+/-- SAS congruence -/
+private lemma side_angle_side'' (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃)
+  (ha : ∠ (t1 i₁) (t1 i₂) (t1 i₃) = ∠ (t2 i₁) (t2 i₂) (t2 i₃))
+  (hs₁ : dist (t1 i₁) (t1 i₂) = dist (t2 i₁) (t2 i₂))
+  (hs₂ : dist (t1 i₂) (t1 i₃) = dist (t2 i₂) (t2 i₃)) :
+  t1 ≅ t2 :=
+begin
+  refine side_side_side'' h₁₂ h₁₃ h₂₃ hs₁ _ hs₂,
+  by_cases h : dist (t1 i₁) (t1 i₂) = 0,
+  { rw h at hs₁,
+    rwa [dist_eq_zero.1 h, dist_eq_zero.1 hs₁.symm] },
+  by_cases h' : dist (t1 i₂) (t1 i₃) = 0,
+  { rw h' at hs₂,
+    rwa [← dist_eq_zero.1 h', ← dist_eq_zero.1 hs₂.symm] },
+
+  apply_fun real.cos at ha,
+  simp [cos_angle_elim, ← hs₁, ← hs₂] at ha,
+  rw div_left_inj'
+    (mul_ne_zero_iff.2 ⟨mul_ne_zero_iff.2 ⟨show (2:ℝ) ≠ 0, from by simp, h⟩, h'⟩) at ha,
+  rw sub_right_inj at ha,
+  rw [← pow_two , ← pow_two] at ha,
+  rw sq_eq_sq dist_nonneg dist_nonneg at ha,
+  exact ha,
+end
+
+/-- SAS congruence -/
+lemma side_angle_side₁' (ha : ∠ (t1 1) (t1 0) (t1 2) = ∠ (t2 1) (t2 0) (t2 2))
+  (hs₁ : dist (t1 0) (t1 1) = dist (t2 0) (t2 1)) (hs₂ : dist (t1 0) (t1 2) = dist (t2 0) (t2 2)) :
+  t1 ≅ t2 :=
+by refine side_angle_side'' _ _ _ ha (dist_eq_comm.1 hs₁) hs₂; dec_trivial
+
+/-- SAS congruence -/
+lemma side_angle_side₂' (ha : ∠ (t1 0) (t1 1) (t1 2) = ∠ (t2 0) (t2 1) (t2 2))
+  (hs₁ : dist (t1 0) (t1 1) = dist (t2 0) (t2 1)) (hs₂ : dist (t1 1) (t1 2) = dist (t2 1) (t2 2)) :
+  t1 ≅ t2 :=
+by refine side_angle_side'' _ _ _ ha hs₁ hs₂; dec_trivial
+
+/-- SAS congruence -/
+lemma side_angle_side₃' (ha : ∠ (t1 0) (t1 2) (t1 1) = ∠ (t2 0) (t2 2) (t2 1))
+  (hs₁ : dist (t1 0) (t1 2) = dist (t2 0) (t2 2)) (hs₂ : dist (t1 1) (t1 2) = dist (t2 1) (t2 2)) :
+  t1 ≅ t2 :=
+by refine side_angle_side'' _ _ _ ha hs₁ (dist_eq_comm.1 hs₂); dec_trivial
+
+/-- SAS congruence -/
+lemma side_angle_side₁ (ha : ∠ b a c = ∠ e d f) (hs₁ : dist a b = dist d e)
+  (hs₂ : dist a c = dist d f) : ![a,b,c] ≅ ![d,e,f] :=
+side_angle_side₁' ha hs₁ hs₂
+
+/-- SAS congruence -/
+lemma side_angle_side₂ (ha : ∠ a b c = ∠ d e f) (hs₁ : dist a b = dist d e)
+  (hs₂ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
+side_angle_side₂' ha hs₁ hs₂
+
+/-- SAS congruence -/
+lemma side_angle_side₃ (ha : ∠ a c b = ∠ d f e) (hs₁ : dist a c = dist d f)
+  (hs₂ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
+side_angle_side₃' ha hs₁ hs₂
+
+
+
+-- lemma angle_angle_side (h₁₂ : i₁ ≠ i₂) (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃)
+--   (ha₁ : ∠ (t1 i₁) (t1 i₂) (t1 i₃) = ∠ (t2 i₁) (t2 i₂) (t2 i₃))
+--   (ha₂ : ∠ (t1 i₂) (t1 i₁) (t1 i₃) = ∠ (t2 i₂) (t2 i₁) (t2 i₃))
+--   (hs : dist (t1 i₂) (t1 i₃) = dist (t2 i₂) (t2 i₃))
+--   (h1 : ¬ collinear ℝ ({(t1 i₁), (t1 i₂), (t1 i₃)} : set P))
+--   (h2 : ¬ collinear ℝ ({(t2 i₁), (t2 i₂), (t2 i₃)} : set P₂)) :
+--     ![(t1 i₁),(t1 i₂),(t1 i₃)] ≅ ![(t2 i₁),(t2 i₂),(t2 i₃)] :=
+-- begin
+--   have ha₃ := angle_add_angle_add_angle_eq_pi
+--     (ne₁₃_of_not_collinear h1) (ne₂₃_of_not_collinear h1),
+--   rw ← angle_add_angle_add_angle_eq_pi
+--     (ne₁₃_of_not_collinear h2) (ne₂₃_of_not_collinear h2) at ha₃,
+--   simp only [angle_comm] at ha₃,
+--   rw [ha₁, ha₂, add_left_cancel_iff] at ha₃,
+
+--   have s := sine_rule (ne₁₃_of_not_collinear h1) (ne₂₃_of_not_collinear h1),
+--   have s':= sine_rule (ne₁₃_of_not_collinear h2) (ne₂₃_of_not_collinear h2),
+--   rw [ha₁, ha₂, hs] at s,
+--   rw ← s' at s,
+--   rw [div_eq_mul_inv, div_eq_mul_inv] at s,
+--   rw mul_right_inj' at s, swap, -- apply sine lemma here
+--   { apply ne_of_gt,
+--     apply real.sin_pos_of_pos_of_lt_pi,
+--     apply angle_pos_of_not_collinear h2,
+--     apply angle_lt_pi_of_not_collinear h2 },
+--   rw inv_inj at s,
+--   -- rw [dist_comm c b, dist_comm f e] at hs,
+--   -- apply side_angle_side'' h₁₂ h₁₃ h₂₃ ha₃ s hs,
+-- end
+
+end congruence -- section
+
+/-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
+lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
+  ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
+begin
+  sorry
+end
+
+/-- Converse of pons asinorum, angle-at-point form. -/
+lemma dist_eq_of_angle_eq_angle_of_angle_ne_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = ∠ p1 p3 p2)
+    (hpi : ∠ p2 p1 p3 ≠ π) : dist p1 p2 = dist p1 p3 :=
+begin
+  sorry
+end
+
+
+
+
 
 /-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :

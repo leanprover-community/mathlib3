@@ -164,6 +164,11 @@ begin
   exact if_neg hb'
 end
 
+lemma has_sum_singleton (f : β → α) (b : β) : has_sum (f ∘ coe : ({b} : set β) → α) (f b) :=
+suffices has_sum ((f ∘ coe : ({b} : set β) → α)) (∑ b' : ({b} : set β), f ↑b'),
+  by simpa only [univ_unique, sum_singleton] using this,
+has_sum_sum_of_ne_finset_zero (λ x h, (h (finset.mem_univ x)).elim)
+
 lemma has_sum_pi_single [decidable_eq β] (b : β) (a : α) :
   has_sum (pi.single b a) a :=
 show has_sum (λ x, pi.single b a x) a, by simpa only [pi.single_apply] using has_sum_ite_eq b a
@@ -312,6 +317,16 @@ lemma has_sum.compl_add {s : set β} (ha : has_sum (f ∘ coe : sᶜ → α) a)
   (hb : has_sum (f ∘ coe : s → α) b) :
   has_sum f (a + b) :=
 ha.add_is_compl is_compl_compl.symm hb
+
+lemma has_sum.sum_t {f : β ⊕ γ → α} {a_inl a_inr : α} (h_inl : has_sum (f ∘ sum.inl) a_inl)
+  (h_inr : has_sum (f ∘ sum.inr) a_inr) : has_sum f (a_inl + a_inr) :=
+has_sum.add_is_compl (set.is_compl_range_inl_range_inr)
+  (sum.inl_injective.has_sum_range_iff.2 h_inl) (sum.inr_injective.has_sum_range_iff.2 h_inr)
+
+lemma has_sum.option {f : option β → α} {a_some : α} (hf : has_sum (f ∘ option.some) a_some) :
+  has_sum f (f none + a_some) :=
+has_sum.add_is_compl (set.is_compl_range_some_none β).symm (has_sum_singleton f none)
+  ((option.some_injective β).has_sum_range_iff.2 hf)
 
 lemma has_sum.even_add_odd {f : ℕ → α} (he : has_sum (λ k, f (2 * k)) a)
   (ho : has_sum (λ k, f (2 * k + 1)) b) :
@@ -565,7 +580,7 @@ lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (
 
 /-- Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
 Requires a different convergence assumption involving `function.update`. -/
-lemma tsum_eq_add_tsum_ite' {f : β → α} (b : β) (hf : summable (f.update b 0)) :
+lemma tsum_eq_add_tsum_ite' [decidable_eq β] {f : β → α} (b : β) (hf : summable (f.update b 0)) :
   ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
 calc ∑' x, f x = ∑' x, ((ite (x = b) (f x) 0) + (f.update b 0 x)) :
     tsum_congr (λ n, by split_ifs; simp [function.update_apply, h])
@@ -672,6 +687,16 @@ lemma tsum_add_tsum_compl {s : set β} (hs : summable (f ∘ coe : s → α))
   (hsc : summable (f ∘ coe : sᶜ → α)) :
   (∑' x : s, f x) + (∑' x : sᶜ, f x) = ∑' x, f x :=
 (hs.has_sum.add_compl hsc.has_sum).tsum_eq.symm
+
+/-- Split a sum over `option β` into `f none` plus the sum of `f ∘ some` on `β`. -/
+lemma tsum_option {f : option β → α} (hf : summable (f ∘ option.some)) :
+  ∑' x : option β, f x = f none + ∑' x : β, f (some x) :=
+hf.has_sum.option.tsum_eq
+
+/-- Split a sum over `β ⊕ γ` into the sum of `f ∘ inl` over `β` and `f ∘ inr` over `γ`. -/
+lemma tsum_sum_t {f : β ⊕ γ → α} (hf : summable (f ∘ sum.inl)) (hf' : summable (f ∘ sum.inr)) :
+  ∑' x : β ⊕ γ, f x = (∑' x : β, f (sum.inl x)) + (∑' x : γ, f (sum.inr x)) :=
+(hf.has_sum.sum_t hf'.has_sum).tsum_eq
 
 lemma tsum_union_disjoint {s t : set β} (hd : disjoint s t)
   (hs : summable (f ∘ coe : s → α)) (ht : summable (f ∘ coe : t → α)) :

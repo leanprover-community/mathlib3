@@ -547,6 +547,24 @@ begin
   polyrith,
 end
 
+/-! ### `polyrith at` tests -/
+
+example {r s : ℚ} (hr : r ≠ 1) (h : r * s - 2 = s - 2 * r) : s = -2 :=
+begin
+  have hr' : r - 1 ≠ 0,
+  { polyrith at hr },
+  apply mul_left_cancel₀ hr',
+  polyrith,
+end
+
+example {x : ℝ} (h₁ : x ≠ 1) (h₀ : x ≠ 0) : true :=
+begin
+  dsimp [f],
+  have : 1 - x ≠ 0 := by polyrith at h₁,
+  have : -x ≠ 0 := by polyrith at h₀,
+  trivial
+end
+
 /-!
 ### With trace enabled
 Here, the tactic will trace the command that gets sent to sage,

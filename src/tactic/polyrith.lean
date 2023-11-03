@@ -531,9 +531,14 @@ to replace the call to `polyrith` with the appropriate call to
 
 This returns `none` if this was a "dry run" attempt that does not actually invoke sage.
 -/
-meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic (option format) :=
+meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) (tgt : option name) :
+  tactic (option format) :=
 do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
+  is_at ← match tgt with
+    | some nm := interactive.contrapose (some ()) (some (nm, none)) $> tt
+    | none := return ff
+    end,
   (eq_names, m, R, args) ← create_args only_on hyps,
   if eq_names.length = 0 then no_hypotheses_case else
   if m.length = 0 then no_variables_case else do
@@ -541,7 +546,12 @@ do
   if is_trace_enabled_for `polyrith then do
     convert_sage_output sage_out,
     return none
-  else some <$> process_output eq_names m R sage_out
+  else do
+    result ← process_output eq_names m R sage_out,
+    let result := if is_at then
+      format!"contrapose! {tgt.get_or_else default}; " ++ format.line ++ result
+      else result,
+    return $ some $ format.nest 2 result
 
 /-! # Interactivity -/
 setup_tactic_parser
@@ -586,9 +596,9 @@ by polyrith only [scary c d, h]
 ```
 -/
 meta def _root_.tactic.interactive.polyrith (restr : parse (tk "only")?)
-  (hyps : parse pexpr_list?) : tactic unit :=
+  (hyps : parse pexpr_list?) (tgt : parse (tk "at" >> ident)?): tactic unit :=
 do
-  some f ← tactic.polyrith restr.is_some (hyps.get_or_else []) | skip,
+  some f ← tactic.polyrith restr.is_some (hyps.get_or_else []) tgt | skip,
   trace!"Try this: {f}"
 
 add_tactic_doc

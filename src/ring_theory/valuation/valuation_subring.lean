@@ -315,6 +315,80 @@ instance linear_order_overring : linear_order { S | A ≤ S } :=
   decidable_le := infer_instance,
   ..(infer_instance : partial_order _) }
 
+/-- A directed union of valuation subrings is a valuation subring.
+NOTE: The carrier of this valuation subring is defeq to the union of the family. -/
+def supr_of_directed {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : directed (≤) f) :
+  valuation_subring K :=
+{ mem_or_inv_mem' := begin
+    intros x,
+    inhabit ι,
+    cases (f default).mem_or_inv_mem x,
+    { left, refine set.mem_Union_of_mem _ h },
+    { right, refine set.mem_Union_of_mem _ h }
+  end,
+  ..(subring.copy (⨆ (i : ι), (f i).to_subring)
+      (⋃ (i : ι), (f i : set K)) (subring.coe_supr_of_directed hf).symm) }
+
+lemma mem_supr_of_directed {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : directed (≤) f) (x : K) :
+  x ∈ supr_of_directed f hf ↔ ∃ i : ι, x ∈ f i :=
+set.mem_Union
+
+lemma coe_supr_of_directed {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : directed (≤) f) :
+  (supr_of_directed f hf : set K) = ⋃ (i : ι), f i := rfl
+
+lemma le_supr_of_directed {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : directed (≤) f) (i : ι) :
+  f i ≤ supr_of_directed f hf :=
+set.subset_Union _ i
+
+lemma supr_of_directed_le {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : directed (≤) f) (A : valuation_subring K)
+  (h : ∀ i, f i ≤ A) :
+  supr_of_directed f hf ≤ A :=
+set.Union_subset h
+
+/-- A union of valuation subrings which are all bounded below is a valuation subring.
+NOTE: The carrier of this valuation subring is defeq to the union of the family. -/
+def supr_of_le (A : valuation_subring K) {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) :
+  valuation_subring K :=
+supr_of_directed f $ begin
+  intros i j,
+  let E₁ : { S | A ≤ S } := ⟨f i, hf _⟩,
+  let E₂ : { S | A ≤ S } := ⟨f j, hf _⟩,
+  cases le_total E₁ E₂,
+  { use j, exact ⟨h, le_refl _⟩ },
+  { use i, exact ⟨le_refl _, h⟩ }
+end
+
+lemma mem_supr_of_le (A : valuation_subring K) {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) (x : K) :
+  x ∈ A.supr_of_le f hf ↔ ∃ i : ι, x ∈ f i :=
+set.mem_Union
+
+lemma coe_supr_of_le (A : valuation_subring K) {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) :
+  (A.supr_of_le f hf : set K) = ⋃ (i : ι), f i := rfl
+
+lemma le_supr_of_le (A : valuation_subring K) {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) (i : ι) :
+  f i ≤ A.supr_of_le f hf :=
+set.subset_Union _ i
+
+lemma le_supr_of_le' (A : valuation_subring K) {ι : Type*} [h : nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) :
+  A ≤ A.supr_of_le f hf :=
+le_trans (hf _) (A.le_supr_of_le f hf h.some)
+
+lemma supr_of_le_le (A : valuation_subring K) {ι : Type*} [nonempty ι]
+  (f : ι → valuation_subring K) (hf : ∀ i, A ≤ f i) (B : valuation_subring K)
+  (h : ∀ i, f i ≤ B) :
+  A.supr_of_le f hf ≤ B :=
+set.Union_subset h
+
 end order
 
 end valuation_subring

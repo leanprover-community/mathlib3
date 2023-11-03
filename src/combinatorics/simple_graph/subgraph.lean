@@ -25,6 +25,8 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.coe` is the coercion from a `G' : subgraph G` to a `simple_graph G'.verts`.
   (This cannot be a `has_coe` instance since the destination type depends on `G'`.)
 
+* There are coercions from `G.adj v w` and `G.edge_set` to the `subgraph G` with a single edge.
+
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
@@ -74,13 +76,39 @@ protected def singleton_subgraph (G : simple_graph V) (v : V) : G.subgraph :=
   adj_sub := by simp [-set.bot_eq_empty],
   edge_vert := by simp [-set.bot_eq_empty] }
 
-/-- The one-edge subgraph. -/
+/-- The one-edge subgraph from a pair of adjacent vertices. -/
 @[simps]
 def subgraph_of_adj (G : simple_graph V) {v w : V} (hvw : G.adj v w) : G.subgraph :=
 { verts := {v, w},
   adj := λ a b, ⟦(v, w)⟧ = ⟦(a, b)⟧,
   adj_sub := λ a b h, by { rw [← G.mem_edge_set, ← h], exact hvw },
   edge_vert := λ a b h, by { apply_fun (λ e, a ∈ e) at h, simpa using h } }
+
+/-- The one-edge subgraph from an element of the edge set. -/
+@[simps]
+def subgraph_of_edge (G : simple_graph V) (e : G.edge_set) : G.subgraph :=
+{ verts := e,
+  adj := λ a b, ⟦(a, b)⟧ = e,
+  adj_sub := λ a b h', by { rw [← G.mem_edge_set, h'], exact e.property },
+  edge_vert := λ a b h', by simp [← h'],
+  symm := λ a b, by simp only [sym2.eq_swap, imp_self] }
+
+/- This one breaks a coercion later on in this file...
+/-- We can think of single vertices as being single-vertex subgraphs. -/
+@[simps]
+instance vert_subgraph_coe {G : simple_graph V} : has_coe V G.subgraph :=
+⟨G.singleton_subgraph⟩
+-/
+
+/-- We can think of adjacencies `G.adj v w` as being single-edge subgraphs. -/
+@[simps]
+instance adj_subgraph_coe {G : simple_graph V} (v w : V) : has_coe (G.adj v w) G.subgraph :=
+⟨G.subgraph_of_adj⟩
+
+/-- We can think of edges as being single-edge subgraphs. -/
+@[simps]
+instance edge_subgraph_coe {G : simple_graph V} : has_coe G.edge_set G.subgraph :=
+⟨G.subgraph_of_edge⟩
 
 namespace subgraph
 

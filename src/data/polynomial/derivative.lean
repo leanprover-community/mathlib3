@@ -221,6 +221,20 @@ theorem eq_C_of_derivative_eq_zero [no_zero_smul_divisors ℕ R] {f : R[X]} (h :
   f = C (f.coeff 0) :=
 eq_C_of_nat_degree_eq_zero $ nat_degree_eq_zero_of_derivative_eq_zero h
 
+theorem eq_C_iff_eval_and_derivative_eq_zero [no_zero_smul_divisors ℕ R] {c : R} {f : R[X]} :
+f = C c ↔ (∃ r, f.eval r = c) ∧ f.derivative = 0 :=
+begin
+  split ; intro h,
+  { split,
+    use 0,
+    { rw [h, eval_C] },
+    { rw [h, derivative_C] }, },
+  { rcases h with ⟨⟨r, hr⟩, h⟩,
+    let this := eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero h),
+    rw [this, eval_C] at hr,
+    rwa hr at this, }
+end
+
 @[simp] lemma derivative_mul {f g : R[X]} :
   derivative (f * g) = derivative f * g + f * derivative g :=
 calc derivative (f * g) = f.sum (λ n a, g.sum (λ m b, (n + m) • (C (a * b) * X ^ ((n + m) - 1)))) :

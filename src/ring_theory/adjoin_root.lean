@@ -164,6 +164,9 @@ mk_eq_mk.trans $ by rw sub_zero
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
+@[simp] lemma mk_eq_zero {g : R[X]} : mk f g = 0 ↔ f ∣ g :=
+ideal.quotient.eq_zero_iff_mem.trans ideal.mem_span_singleton
+
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
 @[simp] lemma mk_X : mk f X = root f := rfl
@@ -447,8 +450,7 @@ begin
   rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
       with_bot.coe_le_coe, nat_degree_mul hf, nat_degree_C, add_zero],
   apply nat_degree_le_of_dvd,
-  { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
-    rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
+  { by rw [← mk_eq_zero, ←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero] },
   { exact q_monic.ne_zero },
   { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] },
 end

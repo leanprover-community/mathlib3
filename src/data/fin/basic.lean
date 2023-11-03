@@ -776,6 +776,12 @@ a generic theorem about `cast`. -/
 lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸ rfl) :=
 by { subst h, ext, simp }
 
+/--The last element of `fin n` when `n` is non-zero.-/
+def last' {n : ℕ} (h : n ≠ 0) : fin n :=
+cast (nat.sub_add_cancel $ nat.pos_of_ne_zero h) (last $ n - 1)
+
+@[simp] lemma coe_last' {n : ℕ} (h : n ≠ 0) : (last' h : ℕ) = n - 1 := rfl
+
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. See also `fin.nat_add` and `fin.add_nat`. -/
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 

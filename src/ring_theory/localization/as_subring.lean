@@ -9,6 +9,9 @@ import ring_theory.localization.localization_localization
 
 # Localizations of domains as subalgebras of the fraction field.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
 does not contain zero, this file constructs the localization of `A` at `S`
 as a subalgebra of the field `K` over `A`.
@@ -102,7 +105,7 @@ lemma mem_range_map_to_fraction_ring_iff_of_field
   ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ :=
 begin
   rw mem_range_map_to_fraction_ring_iff,
-  iterate 3 { congr' with }, convert iff.rfl, rw units.coe_inv', refl,
+  iterate 3 { congr' with }, convert iff.rfl, rw units.coe_inv, refl,
 end
 
 /--

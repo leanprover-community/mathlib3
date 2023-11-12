@@ -8,16 +8,19 @@ import analysis.analytic.basic
 /-!
 # Linear functions are analytic
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a `continuous_linear_map` defines an analytic function with
 the formal power series `f x = f a + f (x - a)`.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
-open_locale topological_space classical big_operators nnreal ennreal
+open_locale topology classical big_operators nnreal ennreal
 open set filter asymptotics
 
 noncomputable theory

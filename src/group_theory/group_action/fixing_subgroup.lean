@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
-import group_theory.subgroup.basic
+import group_theory.subgroup.actions
 import group_theory.group_action.basic
-import order.order_dual
 
 /-!
 
 # Fixing submonoid, fixing subgroup of an action
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In the presence of of an action of a monoid or a group,
 this file defines the fixing submonoid or the fixing subgroup,

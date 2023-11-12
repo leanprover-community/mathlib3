@@ -6,6 +6,9 @@ Authors: Scott Morrison
 import algebra.category.Module.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The forgetful functor from ℤ-modules to additive commutative groups is
 an equivalence of categories.
 

@@ -8,6 +8,9 @@ import category_theory.sums.basic
 /-!
 # Associator for binary disjoint union of categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The associator functor `((C ⊕ D) ⊕ E) ⥤ (C ⊕ (D ⊕ E))` and its inverse form an equivalence.
 -/
 

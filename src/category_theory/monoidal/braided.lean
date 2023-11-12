@@ -10,6 +10,9 @@ import category_theory.monoidal.discrete
 /-!
 # Braided and symmetric monoidal categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The basic definitions of braided monoidal categories, and symmetric monoidal categories,
 as well as braided functors.
 
@@ -221,6 +224,9 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 restate_axiom symmetric_category.symmetry'
 attribute [simp,reassoc] symmetric_category.symmetry
 
+initialize_simps_projections symmetric_category
+  (to_braided_category_braiding → braiding, -to_braided_category)
+
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]
 variables (E : Type u₃) [category.{v₃} E] [monoidal_category E] [braided_category E]
@@ -339,10 +345,8 @@ section comm_monoid
 
 variables (M : Type u) [comm_monoid M]
 
-instance comm_monoid_discrete : comm_monoid (discrete M) := by { dsimp [discrete], apply_instance }
-
 instance : braided_category (discrete M) :=
-{ braiding := λ X Y, eq_to_iso (mul_comm X Y), }
+{ braiding := λ X Y, discrete.eq_to_iso (mul_comm X.as Y.as), }
 
 variables {M} {N : Type u} [comm_monoid N]
 

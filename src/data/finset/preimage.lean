@@ -8,6 +8,9 @@ import algebra.big_operators.basic
 
 /-!
 # Preimage of a `finset` under an injective map.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open set function
@@ -57,6 +60,10 @@ finset.coe_injective (by simp)
   {f : α → β} (s : finset β) (hf : function.injective f) :
   preimage sᶜ f (hf.inj_on _) = (preimage s f (hf.inj_on _))ᶜ :=
 finset.coe_injective (by simp)
+
+@[simp] lemma preimage_map (f : α ↪ β) (s : finset α) :
+  (s.map f).preimage f (f.injective.inj_on _) = s :=
+coe_injective $ by simp only [coe_preimage, coe_map, set.preimage_image_eq _ f.injective]
 
 lemma monotone_preimage {f : α → β} (h : injective f) :
   monotone (λ s, preimage s f (h.inj_on _)) :=

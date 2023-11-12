@@ -10,6 +10,9 @@ import data.polynomial.monic
 /-!
 # Theory of monic polynomials
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define `integral_normalization`, which relate arbitrary polynomials to monic ones.
 -/
 

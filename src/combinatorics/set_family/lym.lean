@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import algebra.big_operators.ring
+import algebra.order.field.basic
 import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
-import tactic.linarith
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves the local LYM and LYM inequalities as well as Sperner's theorem.
 
@@ -141,7 +144,7 @@ begin
   { rintro ⟨⟨t, ht, hst⟩, hs⟩,
     by_cases s ∈ 𝒜,
     { exact or.inl ⟨h, hs⟩ },
-    obtain ⟨a, ha, hst⟩ := ssubset_iff_exists_insert_subset.1
+    obtain ⟨a, ha, hst⟩ := ssubset_iff.1
       (ssubset_of_subset_of_ne hst (ht.ne_of_not_mem h).symm),
     refine or.inr ⟨insert a s, ⟨⟨t, ht, hst⟩, _⟩, a, mem_insert_self _ _, erase_insert ha⟩,
     rw [card_insert_of_not_mem ha, hs] }
@@ -216,7 +219,7 @@ begin
   { rwa [←sum_div, ←nat.cast_sum, div_le_one, cast_le, sum_card_slice] at this,
     norm_cast,
     exact choose_pos (nat.div_le_self _ _) },
-  rw [Iic, ←Ico_succ_right, bot_eq_zero, Ico_zero_eq_range],
+  rw [Iic_eq_Icc, ←Ico_succ_right, bot_eq_zero, Ico_zero_eq_range],
   refine (sum_le_sum $ λ r hr, _).trans (sum_card_slice_div_choose_le_one h𝒜),
   rw mem_range at hr,
   refine div_le_div_of_le_left _ _ _; norm_cast,

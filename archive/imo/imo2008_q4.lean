@@ -10,6 +10,9 @@ import tactic.linear_combination
 
 /-!
 # IMO 2008 Q4
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 Find all functions `f : (0,∞) → (0,∞)` (so, `f` is a function from the positive real
 numbers to the positive real numbers) such that
       ```
@@ -23,9 +26,15 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 
 open real
 
+namespace imo2008_q4
+
 lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
 by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
   abs_one]
+
+end imo2008_q4
+
+open imo2008_q4
 
 theorem imo2008_q4
   (f : ℝ → ℝ)
@@ -44,7 +53,7 @@ begin
       have hy2z2 : y ^ 2 + z ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hy 2) (pow_pos hz 2)),
       have hz2y2 : z ^ 2 + y ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hz 2) (pow_pos hy 2)),
       have hp2 : w ^ 2 * x ^ 2 = y ^ 2 * z ^ 2,
-      { linear_combination (hprod, w * x + y * z) },
+      { linear_combination (w * x + y * z)*hprod },
       field_simp [ne_of_gt hw, ne_of_gt hx, ne_of_gt hy, ne_of_gt hz, hy2z2, hz2y2, hp2],
       ring } },
 
@@ -66,7 +75,7 @@ begin
     have hx_ne_0 : x ≠ 0 := ne_of_gt hx,
     have hfx_ne_0 : f(x) ≠ 0, { specialize H₁ x hx, exact ne_of_gt H₁ },
     field_simp at H₂ ⊢,
-    linear_combination (H₂, 1/2) },
+    linear_combination 1/2 * H₂ },
 
   have h₃ : ∀ x > 0, f(x) = x ∨ f(x) = 1 / x, { simpa [sub_eq_zero] using h₂ },
 
@@ -90,14 +99,14 @@ begin
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
   { field_simp [hab₁] at H₂,
     field_simp [ne_of_gt hb] at H₂,
-    have hb₁ : b ^ 4 = 1 := by linear_combination (H₂, -1),
+    have hb₁ : b ^ 4 = 1 := by linear_combination -H₂,
     obtain hb₂ := abs_eq_one_of_pow_eq_one b 4 (show 4 ≠ 0, by norm_num) hb₁,
     rw abs_of_pos hb at hb₂, rw hb₂ at hfb₁, exact hfb₁ h₁ },
 
   -- f(ab) = 1/ab → a^4 = 1 → a = 1 → f(a) = 1/a → false
   { have hb_ne_0 : b ≠ 0 := ne_of_gt hb,
     field_simp [hab₂] at H₂,
-    have H₃ : 2 * b ^ 4 * (a ^ 4 - 1) = 0 := by linear_combination H₂,
+    have H₃ : 2 * b ^ 4 * (a ^ 4 - 1) = 0 := by linear_combination (H₂),
     have h2b4_ne_0 : 2 * (b ^ 4) ≠ 0 := mul_ne_zero two_ne_zero (pow_ne_zero 4 hb_ne_0),
     have ha₁ : a ^ 4 = 1, { simpa [sub_eq_zero, h2b4_ne_0] using H₃ },
     obtain ha₂ := abs_eq_one_of_pow_eq_one a 4 (show 4 ≠ 0, by norm_num) ha₁,

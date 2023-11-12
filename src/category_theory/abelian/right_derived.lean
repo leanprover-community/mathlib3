@@ -12,6 +12,9 @@ import category_theory.abelian.exact
 /-!
 # Right-derived functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the right-derived functors `F.right_derived n : C ⥤ D` for any additive functor `F`
 out of a category with injective resolutions.
 
@@ -83,7 +86,7 @@ F.right_derived_obj_iso 0 (InjectiveResolution.self X) ≪≫
 open_locale zero_object
 
 /-- The higher derived functors vanish on injective objects. -/
-@[simps]
+@[simps inv]
 def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [injective X] :
   (F.right_derived (n+1)).obj X ≅ 0 :=

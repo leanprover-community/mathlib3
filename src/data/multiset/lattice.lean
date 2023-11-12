@@ -8,6 +8,9 @@ import data.multiset.fold
 
 /-!
 # Lattice operations on multisets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -20,6 +23,8 @@ variables [semilattice_sup α] [order_bot α]
 
 /-- Supremum of a multiset: `sup {a, b, c} = a ⊔ b ⊔ c` -/
 def sup (s : multiset α) : α := s.fold (⊔) ⊥
+
+@[simp] lemma sup_coe (l : list α) : sup (l : multiset α) = l.foldr (⊔) ⊥ := rfl
 
 @[simp] lemma sup_zero : (0 : multiset α).sup = ⊥ :=
 fold_zero _ _
@@ -34,7 +39,7 @@ sup_bot_eq
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
 
-lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+@[simp] lemma sup_le {s : multiset α} {a : α} : s.sup ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
 
@@ -79,6 +84,8 @@ variables [semilattice_inf α] [order_top α]
 
 /-- Infimum of a multiset: `inf {a, b, c} = a ⊓ b ⊓ c` -/
 def inf (s : multiset α) : α := s.fold (⊓) ⊤
+
+@[simp] lemma inf_coe (l : list α) : inf (l : multiset α) = l.foldr (⊓) ⊤ := rfl
 
 @[simp] lemma inf_zero : (0 : multiset α).inf = ⊤ :=
 fold_zero _ _

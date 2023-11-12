@@ -3,18 +3,21 @@ Copyright (c) 2022 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey, Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.special_functions.log.basic
-import analysis.special_functions.pow
+import analysis.special_functions.pow.real
+import data.int.log
 
 /-!
 # Real logarithm base `b`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `real.logb` to be the logarithm of a real number in a given base `b`. We
 define this as the division of the natural logarithms of the argument and the base, so that we have
 a globally defined function with `logb b 0 = 0`, `logb b (-x) = logb b x` `logb 0 x = 0` and
 `logb (-b) x = logb b x`.
 
-We prove some basic properties of this function and it's relation to `rpow`.
+We prove some basic properties of this function and its relation to `rpow`.
 
 ## Tags
 
@@ -22,7 +25,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real
@@ -51,6 +54,39 @@ lemma logb_div (hx : x ≠ 0) (hy : y ≠ 0) : logb b (x / y) = logb b x - logb 
 by simp_rw [logb, log_div hx hy, sub_div]
 
 @[simp] lemma logb_inv (x : ℝ) : logb b (x⁻¹) = -logb b x := by simp [logb, neg_div]
+
+lemma inv_logb (a b : ℝ) : (logb a b)⁻¹ = logb b a := by simp_rw [logb, inv_div]
+
+theorem inv_logb_mul_base {a b : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) (c : ℝ) :
+  (logb (a * b) c)⁻¹ = (logb a c)⁻¹ + (logb b c)⁻¹ :=
+by simp_rw inv_logb; exact logb_mul h₁ h₂
+
+theorem inv_logb_div_base {a b : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) (c : ℝ) :
+  (logb (a / b) c)⁻¹ = (logb a c)⁻¹ - (logb b c)⁻¹ :=
+by simp_rw inv_logb; exact logb_div h₁ h₂
+
+theorem logb_mul_base {a b : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) (c : ℝ) :
+  logb (a * b) c = ((logb a c)⁻¹ + (logb b c)⁻¹)⁻¹ :=
+by rw [←inv_logb_mul_base h₁ h₂ c, inv_inv]
+
+theorem logb_div_base {a b : ℝ} (h₁ : a ≠ 0) (h₂ : b ≠ 0) (c : ℝ) :
+  logb (a / b) c = ((logb a c)⁻¹ - (logb b c)⁻¹)⁻¹ :=
+by rw [←inv_logb_div_base h₁ h₂ c, inv_inv]
+
+theorem mul_logb {a b c : ℝ} (h₁ : b ≠ 0) (h₂ : b ≠ 1) (h₃ : b ≠ -1) :
+  logb a b * logb b c = logb a c :=
+begin
+  unfold logb,
+  rw [mul_comm, div_mul_div_cancel _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩)],
+end
+
+theorem div_logb {a b c : ℝ} (h₁ : c ≠ 0) (h₂ : c ≠ 1) (h₃ : c ≠ -1) :
+  logb a c / logb b c = logb a b :=
+begin
+  unfold logb,
+  -- TODO: div_div_div_cancel_left is missing for `group_with_zero`,
+  rw [div_div_div_eq, mul_comm, mul_div_mul_right _ _ (log_ne_zero.mpr ⟨h₁, h₂, h₃⟩)],
+end
 
 section b_pos_and_ne_one
 
@@ -290,6 +326,32 @@ begin
 end
 
 end b_pos_and_b_lt_one
+
+lemma floor_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌊logb b r⌋ = int.log b r :=
+begin
+  obtain rfl | hr := hr.eq_or_lt,
+  { rw [logb_zero, int.log_zero_right, int.floor_zero] },
+  have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
+  apply le_antisymm,
+  { rw [←int.zpow_le_iff_le_log hb hr, ←rpow_int_cast b],
+    refine le_of_le_of_eq _ (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr),
+    exact rpow_le_rpow_of_exponent_le hb1'.le (int.floor_le _) },
+  { rw [int.le_floor, le_logb_iff_rpow_le hb1' hr, rpow_int_cast],
+    exact int.zpow_log_le_self hb hr }
+end
+
+lemma ceil_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌈logb b r⌉ = int.clog b r :=
+begin
+  obtain rfl | hr := hr.eq_or_lt,
+  { rw [logb_zero, int.clog_zero_right, int.ceil_zero] },
+  have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
+  apply le_antisymm,
+  { rw [int.ceil_le, logb_le_iff_le_rpow hb1' hr, rpow_int_cast],
+    refine int.self_le_zpow_clog hb r },
+  { rw [←int.le_zpow_iff_clog_le hb hr, ←rpow_int_cast b],
+    refine (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr).symm.trans_le _,
+    exact rpow_le_rpow_of_exponent_le hb1'.le (int.le_ceil _) },
+end
 
 @[simp] lemma logb_eq_zero :
   logb b x = 0 ↔ b = 0 ∨ b = 1 ∨ b = -1 ∨ x = 0 ∨ x = 1 ∨ x = -1 :=

@@ -9,6 +9,9 @@ import logic.relator
 /-!
 # Relation closures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
 It also proves some basic results on definitions in core, such as `eqv_gen`.
 
@@ -39,7 +42,7 @@ the bundled version, see `rel`.
 
 open function
 
-variables {α β γ δ : Type*}
+variables {α β γ δ ε κ : Type*}
 
 section ne_imp
 
@@ -147,6 +150,33 @@ end
 
 end comp
 
+section fibration
+
+variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
+
+/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
+  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
+  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
+def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
+
+variables {rα rβ}
+
+/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
+  accessible under `rα`, then `f a` is accessible under `rβ`. -/
+lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
+begin
+  induction ha with a ha ih,
+  refine acc.intro (f a) (λ b hr, _),
+  obtain ⟨a', hr', rfl⟩ := fib hr,
+  exact ih a' hr',
+end
+
+lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → ∃ c, f c = b)
+  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
+ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
+
+end fibration
+
 /--
 The map of a relation `r` through a pair of functions pushes the
 relation to the codomains of the functions.  The resulting relation is
@@ -155,6 +185,27 @@ related by `r`.
 -/
 protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
 λ c d, ∃ a b, r a b ∧ f a = c ∧ g b = d
+
+section map
+variables {r : α → β → Prop} {f : α → γ} {g : β → δ} {c : γ} {d : δ}
+
+lemma map_apply : relation.map r f g c d ↔ ∃ a b, r a b ∧ f a = c ∧ g b = d := iff.rfl
+
+@[simp] lemma map_id_id (r : α → β → Prop) : relation.map r id id = r := by simp [relation.map]
+
+@[simp] lemma map_map (r : α → β → Prop) (f₁ : α → γ) (g₁ : β → δ) (f₂ : γ → ε) (g₂ : δ → κ) :
+  relation.map (relation.map r f₁ g₁) f₂ g₂ = relation.map r (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+begin
+  ext a b,
+  simp only [map_apply, function.comp_app, ←exists_and_distrib_right, @exists₂_comm γ],
+  refine exists₂_congr (λ a b, _),
+  simp [and_assoc],
+end
+
+instance [decidable (∃ a b, r a b ∧ f a = c ∧ g b = d)] : decidable (relation.map r f g c d) :=
+‹decidable _›
+
+end map
 
 variables {r : α → α → Prop} {a b c d : α}
 
@@ -373,13 +424,19 @@ end
 
 end trans_gen
 
-lemma _root_.well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
-  well_founded (trans_gen r) :=
-⟨λ a, h.induction a (λ x H, acc.intro x (λ y hy, begin
+lemma _root_.acc.trans_gen (h : acc r a) : acc (trans_gen r) a :=
+begin
+  induction h with x _ H,
+  refine acc.intro x (λ y hy, _),
   cases hy with _ hyx z _ hyz hzx,
-  { exact H y hyx },
-  { exact acc.inv (H z hzx) hyz }
-end))⟩
+  exacts [H y hyx, (H z hzx).inv hyz],
+end
+
+lemma _root_.acc_trans_gen_iff : acc (trans_gen r) a ↔ acc r a :=
+⟨subrelation.accessible (λ _ _, trans_gen.single), acc.trans_gen⟩
+
+lemma _root_.well_founded.trans_gen (h : well_founded r) : well_founded (trans_gen r) :=
+⟨λ a, (h.apply a).trans_gen⟩
 
 section trans_gen
 

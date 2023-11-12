@@ -10,6 +10,9 @@ import topology.shrinking_lemma
 /-!
 # Shrinking lemma in a proper metric space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few versions of the shrinking lemma for coverings by balls in a proper
 (pseudo) metric space.
 
@@ -20,7 +23,7 @@ shrinking lemma, metric space
 
 universes u v
 open set metric
-open_locale topological_space
+open_locale topology
 
 variables {α : Type u} {ι : Type v} [metric_space α] [proper_space α] {c : ι → α}
 variables {x : α} {r : ℝ} {s : set α}
@@ -31,7 +34,7 @@ so that each of the new balls has strictly smaller radius than the old one. This
 that `λ x, ball (c i) (r i)` is a locally finite covering and provides a covering indexed by the
 same type. -/
 lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
-  (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
+  (uf : ∀ x ∈ s, {i | x ∈ ball (c i) (r i)}.finite) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
 begin
   rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
@@ -44,7 +47,7 @@ end
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
 of a proper metric space by open balls can be shrunk to a new cover by open balls so that each of
 the new balls has strictly smaller radius than the old one. -/
-lemma exists_Union_ball_eq_radius_lt {r : ι → ℝ} (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)})
+lemma exists_Union_ball_eq_radius_lt {r : ι → ℝ} (uf : ∀ x, {i | x ∈ ball (c i) (r i)}.finite)
   (uU : (⋃ i, ball (c i) (r i)) = univ) :
   ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i < r i :=
 let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_lt is_closed_univ (λ x _, uf x) uU.ge
@@ -54,7 +57,7 @@ in ⟨r', univ_subset_iff.1 hU, hv⟩
 of a closed subset of a proper metric space by nonempty open balls can be shrunk to a new cover by
 nonempty open balls so that each of the new balls has strictly smaller radius than the old one. -/
 lemma exists_subset_Union_ball_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i) (hs : is_closed s)
-  (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
+  (uf : ∀ x ∈ s, {i | x ∈ ball (c i) (r i)}.finite) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
   ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
 begin
   rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
@@ -68,7 +71,7 @@ end
 of a proper metric space by nonempty open balls can be shrunk to a new cover by nonempty open balls
 so that each of the new balls has strictly smaller radius than the old one. -/
 lemma exists_Union_ball_eq_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i)
-  (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)}) (uU : (⋃ i, ball (c i) (r i)) = univ) :
+  (uf : ∀ x, {i | x ∈ ball (c i) (r i)}.finite) (uU : (⋃ i, ball (c i) (r i)) = univ) :
   ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
 let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_pos_lt hr is_closed_univ (λ x _, uf x) uU.ge
 in ⟨r', univ_subset_iff.1 hU, hv⟩

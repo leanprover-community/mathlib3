@@ -9,6 +9,9 @@ import data.two_pointing
 /-!
 # The category of two-pointed types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines `Twop`, the category of two-pointed types.
 
 ## References
@@ -39,7 +42,7 @@ def of {X : Type*} (to_two_pointing : two_pointing X) : Twop := ⟨X, to_two_poi
 @[simp] lemma coe_of {X : Type*} (to_two_pointing : two_pointing X) :
   ↥(of to_two_pointing) = X := rfl
 
-alias of ← two_pointing.Twop
+alias of ← _root_.two_pointing.Twop
 
 instance : inhabited Twop := ⟨of two_pointing.bool⟩
 

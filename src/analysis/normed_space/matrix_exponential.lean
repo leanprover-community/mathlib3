@@ -60,7 +60,7 @@ Hopefully we will be able to remove these in Lean 4.
 
 ## TODO
 
-* Show that `matrix.det (exp 𝕂 A) = exp 𝕂 (matrix.trace A)`
+* Show that `matrix.det (exp A) = exp (matrix.trace A)`
 
 ## References
 
@@ -106,38 +106,39 @@ section topological
 section ring
 variables [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
   [Π i, fintype (n' i)] [Π i, decidable_eq (n' i)]
-  [field 𝕂] [ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [t2_space 𝔸]
+  [field 𝕂] [ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [algebra ℚ 𝔸]
+  [t2_space 𝔸]
 
-lemma exp_diagonal (v : m → 𝔸) : exp 𝕂 (diagonal v) = diagonal (exp 𝕂 v) :=
+lemma exp_diagonal (v : m → 𝔸) : exp (diagonal v) = diagonal (exp v) :=
 by simp_rw [exp_eq_tsum, diagonal_pow, ←diagonal_smul, ←diagonal_tsum]
 
 lemma exp_block_diagonal (v : m → matrix n n 𝔸) :
-  exp 𝕂 (block_diagonal v) = block_diagonal (exp 𝕂 v) :=
+  exp (block_diagonal v) = block_diagonal (exp v) :=
 by simp_rw [exp_eq_tsum, ←block_diagonal_pow, ←block_diagonal_smul, ←block_diagonal_tsum]
 
 lemma exp_block_diagonal' (v : Π i, matrix (n' i) (n' i) 𝔸) :
-  exp 𝕂 (block_diagonal' v) = block_diagonal' (exp 𝕂 v) :=
+  exp (block_diagonal' v) = block_diagonal' (exp v) :=
 by simp_rw [exp_eq_tsum, ←block_diagonal'_pow, ←block_diagonal'_smul, ←block_diagonal'_tsum]
 
 lemma exp_conj_transpose [star_ring 𝔸] [has_continuous_star 𝔸] (A : matrix m m 𝔸) :
-  exp 𝕂 Aᴴ = (exp 𝕂 A)ᴴ :=
+  exp Aᴴ = (exp A)ᴴ :=
 (star_exp A).symm
 
 lemma is_hermitian.exp [star_ring 𝔸] [has_continuous_star 𝔸] {A : matrix m m 𝔸}
-  (h : A.is_hermitian) : (exp 𝕂 A).is_hermitian :=
-(exp_conj_transpose _ _).symm.trans $ congr_arg _ h
+  (h : A.is_hermitian) : (exp A).is_hermitian :=
+(exp_conj_transpose _).symm.trans $ congr_arg _ h
 
 end ring
 
 section comm_ring
 variables [fintype m] [decidable_eq m] [field 𝕂]
-  [comm_ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [t2_space 𝔸]
+  [comm_ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [algebra ℚ 𝔸] [t2_space 𝔸]
 
-lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 Aᵀ = (exp 𝕂 A)ᵀ :=
+lemma exp_transpose (A : matrix m m 𝔸) : exp Aᵀ = (exp A)ᵀ :=
 by simp_rw [exp_eq_tsum, transpose_tsum, transpose_smul, transpose_pow]
 
-lemma is_symm.exp {A : matrix m m 𝔸} (h : A.is_symm) : (exp 𝕂 A).is_symm :=
-(exp_transpose _ _).symm.trans $ congr_arg _ h
+lemma is_symm.exp {A : matrix m m 𝔸} (h : A.is_symm) : (exp A).is_symm :=
+(exp_transpose _).symm.trans $ congr_arg _ h
 
 end comm_ring
 
@@ -149,56 +150,61 @@ variables [is_R_or_C 𝕂]
   [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n]
   [Π i, fintype (n' i)] [Π i, decidable_eq (n' i)]
-  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
+  [normed_ring 𝔸] [algebra ℚ 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
 
 lemma exp_add_of_commute (A B : matrix m m 𝔸) (h : commute A B) :
-  exp 𝕂 (A + B) = exp 𝕂 A ⬝ exp 𝕂 B :=
+  exp (A + B) = exp A ⬝ exp B :=
+let 𝕂 := 𝕂 in
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact exp_add_of_commute h,
+  exact exp_add_of_commute 𝕂 h,
 end
 
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → matrix m m 𝔸)
   (h : (s : set ι).pairwise $ λ i j, commute (f i) (f j)) :
-  exp 𝕂 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 (f i))
-    (λ i hi j hj _, (h.of_refl hi hj).exp 𝕂) :=
+  exp (∑ i in s, f i) = s.noncomm_prod (λ i, exp (f i))
+    (λ i hi j hj _, (h.of_refl hi hj).exp) :=
+let 𝕂 := 𝕂 in
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact exp_sum_of_commute s f h,
+  exact exp_sum_of_commute 𝕂 s f h,
 end
 
 lemma exp_nsmul (n : ℕ) (A : matrix m m 𝔸) :
-  exp 𝕂 (n • A) = exp 𝕂 A ^ n :=
+  exp (n • A) = exp A ^ n :=
+let 𝕂 := 𝕂 in
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact exp_nsmul n A,
+  exact exp_nsmul 𝕂 n A,
 end
 
-lemma is_unit_exp (A : matrix m m 𝔸) : is_unit (exp 𝕂 A) :=
+lemma is_unit_exp (A : matrix m m 𝔸) : is_unit (exp A) :=
+let 𝕂 := 𝕂 in
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact is_unit_exp _ A,
+  exact is_unit_exp 𝕂 A,
 end
 
 lemma exp_units_conj (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 (↑U ⬝ A ⬝ ↑(U⁻¹) : matrix m m 𝔸) = ↑U ⬝ exp 𝕂 A ⬝ ↑(U⁻¹) :=
+  exp (↑U ⬝ A ⬝ ↑(U⁻¹) : matrix m m 𝔸) = ↑U ⬝ exp A ⬝ ↑(U⁻¹) :=
+let 𝕂 := 𝕂 in
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact exp_units_conj _ U A,
+  exact exp_units_conj 𝕂 U A,
 end
 
 lemma exp_units_conj' (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 (↑(U⁻¹) ⬝ A ⬝ U : matrix m m 𝔸) = ↑(U⁻¹) ⬝ exp 𝕂 A ⬝ U :=
+  exp (↑(U⁻¹) ⬝ A ⬝ U : matrix m m 𝔸) = ↑(U⁻¹) ⬝ exp A ⬝ U :=
 exp_units_conj 𝕂 U⁻¹ A
 
 end normed
@@ -209,32 +215,36 @@ variables [is_R_or_C 𝕂]
   [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n]
   [Π i, fintype (n' i)] [Π i, decidable_eq (n' i)]
-  [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
+  [normed_comm_ring 𝔸] [algebra ℚ 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
 
-lemma exp_neg (A : matrix m m 𝔸) : exp 𝕂 (-A) = (exp 𝕂 A)⁻¹ :=
+lemma exp_neg (A : matrix m m 𝔸) : exp (-A) = (exp A)⁻¹ :=
+let 𝕂 := 𝕂 in
 begin
   rw nonsing_inv_eq_ring_inverse,
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
   letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  exact (ring.inverse_exp _ A).symm,
+  exact (ring.inverse_exp 𝕂 A).symm,
 end
 
-lemma exp_zsmul (z : ℤ) (A : matrix m m 𝔸) : exp 𝕂 (z • A) = exp 𝕂 A ^ z :=
+lemma exp_zsmul (z : ℤ) (A : matrix m m 𝔸) : exp (z • A) = exp A ^ z :=
+let 𝕂 := 𝕂 in
 begin
   obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
-  { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
-  { have : is_unit (exp 𝕂 A).det := (matrix.is_unit_iff_is_unit_det _).mp (is_unit_exp _ _),
-    rw [matrix.zpow_neg this, zpow_coe_nat, neg_smul,
-        exp_neg, coe_nat_zsmul, exp_nsmul] },
+  { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul 𝕂]; apply_instance },
+  { have : is_unit (exp A).det := (matrix.is_unit_iff_is_unit_det _).mp (is_unit_exp 𝕂 _),
+    rw [matrix.zpow_neg this, zpow_coe_nat, neg_smul, exp_neg 𝕂, coe_nat_zsmul, exp_nsmul 𝕂];
+      apply_instance },
 end
 
 lemma exp_conj (U : matrix m m 𝔸) (A : matrix m m 𝔸) (hy : is_unit U) :
-  exp 𝕂 (U ⬝ A ⬝ U⁻¹) = U ⬝ exp 𝕂 A ⬝ U⁻¹ :=
+  exp (U ⬝ A ⬝ U⁻¹) = U ⬝ exp A ⬝ U⁻¹ :=
+let 𝕂 := 𝕂 in
 let ⟨u, hu⟩ := hy in hu ▸ by simpa only [matrix.coe_units_inv] using exp_units_conj 𝕂 u A
 
 lemma exp_conj' (U : matrix m m 𝔸) (A : matrix m m 𝔸) (hy : is_unit U) :
-  exp 𝕂 (U⁻¹ ⬝ A ⬝ U) = U⁻¹ ⬝ exp 𝕂 A ⬝ U :=
+  exp (U⁻¹ ⬝ A ⬝ U) = U⁻¹ ⬝ exp A ⬝ U :=
+let 𝕂 := 𝕂 in
 let ⟨u, hu⟩ := hy in hu ▸ by simpa only [matrix.coe_units_inv] using exp_units_conj' 𝕂 u A
 
 end normed_comm

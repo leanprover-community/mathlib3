@@ -181,7 +181,7 @@ section normed
 section any_field_any_algebra
 
 variables {𝕂 𝔸 𝔹 : Type*} [nontrivially_normed_field 𝕂]
-variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
+variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
@@ -381,7 +381,7 @@ section is_R_or_C
 section any_algebra
 
 variables (𝕂 𝔸 𝔹 : Type*) [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
-variables [normed_ring 𝔹] [normed_algebra 𝕂 𝔹]
+variables [normed_ring 𝔹]
 
 /-- In a normed algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, the series defining the exponential map
 has an infinite radius of convergence. -/
@@ -549,10 +549,10 @@ lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
   exp (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp x * y :=
 exp_units_conj 𝕂 _ _
 
-@[simp] lemma prod.fst_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp x).fst = exp x.fst :=
+@[simp] lemma prod.fst_exp [normed_algebra 𝕂 𝔹] [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp x).fst = exp x.fst :=
 map_exp 𝕂 (ring_hom.fst 𝔸 𝔹) continuous_fst x
 
-@[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp x).snd = exp x.snd :=
+@[simp] lemma prod.snd_exp [normed_algebra 𝕂 𝔹] [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp x).snd = exp x.snd :=
 map_exp 𝕂 (ring_hom.snd 𝔸 𝔹) continuous_snd x
 
 @[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι]
@@ -605,16 +605,18 @@ lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ‖x^n / n!‖) 
 norm_exp_series_div_summable_of_mem_ball 𝕂 x
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-variables [complete_space 𝔸] [algebra ℚ 𝔸]
+variables [complete_space 𝔸]
 
 lemma exp_series_div_summable (x : 𝔸) : summable (λ n, x^n / n!) :=
 summable_of_summable_norm (norm_exp_series_div_summable 𝕂 x)
+
+variables [algebra ℚ 𝔸]
 
 lemma exp_series_div_has_sum_exp (x : 𝔸) : has_sum (λ n, x^n / n!) (exp x):=
 exp_series_div_has_sum_exp_of_mem_ball 𝕂 x
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-variables (𝕂) [algebra ℚ 𝔸]
+variables (𝕂)
 
 lemma exp_neg (x : 𝔸) : exp (-x) = (exp x)⁻¹ :=
 exp_neg_of_mem_ball 𝕂 $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _

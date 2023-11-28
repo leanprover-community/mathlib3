@@ -822,6 +822,8 @@ lemma nnabs_coe (x : ℝ≥0) : nnabs x = x := by simp
 lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)
 
+@[simp] lemma to_nnreal_abs (x : ℝ) : |x|.to_nnreal = x.nnabs := nnreal.coe_injective $ by simp
+
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
   (n.nat_abs : ℝ≥0) = nnabs n :=
 by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, real.coe_nnabs] }

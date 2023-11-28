@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yaël Dillies
 -/
 import analysis.normed.group.basic
 import topology.metric_space.hausdorff_distance
+import topology.metric_space.isometric_smul
 
 /-!
 # Properties of pointwise addition of sets in normed groups
@@ -24,6 +25,7 @@ variables {E : Type*}
 section seminormed_group
 variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
+-- note: we can't use `lipschitz_on_with.bounded_image2` here without adding `[isometric_smul E E]`
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
   obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le',
@@ -32,6 +34,10 @@ begin
   rintro z ⟨x, y, hx, hy, rfl⟩,
   exact norm_mul_le_of_le (hRs x hx) (hRt y hy),
 end
+
+@[to_additive] lemma metric.bounded.of_mul (hst : bounded (s * t)) :
+  bounded s ∨ bounded t :=
+antilipschitz_with.bounded_of_image2_left _ (λ x, (isometry_mul_right x).antilipschitz) hst
 
 @[to_additive] lemma metric.bounded.inv : bounded s → bounded s⁻¹ :=
 by { simp_rw [bounded_iff_forall_norm_le', ←image_inv, ball_image_iff, norm_inv'], exact id }
@@ -54,6 +60,13 @@ eq_of_forall_le_iff $ λ r, by simp_rw [le_inf_edist, ←image_inv, ball_image_i
 @[simp, to_additive]
 lemma inf_edist_inv_inv (x : E) (s : set E) : inf_edist x⁻¹ s⁻¹ = inf_edist x s :=
 by rw [inf_edist_inv, inv_inv]
+
+@[to_additive] lemma ediam_mul_le (x y : set E) :
+  emetric.diam (x * y) ≤ emetric.diam x + emetric.diam y :=
+(lipschitz_on_with.ediam_image2_le (*) _ _
+    (λ _ _, (isometry_mul_right _).lipschitz.lipschitz_on_with _)
+    (λ _ _, (isometry_mul_left _).lipschitz.lipschitz_on_with _)).trans_eq $
+  by simp only [ennreal.coe_one, one_mul]
 
 end emetric
 

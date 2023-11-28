@@ -11,6 +11,9 @@ import ring_theory.derivation.basic
 
 # Derivation bundle
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the derivations at a point of a manifold on the algebra of smooth fuctions.
 Moreover, we define the differential of a function in terms of derivations.
 

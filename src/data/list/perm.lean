@@ -396,7 +396,7 @@ theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
 | ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
 theorem perm.countp_congr (s : l₁ ~ l₂) {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
-  (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countp p = l₂.countp p' :=
+  (hp : ∀ x ∈ l₁, p x ↔ p' x) : l₁.countp p = l₂.countp p' :=
 begin
   rw ← s.countp_eq p',
   clear s,

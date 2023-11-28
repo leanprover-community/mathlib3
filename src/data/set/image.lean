@@ -71,6 +71,9 @@ theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 @[simp] theorem preimage_diff (f : α → β) (s t : set β) :
   f ⁻¹' (s \ t) = f ⁻¹' s \ f ⁻¹' t := rfl
 
+@[simp] lemma preimage_symm_diff (f : α → β) (s t : set β) :
+  f ⁻¹' (s ∆ t) = (f ⁻¹' s) ∆ (f ⁻¹' t) := rfl
+
 @[simp] theorem preimage_ite (f : α → β) (s t₁ t₂ : set β) :
   f ⁻¹' (s.ite t₁ t₂) = (f ⁻¹' s).ite (f ⁻¹' t₁) (f ⁻¹' t₂) :=
 rfl
@@ -119,6 +122,10 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 lemma nonempty_of_nonempty_preimage {s : set β} {f : α → β} (hf : (f ⁻¹' s).nonempty) :
   s.nonempty :=
 let ⟨x, hx⟩ := hf in ⟨f x, hx⟩
+
+@[simp] lemma preimage_singleton_true (p : α → Prop) : p ⁻¹' {true} = {a | p a} := by { ext, simp }
+@[simp] lemma preimage_singleton_false (p : α → Prop) : p ⁻¹' {false} = {a | ¬ p a} :=
+by { ext, simp }
 
 lemma preimage_subtype_coe_eq_compl {α : Type*} {s u v : set α} (hsuv : s ⊆ u ∪ v)
   (H : s ∩ (u ∩ v) = ∅) : (coe : s → α) ⁻¹' u = (coe ⁻¹' v)ᶜ :=
@@ -1002,6 +1009,9 @@ by rw [← image_comp, h.comp_eq_id, image_id]
 lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
   f ⁻¹' (g ⁻¹' s) = s :=
 by rw [← preimage_comp, h.comp_eq_id, preimage_id]
+
+protected lemma involutive.preimage {f : α → α} (hf : involutive f) : involutive (preimage f) :=
+hf.right_inverse.preimage_preimage
 
 end function
 

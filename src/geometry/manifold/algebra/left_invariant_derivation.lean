@@ -11,6 +11,9 @@ import geometry.manifold.derivation_bundle
 
 # Left invariant derivations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the concept of left invariant derivation for a Lie group. The concept is
 analogous to the more classical concept of left invariant vector fields, and it holds that the
 derivation associated to a vector field is left invariant iff the field is.

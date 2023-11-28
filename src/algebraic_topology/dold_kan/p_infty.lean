@@ -22,7 +22,8 @@ to the limit the projections `P q` defined in `projections.lean`. This
 projection is a critical tool in this formalisation of the Dold-Kan correspondence,
 because in the case of abelian categories, `P_infty` corresponds to the
 projection on the normalized Moore subcomplex, with kernel the degenerate subcomplex.
-(See `equivalence.lean` for the general strategy of proof.)
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

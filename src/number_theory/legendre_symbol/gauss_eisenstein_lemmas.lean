@@ -90,7 +90,7 @@ calc (a ^ (p / 2) * (p / 2)! : zmod p) =
       (λ _ _ _ _ _ _, id)
       (λ b h _, ⟨b, by simp [-not_le, *] at *⟩)
       (by intros; split_ifs at *; simp * at *),
-  by rw [prod_mul_distrib, this]; simp
+  by rw [prod_mul_distrib, this, prod_const]
 ... = (-1)^((Ico 1 (p / 2).succ).filter
       (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,
@@ -114,13 +114,14 @@ lemma gauss_lemma {p : ℕ} [fact p.prime] {a : ℤ} (hp : p ≠ 2) (ha0 : (a : 
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 begin
   haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  haveI : fact (2 < p) := ⟨hp.lt_of_le' (fact.out p.prime).two_le⟩,
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
     by { rw [legendre_sym.eq_pow, gauss_lemma_aux p ha0]; simp },
   cases legendre_sym.eq_one_or_neg_one p ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
-  simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
+  simp only [*, neg_one_ne_one, neg_one_ne_one.symm, algebra_map.coe_one, int.cast_neg] at *,
 end
 
 private lemma eisenstein_lemma_aux₁ (p : ℕ) [fact p.prime] [hp2 : fact (p % 2 = 1)]

@@ -128,6 +128,16 @@ instance ordered_add_comm_group : ordered_add_comm_group game :=
   ..game.add_comm_group_with_one,
   ..game.partial_order }
 
+/-- A small set `s` of games is bounded above. -/
+lemma bdd_above_of_small (s : set game.{u}) [small.{u} s] : bdd_above s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (upper_bound_mem_upper_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
+
+/-- A small set `s` of games is bounded below. -/
+lemma bdd_below_of_small (s : set game.{u}) [small.{u} s] : bdd_below s :=
+⟨_, λ i hi, by simpa using pgame.le_iff_game_le.1
+  (lower_bound_mem_lower_bounds _ (set.mem_image_of_mem quotient.out hi))⟩
+
 end game
 
 namespace pgame

@@ -174,7 +174,7 @@ lemma prod_le_pow_card (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, 
 begin
   refine (multiset.prod_le_pow_card (s.val.map f) n _).trans _,
   { simpa using h },
-  { simpa }
+  { simp }
 end
 
 @[to_additive card_nsmul_le_sum]

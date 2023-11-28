@@ -12,6 +12,9 @@ import data.zmod.basic
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains an easy source of zero-divisors in an `add_monoid_algebra`.
 If `k` is a field and `G` is an additive group containing a non-zero torsion element, then
 `add_monoid_algebra k G` contains non-zero zero-divisors: this is lemma `zero_divisors_of_torsion`.

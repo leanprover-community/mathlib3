@@ -129,7 +129,30 @@ by simpa only [uIcc_comm] using uIcc_injective_right a
 end distrib_lattice
 
 section linear_order
-variables [linear_order α] [linear_order β] {f : α → β} {s : set α} {a a₁ a₂ b b₁ b₂ c d x : α}
+variables [linear_order α]
+
+section lattice
+variables [lattice β] {f : α → β} {s : set α} {a b : α}
+
+lemma _root_.monotone_on.image_uIcc_subset (hf : monotone_on f (uIcc a b)) :
+  f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+hf.image_Icc_subset.trans $
+  by rw [hf.map_sup left_mem_uIcc right_mem_uIcc, hf.map_inf left_mem_uIcc right_mem_uIcc, uIcc]
+
+lemma _root_.antitone_on.image_uIcc_subset (hf : antitone_on f (uIcc a b)) :
+  f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+hf.image_Icc_subset.trans $
+  by rw [hf.map_sup left_mem_uIcc right_mem_uIcc, hf.map_inf left_mem_uIcc right_mem_uIcc, uIcc]
+
+lemma _root_.monotone.image_uIcc_subset (hf : monotone f) : f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+(hf.monotone_on _).image_uIcc_subset
+
+lemma _root_.antitone.image_uIcc_subset (hf : antitone f) : f '' uIcc a b ⊆ uIcc (f a) (f b) :=
+(hf.antitone_on _).image_uIcc_subset
+
+end lattice
+
+variables [linear_order β] {f : α → β} {s : set α} {a a₁ a₂ b b₁ b₂ c d x : α}
 
 lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
 

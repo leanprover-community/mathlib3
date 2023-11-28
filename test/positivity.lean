@@ -80,6 +80,18 @@ example [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 ≤ const ι a := 
 example [has_zero α] [preorder α] {a : α} (ha : 0 ≤ a) : 0 ≤ const ι a := by positivity
 example [nonempty ι] [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 < const ι a := by positivity
 
+section ite
+variables {p : Prop} [decidable p] {a b : ℤ}
+
+example (ha : 0 < a) (hb : 0 < b) : 0 < ite p a b := by positivity
+example (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ ite p a b := by positivity
+example (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ ite p a b := by positivity
+example (ha : 0 < a) (hb : b ≠ 0) : ite p a b ≠ 0 := by positivity
+example (ha : a ≠ 0) (hb : 0 < b) : ite p a b ≠ 0 := by positivity
+example (ha : a ≠ 0) (hb : b ≠ 0) : ite p a b ≠ 0 := by positivity
+
+end ite
+
 example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < min a b := by positivity
 example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ min a b := by positivity
 example {a b : ℚ} (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ min a b := by positivity

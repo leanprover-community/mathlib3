@@ -465,6 +465,20 @@ protected lemma comp {g : β → γ} {t : set β} {Kg : ℝ≥0} (hg : lipschitz
   lipschitz_on_with (Kg * K) (g ∘ f) s :=
 lipschitz_on_with_iff_restrict.mpr $ hg.to_restrict.comp (hf.to_restrict_maps_to hmaps)
 
+lemma ediam_image2_le (f : α → β → γ) {K₁ K₂ : ℝ≥0}
+  (s : set α) (t : set β)
+  (hf₁ : ∀ b ∈ t, lipschitz_on_with K₁ (λ a, f a b) s)
+  (hf₂ : ∀ a ∈ s, lipschitz_on_with K₂ (f a) t) :
+  emetric.diam (set.image2 f s t) ≤ ↑K₁ * emetric.diam s + ↑K₂ * emetric.diam t :=
+begin
+  apply emetric.diam_le,
+  rintros _ ⟨a₁, b₁, ha₁, hb₁, rfl⟩ _  ⟨a₂, b₂, ha₂, hb₂, rfl⟩,
+  refine (edist_triangle _ (f a₂ b₁) _).trans _,
+  exact add_le_add
+    ((hf₁ b₁ hb₁ ha₁ ha₂).trans $ ennreal.mul_left_mono $ emetric.edist_le_diam_of_mem ha₁ ha₂)
+    ((hf₂ a₂ ha₂ hb₁ hb₂).trans $ ennreal.mul_left_mono $ emetric.edist_le_diam_of_mem hb₁ hb₂),
+end
+
 end emetric
 
 section metric
@@ -511,6 +525,17 @@ sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le_mul x hx y hy
 protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
   lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), f x ≤ f y + K * dist x y :=
 ⟨lipschitz_on_with.le_add_mul, lipschitz_on_with.of_le_add_mul K⟩
+
+lemma bounded_image2 (f : α → β → γ) {K₁ K₂ : ℝ≥0}
+  {s : set α} {t : set β} (hs : metric.bounded s) (ht : metric.bounded t)
+  (hf₁ : ∀ b ∈ t, lipschitz_on_with K₁ (λ a, f a b) s)
+  (hf₂ : ∀ a ∈ s, lipschitz_on_with K₂ (f a) t) :
+  metric.bounded (set.image2 f s t) :=
+metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
+  (ennreal.add_ne_top.mpr ⟨
+    ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top,
+    ennreal.mul_ne_top ennreal.coe_ne_top ht.ediam_ne_top⟩)
+  (ediam_image2_le _ _ _ hf₁ hf₂)
 
 end metric
 

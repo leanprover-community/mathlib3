@@ -8,6 +8,9 @@ import logic.basic
 /-!
 # Girard's paradox
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Girard's paradox is a proof that `Type : Type` entails a contradiction. We can't say this directly
 in Lean because `Type : Type 1` and it's not possible to give `Type` a different type via an axiom,
 so instead we axiomatize the behavior of the Pi type and application if the typing rule for Pi was

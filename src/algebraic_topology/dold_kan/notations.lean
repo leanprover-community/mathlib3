@@ -17,6 +17,8 @@ This file defines the notation `K[X] : chain_complex C ℕ` for the alternating 
 map complex of `(X : simplicial_object C)` where `C` is a preadditive category, as well
 as `N[X]` for the normalized subcomplex in the case `C` is an abelian category.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 localized "notation (name := alternating_face_map_complex) `K[`X`]` :=

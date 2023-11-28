@@ -16,6 +16,8 @@ The purpose of this file is to construct natural isomorphisms
 `N₁Γ₀ : Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ)`
 and `N₂Γ₂ : Γ₂ ⋙ N₂ ≅ 𝟭 (karoubi (chain_complex C ℕ))`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 noncomputable theory

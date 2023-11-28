@@ -35,14 +35,14 @@ open_locale nnreal
 
 variables {𝕜 𝕜₂ E F G : Type*}
 
-variables [normed_field 𝕜] [normed_field 𝕜₂]
 
 /-! # General constructions -/
 
-section seminormed
+section seminormed_add_comm_group
 
+variables [ring 𝕜] [ring 𝕜₂]
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
-variables [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 G]
+variables [module 𝕜 E] [module 𝕜₂ F] [module 𝕜 G]
 variables {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
 
 /-- Construct a continuous linear map from a linear map and a bound on this linear map.
@@ -50,13 +50,6 @@ The fact that the norm of the continuous linear map is then controlled is given 
 `linear_map.mk_continuous_norm_le`. -/
 def linear_map.mk_continuous (C : ℝ) (h : ∀x, ‖f x‖ ≤ C * ‖x‖) : E →SL[σ] F :=
 ⟨f, add_monoid_hom_class.continuous_of_bound f C h⟩
-
-/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
-is generalized to the case of any finite dimensional domain
-in `linear_map.to_continuous_linear_map`. -/
-def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
-f.mk_continuous (‖f 1‖) $ λ x, le_of_eq $
-by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, mul_comm] }
 
 /-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
 map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
@@ -89,14 +82,6 @@ add_monoid_hom_class.continuous_of_bound φ C h_bound
 @[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ‖f x‖ ≤ C * ‖x‖) (x : E) :
   f.mk_continuous_of_exists_bound h x = f x := rfl
 
-@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
-  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
-rfl
-
-@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
-  f.to_continuous_linear_map₁ x = f x :=
-rfl
-
 namespace continuous_linear_map
 
 theorem antilipschitz_of_bound (f : E →SL[σ] F) {K : ℝ≥0} (h : ∀ x, ‖x‖ ≤ K * ‖f x‖) :
@@ -105,7 +90,7 @@ add_monoid_hom_class.antilipschitz_of_bound _ h
 
 lemma bound_of_antilipschitz (f : E →SL[σ] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
   ‖x‖ ≤ K * ‖f x‖ :=
-add_monoid_hom_class.bound_of_antilipschitz _ h x
+zero_hom_class.bound_of_antilipschitz _ h x
 
 end continuous_linear_map
 
@@ -125,11 +110,34 @@ def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₛₗ[σ] F) (C
 
 end
 
-end seminormed
+end seminormed_add_comm_group
+
+section seminormed_bounded
+
+variables [semi_normed_ring 𝕜] [ring 𝕜₂] [seminormed_add_comm_group E]
+variables [module 𝕜 E] [has_bounded_smul 𝕜 E]
+
+/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
+is generalized to the case of any finite dimensional domain
+in `linear_map.to_continuous_linear_map`. -/
+def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
+f.mk_continuous (‖f 1‖) $ λ x,
+by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, mul_comm],exact norm_smul_le _ _ }
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
+  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
+rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
+  f.to_continuous_linear_map₁ x = f x :=
+rfl
+
+end seminormed_bounded
 
 section normed
 
-variables [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+variables [ring 𝕜] [ring 𝕜₂]
+variables [normed_add_comm_group E] [normed_add_comm_group F] [module 𝕜 E] [module 𝕜₂ F]
 variables {σ : 𝕜 →+* 𝕜₂} (f g : E →SL[σ] F) (x y z : E)
 
 theorem continuous_linear_map.uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ‖x‖ ≤ K * ‖f x‖) :
@@ -142,8 +150,9 @@ end normed
 
 section seminormed
 
+variables [ring 𝕜] [ring 𝕜₂]
 variables [seminormed_add_comm_group E] [seminormed_add_comm_group F]
-variables [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+variables [module 𝕜 E] [module 𝕜₂ F]
 variables {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
 
 /-- A (semi-)linear map which is a homothety is a continuous linear map.
@@ -180,42 +189,34 @@ end seminormed
 
 /-! ## The span of a single vector -/
 
-section seminormed
-
-variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
-
 namespace continuous_linear_map
+variables (𝕜)
 
-variable (𝕜)
+section seminormed
+variables [normed_division_ring 𝕜] [seminormed_add_comm_group E] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
   ‖linear_map.to_span_singleton 𝕜 E x c‖ = ‖x‖ * ‖c‖ :=
 by {rw mul_comm, exact norm_smul _ _}
 
+end seminormed
+
 end continuous_linear_map
 
-section
-
 namespace continuous_linear_equiv
-
 variable (𝕜)
+
+section seminormed
+variables [normed_division_ring 𝕜] [seminormed_add_comm_group E] [module 𝕜 E] [has_bounded_smul 𝕜 E]
 
 lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
   ‖linear_equiv.to_span_nonzero_singleton 𝕜 E x h c‖ = ‖x‖ * ‖c‖ :=
 continuous_linear_map.to_span_singleton_homothety _ _ _
 
-end continuous_linear_equiv
-
-end
-
 end seminormed
 
 section normed
-
-variables [normed_add_comm_group E] [normed_space 𝕜 E]
-
-namespace continuous_linear_equiv
-variable (𝕜)
+variables [normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
 
 /-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural
     continuous linear equivalence from `E₁` to the span of `x`.-/
@@ -246,6 +247,6 @@ noncomputable def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 :=
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
-end continuous_linear_equiv
-
 end normed
+
+end continuous_linear_equiv

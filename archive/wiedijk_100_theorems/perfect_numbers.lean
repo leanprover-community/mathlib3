@@ -12,6 +12,9 @@ import ring_theory.multiplicity
 /-!
 # Perfect Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves Theorem 70 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
 The theorem characterizes even perfect numbers.

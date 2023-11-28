@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 import data.set.image
 import order.lattice
 import order.max
-import order.bounds.basic
 
 /-!
 # Directed indexed families and sets
@@ -259,42 +258,3 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 @[priority 100]  -- see Note [lower instance priority]
 instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩
-
-section scott_continuous
-
-variables [preorder α] {a : α}
-
-/--
-A function between preorders is said to be Scott continuous if it preserves `is_lub` on directed
-sets. It can be shown that a function is Scott continuous if and only if it is continuous wrt the
-Scott topology.
-
-The dual notion
-
-```lean
-∀ ⦃d : set α⦄, d.nonempty → directed_on (≥) d → ∀ ⦃a⦄, is_glb d a → is_glb (f '' d) (f a)
-```
-
-does not appear to play a significant role in the literature, so is omitted here.
--/
-def scott_continuous [preorder β] (f : α → β) : Prop :=
-∀ ⦃d : set α⦄, d.nonempty → directed_on (≤) d → ∀ ⦃a⦄, is_lub d a → is_lub (f '' d) (f a)
-
-protected lemma scott_continuous.monotone [preorder β] {f : α → β}
-  (h : scott_continuous f) :
-  monotone f :=
-begin
-  intros a b hab,
-  have e1 : is_lub (f '' {a, b}) (f b),
-  { apply h,
-    { exact set.insert_nonempty _ _ },
-    { exact directed_on_pair le_refl hab },
-    { rw [is_lub, upper_bounds_insert, upper_bounds_singleton,
-        set.inter_eq_self_of_subset_right (set.Ici_subset_Ici.mpr hab)],
-      exact is_least_Ici } },
-  apply e1.1,
-  rw set.image_pair,
-  exact set.mem_insert _ _,
-end
-
-end scott_continuous

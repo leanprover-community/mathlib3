@@ -84,6 +84,9 @@ by simp only [countp_eq_length_filter, filter_filter]
 | [] := rfl
 | (a::l) := by rw [map_cons, countp_cons, countp_cons, countp_map]
 
+@[simp] lemma countp_attach (l : list α) : l.attach.countp (λ a, p ↑a) = l.countp p :=
+by rw [←countp_map, attach_map_coe]
+
 variables {p q}
 
 lemma countp_mono_left (h : ∀ x ∈ l, p x → q x) : countp p l ≤ countp q l :=
@@ -196,6 +199,9 @@ by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext 
 lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
   count x (l.bind f) = sum (map (count x ∘ f) l) :=
 by rw [list.bind, count_join, map_map]
+
+@[simp] lemma count_attach (a : {x // x ∈ l}) : l.attach.count a = l.count a :=
+eq.trans (countp_congr $ λ _ _, subtype.ext_iff) $ countp_attach _ _
 
 @[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]
   (l : list α) (f : α → β) (hf : function.injective f) (x : α) :

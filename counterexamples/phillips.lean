@@ -11,6 +11,9 @@ import topology.continuous_function.bounded
 /-!
 # A counterexample on Pettis integrability
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 There are several theories of integration for functions taking values in Banach spaces. Bochner
 integration, requiring approximation by simple functions, is the analogue of the one-dimensional
 theory. It is very well behaved, but only works for functions with second-countable range.

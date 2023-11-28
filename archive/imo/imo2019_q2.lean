@@ -9,6 +9,9 @@ import geometry.euclidean.sphere.second_inter
 /-!
 # IMO 2019 Q2
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In triangle `ABC`, point `A₁` lies on side `BC` and point `B₁` lies on side `AC`. Let `P` and
 `Q` be points on segments `AA₁` and `BB₁`, respectively, such that `PQ` is parallel to `AB`.
 Let `P₁` be a point on line `PB₁`, such that `B₁` lies strictly between `P` and `P₁`, and

@@ -490,6 +490,12 @@ h.mul_left_inj.1
 @[to_additive] protected lemma mul_left_injective (h : is_unit b) : injective (* b) :=
 λ _ _, h.mul_right_cancel
 
+@[to_additive] protected lemma mul_right_eq_self (h : is_unit a) : a * b = a ↔ b = 1 :=
+iff.trans (by rw [mul_one]) h.mul_right_inj
+
+@[to_additive] protected lemma mul_left_eq_self (h : is_unit b) : a * b = b ↔ a = 1 :=
+iff.trans (by rw [one_mul]) h.mul_left_inj
+
 end monoid
 
 variables [division_monoid M] {a : M}

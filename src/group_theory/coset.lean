@@ -329,9 +329,13 @@ quotient.mk' a
 lemma mk_surjective : function.surjective $ @mk _ _ s := quotient.surjective_quotient_mk'
 
 @[elab_as_eliminator, to_additive]
-lemma induction_on {C : α ⧸ s → Prop} (x : α ⧸ s)
-  (H : ∀ z, C (quotient_group.mk z)) : C x :=
+lemma induction_on {C : α ⧸ s → Prop} (x : α ⧸ s) (H : ∀ z, C (mk z)) : C x :=
 quotient.induction_on' x H
+
+@[elab_as_eliminator, to_additive]
+lemma induction_on₂ {β} [group β] {t : subgroup β} {C : α ⧸ s → β ⧸ t → Prop}
+  (x : α ⧸ s) (y : β ⧸ t) (H : ∀ a b, C (mk a) (mk b)) : C x y :=
+quotient.induction_on₂' x y H
 
 @[to_additive]
 instance : has_coe_t α (α ⧸ s) := ⟨mk⟩ -- note [use has_coe_t]

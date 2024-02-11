@@ -144,20 +144,13 @@ To support `ℤˣ` and other infinite monoids with finite groups of units, this 
 instance [finite Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
-section
-
-variables (S : subgroup Rˣ) [finite S]
-
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
-instance subgroup_units_cyclic : is_cyclic S :=
-begin
-  refine is_cyclic_of_subgroup_is_domain ⟨(coe : S → R), _, _⟩
-    (units.ext.comp subtype.val_injective),
-  { simp },
-  { intros, simp },
-end
+instance subgroup_units_cyclic (S : subgroup Rˣ) [finite S] : is_cyclic S :=
+is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp S.subtype)
+  (units.ext.comp subtype.coe_injective)
 
-end
+instance is_domain.is_cyclic_quotient_ker [finite G] {f : G →* R} : is_cyclic (G ⧸ f.ker) :=
+is_cyclic_of_subgroup_is_domain (quotient_group.ker_lift f)
 
 section euclidean_division
 
@@ -184,55 +177,40 @@ end euclidean_division
 
 variables [fintype G]
 
-lemma card_fiber_eq_of_mem_range {H : Type*} [group H] [decidable_eq H]
-  (f : G →* H) {x y : H} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
-  (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
-begin
-  rcases hx with ⟨x, rfl⟩,
-  rcases hy with ⟨y, rfl⟩,
-  refine card_congr (λ g _, g * x⁻¹ * y) _ _ (λ g hg, ⟨g * y⁻¹ * x, _⟩),
-  { simp only [mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
-      eq_self_iff_true, monoid_hom.map_mul_inv, and_self, forall_true_iff] {contextual := tt} },
-  { simp only [mul_left_inj, imp_self, forall_2_true_iff], },
-  { simp only [true_and, mem_filter, mem_univ] at hg,
-    simp only [hg, mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
-      eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
-      mul_inv_cancel_right, inv_mul_cancel_right], }
-end
-
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.
 -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
   classical,
-  obtain ⟨x, hx⟩ : ∃ x : monoid_hom.range f.to_hom_units,
-    ∀ y : monoid_hom.range f.to_hom_units, y ∈ submonoid.powers x,
+  obtain ⟨f, rfl⟩ : ∃ f' : G →* Rˣ, (units.coe_hom R).comp f' = f,
+    from ⟨f.to_hom_units, fun_like.ext' rfl⟩,
+  obtain ⟨x, hx⟩ : ∃ x : f.range, ∀ y : f.range, y ∈ submonoid.powers x,
     from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,
     apply hf,
     ext g,
-    rw [monoid_hom.one_apply],
-    cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
-    rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
-      one_pow, eq_comm] at hn, },
-  replace hx1 : (x : R) - 1 ≠ 0,
-    from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
-  let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
-  calc ∑ g : G, f g
-      = ∑ g : G, f.to_hom_units g : rfl
-  ... = ∑ u : Rˣ in univ.image f.to_hom_units,
-    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
-  ... = ∑ u : Rˣ in univ.image f.to_hom_units, c • u :
-    sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
-  ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
-      (by simp ) _
-  ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
-  ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
-  ... = 0 : smul_zero _,
+    specialize hx ⟨f g, g, rfl⟩,
+    rw [submonoid.powers_one, submonoid.mem_bot, ← subtype.coe_inj, subtype.coe_mk] at hx,
+    rw [monoid_hom.comp_apply, monoid_hom.one_apply, hx, coe_one, map_one] },
+  replace hx1 : (x : R) - 1 ≠ 0, from sub_ne_zero.2 (λ h, hx1 $ subtype.ext $ units.ext h),
+  set c := fintype.card f.ker,
+  calc ∑ g : G, (f g : R) = ∑ u : Rˣ in univ.image f, c • u : eq.symm $ sum_image' _ $
+    λ g hg, _ -- remaining goal 1, proven below
+  ... = _ : _,
+    
+  -- calc ∑ g : G, f g = ∑ u : Rˣ in univ.image f,
+  --   (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
+  -- ... = ∑ u : Rˣ in univ.image f, c • u :
+  --   sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
+  -- ... = ∑ b : f.range, c • ↑b : finset.sum_subtype _
+  --     (by simp ) _
+  -- ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
+  -- ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
+  -- ... = 0 : smul_zero _,
   { -- remaining goal 1
     show (univ.filter (λ (g : G), f.to_hom_units g = u)).card = c,
-    apply card_fiber_eq_of_mem_range f.to_hom_units,
+    apply f.to_hom_units.card_fiber_eq_of_mem_range,
     { simpa only [mem_image, mem_univ, exists_prop_of_true, set.mem_range] using hu, },
     { exact ⟨1, f.to_hom_units.map_one⟩ } },
   -- remaining goal 2

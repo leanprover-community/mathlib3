@@ -2011,6 +2011,36 @@ instance normal_ker (f : G →* M) : f.ker.normal :=
 ⟨λ x hx y, by rw [mem_ker, map_mul, map_mul, f.mem_ker.1 hx, mul_one,
   map_mul_eq_one f (mul_inv_self y)]⟩
 
+@[simp, to_additive] lemma preimage_mul_left_ker (f : G →* M) (x : G) :
+  ((*) x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
+begin
+  ext y,
+  simp only [eq_iff, set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, inv_inv]
+end
+
+@[simp, to_additive] lemma preimage_mul_right_ker (f : G →* M) (x : G) :
+  (λ y, y * x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
+begin
+  ext y,
+  simpa only [eq_iff, set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, inv_inv]
+    using f.normal_ker.mem_comm_iff
+end
+
+@[simp, to_additive] lemma image_mul_left_ker (f : G →* M) (x : G) :
+  ((*) x) '' f.ker = f ⁻¹' {f x} :=
+by rw [← equiv.coe_mul_left, equiv.image_eq_preimage, equiv.mul_left_symm_apply,
+  preimage_mul_left_ker, inv_inv]
+
+@[simp, to_additive] lemma image_mul_right_ker (f : G →* M) (x : G) :
+  (λ y, y * x) '' f.ker = f ⁻¹' {f x} :=
+by rw [← equiv.coe_mul_right, equiv.image_eq_preimage, equiv.mul_right_symm_apply,
+  preimage_mul_right_ker, inv_inv]
+
+@[simp, to_additive] lemma card_preimage_singleton (f : G →* M) (x : G)
+  [fintype f.ker] [fintype (f ⁻¹' {f x})] : fintype.card (f ⁻¹' {f x}) = fintype.card f.ker :=
+fintype.card_congr $ (equiv.set_congr $ f.image_mul_left_ker x).symm.trans $
+  ((equiv.mul_left x).image _).symm
+
 end ker
 
 section eq_locus

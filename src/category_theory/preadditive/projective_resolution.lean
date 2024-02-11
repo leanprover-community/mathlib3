@@ -10,6 +10,9 @@ import algebra.homology.homotopy_category
 /-!
 # Projective resolutions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A projective resolution `P : ProjectiveResolution Z` of an object `Z : C` consists of
 a `ℕ`-indexed chain complex `P.complex` of projective objects,
 along with a chain map `P.π` from `C` to the chain complex consisting just of `Z` in degree zero,

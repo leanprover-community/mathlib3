@@ -8,6 +8,9 @@ import topology.continuous_function.basic
 /-!
 # Continuous open maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled continuous open maps.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to

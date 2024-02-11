@@ -10,6 +10,9 @@ import category_theory.limits.shapes.binary_products
 /-!
 # Strict initial objects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up the basic theory of strict initial objects: initial objects where every morphism
 to it is an isomorphism. This generalises a property of the empty set in the category of sets:
 namely that the only function to the empty set is from itself.

@@ -9,6 +9,9 @@ import analysis.normed_space.basic
 /-!
 # Rays in a real normed vector space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some lemmas about the `same_ray` predicate in case of a real normed space. In
 this case, for two vectors `x y` in the same ray, the norm of their sum is equal to the sum of their
 norms and `‖y‖ • x = ‖x‖ • y`.
@@ -36,12 +39,12 @@ end
 lemma norm_sub (h : same_ray ℝ x y) : ‖x - y‖ = |‖x‖ - ‖y‖| :=
 begin
   rcases h.exists_eq_smul with ⟨u, a, b, ha, hb, -, rfl, rfl⟩,
-  wlog hab : b ≤ a := le_total b a using [a b, b a] tactic.skip,
-  { rw ← sub_nonneg at hab,
-    rw [← sub_smul, norm_smul_of_nonneg hab, norm_smul_of_nonneg ha,
-      norm_smul_of_nonneg hb, ← sub_mul, abs_of_nonneg (mul_nonneg hab (norm_nonneg _))] },
-  { intros ha hb hab,
-    rw [norm_sub_rev, this hb ha hab.symm, abs_sub_comm] }
+  wlog hab : b ≤ a,
+  { rw same_ray_comm at h, rw [norm_sub_rev, abs_sub_comm],
+    exact this u b a hb ha h (le_of_not_le hab), },
+  rw ← sub_nonneg at hab,
+  rw [← sub_smul, norm_smul_of_nonneg hab, norm_smul_of_nonneg ha,
+    norm_smul_of_nonneg hb, ← sub_mul, abs_of_nonneg (mul_nonneg hab (norm_nonneg _))]
 end
 
 lemma norm_smul_eq (h : same_ray ℝ x y) : ‖x‖ • y = ‖y‖ • x :=

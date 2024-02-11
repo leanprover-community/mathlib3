@@ -9,6 +9,9 @@ import category_theory.monoidal.functor_category
 /-!
 # `Mon_ (C ⥤ D) ≌ C ⥤ Mon_ D`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 When `D` is a monoidal category,
 monoid objects in `C ⥤ D` are the same thing as functors from `C` into the monoid objects of `D`.
 

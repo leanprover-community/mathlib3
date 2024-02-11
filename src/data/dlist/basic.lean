@@ -9,7 +9,6 @@ import data.dlist
 # Difference list
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/616
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides a few results about `dlist`, which is defined in core Lean.

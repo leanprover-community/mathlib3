@@ -9,7 +9,6 @@ import logic.equiv.defs
 # Opposites
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/650
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define a type synonym `opposite α := α`, denoted by `αᵒᵖ` and two synonyms for the

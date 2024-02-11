@@ -13,6 +13,9 @@ import tactic.norm_num
 /-!
 # Rand Monad and Random Class
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module provides tools for formulating computations guided by randomness and for
 defining objects that can be created randomly.
 

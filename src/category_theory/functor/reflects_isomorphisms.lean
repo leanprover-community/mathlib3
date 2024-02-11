@@ -10,6 +10,9 @@ import category_theory.functor.fully_faithful
 /-!
 # Functors which reflect isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A functor `F` reflects isomorphisms if whenever `F.map f` is an isomorphism, `f` was too.
 
 It is formalized as a `Prop` valued typeclass `reflects_isomorphisms F`.

@@ -10,6 +10,9 @@ import topology.noetherian_space
 /-!
 # Quasi-separated spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological space is quasi-separated if the intersections of any pairs of compact open subsets
 are still compact.
 Notable examples include spectral spaces, Noetherian spaces, and Hausdorff spaces.
@@ -83,7 +86,7 @@ lemma open_embedding.is_quasi_separated_iff (h : open_embedding f) {s : set α} 
 begin
   refine ⟨λ hs, hs.image_of_embedding h.to_embedding, _⟩,
   intros H U V hU hU' hU'' hV hV' hV'',
-  rw [h.to_embedding.is_compact_iff_is_compact_image, ← set.image_inter h.inj],
+  rw [h.to_embedding.is_compact_iff_is_compact_image, set.image_inter h.inj],
   exact H (f '' U) (f '' V)
     (set.image_subset _ hU) (h.is_open_map _ hU') (hU''.image h.continuous)
     (set.image_subset _ hV) (h.is_open_map _ hV') (hV''.image h.continuous)

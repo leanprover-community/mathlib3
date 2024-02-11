@@ -9,6 +9,9 @@ import algebra.hom.equiv.basic
 /-!
 # More operations on `with_one` and `with_zero`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines various bundled morphisms on `with_one` and `with_zero`
 that were not available in `algebra/group/with_one/defs`.
 

@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Cardinality of a finite set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This defines the cardinality of a `finset` and provides induction principles for finsets.
 
 ## Main declarations
@@ -39,6 +42,7 @@ variables {s t : finset α} {a b : α}
 def card (s : finset α) : ℕ := s.1.card
 
 lemma card_def (s : finset α) : s.card = s.1.card := rfl
+@[simp] lemma card_val (s : finset α) : s.1.card = s.card := rfl
 
 @[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
 
@@ -184,6 +188,12 @@ card_le_of_subset $ filter_subset _ _
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
+lemma eq_of_superset_of_card_ge (hst : s ⊆ t) (hts : t.card ≤ s.card) : t = s :=
+(eq_of_subset_of_card_le hst hts).symm
+
+lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
+⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
+
 lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
 eq_of_subset_of_card_le hs (card_map _).ge
 
@@ -301,6 +311,9 @@ variables [decidable_eq α]
 lemma card_union_add_card_inter (s t : finset α) : (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
 finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
+lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
+by rw [add_comm, card_union_add_card_inter]
+
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
@@ -322,6 +335,9 @@ calc card t - card s
       ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _
   ... = card (t \ (s ∩ t)) : (card_sdiff (inter_subset_right s t)).symm
   ... ≤ card (t \ s) : by rw sdiff_inter_self_right t s
+
+lemma card_le_card_sdiff_add_card : s.card ≤ (s \ t).card + t.card :=
+tsub_le_iff_right.1 $ le_card_sdiff _ _
 
 lemma card_sdiff_add_card : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [←card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
@@ -417,6 +433,13 @@ begin
   { rintro ⟨x, hx⟩,
     rw ←card_singleton x,
     exact card_le_of_subset hx }
+end
+
+lemma exists_mem_ne (hs : 1 < s.card) (a : α) : ∃ b ∈ s, b ≠ a :=
+begin
+  by_contra',
+  haveI : nonempty α := ⟨a⟩,
+  exact hs.not_le (card_le_one_iff_subset_singleton.2 ⟨a, subset_singleton_iff'.2 this⟩),
 end
 
 /-- A `finset` of a subsingleton type has cardinality at most one. -/

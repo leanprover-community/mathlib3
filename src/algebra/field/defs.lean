@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Division (semi)rings and (semi)fields
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/668
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces fields and division rings (also known as skewfields) and proves some basic
@@ -143,6 +142,10 @@ instance smul_division_ring : has_smul ℚ K :=
 ⟨division_ring.qsmul⟩
 
 lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
+
+@[simp] lemma smul_one_eq_coe (A : Type*) [division_ring A] (m : ℚ) :
+  m • (1 : A) = ↑m :=
+by rw [rat.smul_def, mul_one]
 
 end rat
 

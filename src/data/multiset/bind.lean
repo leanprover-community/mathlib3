@@ -8,6 +8,9 @@ import algebra.big_operators.multiset.basic
 /-!
 # Bind operation for multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few basic operations on `multiset`, notably the monadic bind.
 
 ## Main declarations
@@ -162,10 +165,9 @@ infixr (name := multiset.product) ` ×ˢ `:82 := multiset.product
 by { rw [product, list.product, ←coe_bind], simp }
 
 @[simp] lemma zero_product : @product α β 0 t = 0 := rfl
---TODO: Add `product_zero`
-
-@[simp] lemma cons_product : (a ::ₘ s) ×ˢ t = map (prod.mk a) t + s ×ˢ t :=
-by simp [product]
+@[simp] lemma cons_product : (a ::ₘ s) ×ˢ t = map (prod.mk a) t + s ×ˢ t := by simp [product]
+@[simp] lemma product_zero : s ×ˢ (0 : multiset β) = 0 := by simp [product]
+@[simp] lemma product_cons : s ×ˢ (b ::ₘ t) = s.map (λ a, (a, b)) + s ×ˢ t := by simp [product]
 
 @[simp] lemma product_singleton : ({a} : multiset α) ×ˢ ({b} : multiset β) = {(a, b)} :=
 by simp only [product, bind_singleton, map_singleton]
@@ -180,8 +182,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 @[simp] lemma mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product, and.left_comm]
 
-@[simp] lemma card_product : (s ×ˢ t).card = s.card * t.card :=
-by simp [product, repeat, (∘), mul_comm]
+@[simp] lemma card_product : (s ×ˢ t).card = s.card * t.card := by simp [product]
 
 end product
 

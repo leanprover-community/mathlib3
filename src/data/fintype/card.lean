@@ -12,6 +12,9 @@ import tactic.wlog
 /-!
 # Cardinalities of finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `fintype.card α`: Cardinality of a fintype. Equal to `finset.univ.card`.
@@ -338,6 +341,7 @@ lemma finite_iff_nonempty_fintype (α : Type*) :
 ⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
   λ ⟨_⟩, by exactI infer_instance⟩
 
+/-- See also `nonempty_encodable`, `nonempty_denumerable`. -/
 lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
 (finite_iff_nonempty_fintype α).mp ‹_›
 
@@ -722,17 +726,15 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
-lemma preorder.well_founded_lt [preorder α] : well_founded ((<) : α → α → Prop) :=
-well_founded_of_trans_of_irrefl _
+@[priority 100] -- See note [lower instance priority]
+instance finite.to_well_founded_lt [preorder α] : well_founded_lt α :=
+⟨well_founded_of_trans_of_irrefl _⟩
+@[priority 100] -- See note [lower instance priority]
+instance finite.to_well_founded_gt [preorder α] : well_founded_gt α :=
+⟨well_founded_of_trans_of_irrefl _⟩
 
-lemma preorder.well_founded_gt [preorder α] : well_founded ((>) : α → α → Prop) :=
-well_founded_of_trans_of_irrefl _
-
-@[priority 10] instance linear_order.is_well_order_lt [linear_order α] : is_well_order α (<) :=
-{ wf := preorder.well_founded_lt }
-
-@[priority 10] instance linear_order.is_well_order_gt [linear_order α] : is_well_order α (>) :=
-{ wf := preorder.well_founded_gt }
+@[priority 10] instance linear_order.is_well_order_lt [linear_order α] : is_well_order α (<) := {}
+@[priority 10] instance linear_order.is_well_order_gt [linear_order α] : is_well_order α (>) := {}
 
 end finite
 
@@ -821,7 +823,8 @@ instance : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
 
 instance [nonempty α] : infinite (multiset α) :=
-let ⟨x⟩ := ‹nonempty α› in infinite.of_injective (multiset.repeat x) (multiset.repeat_injective _)
+let ⟨x⟩ := ‹nonempty α› in
+  infinite.of_injective (λ n, multiset.replicate n x) (multiset.replicate_left_injective _)
 
 instance [nonempty α] : infinite (list α) :=
 infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
@@ -859,7 +862,8 @@ private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
 begin
   rintro m n h,
   letI := classical.dec_eq α,
-  wlog hmlen : m ≤ n using m n,
+  wlog hmlen : m ≤ n generalizing m n,
+  { exact (this h.symm $ le_of_not_le hmlen).symm },
   by_contradiction hmn,
   have hmn : m < n, from lt_of_le_of_ne hmlen hmn,
   refine (classical.some_spec (exists_not_mem_finset

@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
-import data.set.pairwise
+import data.set.pairwise.lattice
 import data.set.pointwise.basic
+import tactic.by_contra
 
 /-!
 # Pointwise operations of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines pointwise algebraic operations on sets.
 
@@ -34,7 +38,7 @@ Appropriate definitions and results are also transported to the additive theory 
 
 -/
 
-open function
+open function mul_opposite
 
 variables {F α β γ : Type*}
 
@@ -104,6 +108,12 @@ attribute [mono] vadd_subset_vadd
 @[to_additive] lemma inter_smul_subset : (s₁ ∩ s₂) • t ⊆ s₁ • t ∩ s₂ • t := image2_inter_subset_left
 @[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
 image2_inter_subset_right
+@[to_additive] lemma inter_smul_union_subset_union :
+  (s₁ ∩ s₂) • (t₁ ∪ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_inter_union_subset_union
+@[to_additive] lemma union_smul_inter_subset_union :
+  (s₁ ∪ s₂) • (t₁ ∩ t₂) ⊆ (s₁ • t₁) ∪ (s₂ • t₂) :=
+image2_union_inter_subset_union
 
 @[to_additive] lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_left _
 @[to_additive] lemma Union_smul_right_image : (⋃ a ∈ t, (• a) '' s) = s • t := Union_image_right _
@@ -138,6 +148,9 @@ image2_Inter₂_subset_left _ _ _
 lemma smul_Inter₂_subset (s : set α) (t : Π i, κ i → set β) :
   s • (⋂ i j, t i j) ⊆ ⋂ i j, s • t i j :=
 image2_Inter₂_subset_right _ _ _
+
+@[to_additive] lemma smul_set_subset_smul {s : set α} : a ∈ s → a • t ⊆ s • t :=
+image_subset_image2_right
 
 @[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
   (⋃ a ∈ s, a • t) = s • t :=
@@ -188,29 +201,21 @@ image_Inter₂_subset _ _
 
 end has_smul_set
 
-variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
+section has_mul
+variables [has_mul α] {s t u : set α} {a : α}
 
-@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
-  (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
+@[to_additive] lemma op_smul_set_subset_mul : a ∈ t → op a • s ⊆ s * t := image_subset_image2_left
+
+@[simp, to_additive] lemma bUnion_op_smul_set (s t : set α) : (⋃ a ∈ t, op a • s) = s * t :=
 Union_image_right _
 
-@[to_additive]
-lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
-  a • (s ∩ t) = a • s ∩ a • t :=
-(image_inter $ mul_action.injective a).symm
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image2_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image2_subset_iff_right
 
-lemma smul_set_inter₀ [group_with_zero α] [mul_action α β] {s t : set β} (ha : a ≠ 0) :
-  a • (s ∩ t) = a • s ∩ a • t :=
-show units.mk0 a ha • _ = _, from smul_set_inter
+end has_mul
 
-@[simp, to_additive]
-lemma smul_set_univ [group α] [mul_action α β] {a : α} : a • (univ : set β) = univ :=
-eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul _ _⟩
-
-@[simp, to_additive]
-lemma smul_univ [group α] [mul_action α β] {s : set α} (hs : s.nonempty) :
-  s • (univ : set β) = univ :=
-let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
+variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 @[to_additive]
 theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :
@@ -257,6 +262,7 @@ instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [i
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
+@[to_additive]
 instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (set β) :=
 ⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
@@ -358,6 +364,10 @@ lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = s₁ -ᵥ t ∪ (s₂ -ᵥ t) := ima
 lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = s -ᵥ t₁ ∪ (s -ᵥ t₂) := image2_union_right
 lemma inter_vsub_subset : s₁ ∩ s₂ -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image2_inter_subset_left
 lemma vsub_inter_subset : s -ᵥ t₁ ∩ t₂ ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image2_inter_subset_right
+lemma inter_vsub_union_subset_union : (s₁ ∩ s₂) -ᵥ (t₁ ∪ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_inter_union_subset_union
+lemma union_vsub_inter_subset_union : (s₁ ∪ s₂) -ᵥ (t₁ ∩ t₂) ⊆ (s₁ -ᵥ t₁) ∪ (s₂ -ᵥ t₂) :=
+image2_union_inter_subset_union
 
 lemma Union_vsub_left_image : (⋃ a ∈ s, ((-ᵥ) a) '' t) = s -ᵥ t := Union_image_left _
 lemma Union_vsub_right_image : (⋃ a ∈ t, (-ᵥ a) '' s) = s -ᵥ t := Union_image_right _
@@ -391,6 +401,26 @@ image2_Inter₂_subset_right _ _ _
 end vsub
 
 open_locale pointwise
+
+@[to_additive] lemma image_smul_comm [has_smul α β] [has_smul α γ] (f : β → γ) (a : α) (s : set β) :
+  (∀ b, f (a • b) = a • f b) → f '' (a • s) = a • f '' s :=
+image_comm
+
+@[to_additive] lemma image_smul_distrib [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β]
+  (f : F) (a : α) (s : set α) :
+  f '' (a • s) = f a • f '' s :=
+image_comm $ map_mul _ _
+
+section has_smul
+variables[has_smul αᵐᵒᵖ β] [has_smul β γ] [has_smul α γ]
+
+-- TODO: replace hypothesis and conclusion with a typeclass
+@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (a : α) (s : set β) (t : set γ)
+  (h : ∀ (a : α) (b : β) (c : γ), (op a • b) • c = b • a • c) :
+  (op a • s) • t = s • a • t :=
+by { ext, simp [mem_smul, mem_smul_set, h] }
+
+end has_smul
 
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
@@ -445,6 +475,15 @@ end
 
 end smul_with_zero
 
+section semigroup
+variables [semigroup α]
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (a : α) (s : set α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+op_smul_set_smul_eq_smul_smul_set _ _ _ $ λ _ _ _, mul_assoc _ _ _
+
+end semigroup
+
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
@@ -490,6 +529,21 @@ lemma subset_set_smul_iff : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _
 
+@[to_additive] lemma smul_set_inter : a • (s ∩ t) = a • s ∩ a • t :=
+image_inter $ mul_action.injective a
+
+@[to_additive] lemma smul_set_sdiff : a • (s \ t) = a • s \ a • t :=
+image_diff (mul_action.injective a) _ _
+
+@[to_additive] lemma smul_set_symm_diff : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff (mul_action.injective a) _ _
+
+@[simp, to_additive] lemma smul_set_univ : a • (univ : set β) = univ :=
+image_univ_of_surjective $ mul_action.surjective a
+
+@[simp, to_additive] lemma smul_univ {s : set α} (hs : s.nonempty) : s • (univ : set β) = univ :=
+let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
+
 @[to_additive]
 lemma smul_inter_ne_empty_iff {s t : set α} {x : α} :
   x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ t ∧ b ∈ s) ∧ a * b⁻¹ = x :=
@@ -534,7 +588,7 @@ by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 end group
 
 section group_with_zero
-variables [group_with_zero α] [mul_action α β] {s : set α} {a : α}
+variables [group_with_zero α] [mul_action α β] {s t : set β} {a : α}
 
 @[simp] lemma smul_mem_smul_set_iff₀ (ha : a ≠ 0) (A : set β)
   (x : β) : a • x ∈ a • A ↔ x ∈ A :=
@@ -564,12 +618,24 @@ show units.mk0 a ha • _ ⊆ _ ↔ _, from set_smul_subset_iff
 lemma subset_set_smul_iff₀ (ha : a ≠ 0) {A B : set β} : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_set_smul_iff
 
-lemma smul_univ₀ (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
+lemma smul_set_inter₀ (ha : a ≠ 0) : a • (s ∩ t) = a • s ∩ a • t :=
+show units.mk0 a ha • _ = _, from smul_set_inter
+
+lemma smul_set_sdiff₀ (ha : a ≠ 0) : a • (s \ t) = a • s \ a • t :=
+image_diff (mul_action.injective₀ ha) _ _
+
+lemma smul_set_symm_diff₀ (ha : a ≠ 0) : a • (s ∆ t) = (a • s) ∆ (a • t) :=
+image_symm_diff (mul_action.injective₀ ha) _ _
+
+lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
+image_univ_of_surjective $ mul_action.surjective₀ ha
+
+lemma smul_univ₀ {s : set α} (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
 let ⟨a, ha, ha₀⟩ := not_subset.1 hs in eq_univ_of_forall $ λ b,
   ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul₀ ha₀ _⟩
 
-lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
-eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
+lemma smul_univ₀' {s : set α} (hs : s.nontrivial) : s • (univ : set β) = univ :=
+smul_univ₀ hs.not_subset_singleton
 
 end group_with_zero
 

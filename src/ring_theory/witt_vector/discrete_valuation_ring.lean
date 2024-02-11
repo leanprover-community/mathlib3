@@ -6,12 +6,15 @@ Authors: Robert Y. Lewis, Heather Macbeth, Johan Commelin
 
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.mul_coeff
-import ring_theory.discrete_valuation_ring
+import ring_theory.discrete_valuation_ring.basic
 import tactic.linear_combination
 
 /-!
 
 # Witt vectors over a perfect ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file establishes that Witt vectors over a perfect field are a discrete valuation ring.
 When `k` is a perfect ring, a nonzero `a : 𝕎 k` can be written as `p^m * b` for some `m : ℕ` and

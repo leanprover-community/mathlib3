@@ -7,6 +7,9 @@ import data.fin.fin2
 import data.typevec
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 
 Functors between the category of tuples of types, and the category Type
 

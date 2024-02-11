@@ -10,7 +10,6 @@ import algebra.ne_zero
 # Typeclass expressing `0 ≤ 1`.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/893
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

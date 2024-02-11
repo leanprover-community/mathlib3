@@ -9,6 +9,9 @@ import logic.equiv.embedding
 /-!
 # Number of embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 

@@ -9,8 +9,13 @@ import group_theory.group_action.units
 /-!
 # Group actions applied to various types of group
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about `smul` on `group_with_zero`, and `group`.
 -/
+
+open function
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -105,11 +110,14 @@ by { cases p; simp [smul_pow, smul_inv] }
   commute (r • a) b ↔ commute a b :=
 by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
 
-@[to_additive] protected lemma mul_action.bijective (g : α) : function.bijective (λ b : β, g • b) :=
+@[to_additive] protected lemma mul_action.bijective (g : α) : bijective ((•) g : β → β) :=
 (mul_action.to_perm g).bijective
 
-@[to_additive] protected lemma mul_action.injective (g : α) : function.injective (λ b : β, g • b) :=
+@[to_additive] protected lemma mul_action.injective (g : α) : injective ((•) g : β → β) :=
 (mul_action.bijective g).injective
+
+@[to_additive] protected lemma mul_action.surjective (g : α) : surjective ((•) g : β → β) :=
+(mul_action.bijective g).surjective
 
 @[to_additive] lemma smul_left_cancel (g : α) {x y : β} (h : g • x = g • y) : x = y :=
 mul_action.injective g h
@@ -129,7 +137,7 @@ instance cancel_monoid_with_zero.to_has_faithful_smul [cancel_monoid_with_zero �
 ⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
-variables [group_with_zero α] [mul_action α β]
+variables [group_with_zero α] [mul_action α β] {a : α}
 
 @[simp]
 lemma inv_smul_smul₀ {c : α} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
@@ -155,6 +163,15 @@ commute.smul_right_iff (units.mk0 c hc)
   commute (c • a) b ↔ commute a b :=
 commute.smul_left_iff (units.mk0 c hc)
 
+protected lemma mul_action.bijective₀ (ha : a ≠ 0) : bijective ((•) a : β → β) :=
+mul_action.bijective $ units.mk0 a ha
+
+protected lemma mul_action.injective₀ (ha : a ≠ 0) : injective ((•) a : β → β) :=
+(mul_action.bijective₀ ha).injective
+
+protected lemma mul_action.surjective₀ (ha : a ≠ 0) : surjective ((•) a : β → β) :=
+(mul_action.bijective₀ ha).surjective
+
 end gwz
 
 end mul_action
@@ -173,6 +190,17 @@ This is a stronger version of `mul_action.to_perm`. -/
 def distrib_mul_action.to_add_equiv (x : α) : β ≃+ β :=
 { .. distrib_mul_action.to_add_monoid_hom β x,
   .. mul_action.to_perm_hom α β x }
+
+/-- Each non-zero element of a `group_with_zero` defines an additive monoid isomorphism of an
+`add_monoid` on which it acts distributively.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+def distrib_mul_action.to_add_equiv₀ {α : Type*} (β : Type*) [group_with_zero α] [add_monoid β]
+  [distrib_mul_action α β] (x : α) (hx : x ≠ 0) : β ≃+ β :=
+{ inv_fun := λ b, x⁻¹ • b,
+  left_inv := inv_smul_smul₀ hx,
+  right_inv := smul_inv_smul₀ hx,
+  .. distrib_mul_action.to_add_monoid_hom β x, }
 
 variables (α β)
 

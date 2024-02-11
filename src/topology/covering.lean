@@ -9,6 +9,9 @@ import topology.fiber_bundle.basic
 /-!
 # Covering Maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines covering maps.
 
 ## Main definitions
@@ -158,7 +161,7 @@ protected lemma is_fiber_bundle.is_covering_map {F : Type*} [topological_space F
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))
 
 protected lemma fiber_bundle.is_covering_map {F : Type*} {E : X → Type*} [topological_space F]
-  [discrete_topology F] [topological_space (bundle.total_space E)] [Π x, topological_space (E x)]
-  [hf : fiber_bundle F E] : is_covering_map (π E) :=
+  [discrete_topology F] [topological_space (bundle.total_space F E)] [Π x, topological_space (E x)]
+  [hf : fiber_bundle F E] : is_covering_map (π F E) :=
 is_fiber_bundle.is_covering_map
   (λ x, ⟨trivialization_at F E x, mem_base_set_trivialization_at F E x ⟩)

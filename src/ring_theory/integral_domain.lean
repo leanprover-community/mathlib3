@@ -11,6 +11,9 @@ import algebra.geom_sum
 /-!
 # Integral domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Assorted theorems about integral domains.
 
 ## Main theorems
@@ -148,6 +151,29 @@ is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp S.subtype)
 
 instance is_domain.is_cyclic_quotient_ker [finite G] {f : G →* R} : is_cyclic (G ⧸ f.ker) :=
 is_cyclic_of_subgroup_is_domain (quotient_group.ker_lift f)
+
+section euclidean_division
+
+namespace polynomial
+
+open_locale polynomial
+
+variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
+
+lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
+  ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
+begin
+  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
+  { exact degree_mod_by_monic_lt _ hg },
+  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+    field_simp [hg'],
+    norm_cast,
+    rw [add_comm, mul_comm, mod_by_monic_add_div f hg] },
+end
+
+end polynomial
+
+end euclidean_division
 
 variables [fintype G]
 

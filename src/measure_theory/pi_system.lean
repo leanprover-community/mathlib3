@@ -9,6 +9,9 @@ import measure_theory.measurable_space_def
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 * The main theorem of this file is Dynkin's π-λ theorem, which appears

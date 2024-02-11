@@ -56,9 +56,10 @@ by rw ← h.coe; exact a.2
 theorem normalize_fin_lt.of {n a b} (h : normalize_fin_lt n a b) : normalize_fin n a b :=
 h.trans $ eq.symm $ nat.mod_eq_of_lt h.lt
 
-theorem normalize_fin.zero (n) : normalize_fin (n+1) 0 0 := by { rw normalize_fin, norm_num }
-theorem normalize_fin_lt.zero (n) : normalize_fin_lt (n+1) 0 0 := refl _
-theorem normalize_fin.one (n) : normalize_fin (n+1) 1 1 := refl _
+theorem normalize_fin.zero (n : ℕ) [ne_zero n] :
+  normalize_fin n 0 0 := by { rw normalize_fin, norm_num }
+theorem normalize_fin_lt.zero (n : ℕ) [ne_zero n] : normalize_fin_lt n 0 0 := refl _
+theorem normalize_fin.one (n : ℕ) [ne_zero n] : normalize_fin n 1 1 := refl _
 theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℕ}
   (ha : normalize_fin n a a') (hb : normalize_fin n b b')
   (h : a' + b' = c') : normalize_fin n (a + b) c' :=
@@ -69,8 +70,8 @@ theorem normalize_fin.mul {n} {a b : fin n} {a' b' c' : ℕ}
 by simp only [normalize_fin, ← h] at *; rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
 theorem normalize_fin.bit0 {n} {a : fin n} {a' : ℕ}
   (h : normalize_fin n a a') : normalize_fin n (bit0 a) (bit0 a') := h.add h rfl
-theorem normalize_fin.bit1 {n} {a : fin (n+1)} {a' : ℕ}
-  (h : normalize_fin (n+1) a a') : normalize_fin (n+1) (bit1 a) (bit1 a') :=
+theorem normalize_fin.bit1 {n : ℕ} [ne_zero n] {a : fin n} {a' : ℕ}
+  (h : normalize_fin n a a') : normalize_fin n (bit1 a) (bit1 a') :=
 h.bit0.add (normalize_fin.one _) rfl
 
 theorem normalize_fin_lt.succ {n} {a : fin n} {a' b : ℕ}
@@ -180,20 +181,20 @@ do ic ← mk_instance_cache `(ℕ), (a, _) ← state_t.run m (ic, none), pure a
 direct expr pattern match because expr pattern matches generate very large terms under the
 hood so going via an intermediate inductive type like this is more efficient. -/
 meta inductive match_fin_result
-| zero (n : expr)            -- `(0 : fin (n+1))`
-| one (n : expr)             -- `(1 : fin (n+1))`
-| add (n a b : expr)         -- `(a + b : fin n)`
-| mul (n a b : expr)         -- `(a * b : fin n)`
-| bit0 (n a : expr)          -- `(bit0 a : fin n)`
-| bit1 (n a : expr)          -- `(bit1 a : fin (n+1))`
-| succ (n a : expr)          -- `(fin.succ a : fin n.succ)`
-| cast_lt (n m i h : expr)   -- `(fin.cast_lt (i : fin m) (h : i.val < n) : fin n)`
-| cast_le (n m h a : expr)   -- `(fin.cast_le (h : n ≤ m) (a : fin n) : fin m)`
-| cast (n m h a : expr)      -- `(fin.cast_le (h : n = m) (a : fin n) : fin m)`
-| cast_add (n m a : expr)    -- `(fin.cast_add m (a : fin n) : fin (n + m))`
-| cast_succ (n a : expr)     -- `(fin.cast_succ (a : fin n) : fin (n + 1))`
-| add_nat (n m a : expr)     -- `(fin.add_nat m (a : fin n) : fin (n + m))`
-| nat_add (n m a : expr)     -- `(fin.nat_add n (a : fin m) : fin (n + m))`
+| zero (n : expr) (n0 : expr)   -- `(0 : fin n)`
+| one (n : expr) (n0 : expr)    -- `(1 : fin n)`
+| add (n a b : expr)            -- `(a + b : fin n)`
+| mul (n a b : expr)            -- `(a * b : fin n)`
+| bit0 (n a : expr)             -- `(bit0 a : fin n)`
+| bit1 (n a : expr) (n0 : expr) -- `(bit1 a : fin n)`
+| succ (n a : expr)             -- `(fin.succ a : fin n.succ)`
+| cast_lt (n m i h : expr)      -- `(fin.cast_lt (i : fin m) (h : i.val < n) : fin n)`
+| cast_le (n m h a : expr)      -- `(fin.cast_le (h : n ≤ m) (a : fin n) : fin m)`
+| cast (n m h a : expr)         -- `(fin.cast_le (h : n = m) (a : fin n) : fin m)`
+| cast_add (n m a : expr)       -- `(fin.cast_add m (a : fin n) : fin (n + m))`
+| cast_succ (n a : expr)        -- `(fin.cast_succ (a : fin n) : fin (n + 1))`
+| add_nat (n m a : expr)        -- `(fin.add_nat m (a : fin n) : fin (n + m))`
+| nat_add (n m a : expr)        -- `(fin.nat_add n (a : fin m) : fin (n + m))`
 
 section
 open match_fin_result
@@ -212,12 +213,12 @@ meta def match_fin_coe_fn (a : expr) : expr → option match_fin_result
 /-- Match a fin expression to a `match_fin_result`, for easier pattern matching in the
 evaluator. -/
 meta def match_fin : expr → option match_fin_result
-| `(@has_zero.zero ._ (@fin.has_zero %%n)) := some (zero n)
-| `(@has_one.one ._ (@fin.has_one %%n)) := some (one n)
+| `(@has_zero.zero ._ (@fin.has_zero_of_ne_zero %%n %%n0)) := some (zero n n0)
+| `(@has_one.one ._ (@fin.has_one_of_ne_zero %%n %%n0)) := some (one n n0)
 | `(@has_add.add (fin %%n) ._ %%a %%b) := some (add n a b)
 | `(@has_mul.mul (fin %%n) ._ %%a %%b) := some (mul n a b)
 | `(@_root_.bit0 (fin %%n) ._ %%a) := some (bit0 n a)
-| `(@_root_.bit1 ._ (@fin.has_one %%n) ._ %%a) := some (bit1 n a)
+| `(@_root_.bit1 ._ (@fin.has_one_of_ne_zero %%n %%n0) ._ %%a) := some (bit1 n a n0)
 | `(@fin.succ %%n %%a) := some (succ n a)
 | `(@fin.cast_lt %%n %%m %%a %%h) := some (cast_lt n m a h)
 | (expr.app `(@coe_fn ._ ._ ._ %%f) a) := match_fin_coe_fn a f
@@ -306,8 +307,8 @@ meta def eval_fin : expr → eval_fin_m (expr × expr)
 | a := do
   m ← match_fin a,
   match m with
-  | match_fin_result.zero n := pure (`(0 : ℕ), `(normalize_fin.zero).mk_app [n])
-  | match_fin_result.one n := pure (`(1 : ℕ), `(normalize_fin.one).mk_app [n])
+  | match_fin_result.zero n n0 := pure (`(0 : ℕ), `(normalize_fin.zero).mk_app [n, n0])
+  | match_fin_result.one n n0 := pure (`(1 : ℕ), `(normalize_fin.one).mk_app [n, n0])
   | match_fin_result.add n a b := do
     (a', pa) ← eval_fin a,
     (b', pb) ← eval_fin b,
@@ -321,9 +322,9 @@ meta def eval_fin : expr → eval_fin_m (expr × expr)
   | match_fin_result.bit0 n a := do
     (a', pa) ← eval_fin a,
     pure (`(@bit0 ℕ _).mk_app [a'], `(@normalize_fin.bit0).mk_app [n, a, a', pa])
-  | match_fin_result.bit1 n a := do
+  | match_fin_result.bit1 n a n0 := do
     (a', pa) ← eval_fin a,
-    pure (`(@bit1 ℕ _ _).mk_app [a'], `(@normalize_fin.bit1).mk_app [n, a, a', pa])
+    pure (`(@bit1 ℕ _ _).mk_app [a'], `(@normalize_fin.bit1).mk_app [n, n0, a, a', pa])
   | match_fin_result.cast m n nm a := do
     (a', pa) ← (eval_fin a).reset,
     pure (a', `(@normalize_fin.cast).mk_app [n, m, nm, a, a', pa])
@@ -397,10 +398,10 @@ meta def mk_fin_numeral (n m : expr) : expr → option (expr × expr)
 | a := match match_numeral a with
   | zero := some (
     expr.app `(@has_zero.zero (fin %%n)) `(@fin.has_zero %%m),
-    expr.app `(normalize_fin.zero) m)
+    `(normalize_fin.zero).mk_app [n, `(@ne_zero.succ %%m)])
   | one := some (
     expr.app `(@has_one.one (fin %%n)) `(@fin.has_one %%m),
-    expr.app `(normalize_fin.one) m)
+    `(normalize_fin.one).mk_app [n, `(@ne_zero.succ %%m)])
   | bit0 a := do
     (a', p) ← mk_fin_numeral a,
     some (`(bit0 %%a' : fin %%n), `(@normalize_fin.bit0).mk_app [n, a', a, p])
@@ -408,7 +409,7 @@ meta def mk_fin_numeral (n m : expr) : expr → option (expr × expr)
     (a', p) ← mk_fin_numeral a,
     some (
       `(@_root_.bit1 (fin %%n)).mk_app [`(@fin.has_one %%m), `(@fin.has_add %%n), a'],
-      `(@normalize_fin.bit1).mk_app [m, a', a, p])
+      `(@normalize_fin.bit1).mk_app [n, `(@ne_zero.succ %%m), a', a, p])
   | _ := none
   end
 end

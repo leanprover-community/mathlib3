@@ -9,6 +9,9 @@ import set_theory.ordinal.arithmetic
 /-!
 # Extend a well-founded order to a well-order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs a well-order (linear well-founded order) which is an extension of a given
 well-founded order.
 
@@ -44,7 +47,7 @@ arbitrary well-order to serve as a tiebreak between two elements of same rank.
 noncomputable def well_order_extension : linear_order α :=
 let l : linear_order α := is_well_order.linear_order well_ordering_rel in by exactI
   @linear_order.lift' α (ordinal ×ₗ α) _
-    (λ a : α, (well_founded.rank.{u u} hwf a, a)) (λ _ _, congr_arg prod.snd)
+    (λ a : α, (well_founded.rank.{u} hwf a, a)) (λ _ _, congr_arg prod.snd)
 
 instance well_order_extension.is_well_founded_lt : is_well_founded α hwf.well_order_extension.lt :=
 ⟨inv_image.wf _ $ prod.lex_wf ordinal.well_founded_lt.wf well_ordering_rel.is_well_order.wf⟩

@@ -11,6 +11,9 @@ import ring_theory.coprime.basic
 /-!
 # Additional lemmas about elements of a ring satisfying `is_coprime`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These lemmas are in a separate file to the definition of `is_coprime` as they require more imports.
 
 Notably, this includes lemmas about `finset.prod` as this requires importing big_operators, and

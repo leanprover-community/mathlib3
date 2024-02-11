@@ -11,6 +11,9 @@ import category_theory.adjunction.basic
 
 # Lifting properties and adjunction
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we obtain `adjunction.has_lifting_property_iff`, which states
 that when we have an adjunction `adj : G ⊣ F` between two functors `G : C ⥤ D`
 and `F : D ⥤ C`, then a morphism of the form `G.map i` has the left lifting

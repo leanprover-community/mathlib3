@@ -5,11 +5,14 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.locally_ringed_space
 import algebra.category.Ring.constructions
-import algebraic_geometry.open_immersion
+import algebraic_geometry.open_immersion.basic
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!
 # Colimits of LocallyRingedSpace
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We construct the explicit coproducts and coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and
@@ -199,11 +202,11 @@ begin
   have hV : (coequalizer.π f.1 g.1).base ⁻¹' ((coequalizer.π f.1 g.1).base '' V.1) = V.1 :=
     image_basic_open_image_preimage f g U s,
   have hV' : V = ⟨(coequalizer.π f.1 g.1).base ⁻¹'
-    ((coequalizer.π f.1 g.1).base '' V.1), hV.symm ▸ V.2⟩ := subtype.eq hV.symm,
-  have V_open : is_open (((coequalizer.π f.val g.val).base) '' V.val) :=
+    ((coequalizer.π f.1 g.1).base '' V.1), hV.symm ▸ V.2⟩ := set_like.ext' hV.symm,
+  have V_open : is_open (((coequalizer.π f.val g.val).base) '' V.1) :=
     image_basic_open_image_open f g U s,
   have VleU :
-    (⟨((coequalizer.π f.val g.val).base) '' V.val, V_open⟩ : topological_space.opens _) ≤ U,
+    (⟨((coequalizer.π f.val g.val).base) '' V.1, V_open⟩ : topological_space.opens _) ≤ U,
   { exact set.image_subset_iff.mpr (Y.to_RingedSpace.basic_open_le _) },
   have hxV : x ∈ V := ⟨⟨_, hU⟩, ha, rfl⟩,
 

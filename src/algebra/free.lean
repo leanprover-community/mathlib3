@@ -13,6 +13,9 @@ import data.list.basic
 /-!
 # Free constructions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `free_magma α`: free magma (structure with binary operation without any axioms) over alphabet `α`,

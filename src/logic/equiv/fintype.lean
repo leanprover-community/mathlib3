@@ -10,6 +10,9 @@ import logic.equiv.defs
 
 /-! # Equivalence between fintypes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some basic results on equivalences where one or both
 sides of the equivalence are `fintype`s.
 

@@ -11,7 +11,6 @@ import order.synonym
 # Group structure on the order type synonyms
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/651
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Transfer algebraic instances from `α` to `αᵒᵈ` and `lex α`.

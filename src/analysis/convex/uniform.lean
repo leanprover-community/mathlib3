@@ -8,6 +8,9 @@ import analysis.convex.strict_convex_space
 /-!
 # Uniformly convex spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines uniformly convex spaces, which are real normed vector spaces in which for all
 strictly positive `ε`, there exists some strictly positive `δ` such that `ε ≤ ‖x - y‖` implies
 `‖x + y‖ ≤ 2 - δ` for all `x` and `y` of norm at most than `1`. This means that the triangle

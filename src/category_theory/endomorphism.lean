@@ -11,6 +11,9 @@ import group_theory.group_action.defs
 /-!
 # Endomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 
 For each `X : C`, we provide `End X := X ⟶ X` with a monoid structure,

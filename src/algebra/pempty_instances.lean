@@ -11,7 +11,6 @@ import tactic.to_additive
 # Instances on pempty
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/615
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file collects facts about algebraic structures on the (universe-polymorphic) empty type, e.g.

@@ -5,22 +5,27 @@ Authors: Sébastien Gouëzel, Yaël Dillies
 -/
 import analysis.normed.group.basic
 import topology.metric_space.hausdorff_distance
+import topology.metric_space.isometric_smul
 
 /-!
 # Properties of pointwise addition of sets in normed groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We explore the relationships between pointwise addition of sets in normed groups, and the norm.
 Notably, we show that the sum of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {E : Type*}
 
 section seminormed_group
 variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
+-- note: we can't use `lipschitz_on_with.bounded_image2` here without adding `[isometric_smul E E]`
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
   obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le',
@@ -29,6 +34,10 @@ begin
   rintro z ⟨x, y, hx, hy, rfl⟩,
   exact norm_mul_le_of_le (hRs x hx) (hRt y hy),
 end
+
+@[to_additive] lemma metric.bounded.of_mul (hst : bounded (s * t)) :
+  bounded s ∨ bounded t :=
+antilipschitz_with.bounded_of_image2_left _ (λ x, (isometry_mul_right x).antilipschitz) hst
 
 @[to_additive] lemma metric.bounded.inv : bounded s → bounded s⁻¹ :=
 by { simp_rw [bounded_iff_forall_norm_le', ←image_inv, ball_image_iff, norm_inv'], exact id }
@@ -51,6 +60,13 @@ eq_of_forall_le_iff $ λ r, by simp_rw [le_inf_edist, ←image_inv, ball_image_i
 @[simp, to_additive]
 lemma inf_edist_inv_inv (x : E) (s : set E) : inf_edist x⁻¹ s⁻¹ = inf_edist x s :=
 by rw [inf_edist_inv, inv_inv]
+
+@[to_additive] lemma ediam_mul_le (x y : set E) :
+  emetric.diam (x * y) ≤ emetric.diam x + emetric.diam y :=
+(lipschitz_on_with.ediam_image2_le (*) _ _
+    (λ _ _, (isometry_mul_right _).lipschitz.lipschitz_on_with _)
+    (λ _ _, (isometry_mul_left _).lipschitz.lipschitz_on_with _)).trans_eq $
+  by simp only [ennreal.coe_one, one_mul]
 
 end emetric
 
@@ -122,8 +138,19 @@ lemma closed_ball_one_mul_singleton : closed_ball 1 δ * {x} = closed_ball x δ 
 @[to_additive]
 lemma closed_ball_one_div_singleton : closed_ball 1 δ / {x} = closed_ball x⁻¹ δ := by simp
 
-@[simp, to_additive] lemma smul_closed_ball_one : x • closed_ball 1 δ = closed_ball x δ :=
+-- This is the `to_additive` version of the below, but it will later follow as a special case of
+-- `vadd_closed_ball` for `normed_add_torsor`s, so we give it higher simp priority.
+-- (There is no `normed_mul_torsor`, hence the asymmetry between additive and multiplicative
+-- versions.)
+@[simp, priority 1100] lemma vadd_closed_ball_zero {E : Type*} [seminormed_add_comm_group E] (δ : ℝ)
+  (x : E) :
+  x +ᵥ metric.closed_ball 0 δ = metric.closed_ball x δ :=
+by { ext, simp [mem_vadd_set_iff_neg_vadd_mem, neg_add_eq_sub, dist_eq_norm_sub] }
+
+@[simp] lemma smul_closed_ball_one : x • closed_ball 1 δ = closed_ball x δ :=
 by { ext, simp [mem_smul_set_iff_inv_smul_mem, inv_mul_eq_div, dist_eq_norm_div] }
+
+attribute [to_additive] smul_closed_ball_one
 
 @[to_additive] lemma mul_ball_one : s * ball 1 δ = thickening δ s :=
 begin

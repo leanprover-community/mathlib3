@@ -10,6 +10,9 @@ import ring_theory.local_properties
 
 # Properties of morphisms from properties of ring homs.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the basic framework for talking about properties of morphisms that come from properties
 of ring homs. For `P` a property of ring homs, we have two ways of defining a property of scheme
 morphisms:
@@ -86,11 +89,10 @@ begin
   { apply ring_hom.to_algebra,
     refine X.presheaf.map
       (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
-    rw [opens.le_def],
+    rw [← set_like.coe_subset_coe],
     dsimp,
-    change coe '' (coe '' set.univ) ⊆ coe '' set.univ,
-    rw [subtype.coe_image_univ, subtype.coe_image_univ],
-    exact set.image_preimage_subset _ _ },
+    simp only [set.image_univ, subtype.range_coe, set.image_subset_iff],
+    refl },
   { exact algebraic_geometry.Γ_restrict_is_localization Y r },
   { rw ← U.open_embedding_obj_top at hU,
     dsimp [Scheme.Γ_obj_op, Scheme.Γ_map_op, Scheme.restrict],

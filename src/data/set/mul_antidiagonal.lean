@@ -5,7 +5,10 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import order.well_founded_set
 
-/-! # Multiplication antidiagonal -/
+/-! # Multiplication antidiagonal 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 namespace set
 variables {α : Type*}

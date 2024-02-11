@@ -10,6 +10,9 @@ import tactic.nth_rewrite
 /-!
 # Basic definitions about impartial (pre-)games
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We will define an impartial game, one in which left and right can make exactly the same moves.
 Our definition differs slightly by saying that the game is always equivalent to its negative,
 no matter what moves are played. This allows for games such as poker-nim to be classifed as
@@ -143,11 +146,11 @@ lemma add_self : G + G ≈ 0 :=
 
 /-- This lemma doesn't require `H` to be impartial. -/
 lemma equiv_iff_add_equiv_zero (H : pgame) : H ≈ G ↔ H + G ≈ 0 :=
-by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)], simpa }
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_right_cancel_iff _ _ _ (-⟦G⟧)], simpa }
 
 /-- This lemma doesn't require `H` to be impartial. -/
 lemma equiv_iff_add_equiv_zero' (H : pgame) : G ≈ H ↔ G + H ≈ 0 :=
-by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm], simpa }
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_left_cancel_iff _ _ _ (-⟦G⟧), eq_comm], simpa }
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
 by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]

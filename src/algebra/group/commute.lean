@@ -9,7 +9,6 @@ import algebra.group.semiconj
 # Commuting pairs of elements in monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/750
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We define the predicate `commute a b := a * b = b * a` and provide some operations on terms `(h :
@@ -85,6 +84,10 @@ by simp only [mul_assoc, h.eq]
 @[to_additive] protected lemma left_comm (h : commute a b) (c) :
   a * (b * c) = b * (a * c) :=
 by simp only [← mul_assoc, h.eq]
+
+@[to_additive] protected lemma mul_mul_mul_comm (hbc : commute b c) (a d : S) :
+  (a * b) * (c * d) = (a * c) * (b * d) :=
+by simp only [hbc.left_comm, mul_assoc]
 
 end semigroup
 
@@ -172,11 +175,30 @@ u.left_of_mul b a (hc.eq ▸ hu) hc.symm
 end monoid
 
 section division_monoid
-variables [division_monoid G] {a b : G}
+variables [division_monoid G] {a b c d : G}
 
-@[to_additive] lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
+@[to_additive] protected lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
 @[simp, to_additive]
 lemma inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
+
+@[to_additive] protected lemma mul_inv (hab : commute a b) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+by rw [hab.eq, mul_inv_rev]
+
+@[to_additive] protected lemma inv (hab : commute a b) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+by rw [hab.eq, mul_inv_rev]
+
+@[to_additive] protected lemma div_mul_div_comm (hbd : commute b d) (hbc : commute b⁻¹ c) :
+  a / b * (c / d) = a * c / (b * d) :=
+by simp_rw [div_eq_mul_inv, mul_inv_rev, hbd.inv_inv.symm.eq, hbc.mul_mul_mul_comm]
+
+@[to_additive] protected lemma mul_div_mul_comm (hcd : commute c d) (hbc : commute b c⁻¹) :
+  a * b / (c * d) = a / c * (b / d) :=
+(hcd.div_mul_div_comm hbc.symm).symm
+
+@[to_additive] protected lemma div_div_div_comm (hbc : commute b c) (hbd : commute b⁻¹ d)
+  (hcd : commute c⁻¹ d) : a / b / (c / d) = a / c / (b / d) :=
+by simp_rw [div_eq_mul_inv, mul_inv_rev, inv_inv, hbd.symm.eq, hcd.symm.eq,
+  hbc.inv_inv.mul_mul_mul_comm]
 
 end division_monoid
 

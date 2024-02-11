@@ -10,6 +10,9 @@ import measure_theory.integral.bochner
 /-!
 # Finite measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the type of finite measures on a given measurable space. When the underlying
 space has a topology and the measurable space structure (sigma algebra) is finer than the Borel
 sigma algebra, then the type of finite measures is equipped with the topology of weak convergence
@@ -73,7 +76,7 @@ open measure_theory
 open set
 open filter
 open bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
+open_locale topology ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 

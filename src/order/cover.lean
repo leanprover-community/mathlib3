@@ -9,6 +9,9 @@ import order.antisymmetrization
 /-!
 # The covering relation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the covering relation in an order. `b` is said to cover `a` if `a < b` and there
 is no element in between. We say that `b` weakly covers `a` if `a ≤ b` and there is no element
 between `a` and `b`. In a partial order this is equivalent to `a ⋖ b ∨ a = b`, in a preorder this
@@ -271,6 +274,11 @@ lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
 
 lemma wcovby_iff_covby_or_eq : a ⩿ b ↔ a ⋖ b ∨ a = b :=
 by rw [le_antisymm_iff, wcovby_iff_covby_or_le_and_le]
+
+lemma wcovby_iff_eq_or_covby : a ⩿ b ↔ a = b ∨ a ⋖ b := wcovby_iff_covby_or_eq.trans or.comm
+
+alias wcovby_iff_covby_or_eq ↔ wcovby.covby_or_eq _
+alias wcovby_iff_eq_or_covby ↔ wcovby.eq_or_covby _
 
 lemma covby.eq_or_eq (h : a ⋖ b) (h2 : a ≤ c) (h3 : c ≤ b) : c = a ∨ c = b :=
 h.wcovby.eq_or_eq h2 h3

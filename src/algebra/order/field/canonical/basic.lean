@@ -8,6 +8,9 @@ import algebra.order.field.canonical.defs
 /-!
 # Lemmas about canonically ordered semifields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 variables {α : Type*}
 

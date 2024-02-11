@@ -11,6 +11,9 @@ import group_theory.group_action.quotient
 /-!
 # Index of a Subgroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the index of a subgroup, and prove several divisibility properties.
 Several theorems proved in this file are known as Lagrange's theorem.
 

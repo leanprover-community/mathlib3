@@ -8,6 +8,9 @@ import combinatorics.simple_graph.clique
 /-!
 # Triangles in graphs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A *triangle* in a simple graph is a `3`-clique, namely a set of three vertices that are
 pairwise adjacent.
 
@@ -39,7 +42,8 @@ G.delete_far (λ H, H.clique_free 3) $ ε * (card α^2 : ℕ)
 
 lemma far_from_triangle_free_iff :
   G.far_from_triangle_free ε ↔
-    ∀ ⦃H⦄, H ≤ G → H.clique_free 3 → ε * (card α^2 : ℕ) ≤ G.edge_finset.card - H.edge_finset.card :=
+    ∀ ⦃H : simple_graph _⦄ [decidable_rel H.adj], by exactI
+      H ≤ G → H.clique_free 3 → ε * (card α^2 : ℕ) ≤ G.edge_finset.card - H.edge_finset.card :=
 delete_far_iff
 
 alias far_from_triangle_free_iff ↔ far_from_triangle_free.le_card_sub_card _

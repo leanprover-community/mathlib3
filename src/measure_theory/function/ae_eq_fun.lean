@@ -12,6 +12,9 @@ import measure_theory.function.strongly_measurable.basic
 
 # Almost everywhere equal functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We build a space of equivalence classes of functions, where two functions are treated as identical
 if they are almost everywhere equal. We form the set of equivalence classes under the relation of
 being almost everywhere equal, which is sometimes known as the `L⁰` space.
@@ -68,7 +71,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical ennreal topological_space
+open_locale classical ennreal topology
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}

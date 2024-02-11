@@ -8,6 +8,9 @@ import linear_algebra.affine_space.affine_subspace
 /-!
 # Affine map restrictions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines restrictions of affine maps.
 
 ## Main definitions
@@ -99,3 +102,9 @@ begin
   obtain ⟨y, hy, rfl⟩ := hx,
   exact ⟨⟨y, hy⟩, rfl⟩,
 end
+
+lemma affine_map.restrict.bijective
+  {E : affine_subspace k P₁} [nonempty E]
+  {φ : P₁ →ᵃ[k] P₂} (hφ : function.injective φ) :
+  function.bijective (φ.restrict (le_refl (E.map φ))) :=
+⟨affine_map.restrict.injective hφ _, affine_map.restrict.surjective _ rfl⟩

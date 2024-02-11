@@ -10,6 +10,9 @@ import combinatorics.quiver.path
 
 # Rewriting arrows and paths along vertex equalities
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This files defines `hom.cast` and `path.cast` (and associated lemmas) in order to allow
 rewriting arrows and paths along equalities of their endpoints.
 

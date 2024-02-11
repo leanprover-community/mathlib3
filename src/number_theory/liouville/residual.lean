@@ -10,6 +10,9 @@ import topology.instances.irrational
 /-!
 # Density of Liouville numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that the set of Liouville numbers form a dense `Gδ` set. We also prove a
 similar statement about irrational numbers.
 -/

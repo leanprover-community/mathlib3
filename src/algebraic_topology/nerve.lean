@@ -10,6 +10,9 @@ import algebraic_topology.simplicial_set
 
 # The nerve of a category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the definition of the nerve of a category `C`,
 which is a simplicial set `nerve C` (see [goerss-jardine-2009], Example I.1.4).
 

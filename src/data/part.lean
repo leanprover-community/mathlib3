@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Partial values of a type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `part α`, the partial values of a type.
 
 `o : part α` carries a proposition `o.dom`, its domain, along with a function `get : o.dom → α`, its
@@ -66,6 +69,14 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 /-- Convert a `part α` with a decidable domain to an option -/
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
+
+@[simp] lemma to_option_is_some (o : part α) [decidable o.dom] :
+  o.to_option.is_some ↔ o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
+
+@[simp] lemma to_option_is_none (o : part α) [decidable o.dom] :
+  o.to_option.is_none ↔ ¬o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
 
 /-- `part` extensionality -/
 theorem ext' : ∀ {o p : part α}

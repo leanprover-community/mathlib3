@@ -12,6 +12,9 @@ import tactic.wlog
 /-!
 # Omega Complete Partial Orders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
 call `ωSup`). In this sense, it is strictly weaker than join complete
@@ -281,7 +284,7 @@ lemma eq_of_chain {c : chain (part α)} {a b : α} (ha : some a ∈ c) (hb : som
 begin
   cases ha with i ha, replace ha := ha.symm,
   cases hb with j hb, replace hb := hb.symm,
-  wlog h : i ≤ j := le_total i j using [a b i j, b a j i],
+  wlog h : i ≤ j, { exact (this j hb i ha (le_of_not_le h)).symm },
   rw [eq_some_iff] at ha hb,
   have := c.monotone h _ ha, apply mem_unique this hb
 end

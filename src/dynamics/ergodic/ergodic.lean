@@ -8,6 +8,9 @@ import dynamics.ergodic.measure_preserving
 /-!
 # Ergodic maps and measures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `f : α → α` be measure preserving with respect to a measure `μ`. We say `f` is ergodic with
 respect to `μ` (or `μ` is ergodic with respect to `f`) if the only measurable sets `s` such that
 `f⁻¹' s = s` are either almost empty or full.
@@ -29,6 +32,7 @@ preserving condition is relaxed to quasi measure preserving.
 -/
 
 open set function filter measure_theory measure_theory.measure
+open_locale ennreal
 
 variables {α : Type*} {m : measurable_space α} (f : α → α) {s : set α}
 include m
@@ -107,15 +111,6 @@ end
 
 end measure_theory.measure_preserving
 
-namespace ergodic
-
-/-- An ergodic map is quasi ergodic. -/
-lemma quasi_ergodic (hf : ergodic f μ) : quasi_ergodic f μ :=
-{ .. hf.to_pre_ergodic,
-  .. hf.to_measure_preserving.quasi_measure_preserving, }
-
-end ergodic
-
 namespace quasi_ergodic
 
 /-- For a quasi ergodic map, sets that are almost invariant (rather than strictly invariant) are
@@ -131,3 +126,64 @@ begin
 end
 
 end quasi_ergodic
+
+namespace ergodic
+
+/-- An ergodic map is quasi ergodic. -/
+lemma quasi_ergodic (hf : ergodic f μ) : quasi_ergodic f μ :=
+{ .. hf.to_pre_ergodic,
+  .. hf.to_measure_preserving.quasi_measure_preserving, }
+
+/-- See also `ergodic.ae_empty_or_univ_of_preimage_ae_le`. -/
+lemma ae_empty_or_univ_of_preimage_ae_le'
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : f⁻¹' s ≤ᵐ[μ] s) (h_fin : μ s ≠ ∞) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+begin
+  refine hf.quasi_ergodic.ae_empty_or_univ' hs _,
+  refine ae_eq_of_ae_subset_of_measure_ge hs' (hf.measure_preimage hs).symm.le _ h_fin,
+  exact measurable_set_preimage hf.measurable hs,
+end
+
+/-- See also `ergodic.ae_empty_or_univ_of_ae_le_preimage`. -/
+lemma ae_empty_or_univ_of_ae_le_preimage'
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : s ≤ᵐ[μ] f⁻¹' s) (h_fin : μ s ≠ ∞) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+begin
+  replace h_fin : μ (f⁻¹' s) ≠ ∞, { rwa hf.measure_preimage hs, },
+  refine hf.quasi_ergodic.ae_empty_or_univ' hs _,
+  exact (ae_eq_of_ae_subset_of_measure_ge hs' (hf.measure_preimage hs).le hs h_fin).symm,
+end
+
+/-- See also `ergodic.ae_empty_or_univ_of_image_ae_le`. -/
+lemma ae_empty_or_univ_of_image_ae_le'
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : f '' s ≤ᵐ[μ] s) (h_fin : μ s ≠ ∞) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+begin
+  replace hs' : s ≤ᵐ[μ] f ⁻¹' s :=
+    (has_subset.subset.eventually_le (subset_preimage_image f s)).trans
+    (hf.quasi_measure_preserving.preimage_mono_ae hs'),
+  exact ae_empty_or_univ_of_ae_le_preimage' hf hs hs' h_fin,
+end
+
+section is_finite_measure
+
+variables [is_finite_measure μ]
+
+lemma ae_empty_or_univ_of_preimage_ae_le
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : f⁻¹' s ≤ᵐ[μ] s) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+ae_empty_or_univ_of_preimage_ae_le' hf hs hs' $ measure_ne_top μ s
+
+lemma ae_empty_or_univ_of_ae_le_preimage
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : s ≤ᵐ[μ] f⁻¹' s) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+ae_empty_or_univ_of_ae_le_preimage' hf hs hs' $ measure_ne_top μ s
+
+lemma ae_empty_or_univ_of_image_ae_le
+  (hf : ergodic f μ) (hs : measurable_set s) (hs' : f '' s ≤ᵐ[μ] s) :
+  s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
+ae_empty_or_univ_of_image_ae_le' hf hs hs' $ measure_ne_top μ s
+
+end is_finite_measure
+
+end ergodic

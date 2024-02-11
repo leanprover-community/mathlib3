@@ -10,6 +10,9 @@ import order.max
 /-!
 # Directed indexed families and sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
 
@@ -19,6 +22,11 @@ directed iff each pair of elements has a shared upper bound.
 * `directed_on r s`: Predicate stating that the set `s` is `r`-directed.
 * `is_directed α r`: Prop-valued mixin stating that `α` is `r`-directed. Follows the style of the
   unbundled relation classes such as `is_total`.
+* `scott_continuous`: Predicate stating that a function between preorders preserves
+  `is_lub` on directed sets.
+
+## References
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
 -/
 
 open function
@@ -42,6 +50,10 @@ theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe :
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
+
+theorem directed_on_range {f : ι → α} :
+  directed r f ↔ directed_on r (set.range f) :=
+by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
 
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
@@ -118,6 +130,10 @@ lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
   (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
 λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
+lemma is_total.directed [is_total α r] (f : ι → α) :
+  directed r f :=
+λ i j, or.cases_on (total_of r (f i) (f j)) (λ h, ⟨j, h, refl _⟩) (λ h, ⟨i, refl _, h⟩)
+
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/
 class is_directed (α : Type*) (r : α → α → Prop) : Prop :=
@@ -137,7 +153,7 @@ lemma directed_on_univ_iff : directed_on r set.univ ↔ is_directed α r :=
 
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_directed [is_total α r] : is_directed α r :=
-⟨λ a b, or.cases_on (total_of r a b) (λ h, ⟨b, h, refl _⟩) (λ h, ⟨a, refl _, h⟩)⟩
+by rw ← directed_id_iff; exact is_total.directed _
 
 lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) : is_directed α s :=
 ⟨λ a b, let ⟨c, ha, hb⟩ := is_directed.directed a b in ⟨c, h ha, h hb⟩⟩
@@ -154,6 +170,37 @@ by assumption
 instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
 
+section reflexive
+
+lemma directed_on.insert (h : reflexive r) (a : α) {s : set α} (hd : directed_on r s)
+  (ha : ∀ b ∈ s, ∃ c ∈ s, a ≼ c ∧ b ≼ c) : directed_on r (insert a s) :=
+begin
+  rintros x (rfl | hx) y (rfl | hy),
+  { exact ⟨y, set.mem_insert _ _, h _, h _⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+  { obtain ⟨w, hws, hwr⟩ := ha x hx,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr.symm⟩ },
+  { obtain ⟨w, hws, hwr⟩ := hd x hx y hy,
+    exact ⟨w, set.mem_insert_of_mem _ hws, hwr⟩ },
+end
+
+lemma directed_on_singleton (h : reflexive r) (a : α) : directed_on r ({a} : set α) :=
+λ x hx y hy, ⟨x, hx, h _, hx.symm ▸ hy.symm ▸ h _⟩
+
+lemma directed_on_pair (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({a, b} : set α) :=
+(directed_on_singleton h _).insert h _ $ λ c hc, ⟨c, hc, hc.symm ▸ hab, h _⟩
+
+lemma directed_on_pair' (h : reflexive r) {a b : α} (hab : a ≼ b) :
+  directed_on r ({b, a} : set α) :=
+begin
+  rw set.pair_comm,
+  apply directed_on_pair h hab,
+end
+
+end reflexive
+
 section preorder
 variables [preorder α] {a : α}
 
@@ -162,6 +209,14 @@ protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
 h.to_dual.is_bot
+
+lemma directed_on.is_bot_of_is_min {s : set α} (hd : directed_on (≥) s)
+  {m} (hm : m ∈ s) (hmin : ∀ a ∈ s, a ≤ m → m ≤ a) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := hd m hm a as in (hmin x xs xm).trans xa
+
+lemma directed_on.is_top_of_is_max {s : set α} (hd : directed_on (≤) s)
+  {m} (hm : m ∈ s) (hmax : ∀ a ∈ s, m ≤ a → a ≤ m) : ∀ a ∈ s, a ≤ m :=
+@directed_on.is_bot_of_is_min αᵒᵈ _ s hd m hm hmax
 
 lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp

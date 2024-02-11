@@ -9,7 +9,6 @@ import tactic.basic
 # Algebraic quotients
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/643
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines notation for algebraic quotients, e.g. quotient groups `G ⧸ H`,

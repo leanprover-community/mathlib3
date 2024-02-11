@@ -9,6 +9,9 @@ import measure_theory.function.lp_order
 /-!
 # Integrable functions and `L¹` space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the first part of this file, the predicate `integrable` is defined and basic properties of
 integrable functions are proved.
 
@@ -47,7 +50,7 @@ integrable, function space, l1
 
 noncomputable theory
 
-open_locale classical topological_space big_operators ennreal measure_theory nnreal
+open_locale classical topology big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -147,7 +150,8 @@ has_finite_integral_congr' $ h.fun_comp norm
 
 lemma has_finite_integral_const_iff {c : β} :
   has_finite_integral (λ x : α, c) μ ↔ c = 0 ∨ μ univ < ∞ :=
-by simp [has_finite_integral, lintegral_const, lt_top_iff_ne_top, or_iff_not_imp_left]
+by simp [has_finite_integral, lintegral_const, lt_top_iff_ne_top, ennreal.mul_eq_top,
+  or_iff_not_imp_left]
 
 lemma has_finite_integral_const [is_finite_measure μ] (c : β) :
   has_finite_integral (λ x : α, c) μ :=
@@ -349,15 +353,19 @@ hf.mono $ eventually_of_forall $ λ x,
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*}
 
-lemma has_finite_integral.smul (c : 𝕜) {f : α → β} : has_finite_integral f μ →
-  has_finite_integral (c • f) μ :=
+lemma has_finite_integral.smul
+  [normed_add_comm_group 𝕜] [smul_zero_class 𝕜 β] [has_bounded_smul 𝕜 β] (c : 𝕜) {f : α → β} :
+  has_finite_integral f μ → has_finite_integral (c • f) μ :=
 begin
   simp only [has_finite_integral], assume hfi,
   calc
-    ∫⁻ (a : α), ‖c • f a‖₊ ∂μ = ∫⁻ (a : α), (‖c‖₊) * ‖f a‖₊ ∂μ :
-      by simp only [nnnorm_smul, ennreal.coe_mul]
+    ∫⁻ (a : α), ‖c • f a‖₊ ∂μ ≤ ∫⁻ (a : α), (‖c‖₊) * ‖f a‖₊ ∂μ : begin
+      refine lintegral_mono _,
+      intro i,
+      exact_mod_cast (nnnorm_smul_le c (f i) : _),
+    end
     ... < ∞ :
     begin
       rw lintegral_const_mul',
@@ -365,22 +373,28 @@ begin
     end
 end
 
-lemma has_finite_integral_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+lemma has_finite_integral_smul_iff
+  [normed_ring 𝕜] [mul_action_with_zero 𝕜 β] [has_bounded_smul 𝕜 β]
+  {c : 𝕜} (hc : is_unit c)
+  (f : α → β) :
   has_finite_integral (c • f) μ ↔ has_finite_integral f μ :=
 begin
+  obtain ⟨c, rfl⟩ := hc,
   split,
   { assume h,
-    simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.smul c⁻¹ },
+    simpa only [smul_smul, units.inv_mul, one_smul] using h.smul (↑c⁻¹ : 𝕜) },
   exact has_finite_integral.smul _
 end
 
-lemma has_finite_integral.const_mul {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
+lemma has_finite_integral.const_mul [normed_ring 𝕜] {f : α → 𝕜} (h : has_finite_integral f μ)
+  (c : 𝕜) :
   has_finite_integral (λ x, c * f x) μ :=
-(has_finite_integral.smul c h : _)
+h.smul c
 
-lemma has_finite_integral.mul_const {f : α → ℝ} (h : has_finite_integral f μ) (c : ℝ) :
+lemma has_finite_integral.mul_const [normed_ring 𝕜] {f : α → 𝕜} (h : has_finite_integral f μ)
+  (c : 𝕜) :
   has_finite_integral (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
+h.smul (mul_opposite.op c)
 
 end normed_space
 
@@ -442,7 +456,7 @@ begin
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
 end
 
-lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+@[simp] lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}
@@ -642,6 +656,39 @@ begin
     exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
 end
 
+/-- Hölder's inequality for integrable functions: the scalar multiplication of an integrable
+vector-valued function by a scalar function with finite essential supremum is integrable. -/
+lemma integrable.ess_sup_smul {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] {f : α → β}
+  (hf : integrable f μ) {g : α → 𝕜} (g_ae_strongly_measurable : ae_strongly_measurable g μ)
+  (ess_sup_g : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ ≠ ∞) :
+  integrable (λ (x : α), g x • f x) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable at *,
+  refine ⟨g_ae_strongly_measurable.smul hf.1, _⟩,
+  have h : (1:ℝ≥0∞) / 1 = 1 / ∞ + 1 / 1 := by norm_num,
+  have hg' : snorm g ∞ μ ≠ ∞ := by rwa snorm_exponent_top,
+  calc snorm (λ (x : α), g x • f x) 1 μ
+      ≤ _ : measure_theory.snorm_smul_le_mul_snorm hf.1 g_ae_strongly_measurable h
+  ... < ∞ : ennreal.mul_lt_top hg' hf.2.ne,
+end
+
+/-- Hölder's inequality for integrable functions: the scalar multiplication of an integrable
+scalar-valued function by a vector-value function with finite essential supremum is integrable. -/
+lemma integrable.smul_ess_sup {𝕜 : Type*} [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+  {f : α → 𝕜}
+  (hf : integrable f μ) {g : α → β} (g_ae_strongly_measurable : ae_strongly_measurable g μ)
+  (ess_sup_g : ess_sup (λ x, (‖g x‖₊ : ℝ≥0∞)) μ ≠ ∞) :
+  integrable (λ (x : α), f x • g x) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable at *,
+  refine ⟨hf.1.smul g_ae_strongly_measurable, _⟩,
+  have h : (1:ℝ≥0∞) / 1 = 1 / 1 + 1 / ∞ := by norm_num,
+  have hg' : snorm g ∞ μ ≠ ∞ := by rwa snorm_exponent_top,
+  calc snorm (λ (x : α), f x • g x) 1 μ
+      ≤ _ : measure_theory.snorm_smul_le_mul_snorm g_ae_strongly_measurable hf.1 h
+  ... < ∞ : ennreal.mul_lt_top hf.2.ne hg',
+end
+
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ‖f a‖) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]
@@ -671,6 +718,22 @@ lemma integrable.prod_mk {f : α → β} {g : α → γ} (hf : integrable f μ) 
 lemma mem_ℒp.integrable {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [is_finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
+
+/-- A non-quantitative version of Markov inequality for integrable functions: the measure of points
+where `‖f x‖ ≥ ε` is finite for all positive `ε`. -/
+lemma integrable.measure_ge_lt_top {f : α → β} (hf : integrable f μ) {ε : ℝ} (hε : 0 < ε) :
+  μ {x | ε ≤ ‖f x‖} < ∞ :=
+begin
+  rw show {x | ε ≤ ‖f x‖} = {x | ennreal.of_real ε ≤ ‖f x‖₊},
+    by simp only [ennreal.of_real, real.to_nnreal_le_iff_le_coe, ennreal.coe_le_coe, coe_nnnorm],
+  refine (meas_ge_le_mul_pow_snorm μ one_ne_zero ennreal.one_ne_top hf.1 _).trans_lt _,
+  { simpa only [ne.def, ennreal.of_real_eq_zero, not_le] using hε },
+  apply ennreal.mul_lt_top,
+  { simpa only [ennreal.one_to_real, ennreal.rpow_one, ne.def, ennreal.inv_eq_top,
+      ennreal.of_real_eq_zero, not_le] using hε },
+  simpa only [ennreal.one_to_real, ennreal.rpow_one]
+    using (mem_ℒp_one_iff_integrable.2 hf).snorm_ne_top,
+end
 
 lemma lipschitz_with.integrable_comp_iff_of_antilipschitz {K K'} {f : α → β} {g : β → γ}
   (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
@@ -871,48 +934,41 @@ hf.neg.pos_part
 
 end pos_part
 
-section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+section has_bounded_smul
+variables {𝕜 : Type*}
 
-lemma integrable.smul (c : 𝕜) {f : α → β}
+lemma integrable.smul [normed_add_comm_group 𝕜] [smul_zero_class 𝕜 β] [has_bounded_smul 𝕜 β]
+  (c : 𝕜) {f : α → β}
   (hf : integrable f μ) : integrable (c • f) μ :=
 ⟨hf.ae_strongly_measurable.const_smul c, hf.has_finite_integral.smul c⟩
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+lemma is_unit.integrable_smul_iff [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+  {c : 𝕜} (hc : is_unit c) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
-and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
+and_congr (hc.ae_strongly_measurable_const_smul_iff) (has_finite_integral_smul_iff hc f)
 
-lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, c * f x) μ :=
-integrable.smul c h
+lemma integrable_smul_iff [normed_division_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+  {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
+  integrable (c • f) μ ↔ integrable f μ :=
+(is_unit.mk0 _ hc).integrable_smul_iff f
 
-lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable ((λ (x : α), c) * f) μ :=
-integrable.smul c h
+variables [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
 
-lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
+lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
+  (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact mem_ℒp.smul_of_top_right hf hφ }
 
-lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (f * (λ (x : α), c)) μ :=
-integrable.mul_const h c
+lemma integrable.smul_of_top_left {f : α → β} {φ : α → 𝕜}
+  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
 
-lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x / c) μ :=
-by simp_rw [div_eq_mul_inv, h.mul_const]
+lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : β) :
+  integrable (λ x, f x • c) μ :=
+hf.smul_of_top_left (mem_ℒp_top_const c)
 
-lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
-  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
-  integrable (λ x, f x * g x) μ :=
-begin
-  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
-  filter_upwards [hf_bound] with x hx,
-  rw [pi.smul_apply, smul_eq_mul],
-  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
-end
-
-end normed_space
+end has_bounded_smul
 
 section normed_space_over_complete_field
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
@@ -927,7 +983,56 @@ begin
   have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
+
 end normed_space_over_complete_field
+
+section normed_ring
+variables {𝕜 : Type*} [normed_ring 𝕜] {f : α → 𝕜}
+
+lemma integrable.const_mul {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, c * f x) μ :=
+h.smul c
+
+lemma integrable.const_mul' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.const_mul h c
+
+lemma integrable.mul_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x * c) μ :=
+h.smul (mul_opposite.op c)
+
+lemma integrable.mul_const' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
+
+lemma integrable_const_mul_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
+  integrable (λ x, c * f x) μ ↔ integrable f μ :=
+hc.integrable_smul_iff f
+
+lemma integrable_mul_const_iff {c : 𝕜} (hc : is_unit c) (f : α → 𝕜) :
+  integrable (λ x, f x * c) μ ↔ integrable f μ :=
+hc.op.integrable_smul_iff f
+
+lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
+
+end normed_ring
+
+section normed_division_ring
+variables {𝕜 : Type*} [normed_division_ring 𝕜] {f : α → 𝕜}
+
+lemma integrable.div_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
+
+end normed_division_ring
 
 section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
@@ -948,19 +1053,6 @@ lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
 end is_R_or_C
-
-section inner_product
-variables {𝕜 E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] {f : α → E}
-
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-
-lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
-
-lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
-
-end inner_product
 
 section trim
 
@@ -1055,13 +1147,13 @@ lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrab
 
 end
 
-section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+section has_bounded_smul
+variables {𝕜 : Type*} [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
 
 lemma integrable.smul {c : 𝕜} {f : α →ₘ[μ] β} : integrable f → integrable (c • f) :=
 induction_on f $ λ f hfm hfi, (integrable_mk _).2 $ ((integrable_mk hfm).1 hfi).smul _
 
-end normed_space
+end has_bounded_smul
 
 end
 
@@ -1182,7 +1274,7 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_ring 𝕜] [module 𝕜 β] [has_bounded_smul 𝕜 β]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
   to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl

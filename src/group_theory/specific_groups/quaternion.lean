@@ -12,6 +12,9 @@ import group_theory.specific_groups.cyclic
 /-!
 # Quaternion Groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the (generalised) quaternion groups `quaternion_group n` of order `4n`, also known as
 dicyclic groups, with elements `a i` and `xa i` for `i : zmod n`. The (generalised) quaternion
 groups can be defined by the presentation

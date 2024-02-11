@@ -10,7 +10,6 @@ import algebra.hom.equiv.units.basic
 # Inverse and multiplication as order isomorphisms in ordered groups
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/895
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/
@@ -52,6 +51,12 @@ attribute [to_additive neg_le_of_neg_le] inv_le_of_inv_le'
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 (order_iso.inv α).le_symm_apply
 
+/-- `x ↦ a / x` as an order-reversing equivalence. -/
+@[to_additive "`x ↦ a - x` as an order-reversing equivalence.", simps]
+def order_iso.div_left (a : α) : α ≃o αᵒᵈ :=
+{ to_equiv := (equiv.div_left a).trans order_dual.to_dual,
+  map_rel_iff' := λ x y, @div_le_div_iff_left α _ _ _ _ _ _ _ }
+
 end typeclasses_left_right_le
 
 end group
@@ -74,6 +79,12 @@ def order_iso.mul_right (a : α) : α ≃o α :=
 @[simp, to_additive] lemma order_iso.mul_right_symm (a : α) :
   (order_iso.mul_right a).symm = order_iso.mul_right a⁻¹ :=
 by { ext x, refl }
+
+/-- `x ↦ x / a` as an order isomorphism. -/
+@[to_additive "`x ↦ x - a` as an order isomorphism.", simps]
+def order_iso.div_right (a : α) : α ≃o α :=
+{ to_equiv := equiv.div_right a,
+  map_rel_iff' := λ x y, div_le_div_iff_right a }
 
 end right
 

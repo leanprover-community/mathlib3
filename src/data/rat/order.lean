@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # Order for Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the order on `ℚ`, prove that `ℚ` is a discrete, linearly ordered field, and define

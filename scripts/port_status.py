@@ -71,6 +71,11 @@ touched = dict()
 for node in graph.nodes:
     if data[node].mathlib3_hash:
         verified[node] = data[node].mathlib3_hash
+        find_blobs_command = ['git', 'cat-file', '-t', data[node].mathlib3_hash]
+        hash_type = subprocess.check_output(find_blobs_command)
+        # the hash_type should be commits mostly, we are not interested in blobs
+        if b'blob\n' == hash_type:
+            break
         git_command = ['git', 'diff', '--quiet',
             f'--ignore-matching-lines={comment_git_re}',
             data[node].mathlib3_hash + "..HEAD", "--", "src" + os.sep + node.replace('.', os.sep) + ".lean"]

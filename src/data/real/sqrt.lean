@@ -3,12 +3,16 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
+import algebra.star.order
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.positivity
 
 /-!
 # Square root of a real number
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -34,7 +38,7 @@ square root
 -/
 
 open set filter
-open_locale filter nnreal topological_space
+open_locale filter nnreal topology
 
 namespace nnreal
 
@@ -290,6 +294,9 @@ by rw [sqrt, real.to_nnreal_inv, nnreal.sqrt_inv, nnreal.coe_inv, sqrt]
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv, division_def]
 
+@[simp] theorem sqrt_div' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x / y) = sqrt x / sqrt y :=
+by rw [division_def, sqrt_mul' x (inv_nonneg.2 hy), sqrt_inv, division_def]
+
 @[simp] theorem div_sqrt : x / sqrt x = sqrt x :=
 begin
   cases le_or_lt x 0,
@@ -334,11 +341,12 @@ begin
 end
 
 instance : star_ordered_ring ℝ :=
-{ nonneg_iff := λ r, by
-  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
-    rintros ⟨s, rfl⟩,
-    exact mul_self_nonneg s },
-  ..real.ordered_add_comm_group }
+star_ordered_ring.of_nonneg_iff' (λ _ _, add_le_add_left) $ λ r,
+begin
+  refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
+  rintros ⟨s, rfl⟩,
+  exact mul_self_nonneg s
+end
 
 end real
 

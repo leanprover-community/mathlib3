@@ -8,6 +8,9 @@ import group_theory.subsemigroup.basic
 /-!
 # Subsemigroups: membership criteria
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove various facts about membership in a subsemigroup.
 The intent is to mimic `group_theory/submonoid/membership`, but currently this file is mostly a
 stub and only provides rudimentary support.

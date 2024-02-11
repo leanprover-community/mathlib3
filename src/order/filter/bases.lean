@@ -10,6 +10,9 @@ import order.filter.prod
 /-!
 # Filter bases
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A filter basis `B : filter_basis α` on a type `α` is a nonempty collection of sets of `α`
 such that the intersection of two elements of this collection contains some element of
 the collection. Compared to filters, filter bases do not require that any set containing
@@ -344,12 +347,12 @@ begin
   exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_of_superset hl hts⟩⟩)
 end
 
-lemma has_basis.comp_of_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
+lemma has_basis.comp_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
   l.has_basis (p ∘ g) (s ∘ g) :=
 ⟨λ t, h.mem_iff.trans hg.exists⟩
 
 lemma has_basis.comp_equiv (h : l.has_basis p s) (e : ι' ≃ ι) : l.has_basis (p ∘ e) (s ∘ e) :=
-h.comp_of_surjective e.surjective
+h.comp_surjective e.surjective
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/

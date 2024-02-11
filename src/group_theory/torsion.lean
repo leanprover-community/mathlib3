@@ -13,6 +13,9 @@ import group_theory.submonoid.operations
 /-!
 # Torsion groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines torsion groups, i.e. groups where all elements have finite order.
 
 ## Main definitions
@@ -239,9 +242,15 @@ variable {G}
 lemma torsion_eq_top (tG : is_torsion G) : torsion G = ⊤ := by ext; tauto
 
 /-- A torsion monoid is isomorphic to its torsion submonoid. -/
-@[to_additive "An additive torsion monoid is isomorphic to its torsion submonoid.", simps]
+@[to_additive "An additive torsion monoid is isomorphic to its torsion submonoid."]
 def torsion_mul_equiv (tG : is_torsion G) : torsion G ≃* G :=
- (mul_equiv.submonoid_congr tG.torsion_eq_top).trans submonoid.top_equiv
+(mul_equiv.submonoid_congr tG.torsion_eq_top).trans submonoid.top_equiv
+
+@[to_additive] lemma torsion_mul_equiv_apply (tG : is_torsion G) (a : torsion G) :
+  tG.torsion_mul_equiv a = mul_equiv.submonoid_congr tG.torsion_eq_top a := rfl
+
+@[to_additive] lemma torsion_mul_equiv_symm_apply_coe (tG : is_torsion G) (a : G) :
+  tG.torsion_mul_equiv.symm a = ⟨submonoid.top_equiv.symm a, tG _⟩ := rfl
 
 end monoid.is_torsion
 

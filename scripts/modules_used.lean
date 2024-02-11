@@ -14,7 +14,7 @@ returns
 ```
 order.synonym
 order.rel_classes
-order.monotone
+order.monotone.basic
 order.lattice
 order.heyting.basic
 order.bounded_order

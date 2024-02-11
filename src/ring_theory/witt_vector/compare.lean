@@ -12,6 +12,9 @@ import number_theory.padics.ring_homs
 
 # Comparison isomorphism between `witt_vector p (zmod p)` and `ℤ_[p]`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We construct a ring isomorphism between `witt_vector p (zmod p)` and `ℤ_[p]`.
 This isomorphism follows from the fact that both satisfy the universal property
 of the inverse limit of `zmod (p^n)`.

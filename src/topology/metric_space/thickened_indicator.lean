@@ -10,6 +10,9 @@ import topology.metric_space.hausdorff_distance
 /-!
 # Thickened indicators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is about thickened indicators of sets in (pseudo e)metric spaces. For a decreasing
 sequence of thickening radii tending to 0, the thickened indicators of a closed set form a
 decreasing pointwise converging approximation of the indicator function of the set, where the
@@ -33,7 +36,7 @@ members of the approximating sequence are nonnegative bounded continuous functio
 
 -/
 noncomputable theory
-open_locale classical nnreal ennreal topological_space bounded_continuous_function
+open_locale classical nnreal ennreal topology bounded_continuous_function
 
 open nnreal ennreal set metric emetric filter
 

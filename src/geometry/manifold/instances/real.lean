@@ -9,6 +9,9 @@ import analysis.inner_product_space.pi_L2
 /-!
 # Constructing examples of manifolds over ℝ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the necessary bits to be able to define manifolds modelled over `ℝ^n`, boundaryless
 or with boundary or with corners. As a concrete example, we construct explicitly the manifold with
 boundary structure on the real interval `[x, y]`.
@@ -303,9 +306,7 @@ end
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
 section
 
-lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
-
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
 instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance

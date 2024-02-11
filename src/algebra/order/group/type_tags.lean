@@ -6,7 +6,10 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.order.group.instances
 import algebra.order.monoid.type_tags
 
-/-! # Ordered group structures on `multiplicative α` and `additive α`. -/
+/-! # Ordered group structures on `multiplicative α` and `additive α`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 variables {α : Type*}
 

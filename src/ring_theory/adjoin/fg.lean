@@ -10,6 +10,9 @@ import data.mv_polynomial.basic
 /-!
 # Adjoining elements to form subalgebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the basic theory of finitely-generated subalgebras.
 
 ## Definitions

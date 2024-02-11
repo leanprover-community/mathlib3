@@ -9,6 +9,9 @@ import category_theory.limits.shapes.kernel_pair
 /-!
 # Reflexive coequalizers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define reflexive pairs as a pair of morphisms which have a common section. We say a category has
 reflexive coequalizers if it has coequalizers of all reflexive pairs.
 Reflexive coequalizers often enjoy nicer properties than general coequalizers, and feature heavily

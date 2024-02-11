@@ -10,6 +10,9 @@ import measure_theory.function.strongly_measurable.basic
 /-!
 # Finitely strongly measurable functions in `Lp`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
 
 ## Main statements
@@ -25,7 +28,7 @@ Springer, 2016.
 -/
 
 open measure_theory filter topological_space function
-open_locale ennreal topological_space measure_theory
+open_locale ennreal topology measure_theory
 
 namespace measure_theory
 

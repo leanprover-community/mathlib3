@@ -10,6 +10,9 @@ import data.polynomial.ring_division
 /-!
 # "Mirror" of a univariate polynomial
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
 between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
 divisible by `X`.
@@ -225,9 +228,9 @@ begin
     have hk := h2 k key,
     rcases hk with hk | hk | hk | hk,
     { exact or.inr (h3 h h_dvd_f (by rwa ← hk)) },
-    { exact or.inr (h3 h h_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, mirror_neg, dvd_neg])) },
+    { exact or.inr (h3 h h_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, mirror_neg, dvd_neg])) },
     { exact or.inl (h3 g g_dvd_f (by rwa ← hk)) },
-    { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
+    { exact or.inl (h3 g g_dvd_f (by rwa [← neg_eq_iff_eq_neg.mpr hk, dvd_neg])) } },
 end
 
 end comm_ring

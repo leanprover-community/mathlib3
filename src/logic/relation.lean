@@ -10,7 +10,6 @@ import logic.relator
 # Relation closures
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/565
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
@@ -43,7 +42,7 @@ the bundled version, see `rel`.
 
 open function
 
-variables {α β γ δ : Type*}
+variables {α β γ δ ε κ : Type*}
 
 section ne_imp
 
@@ -186,6 +185,27 @@ related by `r`.
 -/
 protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
 λ c d, ∃ a b, r a b ∧ f a = c ∧ g b = d
+
+section map
+variables {r : α → β → Prop} {f : α → γ} {g : β → δ} {c : γ} {d : δ}
+
+lemma map_apply : relation.map r f g c d ↔ ∃ a b, r a b ∧ f a = c ∧ g b = d := iff.rfl
+
+@[simp] lemma map_id_id (r : α → β → Prop) : relation.map r id id = r := by simp [relation.map]
+
+@[simp] lemma map_map (r : α → β → Prop) (f₁ : α → γ) (g₁ : β → δ) (f₂ : γ → ε) (g₂ : δ → κ) :
+  relation.map (relation.map r f₁ g₁) f₂ g₂ = relation.map r (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+begin
+  ext a b,
+  simp only [map_apply, function.comp_app, ←exists_and_distrib_right, @exists₂_comm γ],
+  refine exists₂_congr (λ a b, _),
+  simp [and_assoc],
+end
+
+instance [decidable (∃ a b, r a b ∧ f a = c ∧ g b = d)] : decidable (relation.map r f g c d) :=
+‹decidable _›
+
+end map
 
 variables {r : α → α → Prop} {a b c d : α}
 

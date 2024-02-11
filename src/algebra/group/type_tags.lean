@@ -10,7 +10,6 @@ import data.finite.defs
 # Type tags that turn additive structures into multiplicative, and vice versa
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/832
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We define two type tags:
@@ -124,21 +123,35 @@ instance [add_comm_semigroup α] : comm_semigroup (multiplicative α) :=
 { mul_comm := @add_comm _ _,
   ..multiplicative.semigroup }
 
+instance [has_mul α] [is_left_cancel_mul α] : is_left_cancel_add (additive α) :=
+{ add_left_cancel := @mul_left_cancel α _ _ }
+
+instance [has_add α] [is_left_cancel_add α] : is_left_cancel_mul (multiplicative α) :=
+{ mul_left_cancel := @add_left_cancel α _ _ }
+
+instance [has_mul α] [is_right_cancel_mul α] : is_right_cancel_add (additive α) :=
+{ add_right_cancel := @mul_right_cancel α _ _ }
+
+instance [has_add α] [is_right_cancel_add α] : is_right_cancel_mul (multiplicative α) :=
+{ mul_right_cancel := @add_right_cancel α _ _ }
+
+instance [has_mul α] [is_cancel_mul α] : is_cancel_add (additive α) :=
+{ ..additive.is_left_cancel_add, ..additive.is_right_cancel_add }
+
+instance [has_add α] [is_cancel_add α] : is_cancel_mul (multiplicative α) :=
+{ ..multiplicative.is_left_cancel_mul, ..multiplicative.is_right_cancel_mul }
+
 instance [left_cancel_semigroup α] : add_left_cancel_semigroup (additive α) :=
-{ add_left_cancel := @mul_left_cancel _ _,
-  ..additive.add_semigroup }
+{ ..additive.add_semigroup, ..additive.is_left_cancel_add }
 
 instance [add_left_cancel_semigroup α] : left_cancel_semigroup (multiplicative α) :=
-{ mul_left_cancel := @add_left_cancel _ _,
-  ..multiplicative.semigroup }
+{ ..multiplicative.semigroup, ..multiplicative.is_left_cancel_mul }
 
 instance [right_cancel_semigroup α] : add_right_cancel_semigroup (additive α) :=
-{ add_right_cancel := @mul_right_cancel _ _,
-  ..additive.add_semigroup }
+{ ..additive.add_semigroup, ..additive.is_right_cancel_add }
 
 instance [add_right_cancel_semigroup α] : right_cancel_semigroup (multiplicative α) :=
-{ mul_right_cancel := @add_right_cancel _ _,
-  ..multiplicative.semigroup }
+{ ..multiplicative.semigroup, ..multiplicative.is_right_cancel_mul }
 
 instance [has_one α] : has_zero (additive α) := ⟨additive.of_mul 1⟩
 

@@ -73,6 +73,7 @@ checking if the weighted sum is equivalent to the goal (when `normalize` is `tt`
 meta structure linear_combination_config : Type :=
 (normalize : bool := tt)
 (normalization_tactic : tactic unit := `[ring_nf SOP])
+(exponent : ℕ := 1)
 
 
 /-! ### Part 1: Multiplying Equations by Constants and Adding Them Together -/
@@ -267,6 +268,17 @@ meta def set_goal_to_hleft_sub_tleft (hsum_on_left : expr) : tactic unit :=
 do to_expr ``(eq_zero_of_sub_eq_zero %%hsum_on_left) >>= apply, skip
 
 /--
+If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
+* Input:
+  * `exponent : ℕ`, the power to raise the goal by. If `1`, this tactic is a no-op.
+
+* Output: N/A
+-/
+meta def raise_goal_to_power : ℕ → tactic unit
+| 1 := skip
+| n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
+
+/--
 This tactic attempts to prove the goal by normalizing the target if the
 `normalize` field of the given configuration is true.
 
@@ -314,6 +326,7 @@ do
   hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
+  raise_goal_to_power config.exponent,
   set_goal_to_hleft_sub_tleft hsum_on_left,
   normalize_if_desired config
 
@@ -353,6 +366,9 @@ setup_tactic_parser
   of the input hypotheses does matter.  If the `normalize` field of the
   configuration is set to false, then the tactic will simply set the user up to
   prove their target using the linear combination instead of normalizing the subtraction.
+
+Users may provide an optional `with { exponent := n }`. This will raise the goal to the power `n`
+  before subtracting the linear combination.
 
 Note: The left and right sides of all the equalities should have the same
   type, and the coefficients should also have this type.  There must be
@@ -405,6 +421,9 @@ begin
   simp,
   norm_cast
 end
+
+example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : x + y*z = 0 :=
+by linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2 with { exponent := 2 }
 
 constants (qc : ℚ) (hqc : qc = 2*qc)
 

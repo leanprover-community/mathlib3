@@ -6,10 +6,13 @@ Authors: Mario Carneiro
 import data.fin.fin2
 import data.pfun
 import data.vector3
-import number_theory.pell
+import number_theory.pell_matiyasevic
 
 /-!
 # Diophantine functions and Matiyasevic's theorem
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Hilbert's tenth problem asked whether there exists an algorithm which for a given integer polynomial
 determines whether this polynomial has integer solutions. It was answered in the negative in 1970,

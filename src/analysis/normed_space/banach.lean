@@ -10,12 +10,15 @@ import analysis.normed_space.affine_isometry
 /-!
 # Banach open mapping theorem
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains the Banach open mapping theorem, i.e., the fact that a bijective
 bounded linear map between Banach spaces has a bounded inverse.
 -/
 
 open function metric set filter finset linear_map (range ker)
-open_locale classical topological_space big_operators nnreal
+open_locale classical topology big_operators nnreal
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -250,7 +253,7 @@ lemma _root_.affine_map.is_open_map {P Q : Type*}
   is_open_map f :=
 affine_map.is_open_map_linear_iff.mp $ continuous_linear_map.is_open_map
   { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
-  (f.surjective_iff_linear_surjective.mpr surj)
+  (f.linear_surjective_iff.mpr surj)
 
 /-! ### Applications of the Banach open mapping theorem -/
 
@@ -336,7 +339,7 @@ variables [complete_space E]
 to a continuous linear equivalence. -/
 noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)
   (hsurj : linear_map.range f = ⊤) : E ≃L[𝕜] F :=
-(linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
+(linear_equiv.of_bijective ↑f ⟨linear_map.ker_eq_bot.mp hinj, linear_map.range_eq_top.mp hsurj⟩)
 .to_continuous_linear_equiv_of_continuous f.continuous
 
 @[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)

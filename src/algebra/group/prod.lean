@@ -10,6 +10,9 @@ import algebra.hom.units
 /-!
 # Monoid, group etc structures on `M × N`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
 trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
 
@@ -461,6 +464,26 @@ def prod_comm : M × N ≃* N × M :=
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
 variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']
+
+section
+variables (M N M' N')
+
+/-- Four-way commutativity of `prod`. The name matches `mul_mul_mul_comm`. -/
+@[to_additive prod_prod_prod_comm "Four-way commutativity of `prod`.
+The name matches `mul_mul_mul_comm`", simps apply]
+def prod_prod_prod_comm : (M × N) × (M' × N') ≃* (M × M') × (N × N') :=
+{ to_fun := λ mnmn, ((mnmn.1.1, mnmn.2.1), (mnmn.1.2, mnmn.2.2)),
+  inv_fun := λ mmnn, ((mmnn.1.1, mmnn.2.1), (mmnn.1.2, mmnn.2.2)),
+  map_mul' := λ mnmn mnmn', rfl,
+  ..equiv.prod_prod_prod_comm M N M' N', }
+
+@[simp, to_additive] lemma prod_prod_prod_comm_to_equiv :
+  (prod_prod_prod_comm M N M' N').to_equiv = equiv.prod_prod_prod_comm M N M' N' := rfl
+
+@[simp] lemma prod_prod_prod_comm_symm :
+  (prod_prod_prod_comm M N M' N').symm = prod_prod_prod_comm M M' N N' := rfl
+
+end
 
 /--Product of multiplicative isomorphisms; the maps come from `equiv.prod_congr`.-/
 @[to_additive prod_congr "Product of additive isomorphisms; the maps come from `equiv.prod_congr`."]

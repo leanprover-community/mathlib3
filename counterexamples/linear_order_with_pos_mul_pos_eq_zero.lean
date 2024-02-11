@@ -16,7 +16,12 @@ The order is `0 < ε < 1`.  Since `ε ^ 2 = 0`, the product of strictly positive
 
 Relevant Zulip chat:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/mul_pos
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
+
+namespace counterexample
 
 /--  The three element monoid. -/
 @[derive [decidable_eq]]
@@ -32,7 +37,7 @@ instance inhabited : inhabited foo := ⟨zero⟩
 
 instance : has_zero foo := ⟨zero⟩
 instance : has_one foo := ⟨one⟩
-notation `ε` := eps
+local notation `ε` := eps
 
 /-- The order on `foo` is the one induced by the natural order on the image of `aux1`. -/
 def aux1 : foo → ℕ
@@ -85,3 +90,5 @@ end
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo
+
+end counterexample

@@ -9,6 +9,9 @@ import group_theory.group_action.units
 /-!
 # Coprime elements of a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `is_coprime x y`: that `x` and `y` are coprime, defined to be the existence of `a` and `b` such

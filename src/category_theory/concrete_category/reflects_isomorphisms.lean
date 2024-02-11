@@ -7,6 +7,9 @@ import category_theory.concrete_category.basic
 import category_theory.functor.reflects_isomorphisms
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A `forget₂ C D` forgetful functor between concrete categories `C` and `D`
 whose forgetful functors both reflect isomorphisms, itself reflects isomorphisms.
 -/

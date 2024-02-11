@@ -8,6 +8,9 @@ import logic.equiv.set
 
 /-!
 # `equiv.perm.via_embedding`, a noncomputable analogue of `equiv.perm.via_fintype_embedding`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

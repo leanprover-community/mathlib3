@@ -8,11 +8,14 @@ import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
 import measure_theory.group.action
-import measure_theory.constructions.prod
+import measure_theory.constructions.prod.basic
 import topology.continuous_function.cocompact_map
 
 /-!
 # Measures on Groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We develop some properties of measures on (topological) groups
 
@@ -27,7 +30,7 @@ We also give analogues of all these notions in the additive world.
 
 noncomputable theory
 
-open_locale ennreal pointwise big_operators topological_space
+open_locale nnreal ennreal pointwise big_operators topology
 open has_inv set function measure_theory.measure filter
 
 variables {𝕜 G H : Type*} [measurable_space G] [measurable_space H]
@@ -70,13 +73,25 @@ is_mul_left_invariant.map_mul_left_eq_self g
 lemma map_mul_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) : map (* g) μ = μ :=
 is_mul_right_invariant.map_mul_right_eq_self g
 
-@[to_additive]
-instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_left_invariant_smul]
+instance is_mul_left_invariant_smul [is_mul_left_invariant μ] (c : ℝ≥0∞) :
+  is_mul_left_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_left_eq_self]⟩
 
-@[to_additive]
-instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_right_invariant_smul]
+instance is_mul_right_invariant_smul [is_mul_right_invariant μ] (c : ℝ≥0∞) :
+  is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+@[to_additive measure_theory.is_add_left_invariant_smul_nnreal]
+instance is_mul_left_invariant_smul_nnreal [is_mul_left_invariant μ] (c : ℝ≥0) :
+  is_mul_left_invariant (c • μ) :=
+measure_theory.is_mul_left_invariant_smul (c : ℝ≥0∞)
+
+@[to_additive measure_theory.is_add_right_invariant_smul_nnreal]
+instance is_mul_right_invariant_smul_nnreal [is_mul_right_invariant μ] (c : ℝ≥0) :
+  is_mul_right_invariant (c • μ) :=
+measure_theory.is_mul_right_invariant_smul (c : ℝ≥0∞)
 
 section has_measurable_mul
 
@@ -198,16 +213,18 @@ end has_measurable_mul
 
 end mul
 
-section group
-
-variables [group G]
+section div_inv_monoid
+variables [div_inv_monoid G]
 
 @[to_additive]
 lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) :
   map (/ g) μ = μ :=
 by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
 
-variables [has_measurable_mul G]
+end div_inv_monoid
+
+section group
+variables [group G] [has_measurable_mul G]
 
 @[to_additive]
 lemma measure_preserving_div_right (μ : measure G) [is_mul_right_invariant μ]
@@ -328,8 +345,8 @@ instance (μ : measure G) [sigma_finite μ] : sigma_finite μ.inv :=
 
 end has_involutive_inv
 
-section mul_inv
-variables [group G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
+section division_monoid
+variables [division_monoid G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
 
 @[to_additive]
 instance [is_mul_left_invariant μ] : is_mul_right_invariant μ.inv :=
@@ -375,23 +392,29 @@ lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_l
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
 (measure_preserving_mul_right_inv μ g).map_eq
 
+end division_monoid
+
+section group
+variables [group G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
+
 @[to_additive]
 lemma map_div_left_ae (μ : measure G) [is_mul_left_invariant μ] [is_inv_invariant μ] (x : G) :
   filter.map (λ t, x / t) μ.ae = μ.ae :=
 ((measurable_equiv.div_left x).map_ae μ).trans $ congr_arg ae $ map_div_left_eq_self μ x
 
-end mul_inv
+end group
 
 end measure
 
 section topological_group
 
-variables [topological_space G] [borel_space G] {μ : measure G}
-variables [group G] [topological_group G]
+variables [topological_space G] [borel_space G] {μ : measure G} [group G]
 
 @[to_additive]
-instance measure.regular.inv [t2_space G] [regular μ] : regular μ.inv :=
+instance measure.regular.inv [has_continuous_inv G] [t2_space G] [regular μ] : regular μ.inv :=
 regular.map (homeomorph.inv G)
+
+variables [topological_group G]
 
 @[to_additive]
 lemma regular_inv_iff [t2_space G] : μ.inv.regular ↔ μ.regular :=
@@ -533,9 +556,9 @@ end
 
 end topological_group
 
-section comm_group
+section comm_semigroup
 
-variables [comm_group G]
+variables [comm_semigroup G]
 
 /-- In an abelian group every left invariant measure is also right-invariant.
   We don't declare the converse as an instance, since that would loop type-class inference, and
@@ -549,7 +572,7 @@ instance is_mul_left_invariant.is_mul_right_invariant {μ : measure G} [is_mul_l
 ⟨λ g, by simp_rw [mul_comm, map_mul_left_eq_self]⟩
 
 
-end comm_group
+end comm_semigroup
 
 section haar
 
@@ -707,29 +730,7 @@ begin
   exact ge_of_tendsto' J I,
 end
 
-/- The above instance applies in particular to show that an additive Haar measure on a nontrivial
-finite-dimensional real vector space has no atom. -/
-example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
-  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E)
-  [is_add_haar_measure μ] :
-  has_no_atoms μ := by apply_instance
-
 end
-
-variables [nontrivially_normed_field 𝕜] [topological_space G] [topological_space H]
-  [add_comm_group G] [add_comm_group H] [topological_add_group G] [topological_add_group H]
-  [module 𝕜 G] [module 𝕜 H] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [borel_space H]
-  [t2_space H]
-
-instance map_continuous_linear_equiv.is_add_haar_measure (e : G ≃L[𝕜] H) :
-  is_add_haar_measure (μ.map e) :=
-e.to_add_equiv.is_add_haar_measure_map _ e.continuous e.symm.continuous
-
-variables [complete_space 𝕜] [t2_space G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G]
-  [has_continuous_smul 𝕜 H]
-
-instance map_linear_equiv.is_add_haar_measure (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
-map_continuous_linear_equiv.is_add_haar_measure _ e.to_continuous_linear_equiv
 
 end measure
 end haar

@@ -18,8 +18,8 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
-variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
-variables [algebra R S] {P : Type*} [comm_ring P]
+variables {R : Type*} [comm_semiring R] (M : submonoid R) (S : Type*) [comm_semiring S]
+variables [algebra R S] {P : Type*} [comm_semiring P]
 
 namespace is_localization
 

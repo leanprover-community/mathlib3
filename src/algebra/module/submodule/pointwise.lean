@@ -149,6 +149,29 @@ instance : canonically_ordered_add_monoid (submodule R M) :=
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.complete_lattice }
 
+section hom
+
+variables {R₂ M₂ F : Type*} [semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
+  {σ₁₂ : R →+* R₂} [ring_hom_surjective σ₁₂]
+
+/-- `submodule.map` as an `add_hom`. -/
+@[simps] def add_hom [semilinear_map_class F σ₁₂ M M₂] (f : F) : submodule R M →+ submodule R₂ M₂ :=
+{ to_fun := map f,
+  map_zero' := map_bot f,
+  map_add' := by { intros, simp_rw add_eq_sup, apply map_sup } }
+
+/-- `submodule.map` as an `add_equiv`, when applied to a `linear_equiv`.
+  TODO: allow `semilinear_equiv_class`. -/
+@[simps] def add_equiv {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (f : M ≃ₛₗ[σ₁₂] M₂) : submodule R M ≃+ submodule R₂ M₂ :=
+{ to_fun := map f,
+  inv_fun := map f.symm,
+  left_inv := λ N, by rw map_symm_eq_iff,
+  right_inv := λ N, by rw ← map_symm_eq_iff,
+  map_add' := (add_hom f).map_add }
+
+end hom
+
 section
 variables [monoid α] [distrib_mul_action α M] [smul_comm_class α R M]
 

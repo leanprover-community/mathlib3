@@ -325,7 +325,15 @@ instance : idem_semiring (submodule R A) :=
   ..(by apply_instance : order_bot (submodule R A)),
   ..(by apply_instance : lattice (submodule R A)) }
 
-variables (M)
+variable R
+
+def span_singleton : A →*₀ submodule R A :=
+{ to_fun := λ x, span R {x},
+  map_zero' := span_zero_singleton R,
+  map_one' := one_eq_span.symm,
+  map_mul' := λ x y, by rw [span_mul_span, set.singleton_mul_singleton] }
+
+variables {R} (M)
 
 lemma span_pow (s : set A) : ∀ n : ℕ, span R s ^ n = span R (s ^ n)
 | 0 := by rw [pow_zero, pow_zero, one_eq_span_one_set]
@@ -418,14 +426,21 @@ is closed under addition, and holds for `x * m` where `m ∈ M` and it holds for
 submodule.pow_induction_on_right' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ i x hx, hmul _) hx
 
-/-- `submonoid.map` as a `monoid_with_zero_hom`, when applied to `alg_hom`s. -/
+/-- `submodule.map` as a `ring_hom`, when applied to an `alg_hom`. -/
 @[simps]
 def map_hom {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
-  submodule R A →*₀ submodule R A' :=
-{ to_fun := map f.to_linear_map,
-  map_zero' := submodule.map_bot _,
+  submodule R A →+* submodule R A' :=
+{ to_fun := map f,
+  map_zero' := map_bot _,
   map_one' := submodule.map_one _,
-  map_mul' := λ _ _, submodule.map_mul _ _ _}
+  map_add' := (add_hom f).map_add,
+  map_mul' := λ _ _, submodule.map_mul _ _ _ }
+
+/-- `submodule.map` as a `ring_equiv`, when applied to an `alg_equiv`. -/
+@[simps]
+def map_equiv {A'} [semiring A'] [algebra R A'] (f : A ≃ₐ[R] A') :
+  submodule R A ≃+* submodule R A' :=
+{ map_mul' := λ _ _, submodule.map_mul _ _ f.to_alg_hom, .. add_equiv f.to_linear_equiv }
 
 /-- The ring of submodules of the opposite algebra is isomorphic to the opposite ring of
 submodules. -/

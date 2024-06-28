@@ -78,17 +78,19 @@ variables [algebra R P]
 
 variables (S)
 
-/-- A submodule `I` is a fractional ideal if `a I ⊆ R` for some `a ≠ 0`. -/
+/-- A submodule `I` is a fractional ideal with respect to a submonoid `S`
+  if `a I ⊆ R` for some `a ∈ S`. -/
 def is_fractional (I : submodule R P) :=
 ∃ a ∈ S, ∀ b ∈ I, is_integer R (a • b)
 
 variables (S P)
 
-/-- The fractional ideals of a domain `R` are ideals of `R` divided by some `a ∈ R`.
+/-- The fractional ideals of a domain `R` with respect to a submonoid `S`
+  are ideals of `R` divided by some `a ∈ S`.
 
   More precisely, let `P` be a localization of `R` at some submonoid `S`,
   then a fractional ideal `I ⊆ P` is an `R`-submodule of `P`,
-  such that there is a nonzero `a : R` with `a I ⊆ R`.
+  such that there is an `a ∈ S` with `a I ⊆ R`.
 -/
 def fractional_ideal :=
 {I : submodule R P // is_fractional S I}
@@ -691,7 +693,7 @@ lemma is_fractional_span_iff {s : set P} :
 
 include loc
 
-lemma is_fractional_of_fg {I : submodule R P} (hI : I.fg) :
+lemma _root_.is_fractional_of_fg {I : submodule R P} (hI : I.fg) :
   is_fractional S I :=
 begin
   rcases hI with ⟨I, rfl⟩,
@@ -699,6 +701,29 @@ begin
   rw is_fractional_span_iff,
   exact ⟨s, hs1, hs⟩,
 end
+
+lemma _root_.is_fractional_unit (I : (submodule R P)ˣ) : is_fractional S (I : submodule R P) :=
+is_fractional_of_fg $ fg_unit I
+
+lemma _root_.is_fractional_of_is_unit {I : submodule R P} (hI : is_unit I) : is_fractional S I :=
+is_fractional_of_fg $ fg_of_is_unit hI
+
+/-- The group of invertible fractional `R`-ideals in `P` is isomorphic to
+  the group of invertible `R`-submodules of `P`. -/
+def unit_equiv : (fractional_ideal S P)ˣ ≃* (submodule R P)ˣ :=
+{ to_fun := λ I, by use [I, ↑I⁻¹];
+    simp only [coe_coe, ← fractional_ideal.coe_mul, I.mul_inv, I.inv_mul, fractional_ideal.coe_one],
+  inv_fun := λ I, begin
+    use [⟨I, is_fractional_unit I⟩, ⟨_, is_fractional_unit I⁻¹⟩];
+    apply subtype.ext;
+    simp only [fractional_ideal.coe_mul, fractional_ideal.coe_mk,
+               I.mul_inv, I.inv_mul, fractional_ideal.coe_one],
+  end,
+  left_inv := λ I, by { ext1, ext1, refl },
+  right_inv := λ I, by { ext1, refl },
+  map_mul' := λ I J, begin
+    ext1, simp only [coe_coe, fractional_ideal.coe_mul, units.coe_mul, units.coe_mk],
+  end }
 
 omit loc
 
@@ -730,6 +755,15 @@ by { rw ← coe_ideal_fg S inj I, exact fg_of_is_unit I h }
 variables (S P P')
 
 include loc loc'
+
+@[irreducible]
+noncomputable def canonical_equiv :
+  fractional_ideal S P ≃+* fractional_ideal S P' :=
+submodule.map_equiv
+  { commutes' := λ r, ring_equiv_of_ring_equiv_eq _ _,
+    ..ring_equiv_of_ring_equiv P P' (ring_equiv.refl R)
+      (show S.map _ = S, by rw [ring_equiv.to_monoid_hom_refl, submonoid.map_id]) }
+
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `P` and in `P'` -/

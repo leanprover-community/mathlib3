@@ -1996,7 +1996,9 @@ end submodule
 
 namespace submodule
 
-variables [comm_semiring R] [comm_semiring R₂]
+section
+
+variables [semiring R] [semiring R₂]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R₂ M₂]
 variables [add_comm_monoid N] [add_comm_monoid N₂] [module R N] [module R N₂]
 variables {τ₁₂ : R →+* R₂} {τ₂₁ : R₂ →+* R}
@@ -2043,16 +2045,6 @@ lemma order_iso_map_comap_symm_apply' (e : M ≃ₛₗ[τ₁₂] M₂) (p : subm
 p.comap_equiv_eq_map_symm _
 omit τ₂₁
 
-lemma comap_le_comap_smul (fₗ : N →ₗ[R] N₂) (c : R) :
-  comap fₗ qₗ ≤ comap (c • fₗ) qₗ :=
-begin
-  rw set_like.le_def,
-  intros m h,
-  change c • (fₗ m) ∈ qₗ,
-  change fₗ m ∈ qₗ at h,
-  apply qₗ.smul_mem _ h,
-end
-
 lemma inf_comap_le_comap_add (f₁ f₂ : M →ₛₗ[τ₁₂] M₂) :
   comap f₁ q ⊓ comap f₂ q ≤ comap (f₁ + f₂) q :=
 begin
@@ -2061,6 +2053,21 @@ begin
   change f₁ m + f₂ m ∈ q,
   change f₁ m ∈ q ∧ f₂ m ∈ q at h,
   apply q.add_mem h.1 h.2,
+end
+
+end
+
+variables [comm_semiring R] [add_comm_monoid N] [add_comm_monoid N₂] [module R N] [module R N₂]
+variables (pₗ : submodule R N) (qₗ : submodule R N₂)
+
+lemma comap_le_comap_smul (fₗ : N →ₗ[R] N₂) (c : R) :
+  comap fₗ qₗ ≤ comap (c • fₗ) qₗ :=
+begin
+  rw set_like.le_def,
+  intros m h,
+  change c • (fₗ m) ∈ qₗ,
+  change fₗ m ∈ qₗ at h,
+  apply qₗ.smul_mem _ h,
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`,

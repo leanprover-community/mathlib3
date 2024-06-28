@@ -102,6 +102,16 @@ instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_e
   coe_injective' := @fun_like.coe_injective F _ _ _,
   ..s }
 
+variable {F}
+def to_linear_equiv [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+  [semilinear_equiv_class F σ M M₂] (f : F) : M ≃ₛₗ[σ] M₂ :=
+{ to_fun := f,
+  map_add' := map_add f,
+  map_smul' := map_smulₛₗ f,
+  inv_fun := inv f,
+  left_inv := left_inv f,
+  right_inv := right_inv f }
+
 end semilinear_equiv_class
 
 namespace linear_equiv
